@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"
+    />
+    <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.png" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Montserrat:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i"
+    />
+    <title>Hubble UI</title>
+    <script>
+      window.HUBBLE = "%HUBBLE%";
+      window.isHubble = window.HUBBLE === "1";
+      window.FRONTEND_URI = "%REACT_APP_FRONTEND_URI%";
+      window.USER_NAME = "{% USER_NAME %}";
+      window.USER_EMAIL = "{% USER_EMAIL %}";
+      window.USER_PICTURE = "{% USER_PICTURE %}";
+    </script>
+    <style>
+      .Select-control {
+        border-radius: 2px !important;
+      }
+
+      .Select-control,
+      .Select-placeholder,
+      .Select-input {
+        height: 29px !important;
+      }
+
+      .Select-placeholder {
+        line-height: 29px !important;
+      }
+
+      .Select-value {
+        line-height: 28px !important;
+      }
+
+      .Select.is-focused:not(.is-open) > .Select-control {
+        border-color: #ccc !important;
+        box-shadow: none !important;
+      }
+
+      .Select--multi .Select-value {
+        height: 22px;
+        display: inline-flex !important;
+        align-items: center;
+      }
+
+      .Select--multi .Select-value > span {
+        height: 22px;
+        line-height: 19px;
+      }
+
+      .Select-multi-value-wrapper {
+        min-height: 32px;
+      }
+
+      .Select--multi .Select-clear-zone {
+        font-size: 0;
+        color: transparent;
+      }
+
+      body {
+        overflow: hidden;
+      }
+    </style>
+  </head>
+
+  <body class="theme-default">
+    <div id="modals-root"></div>
+    <div id="search-root"></div>
+    <div id="notifications-root"></div>
+    <div id="menu-bar-fader-root"></div>
+    <div id="menu-bar-root"></div>
+    <div id="app-root"></div>
+  </body>
+</html>

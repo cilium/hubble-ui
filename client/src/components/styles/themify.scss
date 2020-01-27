@@ -1,0 +1,23 @@
+@import "./global.scss";
+@import "./themes.scss";
+
+@mixin themify() {
+  @each $theme-name, $theme in $themes {
+    $current-theme: $theme !global;
+    @if $theme-name == "default" {
+      @content;
+    } @else {
+      .theme-#{$theme-name} & {
+        @content;
+      }
+    }
+  }
+}
+
+@function theme-get($key, $theme: $current-theme) {
+  $ret: map-get($theme, $key);
+  @if not $ret {
+    @error "Your theme doesn't have a value for `#{$key}`.";
+  }
+  @return $ret;
+}

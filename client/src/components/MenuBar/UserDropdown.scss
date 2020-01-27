@@ -1,0 +1,64 @@
+:local(.menuItem) {
+  padding: 6px 5px !important;
+}
+
+:local(.menuItemIconWrapper) {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  flex: 0 0 20px;
+  align-items: center;
+  justify-content: center;
+  margin-left: 10px;
+}
+
+:local(.orgIcon) {
+  display: block;
+  width: 18px;
+  height: 18px;
+  text-align: center;
+  line-height: 18px;
+  background-color: teal;
+  border-radius: 2px;
+  font-size: 13px;
+  font-weight: bold;
+  font-style: normal;
+  color: #ffffff;
+}
+
+:local(.orgList) {
+  max-height: 480px;
+  overflow: auto;
+}
+
+:local(.userImage) {
+  border-radius: 20px;
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.switch {
+  margin: 0 !important;
+}
+
+.active {
+  position: relative;
+
+  &::before {
+    content: " ";
+    position: absolute;
+    width: 3px;
+    height: 100%;
+    left: -5px;
+    top: 0;
+    right: 0;
+    background-color: #7d7d7d;
+    margin: 0 !important;
+  }
+}
+
+.itemText {
+  font-size: 12px;
+  padding-left: 5px;
+}

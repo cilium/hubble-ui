@@ -1,0 +1,74 @@
+:local(.couter) {
+  fill: #ef7c4b;
+}
+
+:local(.cinner) {
+  fill: #ffc9bb;
+}
+
+:local(.fleft),
+:local(.fright) {
+  fill: #ef7c4b;
+}
+
+:local(.sleft),
+:local(.sright) {
+  fill: #ffd6cb;
+}
+
+:local(.couter.animated) {
+  animation: pulse-couter 2s infinite;
+}
+@keyframes pulse-couter {
+  from {
+    fill: #ef7c4b;
+  }
+  to {
+    fill: #ffd6cb;
+  }
+}
+
+:local(.cinner.animated) {
+  animation: pulse-cinner 2s infinite;
+}
+@keyframes pulse-cinner {
+  from {
+    fill: #ffc9bb;
+  }
+  to {
+    fill: #ffece7;
+  }
+}
+
+:local(.fleft.animated),
+:local(.fright.animated) {
+  animation: pulse-fleftright 2s infinite;
+}
+@keyframes pulse-fleftright {
+  from {
+    fill: #ffd6cb;
+  }
+  50% {
+    fill: #ef7c4b;
+  }
+  to {
+    fill: #ffd6cb;
+  }
+}
+
+:local(.sleft.animated),
+:local(.sright.animated) {
+  animation: pulse-sleftright 2s infinite;
+  animation-delay: 0.666666667s;
+}
+@keyframes pulse-sleftright {
+  from {
+    fill: #ffd6cb;
+  }
+  25% {
+    fill: #ef7c4b;
+  }
+  to {
+    fill: #ffd6cb;
+  }
+}

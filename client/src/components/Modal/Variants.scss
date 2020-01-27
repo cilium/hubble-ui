@@ -1,0 +1,154 @@
+@import "./themes.scss";
+
+:local(.wrapper) {
+  z-index: z(modal-variants);
+  min-width: 340px;
+  min-width: 0;
+  min-height: 0;
+  border-radius: 3px;
+  word-wrap: break-word;
+  position: relative;
+  @include themify {
+    background-color: theme-get(background-color);
+  }
+}
+
+:local(.title),
+:local(.description),
+:local(.content) {
+  min-width: 0;
+  width: 100%;
+  word-wrap: break-word;
+}
+
+:local(.title),
+:local(.content),
+:local(.footer) {
+  padding: 0 20px;
+}
+
+:local(.title) {
+  box-sizing: border-box;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 24px;
+  color: #303030;
+}
+
+:local(.description) {
+  box-sizing: border-box;
+  text-align: center;
+  font-size: 14px;
+  line-height: 20px;
+  @include themify {
+    color: theme-get(description-color);
+  }
+}
+
+:local(.title) + :local(.description),
+:local(.title) + :local(.content),
+:local(.description) + :local(.content) {
+  margin-top: 0;
+}
+
+:local(.content) {
+  display: flex;
+  box-sizing: border-box;
+  &:first-child {
+    margin-top: 0;
+  }
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+:local(.footer) {
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 20px 0 0 0;
+  padding-top: 16px;
+  padding-bottom: 16px;
+  border-radius: 0 0 3px 3px;
+  align-items: center;
+  justify-content: center;
+  @include themify {
+    background-color: theme-get(footer-background-color);
+  }
+}
+
+:local(.footer) button {
+  margin-right: 12px;
+}
+
+:local(.footer) button:last-child {
+  margin-right: 0;
+}
+
+:local(.wrapper) input[type="text"],
+:local(.wrapper) textarea {
+  display: block;
+  width: 100%;
+  padding: 5px 11px;
+
+  resize: none;
+
+  border: 1px solid;
+  border-radius: 3px;
+
+  font-size: 14px;
+  line-height: 22px;
+
+  @include themify {
+    color: theme-get(input-font-color);
+    border-color: theme-get(input-border-color);
+    background-color: theme-get(input-bg-color);
+  }
+}
+
+:local(.wrapper) .Select-input,
+:local(.wrapper) .Select-input input,
+:local(.wrapper) .Select-control,
+:local(.wrapper) .Select-option,
+:local(.wrapper) .Select-placeholder,
+:local(.wrapper) .Select-value,
+:local(.wrapper) .Select-value-label {
+  font-size: 14px;
+
+  @include themify {
+    color: theme-get(input-font-color) !important;
+  }
+}
+
+:local(.wrapper) .Select-control {
+  @include themify {
+    border-color: theme-get(input-border-color) !important;
+    background-color: theme-get(input-bg-color) !important;
+  }
+}
+
+:local(.wrapper) .Select-menu-outer,
+:local(.wrapper) .Select-option,
+:local(.wrapper) .Select-placeholder {
+  @include themify {
+    border-color: theme-get(input-border-color) !important;
+    background-color: theme-get(input-bg-color) !important;
+  }
+}
+
+:local(.wrapper) .Select-control,
+:local(.wrapper) .Select-menu-outer,
+:local(.wrapper) .Select-placeholder {
+  @include themify {
+    border-color: theme-get(input-border-color) !important;
+  }
+}
+
+:local(.wrapper) .Select-control {
+  border-radius: 3px;
+}
+
+:local(.wrapper) .Select-menu-outer {
+  border-radius: 0 0 3px 3px;
+}

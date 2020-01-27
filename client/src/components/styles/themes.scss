@@ -1,0 +1,12 @@
+$themes: (
+  default: (
+    appbar-bottom-color: #cbcbcb,
+    appbar-bg-color: #fff,
+    appbar-logo-background: url(../assets/logos/only-logo.svg) 0 0 no-repeat
+  ),
+  dark: (
+    appbar-bottom-color: #333333,
+    appbar-bg-color: #1c1c1c,
+    appbar-logo-background: url(../assets/logos/only-logo.svg) 0 0 no-repeat
+  )
+);

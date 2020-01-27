@@ -1,0 +1,40 @@
+{
+  "name": "hubble-ui",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {},
+  "devDependencies": {
+    "husky": "^3.0.0",
+    "lint-staged": "^9.1.0",
+    "prettier": "^1.18.2"
+  },
+  "scripts": {
+    "prettier": "node ./scripts/prettier.js",
+    "install:client": "cd client; npm install",
+    "install:server": "cd server; npm install",
+    "install:all": "npm run install:client; npm run install:server",
+    "start:client": "cd client; npm start",
+    "start:server": "cd server; npm start",
+    "build:client": "cd client; npm run build",
+    "build:server": "cd server; npm run build",
+    "test:client": "cd client; npm test",
+    "test:server": "cd server; npm test",
+    "build": "npm run build:client && npm run build:server",
+    "test": "npm run test:client && npm run test:server"
+  },
+  "lint-staged": {
+    "client/**/*.{tsx,ts,jsx,js,scss}": [
+      "npm run prettier",
+      "git add"
+    ],
+    "server/{src,__tests__}/*.{tsx,ts,jsx,js,scss}": [
+      "npm run prettier",
+      "git add"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  }
+}

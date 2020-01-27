@@ -1,0 +1,17 @@
+:local(.container) {
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border: 1px solid #ddd;
+  border-radius: 2px;
+  background: #f7f7f7;
+}
+
+:local(.message) {
+  color: #666;
+  font-weight: bold;
+  font-size: 14px;
+  margin-top: 6px;
+}

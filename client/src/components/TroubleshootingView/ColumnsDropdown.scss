@@ -1,0 +1,58 @@
+:local {
+  .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 25px;
+    height: 25px;
+    background-color: #e5e5e5;
+    border: 1px solid #bdbdbd;
+    border-radius: 2px;
+
+    &:hover {
+      cursor: pointer;
+    }
+
+    .firstBar {
+      width: 2px;
+      height: 14px;
+      margin-right: 3px;
+      background-color: #a1a1a1;
+    }
+
+    .secondBar {
+      width: 2px;
+      height: 14px;
+      margin-right: 3px;
+      background-color: #a1a1a1;
+    }
+
+    .thirdBar {
+      width: 4px;
+      height: 14px;
+      background-color: #a1a1a1;
+    }
+  }
+
+  .wrapper {
+    padding: 10px;
+    color: #484848;
+  }
+  .title {
+    font-weight: 600;
+  }
+  .example {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 3px 5px;
+    background-color: #efefef;
+    border-radius: 3px;
+    font-family: "Menlo", "Monaco", "Ubuntu Mono", "Consolas", monospace;
+  }
+  .item {
+    margin-bottom: 5px;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}

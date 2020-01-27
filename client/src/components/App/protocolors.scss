@@ -1,0 +1,172 @@
+@import "../styles/themify.scss";
+
+$themes: (
+  default: (
+    http: #7379fc,
+    grpc: #7379fc,
+    cassandra: #7379fc,
+    elasticsearch: #7379fc,
+    kafka: #7379fc,
+    couchdb: #7379fc,
+    other: #7379fc
+  ),
+  dark: (
+    http: #7379fc,
+    grpc: #7379fc,
+    cassandra: #7379fc,
+    elasticsearch: #7379fc,
+    kafka: #7379fc,
+    couchdb: #7379fc,
+    other: #7379fc
+  )
+);
+
+$protocols: http grpc couchdb elasticsearch cassandra kafka other;
+
+@each $protocol in $protocols {
+  :local(.otherSelected#{$protocol}Node) {
+    @include themify {
+      border: 1px solid theme-get($protocol) !important;
+      box-shadow: 0 0 12px lighten(theme-get($protocol), 5%) !important;
+    }
+  }
+
+  :local(.otherSelectedNode) {
+    border: 1px solid #7379fc !important;
+    box-shadow: 0 0 12px rgba(#7379fc, 0.45) !important;
+  }
+
+  :local(.otherNode) {
+    border: 1px solid #b1b1b1 !important;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  :local(.#{$protocol}Port) {
+    @include themify {
+      background-color: theme-get($protocol) !important;
+    }
+  }
+
+  :local(.otherEar) {
+    background-color: #c8c8c8 !important;
+    border-color: #b0b0b0 !important;
+  }
+
+  :local(.otherSelectedEar) {
+    border-color: #7379fc !important;
+    background-color: lighten(#7379fc, 20%) !important;
+  }
+
+  :local(.otherSelected#{$protocol}Ear) {
+    @include themify {
+      border-color: theme-get($protocol) !important;
+      background-color: lighten(theme-get($protocol), 20%) !important;
+    }
+  }
+
+  :local(.#{$protocol}Name) {
+    @include themify {
+      color: theme-get($protocol) !important;
+    }
+  }
+
+  :local(.#{$protocol}Point) {
+    @include themify {
+      border-color: lighten(theme-get($protocol), 15%) !important;
+      background-color: lighten(theme-get($protocol), 30%) !important;
+    }
+  }
+  :local(.#{$protocol}FuncGroup) {
+    @include themify {
+      // border-top: 1px solid lighten(theme-get($protocol), 30%) !important;
+    }
+  }
+
+  :local(.#{$protocol}Flow) {
+    @include themify {
+      stroke: theme-get($protocol) !important;
+    }
+  }
+
+  :local(.#{$protocol}Arrow) {
+    @include themify {
+      fill: darken(theme-get($protocol), 5%) !important;
+    }
+  }
+
+  :local(.#{$protocol}Circle) {
+    @include themify {
+      stroke: theme-get($protocol) !important;
+      fill: lighten(theme-get($protocol), 20%) !important;
+    }
+  }
+
+  :local(.otherCircle) {
+    stroke: #989898 !important;
+    fill: #adadad !important;
+  }
+
+  :local(.otherSelectedCircle) {
+    stroke: #7379fc !important;
+    fill: lighten(#7379fc, 10%) !important;
+  }
+
+  :local(.otherBoldFlow) {
+    stroke: #989898 !important;
+  }
+
+  :local(.otherSelectedBoldFlow) {
+    stroke: #7379fc !important;
+  }
+
+  :local(.fromNodeToBoundFlow) {
+    stroke: #69a5f1 !important;
+  }
+
+  :local(.fromNodeToBoundArrow) {
+    fill: darken(#69a5f1, 10%) !important;
+  }
+
+  :local(.boundCircle) {
+    stroke: #69a5f1 !important;
+    fill: #e1e7ee !important;
+  }
+
+  :local(.otherThinFlow) {
+    stroke: #afafaf !important;
+  }
+
+  :local(.flowToMore) {
+    stroke-dasharray: 4;
+  }
+
+  :local(.otherSelectedThinFlow) {
+    stroke: #7379fc !important;
+  }
+
+  :local(.otherArrow) {
+    fill: #7b7a7a !important;
+  }
+
+  :local(.otherSelectedArrow) {
+    fill: darken(#7379fc, 10%) !important;
+  }
+
+  :local(.#{$protocol}FunctionBg) {
+    @include themify {
+      background-color: rgba(theme-get($protocol), 0.25) !important;
+    }
+  }
+
+  :local(.#{$protocol}ProtocolBg) {
+    @include themify {
+      background-color: rgba(theme-get($protocol), 0.25) !important;
+    }
+  }
+
+  :local(.#{$protocol}FunctionLabel) {
+    @include themify {
+      color: theme-get($protocol) !important;
+    }
+  }
+}

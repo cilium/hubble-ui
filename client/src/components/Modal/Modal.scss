@@ -1,0 +1,51 @@
+@import "../styles/themify.scss";
+
+:local(.wrapper) {
+  position: absolute;
+  z-index: z(modal);
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 100%;
+  overflow: auto;
+  cursor: default;
+  background: rgba(23, 23, 23, 0.8);
+}
+
+:local(.wrapper) > :local(.wrapper) {
+  height: auto;
+}
+
+:local(.component) {
+  position: absolute;
+  z-index: z(modal);
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 100%;
+  padding: 22px 0;
+  overflow: auto;
+  cursor: default;
+}
+
+:local(.hidden) {
+  opacity: 0;
+}
+
+:local(.outer) {
+  position: absolute;
+  top: -999999px;
+  left: -999999px;
+  z-index: -999999;
+  visibility: hidden;
+}

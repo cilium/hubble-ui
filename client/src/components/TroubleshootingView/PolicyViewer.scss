@@ -1,0 +1,97 @@
+:local(.container) {
+  position: relative;
+  width: 450px;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: #fff;
+  border-left: 1px solid #e5e5e5;
+}
+
+:local(.header) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 3px;
+  margin-top: 10px;
+  padding: 0 5px;
+}
+
+:local(.title) {
+  font-size: 14px;
+  font-weight: 600;
+  color: #868686;
+}
+
+:local(.policySpecs) {
+  overflow-x: hidden;
+  overflow-y: auto;
+  width: 450px;
+}
+
+:local(.policySpec) {
+}
+
+:local(.specName) {
+  display: flex;
+  align-items: center;
+  margin: 10px;
+  font-size: 14px;
+  color: #303030;
+
+  span {
+    max-width: 300px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+:local(.code) {
+  width: 100%;
+  padding: 0 10px;
+
+  pre {
+    width: 100%;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+}
+
+:local(.policyHeader) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 10px;
+}
+
+:local(.header) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 3px;
+  margin-top: 10px;
+  padding: 0 10px;
+}
+
+:local(.title) {
+  font-size: 14px;
+  font-weight: 600;
+  color: #868686;
+}
+
+:local(.select) {
+  line-height: 15px;
+  font-size: 12px;
+
+  :global(select) {
+    line-height: 15px;
+    height: 24px;
+    font-size: 12px;
+  }
+
+  :global(.bp3-icon-double-caret-vertical) {
+    top: 4px;
+    font-size: 10px;
+  }
+}

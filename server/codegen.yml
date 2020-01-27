@@ -1,0 +1,13 @@
+schema:
+  - "src/schema.graphql"
+documents: []
+config:
+  namingConvention:
+    default: "change-case#pascalCase"
+    enumValues: keep
+generates:
+  ./src/graphqlTypes.ts:
+    config: {}
+    plugins:
+      - typescript
+require: []

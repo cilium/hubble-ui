@@ -1,0 +1,63 @@
+:local {
+  .wrapper {
+    text-align: center;
+    height: 38px;
+    background-color: white;
+    font-size: 20px;
+    line-height: 38px;
+    cursor: row-resize;
+    color: #b9b9b9;
+
+    &:hover {
+      background-color: #fafafa;
+    }
+  }
+
+  .dragStub {
+    height: 100%;
+  }
+
+  .inner {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    height: 0;
+    margin: 0 20px;
+    top: -22px;
+  }
+
+  .actionButton {
+    display: flex;
+    align-items: flex-start;
+    margin-right: 20px;
+  }
+
+  .leftButtons {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .tabs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+    padding: 0 40px;
+
+    .filters {
+      display: flex;
+      position: absolute;
+      top: -20px;
+      left: calc(50% + 75px);
+    }
+  }
+
+  .rightButtons {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+}
