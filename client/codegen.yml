@@ -9,7 +9,6 @@ generates:
   src/graphqlTypes.ts:
     config: {}
     plugins:
-      - "typescript-common"
-      - "typescript-client"
-      - "typescript-server"
+      - "typescript"
+      - "typescript-operations"
 require: []

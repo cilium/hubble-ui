@@ -1,4 +1,4 @@
-FROM node:12.13-slim
+FROM node:13.7-slim
 
 ENV CI true
 

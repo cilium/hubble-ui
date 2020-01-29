@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-import { PolicySpecs, PolicySpecsUserArgs } from "../../../graphqlTypes";
+import { PolicySpecs, UserPolicySpecsArgs } from "../../../graphqlTypes";
 import { createAsyncAction } from "../../../state";
 import { GqlResult } from "../../App/state/types";
 import * as queries from "./queries";
@@ -19,7 +19,7 @@ import * as queries from "./queries";
 export const fetchPolicySpecs = createAsyncAction({
   name: "Fetch Policy Specs",
   action: async (
-    args: PolicySpecsUserArgs,
+    args: UserPolicySpecsArgs,
     { client }
   ): Promise<PolicySpecs[]> => {
     type ResultType = GqlResult<{ policySpecs: PolicySpecs[] }>;
