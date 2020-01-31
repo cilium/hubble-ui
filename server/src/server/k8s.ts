@@ -67,7 +67,9 @@ export const createUserApi = (token: string) => {
     }
   ];
 
-  const requestOpts: any = {};
+  const requestOpts: any = {
+    strictSSL: process.env.STRICT_SSL === "false"
+  };
   config.applyToRequest(requestOpts);
 
   return {
