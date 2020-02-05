@@ -28,6 +28,8 @@ export class ConfigDatabaseHubble implements IConfigDatabase {
     selectedFields?: IClusterSelectedFields,
     namespace?: string
   ): Promise<{ cluster: Cluster; clusterInfo: IClusterInfo[] }> {
+    const startClusterInfo = Date.now();
+    context.logger.debug("Fetching cluster info...");
     const clusterInfo = await this.getClusterInfo(
       context,
       cluster,
@@ -36,14 +38,26 @@ export class ConfigDatabaseHubble implements IConfigDatabase {
       undefined,
       namespace
     );
+    context.logger.debug(
+      `Fetched cluster info in ${Date.now() - startClusterInfo}ms`
+    );
+
+    const startCnp = Date.now();
+    context.logger.debug("Fetching cnp...");
     const cnp =
       selectedFields && selectedFields.cnp
         ? await k8s.getCiliumNetworkPolicies(context.user.token)
         : undefined;
+    context.logger.debug(`Fetched cnp in ${Date.now() - startCnp}ms`);
+
+    const startKnp = Date.now();
+    context.logger.debug("Fetching knp...");
     const knp =
       selectedFields && selectedFields.knp
         ? await k8s.getKubernetesNetworkPolicies(context.user.token)
         : undefined;
+    context.logger.debug(`Fetched knp in ${Date.now() - startKnp}ms`);
+
     return {
       clusterInfo,
       cluster: {
@@ -84,7 +98,12 @@ export class ConfigDatabaseHubble implements IConfigDatabase {
     numRecords?: number,
     namespace?: string
   ): Promise<IClusterInfo[]> {
+    const startNamespaces = Date.now();
+    context.logger.debug("Fetching namespaces...");
     const namespaces = await k8s.getNamespacesList();
+    context.logger.debug(
+      `Fetched namespaces in ${Date.now() - startNamespaces}ms`
+    );
     if (!namespace) {
       return [
         {
@@ -98,14 +117,37 @@ export class ConfigDatabaseHubble implements IConfigDatabase {
         }
       ];
     }
+
+    const startPodList = Date.now();
+    context.logger.debug("Fetching pods...");
     const podList = await k8s.getPodListForNamespace(
       context.user.token,
       namespace
     );
+    context.logger.debug(`Fetched pods in ${Date.now() - startPodList}ms`);
+
+    const startCep = Date.now();
+    context.logger.debug("Fetching cep...");
     const cep = await k8s.getCiliumEndpointsForNamespace(
       context.user.token,
       namespace
     );
+    context.logger.debug(`Fetched cep in ${Date.now() - startCep}ms`);
+
+    const startServices = Date.now();
+    context.logger.debug("Fetching services...");
+    const services = JSON.stringify(
+      await k8s.getServicesForNamespace(context.user.token, namespace)
+    );
+    context.logger.debug(`Fetched services in ${Date.now() - startServices}ms`);
+
+    const startKep = Date.now();
+    context.logger.debug("Fetching kep...");
+    const kep = JSON.stringify(
+      await k8s.getK8SEndpointsForNamespace(context.user.token, namespace)
+    );
+    context.logger.debug(`Fetched kep in ${Date.now() - startKep}ms`);
+
     const clusterInfo: IClusterInfo = {
       cep: cep,
       endpoints: JSON.stringify(
@@ -117,12 +159,8 @@ export class ConfigDatabaseHubble implements IConfigDatabase {
         }))
       ),
       namespaces: namespaces,
-      services: JSON.stringify(
-        await k8s.getServicesForNamespace(context.user.token, namespace)
-      ),
-      k8sEndpoints: JSON.stringify(
-        await k8s.getK8SEndpointsForNamespace(context.user.token, namespace)
-      ),
+      services: services,
+      k8sEndpoints: kep,
       date: new Date().toISOString(),
       podList: {
         getPodsList: () => podList
