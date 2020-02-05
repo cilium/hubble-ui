@@ -52,6 +52,8 @@ export async function discoverCluster(
   userFilterBy: FlowFiltersInput | null | undefined,
   context: IContext
 ): Promise<DiscoverClusterResult> {
+  const startDiscoverCluster = Date.now();
+  context.logger.debug(`Starting to discover cluster...`);
   const finalNamespaces = namespaces;
   if (!finalNamespaces || finalNamespaces.length > 1) {
     throw new Error(
@@ -68,7 +70,13 @@ export async function discoverCluster(
     finalNamespaces[0]
   );
 
+  const startClusterIps = Date.now();
+  context.logger.debug(`Fetching cluster ips...`);
   const clusterIps = await appUtils.getClusterIps(cluster.clusterInfo);
+  context.logger.debug(
+    `Fetched cluster ips in ${Date.now() - startClusterIps}ms`
+  );
+
   const filterBy = {
     ...(userFilterBy || {}),
     clusterId,
@@ -80,6 +88,9 @@ export async function discoverCluster(
       }
     ]
   };
+
+  const startFlows = Date.now();
+  context.logger.debug(`Fetching flows for discovery...`);
   const flowsConnection = await context.database.getFlows(
     context,
     {
@@ -87,6 +98,9 @@ export async function discoverCluster(
     },
     1000000,
     true
+  );
+  context.logger.debug(
+    `Fetched flows for discovery in ${Date.now() - startFlows}ms`
   );
 
   const flows = flowsConnection.edges.map(edge => edge.node);
@@ -119,6 +133,11 @@ export async function discoverCluster(
     context,
     discoveredHashMap
   );
+
+  context.logger.debug(
+    `Discovered cluster in ${Date.now() - startDiscoverCluster}ms`
+  );
+
   return {
     endpoints,
     responseHash: hash(endpoints)

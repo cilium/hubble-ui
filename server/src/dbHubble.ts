@@ -183,6 +183,8 @@ export class DatabaseHubble implements IDatabase {
   async getHubbleClients(context: IContext): Promise<ObserverClient[]> {
     const { hubbleService, hubblePort, hubblePeerEnabled } = getEnvConfig();
     return new Promise((resolve, reject) => {
+      const start = Date.now();
+      context.logger.debug(`Searching hubble clients...`);
       if (hubblePeerEnabled) {
         resolve([
           new ObserverClient(
@@ -190,6 +192,9 @@ export class DatabaseHubble implements IDatabase {
             grpc.credentials.createInsecure()
           )
         ]);
+        context.logger.debug(
+          `Found 1 hubble client in ${Date.now() - start}ms`
+        );
       } else {
         dns.resolve4(hubbleService || "hubble-grpc", (err, addresses) => {
           if (err) {
@@ -205,6 +210,10 @@ export class DatabaseHubble implements IDatabase {
                 )
             )
           );
+          context.logger.debug(
+            `Found ${addresses.length} hubble client(s) in ${Date.now() -
+              start}ms`
+          );
         });
       }
     });
@@ -216,6 +225,8 @@ export class DatabaseHubble implements IDatabase {
     defaultNumRecords?: number,
     processL7 = false
   ): Promise<FlowConnection> {
+    const startGetFlows = Date.now();
+    context.logger.debug(`Starting to fetch flows...`);
     if (!args.filterBy || !args.filterBy.labels) {
       throw new Error("Need namespace specified");
     }
@@ -241,9 +252,13 @@ export class DatabaseHubble implements IDatabase {
     const seenIds = new Set();
     return Promise.all(
       clients.map(
-        client =>
+        (client, clientIndex) =>
           new Promise(async (resolve, reject) => {
+            context.logger.debug(
+              `Fetching flows from client #${clientIndex}...`
+            );
             const flowsStream = client.getFlows(req);
+            const startClientGetFlows = Date.now();
             flowsStream.on("data", (res: GetFlowsResponse) => {
               context.logger.trace(
                 { flow: res.toObject() },
@@ -409,6 +424,10 @@ export class DatabaseHubble implements IDatabase {
             });
 
             flowsStream.on("end", () => {
+              context.logger.debug(
+                `Fetched flows from client #${clientIndex} in ${Date.now() -
+                  startClientGetFlows}ms`
+              );
               resolve();
             });
 
@@ -418,6 +437,9 @@ export class DatabaseHubble implements IDatabase {
           })
       )
     ).then(() => {
+      context.logger.debug(
+        `Fetched all flows in ${Date.now() - startGetFlows}ms`
+      );
       edges.sort((a, b) => {
         return +new Date(b.node.timestamp) - +new Date(a.node.timestamp);
       });
