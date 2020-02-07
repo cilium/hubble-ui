@@ -42,6 +42,7 @@ import { protocolId } from "./shared/generators";
 import { getL7ProtocolFromApplicationProtocol } from "./shared/portMapping";
 import { IClusterSelectedFields, IContext } from "./types";
 import uuid = require("uuid");
+import { Verdict } from "./hubble_proto/flow/flow_pb";
 
 export async function discoverCluster(
   clusterId: string,
@@ -93,11 +94,30 @@ export async function discoverCluster(
   context.logger.debug(`Fetching flows for discovery...`);
   const flowsConnection = await context.database.getFlows(
     context,
+    { filterBy },
     {
-      filterBy
-    },
-    1000000,
-    true
+      processL7: true,
+      flowsFiltersExtensionCallback: ({
+        srcBlacklistFilter,
+        dstBlacklistFilter
+      }) => {
+        srcBlacklistFilter.addVerdict(Verdict.DROPPED);
+        srcBlacklistFilter.addVerdict(Verdict.VERDICT_UNKNOWN);
+        srcBlacklistFilter.addSourceLabel("reserved:cluster");
+        srcBlacklistFilter.addSourceLabel("reserved:init");
+        srcBlacklistFilter.addSourceLabel("reserved:unmanaged");
+        srcBlacklistFilter.addSourceLabel("reserved:health");
+        // reserved:unknown already set up by default inside getFlows
+
+        dstBlacklistFilter.addVerdict(Verdict.DROPPED);
+        dstBlacklistFilter.addVerdict(Verdict.VERDICT_UNKNOWN);
+        dstBlacklistFilter.addDestinationLabel("reserved:cluster");
+        dstBlacklistFilter.addDestinationLabel("reserved:init");
+        dstBlacklistFilter.addDestinationLabel("reserved:unmanaged");
+        dstBlacklistFilter.addDestinationLabel("reserved:health");
+        dstBlacklistFilter.addDestinationFqdn("*.cluster.local");
+      }
+    }
   );
   context.logger.debug(
     `Fetched flows for discovery in ${Date.now() - startFlows}ms`
@@ -379,7 +399,7 @@ export async function getFlows(
   context: IContext,
   args: UserFlowsArgs
 ): Promise<FlowConnection> {
-  return context.database.getFlows(context, args);
+  return context.database.getFlows(context, args, { processL7: false });
 }
 
 export function getClusterSelectedFields(info: any): IClusterSelectedFields {

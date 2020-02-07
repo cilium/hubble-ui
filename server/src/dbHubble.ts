@@ -15,7 +15,7 @@ import * as dns from "dns";
 import { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
 import * as hash from "object-hash";
 import * as URL from "url";
-import { IDatabase } from "./db";
+import { FlowsFiltersExtensionCallback, IDatabase } from "./db";
 import {
   Flow,
   FlowConnection,
@@ -55,9 +55,11 @@ export class DatabaseHubble implements IDatabase {
   async initialize(): Promise<void> {}
 
   async getFlow(context: IContext, args: UserFlowArgs): Promise<Flow> {
-    const flows = await this.getFlows(context, {
-      filterBy: { labels: args.labels }
-    });
+    const flows = await this.getFlows(
+      context,
+      { filterBy: { labels: args.labels } },
+      { processL7: false }
+    );
     const flow = flows.edges.find(f => f.node.id === args.id);
     if (!flow) {
       throw new Error(`Flow not found: ${args.id}`);
@@ -66,7 +68,8 @@ export class DatabaseHubble implements IDatabase {
   }
 
   static async argsToGetFlowsRequest(
-    args: UserFlowsArgs
+    args: UserFlowsArgs,
+    filtersExtensionCallback?: FlowsFiltersExtensionCallback
   ): Promise<GetFlowsRequest> {
     const req: GetFlowsRequest = new GetFlowsRequest();
 
@@ -169,13 +172,22 @@ export class DatabaseHubble implements IDatabase {
       }
     }
 
+    const srcBlacklistFilter = new FlowFilter();
+    const dstBlacklistFilter = new FlowFilter();
+    srcBlacklistFilter.addSourceLabel("reserved:unknown");
+    dstBlacklistFilter.addDestinationLabel("reserved:unknown");
+
+    if (filtersExtensionCallback) {
+      filtersExtensionCallback({
+        srcFilter,
+        dstFilter,
+        srcBlacklistFilter,
+        dstBlacklistFilter
+      });
+    }
+
     req.setWhitelistList([srcFilter, dstFilter]);
-    const reservedUnknown = "reserved:unknown";
-    const blacklistSource = new FlowFilter();
-    blacklistSource.addSourceLabel(reservedUnknown);
-    const blacklistDestination = new FlowFilter();
-    blacklistDestination.addDestinationLabel(reservedUnknown);
-    req.setBlacklistList([blacklistSource, blacklistDestination]);
+    req.setBlacklistList([srcBlacklistFilter, dstBlacklistFilter]);
 
     return req;
   }
@@ -219,12 +231,7 @@ export class DatabaseHubble implements IDatabase {
     });
   }
 
-  async getFlows(
-    context: IContext,
-    args: UserFlowsArgs,
-    defaultNumRecords?: number,
-    processL7 = false
-  ): Promise<FlowConnection> {
+  async getFlows(context, args, options): Promise<FlowConnection> {
     const startGetFlows = Date.now();
     context.logger.debug(`Starting to fetch flows...`);
     if (!args.filterBy || !args.filterBy.labels) {
@@ -327,7 +334,7 @@ export class DatabaseHubble implements IDatabase {
                 ? "HTTP"
                 : undefined;
 
-              if (processL7 && flow.getType() === FlowType.L7) {
+              if (options.processL7 && flow.getType() === FlowType.L7) {
                 if (!flow.getReply()) {
                   return;
                 }

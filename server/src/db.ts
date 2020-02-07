@@ -17,6 +17,7 @@ import {
   UserFlowArgs,
   UserFlowsArgs
 } from "./graphqlTypes";
+import { FlowFilter } from "./hubble_proto/flow/flow_pb";
 import { IContext } from "./types";
 
 export interface IDatabase {
@@ -27,7 +28,16 @@ export interface IDatabase {
   getFlows(
     context: IContext,
     args: UserFlowsArgs,
-    defaultNumRecords?: number,
-    processL7?: boolean
+    options: {
+      processL7: boolean;
+      flowsFiltersExtensionCallback?: FlowsFiltersExtensionCallback;
+    }
   ): Promise<FlowConnection>;
 }
+
+export type FlowsFiltersExtensionCallback = (args: {
+  srcFilter: FlowFilter;
+  dstFilter: FlowFilter;
+  srcBlacklistFilter: FlowFilter;
+  dstBlacklistFilter: FlowFilter;
+}) => void;
