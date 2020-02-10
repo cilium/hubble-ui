@@ -36,13 +36,17 @@ import {
   UserFlowsArgs,
   UserPolicySpecsArgs
 } from "./graphqlTypes";
+import {
+  FlowFilter,
+  Verdict,
+  EventTypeFilter
+} from "./hubble_proto/flow/flow_pb";
 import { filterSpecs, updateEndpointsWithIngressEgress } from "./policy";
 import { NAMESPACE_LABEL } from "./shared/constants";
 import { protocolId } from "./shared/generators";
 import { getL7ProtocolFromApplicationProtocol } from "./shared/portMapping";
 import { IClusterSelectedFields, IContext } from "./types";
 import uuid = require("uuid");
-import { Verdict } from "./hubble_proto/flow/flow_pb";
 
 export async function discoverCluster(
   clusterId: string,
@@ -97,25 +101,94 @@ export async function discoverCluster(
     { filterBy },
     {
       processL7: true,
-      flowsFiltersExtensionCallback: ({
-        srcBlacklistFilter,
-        dstBlacklistFilter
-      }) => {
-        srcBlacklistFilter.addVerdict(Verdict.DROPPED);
-        srcBlacklistFilter.addVerdict(Verdict.VERDICT_UNKNOWN);
-        srcBlacklistFilter.addSourceLabel("reserved:cluster");
-        srcBlacklistFilter.addSourceLabel("reserved:init");
-        srcBlacklistFilter.addSourceLabel("reserved:unmanaged");
-        srcBlacklistFilter.addSourceLabel("reserved:health");
+      flowsFiltersExtensionsCallback: () => {
+        const srcBlacklistVerdictDroppedFilter = new FlowFilter();
+        srcBlacklistVerdictDroppedFilter.addVerdict(Verdict.DROPPED);
+
+        const srcBlacklistVerdictUnknownFilter = new FlowFilter();
+        srcBlacklistVerdictUnknownFilter.addVerdict(Verdict.VERDICT_UNKNOWN);
+
+        const srcBlacklistReservedClusterFilter = new FlowFilter();
+        srcBlacklistReservedClusterFilter.addSourceLabel("reserved:cluster");
+
+        const srcBlacklistReservedInitFilter = new FlowFilter();
+        srcBlacklistReservedInitFilter.addSourceLabel("reserved:init");
+
+        const srcBlacklistReservedUnmanagedFilter = new FlowFilter();
+        srcBlacklistReservedUnmanagedFilter.addSourceLabel(
+          "reserved:unmanaged"
+        );
+
+        const srcBlacklistReservedHealthFilter = new FlowFilter();
+        srcBlacklistReservedHealthFilter.addSourceLabel("reserved:health");
         // reserved:unknown already set up by default inside getFlows
 
-        dstBlacklistFilter.addVerdict(Verdict.DROPPED);
-        dstBlacklistFilter.addVerdict(Verdict.VERDICT_UNKNOWN);
-        dstBlacklistFilter.addDestinationLabel("reserved:cluster");
-        dstBlacklistFilter.addDestinationLabel("reserved:init");
-        dstBlacklistFilter.addDestinationLabel("reserved:unmanaged");
-        dstBlacklistFilter.addDestinationLabel("reserved:health");
-        dstBlacklistFilter.addDestinationFqdn("*.cluster.local");
+        const dstBlacklistVerdictDroppedFilter = new FlowFilter();
+        dstBlacklistVerdictDroppedFilter.addVerdict(Verdict.DROPPED);
+
+        const dstBlacklistVerdictUnknownFilter = new FlowFilter();
+        dstBlacklistVerdictUnknownFilter.addVerdict(Verdict.VERDICT_UNKNOWN);
+
+        const dstBlacklistReservedClusterFilter = new FlowFilter();
+        dstBlacklistReservedClusterFilter.addDestinationLabel(
+          "reserved:cluster"
+        );
+
+        const dstBlacklistReservedInitFilter = new FlowFilter();
+        dstBlacklistReservedInitFilter.addDestinationLabel("reserved:init");
+
+        const dstBlacklistReservedUnmanagedFilter = new FlowFilter();
+        dstBlacklistReservedUnmanagedFilter.addDestinationLabel(
+          "reserved:unmanaged"
+        );
+
+        const dstBlacklistReservedHealthFilter = new FlowFilter();
+        dstBlacklistReservedHealthFilter.addDestinationLabel("reserved:health");
+
+        const dstBlacklistClusterLocalDomainFilter = new FlowFilter();
+        dstBlacklistClusterLocalDomainFilter.addDestinationFqdn(
+          "*.cluster.local"
+        );
+
+        // Filter out L3/4 with reply=true
+        const blacklistEventTypeDropAndReplyFilter = new FlowFilter();
+        const blacklistEventTypeDropFilter = new EventTypeFilter();
+        blacklistEventTypeDropFilter.setType(1);
+        blacklistEventTypeDropAndReplyFilter.addReply(true);
+        blacklistEventTypeDropAndReplyFilter.addEventType(
+          blacklistEventTypeDropFilter
+        );
+
+        const blacklistEventTypeTraceAndReplyFilter = new FlowFilter();
+        const blacklistEventTypeTraceFilter = new EventTypeFilter();
+        blacklistEventTypeTraceFilter.setType(4);
+        blacklistEventTypeTraceAndReplyFilter.addReply(true);
+        blacklistEventTypeTraceAndReplyFilter.addEventType(
+          blacklistEventTypeTraceFilter
+        );
+
+        return {
+          srcWhitelistFilters: [],
+          dstWhitelistFilters: [],
+          srcBlacklistFilters: [
+            srcBlacklistVerdictDroppedFilter,
+            srcBlacklistVerdictUnknownFilter,
+            srcBlacklistReservedClusterFilter,
+            srcBlacklistReservedInitFilter,
+            srcBlacklistReservedUnmanagedFilter,
+            srcBlacklistReservedHealthFilter,
+            blacklistEventTypeDropAndReplyFilter,
+            blacklistEventTypeTraceAndReplyFilter
+          ],
+          dstBlacklistFilters: [
+            dstBlacklistVerdictDroppedFilter,
+            dstBlacklistVerdictUnknownFilter,
+            dstBlacklistReservedClusterFilter,
+            dstBlacklistReservedInitFilter,
+            dstBlacklistReservedUnmanagedFilter,
+            dstBlacklistReservedHealthFilter
+          ]
+        };
       }
     }
   );
