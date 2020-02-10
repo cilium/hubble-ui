@@ -34,7 +34,9 @@ import {
   getFlowsEndDate,
   getFlowsEndDateFromParams,
   getFlowsStartDate,
-  getFlowsStartDateFromParams
+  getFlowsStartDateFromParams,
+  getClusterIdFromParams,
+  getNamespaceFromParams
 } from "../Routing/state/selectors";
 import { createColumns } from "./columns";
 import { COLUMN_SYMBOL } from "./columns/types";
@@ -46,11 +48,15 @@ import {
   getFlowsFilterBy,
   getFlowsForDiscovery,
   getFlowsLoading,
-  getFlowsSmartAutoRefresh,
+  getFlowsAutoRefresh,
   getFlowsTableVisibleColumns,
   getStartCursor
 } from "./state/selectors";
 import { ExtFlow } from "./state/types";
+import { discoverCluster } from "../Clusters/state/actions";
+import { DEFAULT_NAME_LABEL_KEYS } from "../App/state/defaults";
+import { setNextDiscoveryTime } from "../App/state/actions";
+import { getClusterDiscoveryTimestamp } from "../Clusters/state/selectors";
 
 const css = require("./FlowsTable.scss");
 
@@ -58,7 +64,7 @@ const provider = provide({
   mapStateToProps: state => ({
     currentEndpoint: getCurrentEndpoint(state),
     endpointQuery: getEndpointQueryObjectFromParams(state),
-    autoRefresh: getFlowsSmartAutoRefresh(state),
+    autoRefresh: getFlowsAutoRefresh(state),
     flowIdFromParams: getFlowQueryFromParams(state),
     visibleColumns: getFlowsTableVisibleColumns(state),
     flows: getFlowsForDiscovery(state),
@@ -69,10 +75,15 @@ const provider = provide({
     startCursor: getStartCursor(state),
     filterByParam: getFilterByParam(state),
     filterByIdFromParams: getFilterById(state),
-    loading: getFlowsLoading(state)
+    loading: getFlowsLoading(state),
+    clusterId: getClusterIdFromParams(state),
+    namespaceFromParams: getNamespaceFromParams(state),
+    clusterDiscoveryTimestamp: getClusterDiscoveryTimestamp(state)
   }),
   mapDispatchToProps: {
     fetchFlows: fetchFlows.action,
+    fetchMap: discoverCluster.action,
+    setNextDiscoveryTime: setNextDiscoveryTime,
     pushAppUrl
   }
 });
@@ -80,6 +91,7 @@ const provider = provide({
 const CELL_HEIGHT = 20;
 const HEADER_HEIGHT = 23;
 const WIDTHS_LS_KEY_PREFIX = "v8-flows-table-colums-widths";
+const FETCH_DELAY = 120000;
 
 export const { Container: FlowsTable } = provider(Props => {
   type Props = typeof Props;
@@ -92,7 +104,7 @@ export const { Container: FlowsTable } = provider(Props => {
   return class FlowsTableClass extends React.Component<Props, State> {
     private width: number = 0;
     private height: number = 0;
-    private refreshTimer: any;
+    private refreshInterval: any;
     private tableRef: null | Table;
 
     constructor(props: Props) {
@@ -113,22 +125,12 @@ export const { Container: FlowsTable } = provider(Props => {
     };
 
     componentDidMount() {
-      this.getFlows("replace", this.props, true, true, {
-        onSuccess: () => {
-          if (this.props.autoRefresh) {
-            this.refetchFlows();
-          }
-        },
-        onError: () => {
-          if (this.props.autoRefresh) {
-            this.refetchFlows();
-          }
-        }
-      });
+      this.refetchFlows();
+      this.getFlows("replace", this.props, true, true);
     }
 
     componentWillUnmount() {
-      clearTimeout(this.refreshTimer);
+      clearInterval(this.refreshInterval);
     }
 
     componentWillReceiveProps(nextProps: Props) {
@@ -166,23 +168,11 @@ export const { Container: FlowsTable } = provider(Props => {
         });
       }
 
-      if (changed) {
+      if (changed && nextProps.autoRefresh) {
         this.setState({
           timeIndicator: null
         });
-        clearTimeout(this.refreshTimer);
-        this.getFlows("replace", nextProps, true, true, {
-          onSuccess: () => {
-            if (this.props.autoRefresh) {
-              this.refetchFlows();
-            }
-          },
-          onError: () => {
-            if (this.props.autoRefresh) {
-              this.refetchFlows();
-            }
-          }
-        });
+        this.getFlows("replace", nextProps, true, true);
       }
     }
 
@@ -190,11 +180,7 @@ export const { Container: FlowsTable } = provider(Props => {
       mode: "append" | "prepend" | "replace",
       props: Props,
       resetChartData: boolean,
-      updateChart: boolean,
-      callbacks?: {
-        onSuccess: (flows: FlowConnection) => void;
-        onError: (error: string) => void;
-      }
+      updateChart: boolean
     ) => {
       if (props.filterByParam && props.filterByIdFromParams) {
         const numberOfRows = this.numberOfRowsToFetch();
@@ -215,11 +201,13 @@ export const { Container: FlowsTable } = provider(Props => {
           sourceLabels: this.getLabels(props, "from", "sourceLabels"),
           destinationLabels: this.getLabels(props, "to", "destinationLabels"),
           destinationDnsName: this.getDestinationDnsName(props),
-          after: moment(getFlowsStartDate(props.flowsStartDate)),
-          before:
-            props.flowsEndDate.url === "now"
-              ? moment()
-              : moment(getFlowsEndDate(props.flowsEndDate))
+          after: null,
+          before: null
+          // after: moment(getFlowsStartDate(props.flowsStartDate)),
+          // before:
+          //   props.flowsEndDate.url === "now"
+          //     ? moment()
+          //     : moment(getFlowsEndDate(props.flowsEndDate))
         };
 
         props.fetchFlows(
@@ -242,14 +230,18 @@ export const { Container: FlowsTable } = provider(Props => {
                   this.setState({ timeIndicator: null });
                 }
               }
-              if (callbacks && callbacks.onSuccess) {
-                callbacks.onSuccess(flows);
-              }
+              this.fetchMap(this.props, () => {
+                this.props.setNextDiscoveryTime({
+                  date: moment().add("milliseconds", FETCH_DELAY)
+                });
+              });
             },
             onError: error => {
-              if (callbacks && callbacks.onError) {
-                callbacks.onError(error);
-              }
+              this.fetchMap(this.props, () => {
+                this.props.setNextDiscoveryTime({
+                  date: moment().add("milliseconds", FETCH_DELAY)
+                });
+              });
             }
           }
         );
@@ -304,22 +296,28 @@ export const { Container: FlowsTable } = provider(Props => {
     };
 
     refetchFlows = () => {
-      const delay = 12000;
-      clearTimeout(this.refreshTimer);
-      this.refreshTimer = setTimeout(() => {
-        this.getFlows("prepend", this.props, false, true, {
-          onSuccess: flows => {
-            if (this.props.autoRefresh) {
-              this.refetchFlows();
-            }
+      this.refreshInterval = setInterval(() => {
+        if (this.props.autoRefresh) {
+          this.getFlows("prepend", this.props, false, true);
+        }
+      }, FETCH_DELAY);
+    };
+
+    fetchMap = (props: Props, callback: () => void) => {
+      if (props.clusterId && props.namespaceFromParams) {
+        props.fetchMap(
+          {
+            clusterId: props.clusterId,
+            excludedLabelKeys: [],
+            nameLabelKeys: DEFAULT_NAME_LABEL_KEYS,
+            namespaces: [props.namespaceFromParams],
+            startedAfter:
+              props.clusterDiscoveryTimestamp ||
+              getFlowsStartDate(props.flowsStartDate)
           },
-          onError: () => {
-            if (this.props.autoRefresh) {
-              this.refetchFlows();
-            }
-          }
-        });
-      }, delay);
+          { onSuccess: callback, onError: callback }
+        );
+      }
     };
 
     onRowClick = ({ rowData, event }: RowMouseEventHandlerParams) => {

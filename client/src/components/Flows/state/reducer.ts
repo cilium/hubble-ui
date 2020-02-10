@@ -50,7 +50,7 @@ const writeColumnsVisibility = (data: { [key in COLUMN_SYMBOL]: boolean }) => {
 };
 
 const initialState: State = {
-  autoRefesh: false,
+  autoRefesh: true,
   connection: null,
   loading: "no",
   loadingChart: false,
@@ -84,11 +84,7 @@ export const reducer = (state: State = initialState, action: Action): State => {
     case toggleFlowsAutoRefresh.type: {
       return {
         ...state,
-        autoRefesh: !state.autoRefesh,
-        connection: null,
-        flowsToPolicy: {},
-        flowsTableMode: "view",
-        loadingChart: false
+        autoRefesh: !state.autoRefesh
       };
     }
     case toggleColumnVisibility.type: {

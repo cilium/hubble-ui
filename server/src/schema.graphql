@@ -307,6 +307,7 @@ enum FlowDirection {
 type DiscoverClusterResult {
   endpoints: [AppEndpoint!]!
   responseHash: String!
+  responseTimestamp: DateTime
 }
 
 enum ClusterComponentStatus {

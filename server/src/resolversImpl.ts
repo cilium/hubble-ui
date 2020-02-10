@@ -233,7 +233,8 @@ export async function discoverCluster(
 
   return {
     endpoints,
-    responseHash: hash(endpoints)
+    responseHash: hash(endpoints),
+    responseTimestamp: flows[0] ? flows[0].timestamp : null
   };
 }
 

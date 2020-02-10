@@ -67,22 +67,20 @@ export const { Container: AppViewWithRouter } = provider(Props => {
 });
 
 const MainAppView = withRouter((props: RouteComponentProps<any>) => (
-  <AppFetcherWithRouter {...props}>
-    <div className={css.wrapper}>
-      <Switch>
-        <Route
-          // prettier-ignore
-          path={`/service-map`}
-          render={props => (
-            <>
-              <LoadingView transparent={true} />
-              <ErrorView />
-              <TabsBar />
-              <AdvancedView />
-            </>
-          )}
-        />
-      </Switch>
-    </div>
-  </AppFetcherWithRouter>
+  <div className={css.wrapper}>
+    <Switch>
+      <Route
+        // prettier-ignore
+        path={`/service-map`}
+        render={props => (
+          <>
+            <LoadingView transparent={true} />
+            <ErrorView />
+            <TabsBar />
+            <AdvancedView />
+          </>
+        )}
+      />
+    </Switch>
+  </div>
 ));

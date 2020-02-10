@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+import { Spinner } from "@blueprintjs/core";
 import { event as d3event, select as d3select, Selection } from "d3-selection";
 import {
   zoom as d3zoom,
@@ -32,7 +33,10 @@ import {
   getMapPanelPosition,
   getScreenDimensions
 } from "../App/state/selectors";
-import { getClusterDiscoveryResult } from "../Clusters/state/selectors";
+import {
+  getClusterDiscovering,
+  getClusterDiscoveryResult
+} from "../Clusters/state/selectors";
 import { appUrlStateMeta } from "../Routing/state/actions";
 import { getEndpointQueryFromParams } from "../Routing/state/selectors";
 import { Endpoint1Layer, Endpoint2Layer, Endpoint3Layer } from "./Endpoint";
@@ -71,7 +75,8 @@ const wrapperProvider = provide({
   mapStateToProps: state => {
     const graph = getGraphData(state);
     return {
-      isMapEmpty: !graph || Object.keys(graph.graph).length === 0
+      isMapEmpty: !graph || Object.keys(graph.graph).length === 0,
+      loading: getClusterDiscovering(state)
     };
   }
 });
@@ -79,6 +84,16 @@ const wrapperProvider = provide({
 export const { Container: MapView } = wrapperProvider(
   Props => (props: typeof Props) => {
     if (props.isMapEmpty) {
+      if (props.loading) {
+        return (
+          <div className={css.emptyMapStub}>
+            <Spinner size={84} />
+            <div style={{ marginTop: "20px" }}>
+              Loading data for service map...
+            </div>
+          </div>
+        );
+      }
       return (
         <div className={css.emptyMapStub}>
           {" "}
