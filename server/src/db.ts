@@ -30,14 +30,14 @@ export interface IDatabase {
     args: UserFlowsArgs,
     options: {
       processL7: boolean;
-      flowsFiltersExtensionCallback?: FlowsFiltersExtensionCallback;
+      flowsFiltersExtensionsCallback?: FlowsFiltersExtensionsCallback;
     }
   ): Promise<FlowConnection>;
 }
 
-export type FlowsFiltersExtensionCallback = (args: {
-  srcFilter: FlowFilter;
-  dstFilter: FlowFilter;
-  srcBlacklistFilter: FlowFilter;
-  dstBlacklistFilter: FlowFilter;
-}) => void;
+export type FlowsFiltersExtensionsCallback = () => {
+  readonly srcBlacklistFilters: FlowFilter[];
+  readonly srcWhitelistFilters: FlowFilter[];
+  readonly dstBlacklistFilters: FlowFilter[];
+  readonly dstWhitelistFilters: FlowFilter[];
+};

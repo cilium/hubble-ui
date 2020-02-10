@@ -15,7 +15,7 @@ import * as dns from "dns";
 import { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
 import * as hash from "object-hash";
 import * as URL from "url";
-import { FlowsFiltersExtensionCallback, IDatabase } from "./db";
+import { FlowsFiltersExtensionsCallback, IDatabase } from "./db";
 import {
   Flow,
   FlowConnection,
@@ -69,30 +69,30 @@ export class DatabaseHubble implements IDatabase {
 
   static async argsToGetFlowsRequest(
     args: UserFlowsArgs,
-    filtersExtensionCallback?: FlowsFiltersExtensionCallback
+    filtersExtensionsCallback?: FlowsFiltersExtensionsCallback
   ): Promise<GetFlowsRequest> {
     const req: GetFlowsRequest = new GetFlowsRequest();
 
     let srcFilterAdded = false;
     let dstFilterAdded = false;
-    const srcFilter = new FlowFilter();
-    const dstFilter = new FlowFilter();
+    const srcWhitelistBaseFilter = new FlowFilter();
+    const dstWhitelistBaseFilter = new FlowFilter();
 
     // Codes from https://github.com/cilium/cilium/blob/456cc96dbba3e48668eec00584213c376e2f8db6/pkg/monitor/api/types.go#L29
     // Without event type filter hubble crushes when filtering with source/destinationPodList
     const eventTypes = [129 /* l7 */];
     if (args.filterBy && args.filterBy.httpStatusCode) {
       // Filter by http status code allows only l7 event type
-      srcFilter.addHttpStatusCode(args.filterBy.httpStatusCode);
-      dstFilter.addHttpStatusCode(args.filterBy.httpStatusCode);
+      srcWhitelistBaseFilter.addHttpStatusCode(args.filterBy.httpStatusCode);
+      dstWhitelistBaseFilter.addHttpStatusCode(args.filterBy.httpStatusCode);
     } else {
       eventTypes.push(1 /* drop */, 4 /* trace */);
     }
     eventTypes.forEach(eventTypeNumber => {
       const eventTypeFilter = new EventTypeFilter();
       eventTypeFilter.setType(eventTypeNumber);
-      srcFilter.addEventType(eventTypeFilter);
-      dstFilter.addEventType(eventTypeFilter);
+      srcWhitelistBaseFilter.addEventType(eventTypeFilter);
+      dstWhitelistBaseFilter.addEventType(eventTypeFilter);
     });
 
     if (args.filterBy) {
@@ -110,12 +110,12 @@ export class DatabaseHubble implements IDatabase {
       if (args.filterBy.forwardingStatus) {
         switch (args.filterBy.forwardingStatus) {
           case ForwardingStatus.FORWARDED:
-            srcFilter.addVerdict(Verdict.FORWARDED);
-            dstFilter.addVerdict(Verdict.FORWARDED);
+            srcWhitelistBaseFilter.addVerdict(Verdict.FORWARDED);
+            dstWhitelistBaseFilter.addVerdict(Verdict.FORWARDED);
             break;
           case ForwardingStatus.DROPPED:
-            srcFilter.addVerdict(Verdict.DROPPED);
-            dstFilter.addVerdict(Verdict.DROPPED);
+            srcWhitelistBaseFilter.addVerdict(Verdict.DROPPED);
+            dstWhitelistBaseFilter.addVerdict(Verdict.DROPPED);
             break;
           default:
             throw new Error(
@@ -125,20 +125,28 @@ export class DatabaseHubble implements IDatabase {
       }
 
       if (args.filterBy.sourceIpAddress) {
-        srcFilter.addSourceIp(args.filterBy.sourceIpAddress);
-        dstFilter.addSourceIp(args.filterBy.sourceIpAddress);
+        srcWhitelistBaseFilter.addSourceIp(args.filterBy.sourceIpAddress);
+        dstWhitelistBaseFilter.addSourceIp(args.filterBy.sourceIpAddress);
         srcFilterAdded = true;
       }
 
       if (args.filterBy.destinationIpAddress) {
-        dstFilter.addDestinationIp(args.filterBy.destinationIpAddress);
-        srcFilter.addDestinationIp(args.filterBy.destinationIpAddress);
+        dstWhitelistBaseFilter.addDestinationIp(
+          args.filterBy.destinationIpAddress
+        );
+        srcWhitelistBaseFilter.addDestinationIp(
+          args.filterBy.destinationIpAddress
+        );
         dstFilterAdded = true;
       }
 
       if (args.filterBy.destinationDnsName) {
-        dstFilter.addDestinationFqdn(args.filterBy.destinationDnsName);
-        srcFilter.addDestinationFqdn(args.filterBy.destinationDnsName);
+        dstWhitelistBaseFilter.addDestinationFqdn(
+          args.filterBy.destinationDnsName
+        );
+        srcWhitelistBaseFilter.addDestinationFqdn(
+          args.filterBy.destinationDnsName
+        );
         dstFilterAdded = true;
       }
 
@@ -146,10 +154,10 @@ export class DatabaseHubble implements IDatabase {
         const namespace = findNamespaceFromLabels(args.filterBy.labels);
         if (namespace) {
           if (!srcFilterAdded) {
-            srcFilter.addSourcePod(`${namespace}/`);
+            srcWhitelistBaseFilter.addSourcePod(`${namespace}/`);
           }
           if (!dstFilterAdded) {
-            dstFilter.addDestinationPod(`${namespace}/`);
+            dstWhitelistBaseFilter.addDestinationPod(`${namespace}/`);
           }
         }
       } else {
@@ -158,7 +166,7 @@ export class DatabaseHubble implements IDatabase {
             args.filterBy.sourceLabels
           );
           if (sourceNamespace) {
-            srcFilter.addSourcePod(`${sourceNamespace}/`);
+            srcWhitelistBaseFilter.addSourcePod(`${sourceNamespace}/`);
           }
         }
         if (args.filterBy.destinationLabels && !dstFilterAdded) {
@@ -166,28 +174,42 @@ export class DatabaseHubble implements IDatabase {
             args.filterBy.destinationLabels
           );
           if (destinationNamespace) {
-            dstFilter.addDestinationPod(`${destinationNamespace}/`);
+            dstWhitelistBaseFilter.addDestinationPod(
+              `${destinationNamespace}/`
+            );
           }
         }
       }
     }
 
-    const srcBlacklistFilter = new FlowFilter();
-    const dstBlacklistFilter = new FlowFilter();
-    srcBlacklistFilter.addSourceLabel("reserved:unknown");
-    dstBlacklistFilter.addDestinationLabel("reserved:unknown");
+    const srcBlacklistReservedUnknownFilter = new FlowFilter();
+    const dstBlacklistReservedUnknownFilter = new FlowFilter();
+    srcBlacklistReservedUnknownFilter.addSourceLabel("reserved:unknown");
+    dstBlacklistReservedUnknownFilter.addDestinationLabel("reserved:unknown");
 
-    if (filtersExtensionCallback) {
-      filtersExtensionCallback({
-        srcFilter,
-        dstFilter,
-        srcBlacklistFilter,
-        dstBlacklistFilter
-      });
+    const whitelistFilters: FlowFilter[] = [
+      srcWhitelistBaseFilter,
+      dstWhitelistBaseFilter
+    ];
+    const blacklistFilters: FlowFilter[] = [
+      srcBlacklistReservedUnknownFilter,
+      dstBlacklistReservedUnknownFilter
+    ];
+
+    if (filtersExtensionsCallback) {
+      const filtersExtensions = filtersExtensionsCallback();
+      whitelistFilters.push(
+        ...filtersExtensions.srcWhitelistFilters,
+        ...filtersExtensions.dstWhitelistFilters
+      );
+      blacklistFilters.push(
+        ...filtersExtensions.srcBlacklistFilters,
+        ...filtersExtensions.dstBlacklistFilters
+      );
     }
 
-    req.setWhitelistList([srcFilter, dstFilter]);
-    req.setBlacklistList([srcBlacklistFilter, dstBlacklistFilter]);
+    req.setWhitelistList(whitelistFilters);
+    req.setBlacklistList(blacklistFilters);
 
     return req;
   }
@@ -231,7 +253,14 @@ export class DatabaseHubble implements IDatabase {
     });
   }
 
-  async getFlows(context, args, options): Promise<FlowConnection> {
+  async getFlows(
+    context: IContext,
+    args: UserFlowsArgs,
+    options: {
+      processL7: boolean;
+      flowsFiltersExtensionsCallback?: FlowsFiltersExtensionsCallback;
+    }
+  ): Promise<FlowConnection> {
     const startGetFlows = Date.now();
     context.logger.debug(`Starting to fetch flows...`);
     if (!args.filterBy || !args.filterBy.labels) {
@@ -254,7 +283,10 @@ export class DatabaseHubble implements IDatabase {
       throw new Error(error);
     }
     const edges: FlowEdge[] = [];
-    const req = await DatabaseHubble.argsToGetFlowsRequest(args);
+    const req = await DatabaseHubble.argsToGetFlowsRequest(
+      args,
+      options.flowsFiltersExtensionsCallback
+    );
     const clients = await this.getHubbleClients(context);
     const seenIds = new Set();
     return Promise.all(
