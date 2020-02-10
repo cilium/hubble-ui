@@ -48,6 +48,11 @@ export const getClusterDiscoveryEndpoints = createSelector(
   result => (result ? result.endpoints : [])
 );
 
+export const getClusterDiscoveryTimestamp = createSelector(
+  getClusterDiscoveryResult,
+  result => (result ? result.responseTimestamp : null)
+);
+
 export const getClusterDiscovering = (state: RootState) => {
   return state.clusters.discovering;
 };

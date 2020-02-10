@@ -59,6 +59,7 @@ export const discoverCluster = gql`
           hasEgressPolicyRules
         }
         responseHash
+        responseTimestamp
       }
     }
   }

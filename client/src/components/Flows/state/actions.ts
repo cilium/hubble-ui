@@ -30,6 +30,8 @@ export const toggleColumnVisibility = createAction<COLUMN_SYMBOL>(
 
 export const toggleFlowToPolicy = createAction<Flow>("Toggle flow to policy");
 
+export const toggleFlowsPaused = createAction<Flow>("Toggle flows paused");
+
 export const resetFlowsTableState = createAction<Flow>(
   "Reset flows table state"
 );

@@ -45,9 +45,9 @@ export const { Container: TabsBar } = provider(Props => {
             <div className={css.left}>
               <NamespacesDropdownSelector autoSelectFirstNamespace={false} />
               <TopBarEndpointInfo />
-              <div className={css.minsAfter}>
+              {/* <div className={css.minsAfter}>
                 <DiscoveryDateTimePicker />
-              </div>
+              </div> */}
               <MapFiltersPopover />
             </div>
             <div className={css.right}>

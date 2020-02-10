@@ -41,8 +41,6 @@ const provider = provideWithRouter({
 export const { Container: AppFetcherWithRouter } = provider(Props => {
   type Props = typeof Props;
   return class AppFetcherClass extends React.Component<Props> {
-    rediscoverAppTimer: any;
-    rediscoverFlowsTimer: any;
     rediscoverClusterTimer: any;
 
     componentDidMount() {
@@ -68,8 +66,6 @@ export const { Container: AppFetcherWithRouter } = provider(Props => {
     }
 
     cleanUp = () => {
-      clearTimeout(this.rediscoverAppTimer);
-      clearTimeout(this.rediscoverFlowsTimer);
       clearTimeout(this.rediscoverClusterTimer);
     };
 
@@ -83,14 +79,8 @@ export const { Container: AppFetcherWithRouter } = provider(Props => {
     };
 
     rediscoverCluster = (props: Props) => {
-      const delay = 20000;
+      const delay = 120000;
       clearTimeout(this.rediscoverClusterTimer);
-      // if (props.isMapLoading) {
-      //   this.rediscoverClusterTimer = setTimeout(
-      //     () => this.rediscoverCluster(this.props),
-      //     delay
-      //   );
-      // } else {
       this.discoverCluster(props, () => {
         clearTimeout(this.rediscoverClusterTimer);
         this.rediscoverClusterTimer = setTimeout(
@@ -101,7 +91,6 @@ export const { Container: AppFetcherWithRouter } = provider(Props => {
           date: moment().add("milliseconds", delay)
         });
       });
-      // }
     };
 
     discoverCluster = (props: Props, callback: () => void) => {

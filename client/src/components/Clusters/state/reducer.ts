@@ -91,6 +91,10 @@ export const reducer = (state = initialState, action: Action): State => {
       ) {
         return {
           ...state,
+          discoveryResult: {
+            ...state.discoveryResult,
+            responseTimestamp: payload.responseTimestamp
+          },
           discovering: false
         };
       }

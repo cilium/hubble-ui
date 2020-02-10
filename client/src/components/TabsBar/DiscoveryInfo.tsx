@@ -15,14 +15,20 @@ import * as moment from "moment";
 import * as React from "react";
 import { provide } from "../../state";
 import { getNextDiscoveryTime } from "../App/state/selectors";
+import { Button, Intent } from "@blueprintjs/core";
+import { toggleFlowsAutoRefresh } from "../Flows/state/actions";
+import { getFlowsAutoRefresh } from "../Flows/state/selectors";
 
 const css = require("./DiscoveryInfo.scss");
 
 const provider = provide({
   mapStateToProps: state => ({
+    autoRefresh: getFlowsAutoRefresh(state),
     nextDiscoveryTime: getNextDiscoveryTime(state)
   }),
-  mapDispatchToProps: {}
+  mapDispatchToProps: {
+    toggleFlowsAutoRefresh: toggleFlowsAutoRefresh
+  }
 });
 
 export const { Container: DiscoveryInfo } = provider(Props => {
@@ -70,16 +76,30 @@ export const { Container: DiscoveryInfo } = provider(Props => {
       );
     };
 
+    onAutoRefreshClick = () => {
+      this.props.toggleFlowsAutoRefresh();
+    };
+
     render() {
       const { discoveryAfter } = this.state;
       const showDiscoveryAfter = discoveryAfter >= 0;
       return (
         <div className={css.wrapper}>
-          {showDiscoveryAfter && (
-            <div className={css.discoveryAfter}>
-              Update in {discoveryAfter}s
-            </div>
-          )}
+          <div className={css.discoveryAfter}>
+            <Button
+              minimal
+              icon="play"
+              intent={this.props.autoRefresh ? Intent.SUCCESS : Intent.NONE}
+              onClick={this.onAutoRefreshClick}
+              text={
+                (!this.props.autoRefresh && "Enable updates") ||
+                (this.props.autoRefresh &&
+                  showDiscoveryAfter &&
+                  `Update in ${discoveryAfter}s`) ||
+                (this.props.autoRefresh && "Updating...")
+              }
+            />
+          </div>
         </div>
       );
     }

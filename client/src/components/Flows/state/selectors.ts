@@ -63,13 +63,6 @@ import { getFlowServiceSubtitle, getFlowServicetTitle } from "./utils";
 
 export const getFlowsAutoRefresh = (state: RootState) => state.flows.autoRefesh;
 
-export const getFlowsSmartAutoRefresh = createSelector(
-  getFlowsAutoRefresh,
-  autoRefresh => {
-    return true;
-  }
-);
-
 export const getFlowsLoading = (state: RootState) => state.flows.loading;
 
 export const getFlowsConnection = (state: RootState) => {

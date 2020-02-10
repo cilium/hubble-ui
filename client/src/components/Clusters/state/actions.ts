@@ -129,7 +129,11 @@ export const discoverCluster = createAsyncAction({
     };
     const { data } = await client.query<
       GqlResult<{
-        discoverCluster: { endpoints: AppEndpoint[]; responseHash: string };
+        discoverCluster: {
+          endpoints: AppEndpoint[];
+          responseHash: string;
+          responseTimestamp: string;
+        };
       }>
     >(query);
     return data.viewer.discoverCluster;
