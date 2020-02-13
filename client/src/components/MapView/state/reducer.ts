@@ -23,7 +23,8 @@ const initialState: State = {
   aggregateIngressFlows: readLocalStorage("aggregateIngressFlows", false),
   aggregateEgressFlows: readLocalStorage("aggregateEgressFlows", false),
   showHostEndpoint: readLocalStorage("showHostEndpoint", false),
-  showWorldEndpoint: readLocalStorage("showWorldEndpoint", false)
+  showWorldEndpoint: readLocalStorage("showWorldEndpoint", false),
+  showKubeDns: readLocalStorage("showKubeDns", false)
 };
 
 export const reducer = (state: State = initialState, action: Action): State => {
@@ -51,7 +52,8 @@ function localStorageKey(key: string) {
     aggregateIngressFlows: "v2-aggregateIngressFlows",
     aggregateEgressFlows: "v2-aggregateEgressFlows",
     showHostEndpoint: "showHostEndpoint",
-    showWorldEndpoint: "showWorldEndpoint"
+    showWorldEndpoint: "showWorldEndpoint",
+    showKubeDns: "showKubeDns"
   };
   return map[key];
 }

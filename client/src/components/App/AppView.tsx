@@ -22,7 +22,6 @@ import {
 } from "../Clusters/state/selectors";
 import { EmptyClustersStub } from "../Misc/EmptyStubs";
 import { TabsBar } from "../TabsBar/TabsBar";
-import { AppFetcherWithRouter } from "./AppFetcher";
 import "./AppView.global.scss";
 import { ErrorView } from "./ErrorView";
 import { LoadingAppView } from "./LoadingAppView";

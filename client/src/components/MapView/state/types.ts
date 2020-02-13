@@ -18,6 +18,7 @@ export interface State extends MapFilters {}
 export interface MapFilters {
   readonly showIngressTraffic: boolean;
   readonly showEgressTraffic: boolean;
+  readonly showKubeDns: boolean;
   readonly showIntraAppTraffic: boolean;
   readonly showL7Traffic: boolean;
   readonly aggregateIngressFlows: boolean;

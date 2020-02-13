@@ -49,6 +49,8 @@ import { stringToLabel } from "./utils";
 
 const grpc = require("grpc");
 
+const FLOWS_STREAM_CLOSE_DELAY = 12000;
+
 export class DatabaseHubble implements IDatabase {
   constructor() {}
 
@@ -187,6 +189,15 @@ export class DatabaseHubble implements IDatabase {
     srcBlacklistReservedUnknownFilter.addSourceLabel("reserved:unknown");
     dstBlacklistReservedUnknownFilter.addDestinationLabel("reserved:unknown");
 
+    args.filterBy?.excludeLabels?.forEach(({ key, value }) => {
+      let excludeLabel = `${key}`;
+      if (value) {
+        excludeLabel += `=${value}`;
+      }
+      srcBlacklistReservedUnknownFilter.addSourceLabel(excludeLabel);
+      dstBlacklistReservedUnknownFilter.addDestinationLabel(excludeLabel);
+    });
+
     const whitelistFilters: FlowFilter[] = [
       srcWhitelistBaseFilter,
       dstWhitelistBaseFilter
@@ -298,6 +309,23 @@ export class DatabaseHubble implements IDatabase {
             );
             const flowsStream = client.getFlows(req);
             const startClientGetFlows = Date.now();
+
+            let lastFlowDataTimestamp = 0;
+            let streamCloseTimeout: any = null;
+            const createStreamCloseTimeout = () => {
+              clearTimeout(streamCloseTimeout);
+              streamCloseTimeout = setTimeout(() => {
+                if (
+                  !lastFlowDataTimestamp ||
+                  Date.now() - lastFlowDataTimestamp >= FLOWS_STREAM_CLOSE_DELAY
+                ) {
+                  flowsStream.emit("close");
+                }
+              }, FLOWS_STREAM_CLOSE_DELAY);
+            };
+
+            createStreamCloseTimeout();
+
             flowsStream.on("data", (res: GetFlowsResponse) => {
               context.logger.trace(
                 { flow: res.toObject() },
@@ -425,6 +453,9 @@ export class DatabaseHubble implements IDatabase {
                 seenIds.add(id);
               }
 
+              lastFlowDataTimestamp = Date.now();
+              createStreamCloseTimeout();
+
               edges.push({
                 cursor: "",
                 node: {
@@ -460,6 +491,14 @@ export class DatabaseHubble implements IDatabase {
                   appModelInfo: null
                 } as Flow
               });
+            });
+
+            flowsStream.on("close", () => {
+              context.logger.debug(
+                `Client #${clientIndex} closes stream, fetched flows in ${Date.now() -
+                  startClientGetFlows}ms`
+              );
+              resolve();
             });
 
             flowsStream.on("end", () => {

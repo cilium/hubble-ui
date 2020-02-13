@@ -198,57 +198,6 @@ export class DiscoveryUtils {
     });
   }
 
-  // Returns true if this source / destination pair should be excluded from the app model map.
-  static filterOutFlowFromMap(
-    source: AppEndpoint,
-    destination: AppEndpoint,
-    clusterIps: Set<string>,
-    ipDNSMapping: Map<string, string>
-  ): boolean {
-    if (isReservedWorldLabels(destination.labels)) {
-      if (
-        (destination.v4Cidrs &&
-          destination.v4Cidrs.length === 1 &&
-          clusterIps.has(destination.v4Cidrs[0])) ||
-        (destination.v6Cidrs &&
-          destination.v6Cidrs.length === 1 &&
-          clusterIps.has(destination.v6Cidrs[0])) ||
-        (destination.dnsName || "").endsWith(".cluster.local")
-      ) {
-        return true;
-      }
-      const ipAddress = getIpAddress(destination);
-      if (ipDNSMapping.has(ipAddress)) {
-        return true;
-      }
-    }
-    if (destination.type && destination.type === AppEndpointType.DNS) {
-      if ((destination.dnsName || "").endsWith(".cluster.local")) {
-        return true;
-      }
-    }
-    return (
-      isReservedClusterLabels(source.labels) ||
-      isReservedClusterLabels(destination.labels) ||
-      isReservedInitLabels(source.labels) ||
-      isReservedInitLabels(destination.labels) ||
-      DiscoveryUtils.isKubeDns(destination) ||
-      isReservedUnknownLabels(source.labels) ||
-      isReservedUnknownLabels(destination.labels) ||
-      isReservedUnmanagedLabels(source.labels) ||
-      isReservedUnmanagedLabels(destination.labels)
-    );
-  }
-
-  static isKubeDns(endpoint: AppEndpoint): boolean {
-    return (
-      findNamespaceFromLabels(endpoint.labels) === "kube-system" &&
-      endpoint.protocols &&
-      endpoint.protocols.length === 1 &&
-      endpoint.protocols[0].port === 53
-    );
-  }
-
   /**
    * Takes existing endpoints and
    * adds more functions from EndpointElements
@@ -283,27 +232,8 @@ export class DiscoveryUtils {
     );
 
     const flowElements: EndpointElement[] = [];
-    const ipDNSMapping = flows.reduce((accum, curr) => {
-      if (curr.destinationDnsName && curr.destinationIpAddress) {
-        accum.set(curr.destinationIpAddress, curr.destinationDnsName);
-      }
-      return accum;
-    }, new Map<string, string>());
-
     flows.map(flow => {
-      if (
-        flow.forwardingStatus.toLowerCase() !== "forwarded" &&
-        flow.forwardingStatus.toLowerCase() !== "undefined_policy_decision"
-      ) {
-        return;
-      }
       const isL7Flow = Boolean((flow as Flow).destinationL7Protocol);
-
-      // const flowSourceEndpointHash = DiscoveryUtils.endpointHash(
-      //   flow.sourceLabels,
-      //   [],
-      //   []
-      // );
 
       const { source, destination } = DiscoveryUtils.getEndpointsFromFlow(
         endpoints,
@@ -312,16 +242,7 @@ export class DiscoveryUtils {
         flow,
         namespaces
       );
-      if (
-        DiscoveryUtils.filterOutFlowFromMap(
-          source,
-          destination,
-          clusterIps,
-          ipDNSMapping
-        )
-      ) {
-        return;
-      }
+
       if (isCidrEndpoint(destination)) {
         destination.protocols.forEach(proto => {
           flowElements.push(new EndpointElement(destination, proto, null));

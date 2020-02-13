@@ -14,7 +14,8 @@
 import {
   AppEndpoint,
   Cluster,
-  DiscoverClusterResult
+  DiscoverClusterResult,
+  UserDiscoverClusterArgs
 } from "../../../graphqlTypes";
 import { createAsyncAction, Dispatch } from "../../../state";
 import { GqlResult } from "../../App/state/types";
@@ -106,18 +107,10 @@ export const fetchCluster = createAsyncAction({
   flushErrorMessage: () => "Failed to fetch cluster"
 });
 
-interface DiscoverClusterArgs {
-  readonly clusterId: string;
-  readonly namespaces: string[] | undefined | null;
-  readonly startedAfter: string;
-  readonly excludedLabelKeys: string[];
-  readonly nameLabelKeys: string[];
-}
-
 export const discoverCluster = createAsyncAction({
   name: "Discover cluster",
   action: async (
-    args: DiscoverClusterArgs,
+    args: UserDiscoverClusterArgs,
     { client }
   ): Promise<DiscoverClusterResult> => {
     // if (process.env.NODE_ENV === "development") {

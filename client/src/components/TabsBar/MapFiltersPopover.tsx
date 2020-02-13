@@ -49,10 +49,17 @@ export const { Container: MapFiltersPopover } = provider(Props => {
       });
     };
 
+    onToggleKubeDnsEndpoint = () => {
+      this.props.toggleTrafficFilter({
+        filter: "showKubeDns"
+      });
+    };
+
     someFilterChanged = () => {
       return (
         this.props.mapFilters.showHostEndpoint ||
-        this.props.mapFilters.showWorldEndpoint
+        this.props.mapFilters.showWorldEndpoint ||
+        this.props.mapFilters.showKubeDns
       );
     };
 
@@ -70,7 +77,7 @@ export const { Container: MapFiltersPopover } = provider(Props => {
                     className={styles.item}
                     checked={mapFilters.showHostEndpoint}
                     onChange={this.onToggleHostEndpoint}
-                    label="Show Host Endpoint"
+                    label="Show host endpoint"
                   />
                 }
               />
@@ -80,7 +87,17 @@ export const { Container: MapFiltersPopover } = provider(Props => {
                     className={styles.item}
                     checked={mapFilters.showWorldEndpoint}
                     onChange={this.onToggleWorldEndpoint}
-                    label="Show World Endpoint"
+                    label="Show world endpoint"
+                  />
+                }
+              />
+              <MenuItem
+                text={
+                  <Checkbox
+                    className={styles.item}
+                    checked={mapFilters.showKubeDns}
+                    onChange={this.onToggleKubeDnsEndpoint}
+                    label="Show kube-dns"
                   />
                 }
               />

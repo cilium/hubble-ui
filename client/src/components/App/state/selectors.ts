@@ -196,6 +196,10 @@ export const getShowWorldEndpoint = (state: RootState) => {
   return state.map.showWorldEndpoint;
 };
 
+export const getShowKubeDnsEndpoint = (state: RootState) => {
+  return state.map.showKubeDns;
+};
+
 export const getAggregateIngressFlows = createSelector(
   getAggregateIngressFlows_Source,
   getEndpointQueryObjectFromParams,
@@ -227,6 +231,7 @@ export const getMapFilters = createSelector(
   getAggregateEgressFlows,
   getShowHostEndpoint,
   getShowWorldEndpoint,
+  getShowKubeDnsEndpoint,
   (
     showIngressTraffic,
     showEgressTraffic,
@@ -235,7 +240,8 @@ export const getMapFilters = createSelector(
     aggregateIngressFlows,
     aggregateEgressFlows,
     showHostEndpoint,
-    showWorldEndpoint
+    showWorldEndpoint,
+    showKubeDns
   ): MapFilters => ({
     showIngressTraffic,
     showEgressTraffic,
@@ -244,7 +250,8 @@ export const getMapFilters = createSelector(
     aggregateIngressFlows,
     aggregateEgressFlows,
     showHostEndpoint,
-    showWorldEndpoint
+    showWorldEndpoint,
+    showKubeDns
   })
 );
 

@@ -667,37 +667,24 @@ export class AppUtils {
       },
       "Endpoints from ClusterInfo"
     );
-    return [...clusterEndpoints.endpointMap.entries()]
-      .map(
-        (entry): AppEndpoint => {
-          const endpointName =
-            findNameLabelValue(nameLabelKeys, entry[1].labels) ||
-            nameMap.get(entry[0]) ||
-            "";
-          return {
-            ...entry[1],
-            id: getEndpointHash(entry[1].labels),
-            name: endpointName,
-            protocols: protocolMap.get(entry[0]) || [],
-            disabled: false,
-            v4Cidrs: [],
-            v6Cidrs: [],
-            __typename: "AppEndpoint"
-          };
-        }
-      )
-      .filter(endpoint => {
-        if (!endpoint.name) {
-          this.logger.warn(
-            { endpoint },
-            "Endpoint name not found in the pod list"
-          );
-        }
-        return endpoint.name;
-      })
-      .filter(endpoint => {
-        return endpoint.labels.every(label => label.value !== "kube-dns");
-      });
+    return [...clusterEndpoints.endpointMap.entries()].map(
+      (entry): AppEndpoint => {
+        const endpointName =
+          findNameLabelValue(nameLabelKeys, entry[1].labels) ||
+          nameMap.get(entry[0]) ||
+          "";
+        return {
+          ...entry[1],
+          id: getEndpointHash(entry[1].labels),
+          name: endpointName,
+          protocols: protocolMap.get(entry[0]) || [],
+          disabled: false,
+          v4Cidrs: [],
+          v6Cidrs: [],
+          __typename: "AppEndpoint"
+        };
+      }
+    );
   }
 }
 
