@@ -494,6 +494,7 @@ export class DatabaseHubble implements IDatabase {
             });
 
             flowsStream.on("close", () => {
+              clearTimeout(streamCloseTimeout);
               context.logger.debug(
                 `Client #${clientIndex} closes stream, fetched flows in ${Date.now() -
                   startClientGetFlows}ms`
@@ -502,6 +503,7 @@ export class DatabaseHubble implements IDatabase {
             });
 
             flowsStream.on("end", () => {
+              clearTimeout(streamCloseTimeout);
               context.logger.debug(
                 `Fetched flows from client #${clientIndex} in ${Date.now() -
                   startClientGetFlows}ms`
@@ -510,6 +512,7 @@ export class DatabaseHubble implements IDatabase {
             });
 
             flowsStream.on("error", err => {
+              clearTimeout(streamCloseTimeout);
               reject(new Error(`from hubble: ${err ? err.toString() : ""}`));
             });
           })
