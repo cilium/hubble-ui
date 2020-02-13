@@ -44,7 +44,8 @@ import {
 import { createCachedSelector, createSelector } from "../../../state";
 import {
   getEndpoints,
-  getEndpointsMapWithLabelsHashAsKey
+  getEndpointsMapWithLabelsHashAsKey,
+  getShowKubeDnsEndpoint
 } from "../../App/state/selectors";
 import { addFlowsFilterLabelKeyPrefixes } from "../../App/utils";
 import {
@@ -86,6 +87,20 @@ export const getFlowsForwardingStatusWithReasonRouteState = createSelector(
   }
 );
 
+export const getExcludeLabelsFlowsFilter = createSelector(
+  getShowKubeDnsEndpoint,
+  (showKubeDns): Label[] => {
+    const excludeLabels: Label[] = [];
+    if (!showKubeDns) {
+      excludeLabels.push({
+        key: "k8s:k8s-app",
+        value: "kube-dns"
+      });
+    }
+    return excludeLabels;
+  }
+);
+
 export const getFlowsFilterBy = createSelector(
   getNamespaceFromParams,
   getFlowsForwardingStatusWithReasonRouteState,
@@ -93,13 +108,15 @@ export const getFlowsFilterBy = createSelector(
   getFlowsFilterTypeFromQueryParams,
   getFlowsRejectedReasonsFromQueryParams,
   getFlowsHttpStatusCodeQueryParams,
+  getExcludeLabelsFlowsFilter,
   (
     namespaceFromParams,
     forwardingStatusWithReason,
     filterInput,
     filterType,
     rejectedReasons,
-    httpStatusCode
+    httpStatusCode,
+    excludedLabels
   ): FlowFiltersInput => {
     const {
       labels: parsedLabels,
@@ -119,10 +136,8 @@ export const getFlowsFilterBy = createSelector(
       rejectedReason: rejectedReasons
         ? (rejectedReasons.split(",") as RejectedReason[])
         : undefined,
-      // rejectedReason: forwardingStatusWithReason[1]
-      //   ? forwardingStatusWithReason[1]
-      //   : undefined,
       labels: labels.length > 0 ? labels : undefined,
+      excludeLabels: excludedLabels.length > 0 ? excludedLabels : undefined,
       httpStatusCode: httpStatusCode,
       ...parsedFilterBy
     };

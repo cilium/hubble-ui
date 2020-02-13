@@ -44,6 +44,7 @@ export const discoverCluster = gql`
     $startedAfter: DateTime!,
     $excludedLabelKeys: [String!]!,
     $nameLabelKeys: [String!]!,
+    $filterBy: FlowFiltersInput
   ) {
     viewer {
       discoverCluster(
@@ -51,7 +52,8 @@ export const discoverCluster = gql`
         namespaces: $namespaces,
         startedAfter: $startedAfter,
         excludedLabelKeys: $excludedLabelKeys,
-        nameLabelKeys: $nameLabelKeys
+        nameLabelKeys: $nameLabelKeys,
+        filterBy: $filterBy
       ) {
         endpoints {
           ${EndpointTemplate}

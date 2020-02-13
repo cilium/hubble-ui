@@ -23,6 +23,7 @@ import {
 } from "./actions";
 import { State } from "./types";
 import { mergeFetchedClusterDataIntoState } from "./utils";
+import { toggleTrafficFilter } from "src/components/App/state/actions";
 
 const initialState: State = {
   fetching: false,
@@ -38,6 +39,15 @@ export const reducer = (state = initialState, action: Action): State => {
       return {
         ...state,
         fetching: true
+      };
+    }
+    case toggleTrafficFilter.type: {
+      const { payload } = action as typeof toggleTrafficFilter.actionType;
+      const changedKubeDns = payload.filter === "showKubeDns";
+      return {
+        ...state,
+        discoveryResult: changedKubeDns ? null : state.discoveryResult,
+        discovering: changedKubeDns
       };
     }
     case fetchClusters.ok.type: {

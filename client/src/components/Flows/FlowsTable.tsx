@@ -50,7 +50,8 @@ import {
   getFlowsLoading,
   getFlowsAutoRefresh,
   getFlowsTableVisibleColumns,
-  getStartCursor
+  getStartCursor,
+  getExcludeLabelsFlowsFilter
 } from "./state/selectors";
 import { ExtFlow } from "./state/types";
 import { discoverCluster } from "../Clusters/state/actions";
@@ -78,7 +79,8 @@ const provider = provide({
     loading: getFlowsLoading(state),
     clusterId: getClusterIdFromParams(state),
     namespaceFromParams: getNamespaceFromParams(state),
-    clusterDiscoveryTimestamp: getClusterDiscoveryTimestamp(state)
+    clusterDiscoveryTimestamp: getClusterDiscoveryTimestamp(state),
+    excludedLabels: getExcludeLabelsFlowsFilter(state)
   }),
   mapDispatchToProps: {
     fetchFlows: fetchFlows.action,
@@ -150,6 +152,8 @@ export const { Container: FlowsTable } = provider(Props => {
       const flowsDatesChanged =
         this.props.flowsStartDate !== nextProps.flowsStartDate ||
         this.props.flowsEndDate !== nextProps.flowsEndDate;
+      const excludedLabelsChanged =
+        this.props.excludedLabels !== nextProps.excludedLabels;
 
       const changed =
         filterByIdChanged ||
@@ -157,7 +161,8 @@ export const { Container: FlowsTable } = provider(Props => {
         filterByChanged ||
         autoRefreshChanged ||
         endpointChanged ||
-        flowsDatesChanged;
+        flowsDatesChanged ||
+        excludedLabelsChanged;
 
       if (this.props.visibleColumns !== nextProps.visibleColumns) {
         this.setState({
@@ -313,7 +318,13 @@ export const { Container: FlowsTable } = provider(Props => {
             namespaces: [props.namespaceFromParams],
             startedAfter:
               props.clusterDiscoveryTimestamp ||
-              getFlowsStartDate(props.flowsStartDate)
+              getFlowsStartDate(props.flowsStartDate),
+            filterBy: {
+              excludeLabels:
+                props.excludedLabels.length > 0
+                  ? props.excludedLabels
+                  : undefined
+            }
           },
           { onSuccess: callback, onError: callback }
         );
