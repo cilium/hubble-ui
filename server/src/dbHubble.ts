@@ -241,16 +241,23 @@ export class DatabaseHubble implements IDatabase {
           `Found 1 hubble client in ${Date.now() - start}ms`
         );
       } else {
-        dns.resolve4(hubbleService || "hubble-grpc", (err, addresses) => {
+        const options = {
+          hints: dns.ADDRCONFIG,
+          all: true,
+        };
+        dns.lookup(hubbleService || "hubble-grpc", options, (err, addresses: dns.LookupAddress[]) => {
           if (err) {
             context.logger.error(err);
             return reject(err);
           }
+          const ipAdresses = addresses.map(
+            addr => (addr.family === 6 ? `[${addr.address}]` : addr.address)
+          );
           resolve(
-            addresses.map(
-              address =>
+            ipAdresses.map(
+              ip =>
                 new ObserverClient(
-                  `${address}:${hubblePort}`,
+                  `${ip}:${hubblePort}`,
                   grpc.credentials.createInsecure()
                 )
             )
