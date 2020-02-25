@@ -433,7 +433,9 @@ export function updateEndpointWithIngressEgress(
       yamlCache[yamlCacheKey] = parsedYaml;
 
       const specList =
-        parsedYaml.specs && Array.isArray(parsedYaml.specs)
+        parsedYaml && typeof parsedYaml === "object"
+          ? [parsedYaml]
+          : parsedYaml.specs && Array.isArray(parsedYaml.specs)
           ? parsedYaml.specs
           : parsedYaml.spec && parsedYaml.spec.endpointSelector
           ? [parsedYaml.spec]
