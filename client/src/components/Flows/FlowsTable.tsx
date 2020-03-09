@@ -310,24 +310,28 @@ export const { Container: FlowsTable } = provider(Props => {
 
     fetchMap = (props: Props, callback: () => void) => {
       if (props.clusterId && props.namespaceFromParams) {
-        props.fetchMap(
-          {
-            clusterId: props.clusterId,
-            excludedLabelKeys: [],
-            nameLabelKeys: DEFAULT_NAME_LABEL_KEYS,
-            namespaces: [props.namespaceFromParams],
-            startedAfter:
-              props.clusterDiscoveryTimestamp ||
-              getFlowsStartDate(props.flowsStartDate),
-            filterBy: {
-              excludeLabels:
-                props.excludedLabels.length > 0
-                  ? props.excludedLabels
-                  : undefined
-            }
-          },
-          { onSuccess: callback, onError: callback }
-        );
+        if (props.currentEndpoint) {
+          callback();
+        } else {
+          props.fetchMap(
+            {
+              clusterId: props.clusterId,
+              excludedLabelKeys: [],
+              nameLabelKeys: DEFAULT_NAME_LABEL_KEYS,
+              namespaces: [props.namespaceFromParams],
+              startedAfter:
+                props.clusterDiscoveryTimestamp ||
+                getFlowsStartDate(props.flowsStartDate),
+              filterBy: {
+                excludeLabels:
+                  props.excludedLabels.length > 0
+                    ? props.excludedLabels
+                    : undefined
+              }
+            },
+            { onSuccess: callback, onError: callback }
+          );
+        }
       }
     };
 
