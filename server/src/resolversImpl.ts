@@ -186,7 +186,8 @@ export async function discoverCluster(
             dstBlacklistReservedClusterFilter,
             dstBlacklistReservedInitFilter,
             dstBlacklistReservedUnmanagedFilter,
-            dstBlacklistReservedHealthFilter
+            dstBlacklistReservedHealthFilter,
+            dstBlacklistClusterLocalDomainFilter
           ]
         };
       }
