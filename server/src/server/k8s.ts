@@ -26,7 +26,6 @@ import { cepJsonToGraphqlType } from "../utils";
 const isObject = (x: any): boolean => typeof x === "object";
 
 const kubeConfig = new k8s.KubeConfig();
-let cluster: ReturnType<typeof kubeConfig.getCurrentCluster> = null;
 
 if (
   process.env.KUBERNETES_SERVICE_HOST &&
@@ -36,13 +35,12 @@ if (
 ) {
   // Try to load kube config for service account case
   kubeConfig.loadFromCluster();
-  cluster = kubeConfig.getCurrentCluster();
 } else {
   // Fallback to other cases
   kubeConfig.loadFromDefault();
-  cluster = kubeConfig.getCurrentCluster();
 }
 
+const cluster = kubeConfig.getCurrentCluster();
 if (!cluster) {
   throw new Error("No current cluster in config");
 }
@@ -55,9 +53,7 @@ kubeConfig.applyToRequest(requestOpts);
 const ctx = {
   requestOpts,
   cluster,
-  client: kubeConfig.makeApiClient(k8s.CoreV1Api),
-  serviceAccountName: "",
-  serviceAccountNamespace: ""
+  client: kubeConfig.makeApiClient(k8s.CoreV1Api)
 };
 
 export const getNamespacesList = () => {
