@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 import * as k8s from "@kubernetes/client-node";
+import * as fs from "fs";
 import * as yaml from "js-yaml";
-import * as jsonwebtoken from "jsonwebtoken";
 import * as request from "request";
 import { K8sPod } from "../collector_service_pb";
 import {
@@ -25,69 +25,44 @@ import { cepJsonToGraphqlType } from "../utils";
 
 const isObject = (x: any): boolean => typeof x === "object";
 
-export const createClusterApi = () => {
-  const config = new k8s.KubeConfig();
-  config.loadFromDefault();
+const kubeConfig = new k8s.KubeConfig();
+let cluster: ReturnType<typeof kubeConfig.getCurrentCluster> = null;
 
-  const cluster = config.getCurrentCluster();
-  if (!cluster) {
-    throw new Error("No current cluster in config");
-  }
-  const requestOpts: any = {};
-  config.applyToRequest(requestOpts);
+if (
+  process.env.KUBERNETES_SERVICE_HOST &&
+  process.env.KUBERNETES_SERVICE_PORT &&
+  fs.existsSync(k8s.Config.SERVICEACCOUNT_CA_PATH) &&
+  fs.existsSync(k8s.Config.SERVICEACCOUNT_TOKEN_PATH)
+) {
+  // Try to load kube config for service account case
+  kubeConfig.loadFromCluster();
+  cluster = kubeConfig.getCurrentCluster();
+} else {
+  // Fallback to other cases
+  kubeConfig.loadFromDefault();
+  cluster = kubeConfig.getCurrentCluster();
+}
 
-  return {
-    requestOpts,
-    cluster,
-    client: config.makeApiClient(k8s.CoreV1Api),
-    serviceAccountName: "",
-    serviceAccountNamespace: ""
-  };
-};
+if (!cluster) {
+  throw new Error("No current cluster in config");
+}
 
-export const createUserApi = (token: string) => {
-  const decodedToken = jsonwebtoken.decode(token, { complete: true });
-  const serviceAccountName =
-    decodedToken.payload["kubernetes.io/serviceaccount/service-account.name"];
-  const serviceAccountNamespace =
-    decodedToken.payload["kubernetes.io/serviceaccount/namespace"];
+const skipTLSVerify = process.env.STRICT_SSL === "false";
+(cluster as any).skipTLSVerify = skipTLSVerify;
+const requestOpts: any = { strictSSL: !skipTLSVerify };
+kubeConfig.applyToRequest(requestOpts);
 
-  const config = new k8s.KubeConfig();
-  config.loadFromDefault();
-  const cluster = config.getCurrentCluster();
-  if (!cluster) {
-    throw new Error("No current cluster in config");
-  }
-  config.users = [{ name: serviceAccountName, token }];
-  config.contexts = [
-    {
-      cluster: cluster.name,
-      user: serviceAccountName,
-      name: config.getCurrentContext()
-    }
-  ];
-
-  const requestOpts: any = {
-    strictSSL: process.env.STRICT_SSL !== "false"
-  };
-  config.applyToRequest(requestOpts);
-
-  return {
-    requestOpts,
-    cluster,
-    client: config.makeApiClient(k8s.CoreV1Api),
-    serviceAccountName,
-    serviceAccountNamespace
-  };
-};
-
-export const createEnvApi = (token: string) => {
-  return createClusterApi();
+const ctx = {
+  requestOpts,
+  cluster,
+  client: kubeConfig.makeApiClient(k8s.CoreV1Api),
+  serviceAccountName: "",
+  serviceAccountNamespace: ""
 };
 
 export const getNamespacesList = () => {
-  return createClusterApi()
-    .client.listNamespace()
+  return ctx.client
+    .listNamespace()
     .then(result => {
       return result.body.items
         .filter(item => Boolean(item.metadata && item.metadata.name))
@@ -96,13 +71,12 @@ export const getNamespacesList = () => {
     .catch(handlek8sClientFailure.bind(null, "namespaces"));
 };
 
-export const getHasAccessToNamespace = (token: string, namespace: string) => {
+export const getHasAccessToNamespace = (namespace: string) => {
   return new Promise<boolean>((resolve, reject) => {
-    const api = createEnvApi(token);
-    const url = `${api.cluster.server}/apis/authorization.k8s.io/v1/selfsubjectaccessreviews`;
+    const url = `${ctx.cluster.server}/apis/authorization.k8s.io/v1/selfsubjectaccessreviews`;
     request(
       {
-        ...api.requestOpts,
+        ...ctx.requestOpts,
         url,
         method: "POST",
         json: true,
@@ -138,11 +112,10 @@ export const getHasAccessToNamespace = (token: string, namespace: string) => {
 };
 
 export const getPodListForNamespace = (
-  token: string,
   namespace: string
 ): Promise<K8sPod[]> => {
-  return createEnvApi(token)
-    .client.listNamespacedPod(namespace)
+  return ctx.client
+    .listNamespacedPod(namespace)
     .then(result => {
       if (
         !result.body ||
@@ -186,9 +159,9 @@ export const getPodListForNamespace = (
     .catch(handlek8sClientFailure.bind(null, "pods"));
 };
 
-export const getServicesForNamespace = (token: string, namespace: string) => {
-  return createEnvApi(token)
-    .client.listNamespacedService(namespace)
+export const getServicesForNamespace = (namespace: string) => {
+  return ctx.client
+    .listNamespacedService(namespace)
     .then(result => {
       if (
         !result.body ||
@@ -202,12 +175,9 @@ export const getServicesForNamespace = (token: string, namespace: string) => {
     .catch(handlek8sClientFailure.bind(null, "services"));
 };
 
-export const getK8SEndpointsForNamespace = (
-  token: string,
-  namespace: string
-) => {
-  return createEnvApi(token)
-    .client.listNamespacedEndpoints(namespace)
+export const getK8SEndpointsForNamespace = (namespace: string) => {
+  return ctx.client
+    .listNamespacedEndpoints(namespace)
     .then(result => {
       if (
         !result.body ||
@@ -221,15 +191,11 @@ export const getK8SEndpointsForNamespace = (
     .catch(handlek8sClientFailure.bind(null, "k8s endpoints"));
 };
 
-export const getCiliumEndpointsForNamespace = (
-  token: string,
-  namespace: string
-) => {
+export const getCiliumEndpointsForNamespace = (namespace: string) => {
   assertNamespace(namespace);
   return new Promise<CiliumEndpoint[]>((resolve, reject) => {
-    const api = createEnvApi(token);
-    const url = `${api.cluster.server}/apis/cilium.io/v2/namespaces/${namespace}/ciliumendpoints`;
-    request.get(url, api.requestOpts, async (error, response, body) => {
+    const url = `${ctx.cluster.server}/apis/cilium.io/v2/namespaces/${namespace}/ciliumendpoints`;
+    request.get(url, ctx.requestOpts, async (error, response, body) => {
       if (handleRestFailure("cilium endpoints", error, response, reject)) {
         return;
       }
@@ -248,11 +214,10 @@ export const getCiliumEndpointsForNamespace = (
   });
 };
 
-export const getCiliumNetworkPolicies = (token: string) => {
+export const getCiliumNetworkPolicies = () => {
   return new Promise<CiliumNetworkPolicy[]>((resolve, reject) => {
-    const api = createEnvApi(token);
-    const url = `${api.cluster.server}/apis/cilium.io/v2/ciliumnetworkpolicies`;
-    request.get(url, api.requestOpts, (error, response, body) => {
+    const url = `${ctx.cluster.server}/apis/cilium.io/v2/ciliumnetworkpolicies`;
+    request.get(url, ctx.requestOpts, (error, response, body) => {
       if (
         handleRestFailure("cilium network policies", error, response, reject)
       ) {
@@ -282,11 +247,10 @@ export const getCiliumNetworkPolicies = (token: string) => {
   });
 };
 
-export const getKubernetesNetworkPolicies = (token: string) => {
+export const getKubernetesNetworkPolicies = () => {
   return new Promise<KubernetesNetworkPolicy[]>((resolve, reject) => {
-    const api = createEnvApi(token);
-    const url = `${api.cluster.server}/apis/networking.k8s.io/v1/networkpolicies`;
-    request.get(url, api.requestOpts, (error, response, body) => {
+    const url = `${ctx.cluster.server}/apis/networking.k8s.io/v1/networkpolicies`;
+    request.get(url, ctx.requestOpts, (error, response, body) => {
       if (handleRestFailure("k8s network policies", error, response, reject)) {
         return;
       }

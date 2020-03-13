@@ -46,7 +46,7 @@ export class ConfigDatabaseHubble implements IConfigDatabase {
     context.logger.debug("Fetching cnp...");
     const cnp =
       selectedFields && selectedFields.cnp
-        ? await k8s.getCiliumNetworkPolicies(context.user.token)
+        ? await k8s.getCiliumNetworkPolicies()
         : undefined;
     context.logger.debug(`Fetched cnp in ${Date.now() - startCnp}ms`);
 
@@ -54,7 +54,7 @@ export class ConfigDatabaseHubble implements IConfigDatabase {
     context.logger.debug("Fetching knp...");
     const knp =
       selectedFields && selectedFields.knp
-        ? await k8s.getKubernetesNetworkPolicies(context.user.token)
+        ? await k8s.getKubernetesNetworkPolicies()
         : undefined;
     context.logger.debug(`Fetched knp in ${Date.now() - startKnp}ms`);
 
@@ -120,31 +120,25 @@ export class ConfigDatabaseHubble implements IConfigDatabase {
 
     const startPodList = Date.now();
     context.logger.debug("Fetching pods...");
-    const podList = await k8s.getPodListForNamespace(
-      context.user.token,
-      namespace
-    );
+    const podList = await k8s.getPodListForNamespace(namespace);
     context.logger.debug(`Fetched pods in ${Date.now() - startPodList}ms`);
 
     const startCep = Date.now();
     context.logger.debug("Fetching cep...");
-    const cep = await k8s.getCiliumEndpointsForNamespace(
-      context.user.token,
-      namespace
-    );
+    const cep = await k8s.getCiliumEndpointsForNamespace(namespace);
     context.logger.debug(`Fetched cep in ${Date.now() - startCep}ms`);
 
     const startServices = Date.now();
     context.logger.debug("Fetching services...");
     const services = JSON.stringify(
-      await k8s.getServicesForNamespace(context.user.token, namespace)
+      await k8s.getServicesForNamespace(namespace)
     );
     context.logger.debug(`Fetched services in ${Date.now() - startServices}ms`);
 
     const startKep = Date.now();
     context.logger.debug("Fetching kep...");
     const kep = JSON.stringify(
-      await k8s.getK8SEndpointsForNamespace(context.user.token, namespace)
+      await k8s.getK8SEndpointsForNamespace(namespace)
     );
     context.logger.debug(`Fetched kep in ${Date.now() - startKep}ms`);
 
