@@ -243,30 +243,34 @@ export class DatabaseHubble implements IDatabase {
       } else {
         const options = {
           hints: dns.ADDRCONFIG,
-          all: true,
+          all: true
         };
-        dns.lookup(hubbleService || "hubble-grpc", options, (err, addresses: dns.LookupAddress[]) => {
-          if (err) {
-            context.logger.error(err);
-            return reject(err);
+        dns.lookup(
+          hubbleService || "hubble-grpc",
+          options,
+          (err, addresses: dns.LookupAddress[]) => {
+            if (err) {
+              context.logger.error(err);
+              return reject(err);
+            }
+            const ipAdresses = addresses.map(addr =>
+              addr.family === 6 ? `[${addr.address}]` : addr.address
+            );
+            resolve(
+              ipAdresses.map(
+                ip =>
+                  new ObserverClient(
+                    `${ip}:${hubblePort}`,
+                    grpc.credentials.createInsecure()
+                  )
+              )
+            );
+            context.logger.debug(
+              `Found ${addresses.length} hubble client(s) in ${Date.now() -
+                start}ms`
+            );
           }
-          const ipAdresses = addresses.map(
-            addr => (addr.family === 6 ? `[${addr.address}]` : addr.address)
-          );
-          resolve(
-            ipAdresses.map(
-              ip =>
-                new ObserverClient(
-                  `${ip}:${hubblePort}`,
-                  grpc.credentials.createInsecure()
-                )
-            )
-          );
-          context.logger.debug(
-            `Found ${addresses.length} hubble client(s) in ${Date.now() -
-              start}ms`
-          );
-        });
+        );
       }
     });
   }
@@ -400,33 +404,6 @@ export class DatabaseHubble implements IDatabase {
                 : httpResponse
                 ? "HTTP"
                 : undefined;
-
-              if (options.processL7 && flow.getType() === FlowType.L7) {
-                if (!flow.getReply()) {
-                  return;
-                }
-                [sourceLabels, destinationLabels] = [
-                  destinationLabels,
-                  sourceLabels
-                ];
-                [sourcePort, destinationPort] = [destinationPort, sourcePort];
-                [sourceL4Protocol, destinationL4Protocol] = [
-                  destinationL4Protocol,
-                  sourceL4Protocol
-                ];
-                [sourceDnsName, destinationDnsName] = [
-                  destinationDnsName,
-                  sourceDnsName
-                ];
-                [sourcePodName, destinationPodName] = [
-                  destinationDnsName,
-                  sourcePodName
-                ];
-                [sourceIpAddress, destinationIpAddress] = [
-                  destinationIpAddress,
-                  sourceIpAddress
-                ];
-              }
 
               const timestamp = flow.getTime()
                 ? flow.getTime()!.toDate()
