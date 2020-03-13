@@ -49,8 +49,6 @@ import { stringToLabel } from "./utils";
 
 const grpc = require("grpc");
 
-const FLOWS_STREAM_CLOSE_DELAY = 12000;
-
 export class DatabaseHubble implements IDatabase {
   constructor() {}
 
@@ -243,30 +241,34 @@ export class DatabaseHubble implements IDatabase {
       } else {
         const options = {
           hints: dns.ADDRCONFIG,
-          all: true,
+          all: true
         };
-        dns.lookup(hubbleService || "hubble-grpc", options, (err, addresses: dns.LookupAddress[]) => {
-          if (err) {
-            context.logger.error(err);
-            return reject(err);
+        dns.lookup(
+          hubbleService || "hubble-grpc",
+          options,
+          (err, addresses: dns.LookupAddress[]) => {
+            if (err) {
+              context.logger.error(err);
+              return reject(err);
+            }
+            const ipAdresses = addresses.map(addr =>
+              addr.family === 6 ? `[${addr.address}]` : addr.address
+            );
+            resolve(
+              ipAdresses.map(
+                ip =>
+                  new ObserverClient(
+                    `${ip}:${hubblePort}`,
+                    grpc.credentials.createInsecure()
+                  )
+              )
+            );
+            context.logger.debug(
+              `Found ${addresses.length} hubble client(s) in ${Date.now() -
+                start}ms`
+            );
           }
-          const ipAdresses = addresses.map(
-            addr => (addr.family === 6 ? `[${addr.address}]` : addr.address)
-          );
-          resolve(
-            ipAdresses.map(
-              ip =>
-                new ObserverClient(
-                  `${ip}:${hubblePort}`,
-                  grpc.credentials.createInsecure()
-                )
-            )
-          );
-          context.logger.debug(
-            `Found ${addresses.length} hubble client(s) in ${Date.now() -
-              start}ms`
-          );
-        });
+        );
       }
     });
   }
@@ -317,21 +319,25 @@ export class DatabaseHubble implements IDatabase {
             const flowsStream = client.getFlows(req);
             const startClientGetFlows = Date.now();
 
-            let lastFlowDataTimestamp = 0;
-            let streamCloseTimeout: any = null;
-            const createStreamCloseTimeout = () => {
-              clearTimeout(streamCloseTimeout);
-              streamCloseTimeout = setTimeout(() => {
-                if (
-                  !lastFlowDataTimestamp ||
-                  Date.now() - lastFlowDataTimestamp >= FLOWS_STREAM_CLOSE_DELAY
-                ) {
-                  flowsStream.emit("close");
-                }
-              }, FLOWS_STREAM_CLOSE_DELAY);
-            };
+            flowsStream.on("end", () => {
+              context.logger.debug(
+                `Fetched flows from client #${clientIndex} in ${Date.now() -
+                  startClientGetFlows}ms`
+              );
+              resolve();
+            });
 
-            createStreamCloseTimeout();
+            flowsStream.on("close", () => {
+              context.logger.debug(
+                `Client #${clientIndex} closes stream, fetched flows in ${Date.now() -
+                  startClientGetFlows}ms`
+              );
+              resolve();
+            });
+
+            flowsStream.on("error", err => {
+              reject(new Error(`from hubble: ${err ? err.toString() : ""}`));
+            });
 
             flowsStream.on("data", (res: GetFlowsResponse) => {
               context.logger.trace(
@@ -460,9 +466,6 @@ export class DatabaseHubble implements IDatabase {
                 seenIds.add(id);
               }
 
-              lastFlowDataTimestamp = Date.now();
-              createStreamCloseTimeout();
-
               edges.push({
                 cursor: "",
                 node: {
@@ -498,29 +501,6 @@ export class DatabaseHubble implements IDatabase {
                   appModelInfo: null
                 } as Flow
               });
-            });
-
-            flowsStream.on("close", () => {
-              clearTimeout(streamCloseTimeout);
-              context.logger.debug(
-                `Client #${clientIndex} closes stream, fetched flows in ${Date.now() -
-                  startClientGetFlows}ms`
-              );
-              resolve();
-            });
-
-            flowsStream.on("end", () => {
-              clearTimeout(streamCloseTimeout);
-              context.logger.debug(
-                `Fetched flows from client #${clientIndex} in ${Date.now() -
-                  startClientGetFlows}ms`
-              );
-              resolve();
-            });
-
-            flowsStream.on("error", err => {
-              clearTimeout(streamCloseTimeout);
-              reject(new Error(`from hubble: ${err ? err.toString() : ""}`));
             });
           })
       )
