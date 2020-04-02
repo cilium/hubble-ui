@@ -11,32 +11,17 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+import { Application } from 'express'
 import { authenticateStub } from "../auth";
 import { createStaticPages } from "./createStaticPages";
 
 export async function setupIndexPageRoute(
-  app,
+  app: Application,
   isProduction: boolean,
   clientStaticDir: string
 ) {
-  let { indexPage } = await createStaticPages(clientStaticDir);
-  indexPage = indexPage.replace(`%HUBBLE%`, "1");
-  if (isProduction) {
-    app.get("*", authenticateStub, (req, res) => {
-      res.setHeader("Content-Type", "text/html");
-      const { userName, userEmail, userPicture } = req.signedCookies;
-      let formattedPage = indexPage.replace("{% USER_NAME %}", userName || "");
-      formattedPage = formattedPage.replace(
-        "{% USER_EMAIL %}",
-        userEmail || ""
-      );
-      formattedPage = formattedPage.replace(
-        "{% USER_PICTURE %}",
-        userPicture || ""
-      );
-      res.send(formattedPage);
-    });
-  } else {
+  if (!isProduction) {
     const proxy = require("http-proxy-middleware");
     app.use(
       proxy({
@@ -45,5 +30,22 @@ export async function setupIndexPageRoute(
         changeOrigin: true
       })
     );
+
+    return;
   }
+
+  let { indexPage } = await createStaticPages(clientStaticDir);
+  indexPage = indexPage.replace(`%HUBBLE%`, '1');
+
+  app.get("*", authenticateStub, (req, res) => {
+    const { userName, userEmail, userPicture } = req.signedCookies;
+
+    const page = indexPage
+      .replace('{% USER_NAME %}', userName || '')
+      .replace('{% USER_EMAIL %}', userEmail || '')
+      .replace('{% USER_PICTURE %}', userPicture || '');
+
+    res.setHeader('Content-Type', 'text/html');
+    res.send(page);
+  });
 }
