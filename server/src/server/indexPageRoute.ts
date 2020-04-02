@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import { Application } from 'express'
-import { authenticateStub } from "../auth";
-import { createStaticPages } from "./createStaticPages";
+import { authenticateStub } from '../auth';
+import { createStaticPages } from './createStaticPages';
 
 export async function setupIndexPageRoute(
   app: Application,
@@ -22,10 +22,10 @@ export async function setupIndexPageRoute(
   clientStaticDir: string
 ) {
   if (!isProduction) {
-    const proxy = require("http-proxy-middleware");
+    const proxy = require('http-proxy-middleware');
     app.use(
       proxy({
-        target: "http://127.0.0.1:3000",
+        target: 'http://127.0.0.1:3000',
         ws: true,
         changeOrigin: true
       })
@@ -37,7 +37,7 @@ export async function setupIndexPageRoute(
   let { indexPage } = await createStaticPages(clientStaticDir);
   indexPage = indexPage.replace(`%HUBBLE%`, '1');
 
-  app.get("*", authenticateStub, (req, res) => {
+  app.get('*', authenticateStub, (req, res) => {
     const { userName, userEmail, userPicture } = req.signedCookies;
 
     const page = indexPage
