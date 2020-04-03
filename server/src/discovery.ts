@@ -157,6 +157,7 @@ export class DiscoveryUtils {
     hashIdMap: Map<string, string>
   ): Promise<AppEndpoint[]> {
     // generate endpoints out of cluster information (pods, services)
+    console.log("cluster info: ", clusterInfo);
     const endpointsFromClusterInfo = await this.appUtils.clusterInfoToApp(
       clusterInfo,
       namespaces,

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 export const DEFAULT_NAME_LABEL_KEYS = [
+  "k8s:kubernetes.io/name",
+  "k8s:app.kubernetes.io/name",
   "k8s:app",
   "k8s:name",
   "k8s:id",
