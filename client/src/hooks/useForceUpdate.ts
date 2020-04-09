@@ -15,10 +15,10 @@ import { useCallback, useReducer } from "react";
 
 type VoidFunction = () => void;
 
-const reducer = (state: boolean, _action: null): boolean => !state;
+const reducer = (state: number, _action: null): number => (state + 1) % 0xffffff;
 
 export const useForceUpdate = (): VoidFunction => {
-  const [, dispatch] = useReducer(reducer, true);
+  const [, dispatch] = useReducer(reducer, 0);
   const memoizedDispatch = useCallback((): void => {
     dispatch(null);
   }, [dispatch]);
