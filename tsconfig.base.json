@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "incremental": false,
+    "moduleResolution": "node",
+    "isolatedModules": false,
+    "sourceMap": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": false,
+    "allowJs": true,
+    "checkJs": false,
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+    "strictNullChecks": true,
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["node"]
+  },
+  "exclude": ["node_modules/*"]
+}

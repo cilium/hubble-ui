@@ -1,0 +1,20 @@
+{
+  "private": true,
+  "name": "hubble-ui-common",
+  "scripts": {
+    "postinstall": "npm run install-grpc-deps",
+    "upgrade-deps": "../node_modules/.bin/npm-check --update --save-exact",
+    "generate-proto": "./generate-proto.sh",
+    "install-grpc-deps": "node ./scripts/install-grpc-deps"
+  },
+  "dependencies": {
+    "download": "^8.0.0",
+    "fs-extra": "^9.0.0",
+    "google-protobuf": "3.11.4",
+    "grpc-web": "1.0.7"
+  },
+  "devDependencies": {
+    "@types/google-protobuf": "3.7.2",
+    "unzipper": "0.10.11"
+  }
+}

@@ -1,14 +1,16 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "allowJs": true,
-    "incremental": true,
     "module": "commonjs",
-    "target": "es6",
-    "noImplicitAny": false,
-    "outDir": "build",
-    "sourceMap": false,
-    "strictNullChecks": true,
-    "lib": ["es2017", "dom", "esnext.array", "esnext.asynciterable"]
+    "target": "es2017",
+    "lib": ["es2017"],
+    "rootDir": "../",
+    "baseUrl": "./src",
+    "outDir": "./build",
+    "paths": {
+      "~common/*": ["../../common/src/*"]
+    }
   },
-  "include": ["src", "__tests__"]
+  "exclude": ["node_modules/*"],
+  "include": ["src/**/*"]
 }

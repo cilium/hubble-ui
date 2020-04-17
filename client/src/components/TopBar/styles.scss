@@ -1,0 +1,10 @@
+@import "~/styles/common/layout.scss";
+@import "~/styles/common/vars.scss";
+
+.topbar {
+  @include row(space-between, center);
+  padding: 0 $default-padding;
+
+  border-bottom: 1px solid #c6cace;
+  background-color: #f2f4f6;
+}

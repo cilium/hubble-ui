@@ -1,0 +1,39 @@
+.wrapper {
+  display: grid;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.map {
+  grid-row-start: row-map;
+  grid-row-end: row-drag;
+  box-shadow: inset 0 0 23px rgba(8, 44, 65, 0.12);
+  background-color: #f0f4f8;
+}
+
+.drag {
+  grid-row-start: row-drag;
+  grid-row-end: row-panel;
+  background-color: #f2f4f6;
+  transition: all 0.25s ease-out;
+  cursor: grab;
+  user-select: none;
+
+  &:hover {
+    background-color: #edf1f3;
+  }
+
+  &:active {
+    background-color: #e7eaec;
+    cursor: grabbing;
+  }
+}
+
+.panel {
+  grid-row-start: row-panel;
+  max-height: 100%;
+  overflow: hidden;
+  padding: 8px 11px;
+  background-color: #f2f4f6;
+}
