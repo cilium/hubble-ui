@@ -21,7 +21,7 @@
     "generate-types": "cd common && npm run generate-types"
   },
   "lint-staged": {
-    "./**/*.{ts,tsx,js,jsx,mjs}": [
+    "{./client/src/**/*,./server/src/**/*,./common/src/**/*}.{ts,tsx,js,jsx,mjs}": [
       "npm run --silent lint:ts:fix",
       "git add"
     ],
@@ -67,7 +67,8 @@
   "eslintConfig": {
     "ignorePatterns": [
       "common/src/types/hubble/",
-      "common/src/types/graphql.ts"
+      "common/src/types/graphql.ts",
+      "server/public"
     ],
     "parser": "@typescript-eslint/parser",
     "extends": [
