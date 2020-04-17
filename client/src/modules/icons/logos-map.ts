@@ -1,0 +1,21 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+export const kubernetes = require('~/icons/logos/kubernetes-logo.svg');
+export const world = require('~/icons/logos/world-logo.svg');
+export const mongodb = require('~/icons/logos/mongodb-logo.svg');
+export const redis = require('~/icons/logos/redis-logo.svg');
+export const rabbitmq = require('~/icons/logos/rabbitmq-logo.svg');
+export const elasticsearch = require('~/icons/logos/elasticsearch-logo.svg');
+export const mysql = require('~/icons/logos/mysql-logo.svg');
+export const postgresql = require('~/icons/logos/postgresql-logo.svg');
+export const zookeeper = require('~/icons/logos/zookeeper-logo.png');
+export const grpc = require('~/icons/logos/grpc-logo.svg');
+export const http = require('~/icons/logos/http-logo.svg');
+export const cassandra = require('~/icons/logos/cassandra-logo.svg');
+export const kafka = require('~/icons/logos/kafka-logo.svg');
+export const influxdb = require('~/icons/logos/influxdb-logo.svg');
+export const covalent = require('~/icons/logos/covalent-logo.svg');
+export const couchdb = require('~/icons/logos/couchdb-logo.svg');
+export const grpahql = require('~/icons/logos/graphql-logo.svg');
+export const etcd = require('~/icons/logos/etcd-logo.svg');
+export const memcached = require('~/icons/logos/memcached-logo.svg');
+export const aws = require('~/icons/logos/aws-logo.svg');

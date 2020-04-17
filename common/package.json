@@ -1,0 +1,16 @@
+{
+  "private": true,
+  "name": "hubble-ui-common",
+  "scripts": {
+    "upgrade-deps": "../node_modules/.bin/npm-check --update --save-exact",
+    "generate-types": "rm -f ./src/types/graphql.ts && gql-gen && ./generate-types.sh"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "1.12.2",
+    "@graphql-codegen/typescript": "1.12.2",
+    "@graphql-codegen/typescript-operations": "1.12.2",
+    "@types/google-protobuf": "3.7.2",
+    "grpc-tools": "1.8.1",
+    "grpc_tools_node_protoc_ts": "2.5.10"
+  }
+}

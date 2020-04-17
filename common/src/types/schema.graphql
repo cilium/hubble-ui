@@ -1,0 +1,61 @@
+scalar DateTime
+
+type Label {
+  key: String!
+  value: String!
+}
+
+type Flow {
+  source: Endpoint
+  destination: Endpoint
+  ip: Ip
+  l34: L34
+  l7: L7
+  proc: Proc
+}
+
+type Endpoint {
+  labels: [Label!]!
+}
+
+type L34 {
+  tcp: Tcp
+  udp: Udp
+}
+
+type Tcp {
+  sourcePort: Int!
+  destinationPort: Int!
+}
+
+type Udp {
+  sourcePort: Int!
+  destinationPort: Int!
+}
+
+type Ip {
+  source: String!
+  destination: String!
+  ipversion: IpVersion!
+}
+
+enum IpVersion {
+  IP_NOT_USED
+  IPV4
+  IPV6
+}
+
+type L7 {
+  dns: Dns
+}
+
+type Dns {
+  query: String!
+  ips: [String!]!
+  rcode: String!
+}
+
+type Proc {
+  bin: String!
+  args: String!
+}

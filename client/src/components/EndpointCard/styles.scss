@@ -1,0 +1,14 @@
+.wrapper {
+  margin: var(--endpoint-shadow-size);
+  background-color: #fff;
+  border-radius: 10px;
+  border: 1px solid #b4b4b4;
+}
+
+.layer1 {
+  box-shadow: 0 0 var(--endpoint-shadow-size) rgba(0, 0, 0, 0.15);
+}
+
+.layer2 {
+  border: 1px solid silver;
+}

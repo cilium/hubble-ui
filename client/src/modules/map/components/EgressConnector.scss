@@ -1,0 +1,9 @@
+.wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: var(--egress-connector-width);
+  min-width: var(--egress-connector-width);
+  max-width: var(--egress-connector-width);
+  height: 16px;
+}
