@@ -1,9 +1,0 @@
-:global(.modal-appear) {
-  opacity: 0.01;
-}
-
-:global(.modal-appear.modal-appear-active) {
-  transition: opacity 0.15s linear;
-
-  opacity: 1;
-}

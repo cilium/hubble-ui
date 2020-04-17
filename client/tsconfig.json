@@ -1,36 +1,18 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "incremental": true,
-    "outDir": "build/dist",
     "module": "esnext",
     "target": "esnext",
-    "moduleResolution": "node",
-    "lib": ["es6", "dom", "esnext"],
+    "lib": ["dom", "esnext"],
+    "rootDir": "../",
+    "baseUrl": "./src",
+    "outDir": "./build",
     "jsx": "react",
-    "sourceMap": true,
-    "allowJs": true,
-    "isolatedModules": false,
-    "noUnusedLocals": false,
-    "strictNullChecks": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noImplicitAny": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "forceConsistentCasingInFileNames": true,
-    "typeRoots": ["node_modules/@types"],
-    "baseUrl": ".",
     "paths": {
-      "react": ["node_modules/@types/react"]
+      "~/*": ["./*"],
+      "~common/*": ["../../common/src/*"]
     }
   },
-  "exclude": [
-    "node_modules",
-    "build",
-    "scripts",
-    "acceptance-tests",
-    "webpack",
-    "jest",
-    "src/setupTests.ts"
-  ],
-  "types": ["typePatches"]
+  "exclude": ["node_modules/*"],
+  "include": ["src/**/*"]
 }
