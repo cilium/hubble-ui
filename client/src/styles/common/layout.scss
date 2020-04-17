@@ -1,0 +1,50 @@
+@mixin column($ma: default, $ca: default) {
+  display: flex;
+  flex-direction: column;
+
+  @if $ma != default {
+    justify-content: $ma;
+  }
+
+  @if $ca != default {
+    align-items: $ca;
+  }
+}
+
+@mixin row($ma: default, $ca: default) {
+  display: flex;
+  flex-direction: row;
+
+  @if $ma != default {
+    justify-content: $ma;
+  }
+
+  @if $ca != default {
+    align-items: $ca;
+  }
+}
+
+@mixin centered() {
+  @include column(center, center);
+}
+
+@mixin exact-size($w: default, $h: default) {
+  @if $w != default {
+    width: $w;
+    min-width: $w;
+    max-width: $w;
+  }
+
+  @if $h != default {
+    height: $h;
+    min-height: $h;
+    max-height: $h;
+  }
+}
+
+@mixin ellipsis-limit() {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

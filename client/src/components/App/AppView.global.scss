@@ -1,8 +1,0 @@
-:global(.appview-appear) {
-  opacity: 0.01;
-}
-
-:global(.appview-appear-active) {
-  opacity: 1;
-  transition: opacity 500ms linear;
-}
