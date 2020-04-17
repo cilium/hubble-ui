@@ -4,15 +4,10 @@ import EndpointsStore from './endpoints';
 
 import { Endpoint } from '~/domain/endpoint';
 import { WH, XYWH, dummy as geom } from '~/domain/geometry';
+import { PlacementEntry, Placement } from '~/domain/layout';
 import { sizes } from '~/ui/vars';
 
 const hPadding = sizes.endpointHPadding;
-
-export type Placement = Array<PlacementEntry>;
-export interface PlacementEntry {
-  endpoint: Endpoint;
-  geometry: XYWH;
-}
 
 export default class LayoutStore {
   @observable
