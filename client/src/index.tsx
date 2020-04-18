@@ -4,7 +4,6 @@ import ReactDOM from 'react-dom';
 import { StoreProvider } from '~/store';
 import { App } from './components/App';
 
-import * as router from './modules/navigation/router';
 import * as ui from '~/ui';
 import api from '~/api';
 
@@ -12,7 +11,6 @@ import './blueprint.css';
 import './index.scss';
 
 const run = async () => {
-  router.start();
   ui.setCSSVars(ui.sizes);
 
   const elems = (

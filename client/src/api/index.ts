@@ -1,10 +1,9 @@
 import { endpoints } from './mock';
-import { Flow } from '~/domain/data';
-import { IEndpoint } from '~/domain/endpoint';
+// import { IEndpoint } from '~/domain/endpoint';
+import { Service, Link } from '~/domain/service-map';
 
 export interface CoreAPIv1 {
-  fetchFlows: () => Promise<Array<Flow>>;
-  fetchEndpoints: () => Promise<Array<IEndpoint>>;
+  getServices: () => Promise<Array<Service>>;
   getNamespaces: () => Promise<Array<string>>;
 }
 
@@ -13,11 +12,7 @@ export interface API {
 }
 
 export class APIv1 implements CoreAPIv1 {
-  async fetchFlows(): Promise<Array<Flow>> {
-    return Promise.resolve([]);
-  }
-
-  async fetchEndpoints(): Promise<Array<IEndpoint>> {
+  async getServices(): Promise<Array<Service>> {
     return Promise.resolve(endpoints);
   }
 

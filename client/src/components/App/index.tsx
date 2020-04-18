@@ -23,10 +23,9 @@ export interface AppOwnProps {
 export type AppProps = RouteComponentProps & AppOwnProps;
 
 const loadData = async (api: API) => {
-  const flows = await api.v1.fetchFlows();
-  const endpoints = await api.v1.fetchEndpoints();
+  const services = await api.v1.getServices();
 
-  return { flows, endpoints };
+  return { services };
 };
 
 export const AppComponent: FunctionComponent<AppProps> = observer(function(
@@ -46,9 +45,9 @@ export const AppComponent: FunctionComponent<AppProps> = observer(function(
 
   useEffect(() => {
     loadData(api)
-      .then(({ flows, endpoints }) => {
+      .then(({ services }) => {
         // Kind a temporal function to setup everything we need for now in store
-        store.setup(flows, endpoints);
+        store.setup(services);
       })
       .finally(() => {
         setLoading(false);
@@ -74,8 +73,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(function(
 
       <div className={css.map}>
         <Map
-          flows={store.flows.data}
-          endpoints={store.endpoints.data}
+          services={store.services.data}
           namespace={store.currentNamespace}
         />
       </div>

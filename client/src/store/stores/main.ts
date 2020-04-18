@@ -1,19 +1,18 @@
 import { observable, autorun, reaction } from 'mobx';
 
-import { Flow } from '~/domain/data';
-import { IEndpoint } from '~/domain/mocked-data';
+import { Service, Link } from '~/domain/service-map';
 
-import FlowsStore from './flows';
-import EndpointsStore from './endpoints';
+import InteractionStore from './interaction';
+import ServiceStore from './service';
 import RouteStore from './route';
 import LayoutStore from './layout';
 
 export class Store {
   @observable
-  public flows: FlowsStore;
+  public interactions: InteractionStore;
 
   @observable
-  public endpoints: EndpointsStore;
+  public services: ServiceStore;
 
   @observable
   public route: RouteStore;
@@ -29,23 +28,22 @@ export class Store {
   public layout: LayoutStore;
 
   constructor() {
-    this.flows = new FlowsStore();
-    this.endpoints = new EndpointsStore();
+    this.interactions = new InteractionStore();
+    this.services = new ServiceStore();
     this.route = new RouteStore();
 
     // LayoutStore is a store which knows geometry props of service map
     // It will be depending on flows / links as these are used to determine
     // positions of cards
-    this.layout = new LayoutStore(this.endpoints /* this.flows */);
+    this.layout = new LayoutStore(this.services /* this.flows */);
   }
 
   static new(): Store {
     return new Store();
   }
 
-  public setup(flows: Array<Flow>, endpoints: Array<IEndpoint>) {
-    this.flows.set(flows);
-    this.endpoints.set(endpoints);
+  public setup(services: Array<Service>) {
+    this.services.set(services);
   }
 
   public get currentNamespace(): string | undefined {

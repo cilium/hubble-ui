@@ -1,15 +1,54 @@
-import { IEndpoint } from '~/domain/endpoint';
-import { L34Protocol } from '~/domain/mocked-data';
+// import { IEndpoint } from '~/domain/endpoint';
+import { KV } from './misc';
 
-export interface ServiceMap {
-  endpoints: Array<IEndpoint>;
-  links: Array<Link>;
+// export interface ServiceMap {
+//   endpoints: Array<IEndpoint>;
+//   links: Array<Link>;
+// }
+
+export interface Service {
+  id: string;
+  name: string;
+  namespace: string;
+  labels: Array<KV>;
+  dnsNames: Array<string>;
+  egressPolicyEnforced: boolean;
+  ingressPolicyEnforced: boolean;
+  visibilityPolicyStatus: string;
+  creationTimestamp: number; // consider using BigInt here
 }
 
 export interface Link {
-  sourceIdentity: string;
-  destinationIdentity: string;
-  verdict?: any;
+  id: string;
+  sourceId: string;
+  destinationId: string;
   destinationPort: number;
-  l34Protocol: L34Protocol;
+  ipProtocol: IPProtocol;
+  verdict: Verdict;
+}
+
+export enum IPProtocol {
+  Unknown,
+  TCP,
+  UDP,
+  ICMPv4,
+  ICMPv6,
+}
+
+export enum Verdict {
+  Unknown,
+  Forwarded,
+  Dropped,
+}
+
+export enum ApplicationKind {
+  HTTP = 'http',
+  GRPC = 'grpc',
+  ElasticSearch = 'elasticsearch',
+  Kafka = 'kafka',
+  RabbitMQ = 'rabbitmq',
+  PostgreSQL = 'postgresql',
+  MySQL = 'mysql',
+  Redis = 'redis',
+  Zookeeper = 'zookeeper',
 }

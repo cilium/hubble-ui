@@ -1,34 +1,18 @@
-import { IEndpoint, KV, Protocol } from './mocked-data';
-export { IEndpoint };
+import { Service, ApplicationKind } from './service-map';
+import { reserved } from './cilium';
 
-export enum ApplicationKind {
-  HTTP = 'http',
-  GRPC = 'grpc',
-  ElasticSearch = 'elasticsearch',
-  Kafka = 'kafka',
-  Zookeeper = 'zookeeper',
-}
-
-export class Endpoint implements IEndpoint {
+// This entity maintains ONLY THE DATA of service card
+export class ServiceCard {
   public static readonly AppLabel = 'k8s:app';
 
-  public id: string;
-  public labels: Array<KV>;
-  public egressEnforcement = false;
-  public ingressEnforcement = false;
-  public visibilityPolicy = false;
+  public service: Service;
 
-  constructor(obj: IEndpoint) {
-    this.id = obj.id;
-    this.labels = obj.labels;
-
-    this.egressEnforcement = obj.egressEnforcement;
-    this.ingressEnforcement = obj.ingressEnforcement;
-    this.visibilityPolicy = obj.visibilityPolicy;
+  constructor(service: Service) {
+    this.service = service;
   }
 
-  public static fromObject(obj: IEndpoint): Endpoint {
-    return new Endpoint(obj);
+  public static fromService(srvc: Service): ServiceCard {
+    return new ServiceCard(srvc);
   }
 
   public get appProtocol(): ApplicationKind | undefined {
@@ -48,14 +32,14 @@ export class Endpoint implements IEndpoint {
   // TODO: this will probably changed with new backend API
   // For now it's a part of legacy code
   public get appLabel(): string | undefined {
-    const label = this.labels.find(l => l.key === Endpoint.AppLabel);
+    const label = this.service.labels.find(l => l.key === ServiceCard.AppLabel);
     if (!label) return undefined;
 
     return label.value;
   }
 
   public get isCovalentRelated(): boolean {
-    return this.labels.some(l => {
+    return this.service.labels.some(l => {
       const isExporter = l.value === 'covalent-exporter';
       const isAgent = l.value === 'covalent-agent';
 
@@ -63,20 +47,24 @@ export class Endpoint implements IEndpoint {
     });
   }
 
+  public get id() {
+    return this.service.id;
+  }
+
   public get caption(): string {
     return this.appLabel || 'Unknown App';
   }
 
   public get isWorld(): boolean {
-    return this.labels.some(l => l.key === 'reserved:world');
+    return this.service.labels.some(l => l.key === reserved.world.label);
   }
 
   public get isHost(): boolean {
-    return this.labels.some(l => l.key === 'reserved:host');
+    return this.service.labels.some(l => l.key === reserved.host.label);
   }
 
   public get isInit(): boolean {
-    return this.labels.some(l => l.key === 'reserved:init');
+    return this.service.labels.some(l => l.key === reserved.init.label);
   }
 
   public get isCIDR(): boolean {
@@ -97,4 +85,4 @@ export class Endpoint implements IEndpoint {
   }
 }
 
-export default Endpoint;
+export default ServiceCard;
