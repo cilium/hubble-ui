@@ -5,27 +5,28 @@ import classnames from 'classnames';
 import { EndpointLogo } from '~/components/EndpointLogo';
 import { useStore } from '~/store/hooks';
 import { sizes } from '~/ui';
-import { Endpoint } from '~/domain/endpoint';
+import { ServiceCard } from '~/domain/service-card';
 import { XY } from '~/domain/geometry';
 
 import css from './styles.scss';
 
 export interface LayerProps {
-  readonly endpoint: Endpoint;
+  readonly card: ServiceCard;
 }
 
 export const EndpointCardHeader: FunctionComponent<LayerProps> = props => {
   const cls = classnames(css.wrapper);
+  const card = props.card;
 
   return (
     <div className={css.wrapper}>
       <div className={css.headline}>
         <div className={css.icon}>
-          <EndpointLogo endpoint={props.endpoint} />
+          <EndpointLogo card={card} />
         </div>
         <div className={css.headings}>
-          <div className={css.title}>{props.endpoint.caption}</div>
-          <div className={css.subtitle}>{props.endpoint.id}</div>
+          <div className={css.title}>{card.caption}</div>
+          <div className={css.subtitle}>{card.id}</div>
         </div>
         {false && (
           <div className={css.settingsIcon}>
@@ -35,8 +36,8 @@ export const EndpointCardHeader: FunctionComponent<LayerProps> = props => {
       </div>
 
       <PolicyInfo
-        ingress={props.endpoint.ingressEnforcement}
-        egress={props.endpoint.egressEnforcement}
+        ingress={card.service.ingressPolicyEnforced}
+        egress={card.service.egressPolicyEnforced}
       />
     </div>
   );

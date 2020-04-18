@@ -1,8 +1,8 @@
 import { XYWH } from './geometry';
-import { Endpoint } from './endpoint';
+import { ServiceCard } from './service-card';
 
 export interface PlacementEntry {
-  endpoint: Endpoint;
+  serviceCard: ServiceCard;
   geometry: XYWH;
 }
 

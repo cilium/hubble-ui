@@ -1,4 +1,4 @@
-import { Endpoint, ApplicationKind } from '~/domain/endpoint';
+import { ServiceCard } from '~/domain/service-card';
 
 export enum LogoType {
   PROTOCOL = 'logo',
@@ -10,7 +10,7 @@ export interface Logo {
   type: LogoType;
 }
 
-export const extractLogo = (ep: Endpoint): Logo => {
+export const extractLogo = (ep: ServiceCard): Logo => {
   if (ep.isCovalentRelated) {
     return {
       id: 'covalent',

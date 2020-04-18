@@ -2,28 +2,23 @@ import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import * as d3 from 'd3';
 import _ from 'lodash';
 
-import { useZoom } from '~/ui/hooks/useZoom';
-import { setCSSVars } from '~/ui';
-import { Flow } from '~/domain/data';
-import { Endpoint } from '~/domain/endpoint';
-import { dummy as geom } from '~/domain/geometry';
 import { sizes } from '~/ui/vars';
 import { useStore } from '~/store/hooks';
-import { XYWH } from '~/domain/geometry';
-import { Placement, PlacementEntry } from '~/domain/layout';
-
 import {
   EndpointCardBackplate,
   EndpointCardContent,
 } from '~/components/EndpointCard';
-
 import { NamespaceBackplate } from './NamespaceBackplate';
+import { useZoom } from '~/ui/hooks/useZoom';
+
+import { ServiceCard } from '~/domain/service-card';
+import { dummy as geom, XYWH } from '~/domain/geometry';
+import { Placement, PlacementEntry } from '~/domain/layout';
 
 import css from './styles.scss';
 
 export interface Props {
-  readonly flows: Array<Flow>;
-  readonly endpoints: Array<Endpoint>;
+  readonly services: Array<ServiceCard>;
   readonly namespace: string | undefined;
 }
 
@@ -47,20 +42,20 @@ const MapElements = React.memo(function MapElements(props: MapElementsProps) {
     <>
       <NamespaceBackplate namespace={namespace} xywh={nsXYWH} />
 
-      {placement.map(card => (
+      {placement.map(plc => (
         <EndpointCardBackplate
-          key={card.endpoint.id!}
-          coords={card.geometry}
-          endpoint={card.endpoint}
+          key={plc.serviceCard.id}
+          coords={plc.geometry}
+          card={plc.serviceCard}
           onHeightChange={h => updateNamespaceLayer()}
         />
       ))}
 
-      {placement.map(card => (
+      {placement.map(plc => (
         <EndpointCardContent
-          key={card.endpoint.id!}
-          coords={card.geometry}
-          endpoint={card.endpoint}
+          key={plc.serviceCard.id}
+          coords={plc.geometry}
+          card={plc.serviceCard}
           onHeightChange={h => updateNamespaceLayer()}
         />
       ))}
