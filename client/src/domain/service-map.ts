@@ -1,10 +1,4 @@
-// import { IEndpoint } from '~/domain/endpoint';
 import { KV } from './misc';
-
-// export interface ServiceMap {
-//   endpoints: Array<IEndpoint>;
-//   links: Array<Link>;
-// }
 
 export interface Service {
   id: string;

@@ -1,5 +1,4 @@
 import { endpoints } from './mock';
-// import { IEndpoint } from '~/domain/endpoint';
 import { Service, Link } from '~/domain/service-map';
 
 export interface CoreAPIv1 {
