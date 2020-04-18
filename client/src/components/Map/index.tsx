@@ -47,7 +47,7 @@ const MapElements = React.memo(function MapElements(props: MapElementsProps) {
           key={plc.serviceCard.id}
           coords={plc.geometry}
           card={plc.serviceCard}
-          onHeightChange={h => updateNamespaceLayer()}
+          onHeightChange={updateNamespaceLayer}
         />
       ))}
 
@@ -56,7 +56,7 @@ const MapElements = React.memo(function MapElements(props: MapElementsProps) {
           key={plc.serviceCard.id}
           coords={plc.geometry}
           card={plc.serviceCard}
-          onHeightChange={h => updateNamespaceLayer()}
+          onHeightChange={updateNamespaceLayer}
         />
       ))}
     </>

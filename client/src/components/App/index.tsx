@@ -16,11 +16,9 @@ import { API } from '~/api';
 
 import css from './styles.scss';
 
-export interface AppOwnProps {
+export interface AppProps extends RouteComponentProps {
   api: API;
 }
-
-export type AppProps = RouteComponentProps & AppOwnProps;
 
 const loadData = async (api: API) => {
   const services = await api.v1.getServices();
@@ -60,7 +58,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(function(
 
   const onNsChange = (ns: string) => {
     store.setNamespaceByName(ns);
-    navigate(`/?ns=${ns}`);
+    navigate(`/${ns}`);
   };
 
   return (
@@ -85,8 +83,8 @@ export const AppComponent: FunctionComponent<AppProps> = observer(function(
   );
 });
 
-export const App = (props: AppOwnProps) => (
+export const App = (props: AppProps) => (
   <Router>
-    <AppComponent api={props.api} default />
+    <AppComponent api={props.api} path="/*appPath" />
   </Router>
 );
