@@ -36,6 +36,12 @@ export class Store {
     // It will be depending on flows / links as these are used to determine
     // positions of cards
     this.layout = new LayoutStore(this.services /* this.flows */);
+
+    autorun(() => {
+      const ns = this.route.pathParts[0];
+
+      this.setNamespaceByName(ns);
+    });
   }
 
   static new(): Store {

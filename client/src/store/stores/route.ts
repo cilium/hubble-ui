@@ -32,7 +32,19 @@ export default class RouteStore {
     }
 
     this.cache.query = qs.parse(this.location.search);
+    this.cache.pathParts = (this.location.pathname || '/').split('/');
     return this.cache.query;
+  }
+
+  get pathParts(): Array<string> {
+    if (this.cache.pathParts) {
+      return this.cache.pathParts;
+    }
+
+    const pp = this.location.pathname.split('/').slice(1);
+    this.cache.pathParts = pp;
+
+    return pp;
   }
 
   private dropCache() {

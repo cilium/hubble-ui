@@ -24,7 +24,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, '../server/public'),
     filename: 'bundle.js',
-    publicPath: './',
+    publicPath: '/',
     devtoolModuleFilenameTemplate: isProduction
       ? undefined
       : '[absolute-resource-path]',
