@@ -1,15 +1,17 @@
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
 
-import { LayerProps } from './general';
+import { CardProps } from './general';
 import { EndpointCardLayer } from './EndpointCardBase';
 import { EndpointCardLabels } from './EndpointCardLabels';
 import { EndpointCardHeader } from '~/components/EndpointCardHeader';
 
-export type Props = LayerProps & {
-  onHeaderClick?: Function;
+import { ServiceCard } from '~/domain/service-card';
+
+export type Props = CardProps & {
+  onHeaderClick?: (card: ServiceCard) => void;
 };
 
-export const EndpointCardContent: FunctionComponent<Props> = props => {
+export const Component: FunctionComponent<Props> = props => {
   return (
     <EndpointCardLayer {...props}>
       <EndpointCardHeader card={props.card} onClick={props.onHeaderClick} />
@@ -17,3 +19,5 @@ export const EndpointCardContent: FunctionComponent<Props> = props => {
     </EndpointCardLayer>
   );
 };
+
+export const EndpointCardContent = React.memo(Component);

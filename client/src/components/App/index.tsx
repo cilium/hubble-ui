@@ -1,4 +1,9 @@
-import React, { useState, useEffect, FunctionComponent } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  FunctionComponent,
+} from 'react';
 import { observer } from 'mobx-react';
 import { animated } from 'react-spring';
 import {
@@ -10,6 +15,7 @@ import {
 
 import { Map } from '~/components/Map';
 import { TopBar } from '~/components/TopBar';
+import { ServiceCard } from '~/domain/service-card';
 import { usePanelDrag } from './hooks/usePanelDrag';
 import { useStore } from '~/store';
 import { API } from '~/api';
@@ -33,6 +39,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(function(
   const { bindDrag, gridTemplateRows } = usePanelDrag();
   const [loading, setLoading] = useState(true);
   const store = useStore();
+  const { services } = store;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,14 +59,18 @@ export const AppComponent: FunctionComponent<AppProps> = observer(function(
       });
   }, []);
 
+  const onNsChange = useCallback((ns: string) => {
+    store.setNamespaceByName(ns);
+    navigate(`/${ns}`);
+  }, []);
+
+  const onServiceSelect = useCallback((srvc: ServiceCard) => {
+    store.services.toggleActive(srvc.id);
+  }, []);
+
   if (loading) {
     return <div>Data is being loaded</div>;
   }
-
-  const onNsChange = (ns: string) => {
-    store.setNamespaceByName(ns);
-    navigate(`/${ns}`);
-  };
 
   return (
     <div className={css.wrapper} style={{ gridTemplateRows }}>
@@ -73,6 +84,8 @@ export const AppComponent: FunctionComponent<AppProps> = observer(function(
         <Map
           services={store.services.data}
           namespace={store.currentNamespace}
+          onServiceSelect={onServiceSelect}
+          activeServices={store.services.activeSet}
         />
       </div>
       <animated.div {...bindDrag()} className={css.drag}>

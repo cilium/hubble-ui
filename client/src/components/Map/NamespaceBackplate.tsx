@@ -10,7 +10,7 @@ export interface Props {
   xywh: XYWH;
 }
 
-export const NamespaceBackplate = (props: Props) => {
+export const Component = (props: Props) => {
   if (props.namespace == null) return null;
 
   return (
@@ -28,3 +28,5 @@ export const NamespaceBackplate = (props: Props) => {
     </g>
   );
 };
+
+export const NamespaceBackplate = React.memo(Component);

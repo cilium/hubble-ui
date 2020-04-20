@@ -17,7 +17,7 @@ import css from './styles.scss';
 
 export interface LayerProps {
   card: ServiceCard;
-  onClick?: Function;
+  onClick?: (card: ServiceCard) => void;
 }
 
 export const EndpointCardHeader: FunctionComponent<LayerProps> = props => {
@@ -27,7 +27,7 @@ export const EndpointCardHeader: FunctionComponent<LayerProps> = props => {
   const onClick = useCallback(() => {
     if (props.onClick == null) return;
 
-    props.onClick();
+    props.onClick(card);
   }, [props.onClick]);
 
   return (
