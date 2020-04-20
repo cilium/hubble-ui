@@ -19,6 +19,7 @@
     "@types/node": "13.7.7",
     "dotenv": "8.2.0",
     "nodemon": "2.0.2",
-    "ts-node": "8.6.2"
+    "ts-node": "8.6.2",
+    "typescript": "^3.8.3"
   }
 }

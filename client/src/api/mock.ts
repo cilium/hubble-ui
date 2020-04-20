@@ -1,5 +1,5 @@
+import { FlowType, IFlow, Verdict } from '~/domain/flows';
 import { Link, Service } from '~/domain/service-map';
-import { reserved } from '~/domain/cilium';
 
 export const links: Array<Link> = [];
 
@@ -135,3 +135,37 @@ export const endpoints: Array<Service> = [
     creationTimestamp: Date.now(),
   },
 ];
+
+export const flows: Array<IFlow> = [];
+for (let i = 0; i < 100; i++) {
+  flows.push({
+    source: {
+      id: 0,
+      identity: 0,
+      labelsList: ['app=kafka'],
+      namespace: 'kube-system',
+      podName: `kafka-${Math.random() * 10}`,
+    },
+    destination: {
+      id: 1,
+      identity: 1,
+      labelsList: ['app=loader'],
+      namespace: 'kube-system',
+      podName: `loader-${Math.random() * 10}`,
+    },
+    destinationNamesList: [],
+    dropReason: 0,
+    nodeName: '',
+    reply: false,
+    sourceNamesList: [],
+    summary: '',
+    type: FlowType.L3_L4,
+    l4: {
+      tcp: {
+        destinationPort: Math.random() <= 0.5 ? 80 : 443,
+        sourcePort: Math.random() * 5000,
+      },
+    },
+    verdict: Math.random() <= 0.5 ? Verdict.FORWARDED : Verdict.DROPPED,
+  });
+}

@@ -1,25 +1,19 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  FunctionComponent,
-} from 'react';
+import { RouteComponentProps, Router, useNavigate } from '@reach/router';
 import { observer } from 'mobx-react';
+import React, {
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import { animated } from 'react-spring';
-import {
-  Router,
-  RouteComponentProps,
-  useParams,
-  useNavigate,
-} from '@reach/router';
-
+import { API } from '~/api';
+import { FlowsTable } from '~/components/FlowsTable';
 import { Map } from '~/components/Map';
 import { TopBar } from '~/components/TopBar';
 import { ServiceCard } from '~/domain/service-card';
-import { usePanelDrag } from './hooks/usePanelDrag';
 import { useStore } from '~/store';
-import { API } from '~/api';
-
+import { usePanelDrag } from './hooks/usePanelDrag';
 import css from './styles.scss';
 
 export interface AppProps extends RouteComponentProps {
@@ -27,9 +21,10 @@ export interface AppProps extends RouteComponentProps {
 }
 
 const loadData = async (api: API) => {
+  const flows = await api.v1.getFlows();
   const services = await api.v1.getServices();
 
-  return { services };
+  return { flows, services };
 };
 
 export const AppComponent: FunctionComponent<AppProps> = observer(function(
@@ -39,7 +34,6 @@ export const AppComponent: FunctionComponent<AppProps> = observer(function(
   const { bindDrag, gridTemplateRows } = usePanelDrag();
   const [loading, setLoading] = useState(true);
   const store = useStore();
-  const { services } = store;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,9 +44,9 @@ export const AppComponent: FunctionComponent<AppProps> = observer(function(
 
   useEffect(() => {
     loadData(api)
-      .then(({ services }) => {
+      .then(({ flows, services }) => {
         // Kind a temporal function to setup everything we need for now in store
-        store.setup(services);
+        store.setup({ flows, services });
       })
       .finally(() => {
         setLoading(false);
@@ -91,7 +85,9 @@ export const AppComponent: FunctionComponent<AppProps> = observer(function(
       <animated.div {...bindDrag()} className={css.drag}>
         Drag
       </animated.div>
-      <div className={css.panel}>Panel</div>
+      <div className={css.panel}>
+        <FlowsTable flows={store.interactions.flows} />
+      </div>
     </div>
   );
 });
