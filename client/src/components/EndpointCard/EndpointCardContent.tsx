@@ -15,7 +15,8 @@ export const Component: FunctionComponent<Props> = props => {
   return (
     <EndpointCardLayer {...props}>
       <EndpointCardHeader card={props.card} onClick={props.onHeaderClick} />
-      <EndpointCardLabels labels={props.card.labels} />
+
+      {props.active && <EndpointCardLabels labels={props.card.labels} />}
     </EndpointCardLayer>
   );
 };

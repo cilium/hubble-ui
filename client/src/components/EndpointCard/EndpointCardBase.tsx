@@ -27,25 +27,22 @@ const LayerComponent: FunctionComponent<CardProps> = props => {
   const divRef = useRef<HTMLDivElement>(null);
   const { layout } = useStore();
 
-  console.log(
-    `LayerComponent ${layer1 ? 'backplate' : 'content'} is rerendering`,
-  );
-
+  // TODO: it looks unreliable in case when element resize wasn't connected
+  // with this component props ><
   useEffect(() => {
     if (layer1) return;
 
     const currentHeight = layout.cardHeight(serviceId);
     const div = divRef.current as HTMLDivElement;
     const elemHeight = div.offsetHeight + shadowSize;
-    const newHeight = Math.max(elemHeight, currentHeight);
 
-    // TODO: is it okay that this component writes its height directly to store?
-    layout.setCardHeight(serviceId, newHeight);
+    // TODO: this component shouldn't write its height directly to store
+    layout.setCardHeight(serviceId, elemHeight);
 
-    if (newHeight !== currentHeight && props.onHeightChange) {
-      props.onHeightChange(newHeight);
+    if (elemHeight !== currentHeight && props.onHeightChange) {
+      props.onHeightChange(elemHeight);
     }
-  }, []);
+  }, [(divRef.current || {}).offsetHeight, props.active]);
 
   const currentHeight = layout.cardHeight(serviceId);
   const styles = {
