@@ -223,17 +223,23 @@ export class DatabaseHubble implements IDatabase {
     return req;
   }
 
-  async getHubbleClients(context: IContext): Promise<ObserverClient[]> {
+  async getHubbleClients(
+    context: IContext
+  ): Promise<{ address: string; client: ObserverClient }[]> {
     const { hubbleService, hubblePort, hubblePeerEnabled } = getEnvConfig();
     return new Promise((resolve, reject) => {
       const start = Date.now();
       context.logger.debug(`Searching hubble clients...`);
       if (hubblePeerEnabled) {
+        const address = `${hubbleService}:${hubblePort}`;
         resolve([
-          new ObserverClient(
-            `${hubbleService}:${hubblePort}`,
-            grpc.credentials.createInsecure()
-          )
+          {
+            address,
+            client: new ObserverClient(
+              address,
+              grpc.credentials.createInsecure()
+            )
+          }
         ]);
         context.logger.debug(
           `Found 1 hubble client in ${Date.now() - start}ms`
@@ -255,13 +261,16 @@ export class DatabaseHubble implements IDatabase {
               addr.family === 6 ? `[${addr.address}]` : addr.address
             );
             resolve(
-              ipAdresses.map(
-                ip =>
-                  new ObserverClient(
-                    `${ip}:${hubblePort}`,
+              ipAdresses.map(ip => {
+                const address = `${ip}:${hubblePort}`;
+                return {
+                  address,
+                  client: new ObserverClient(
+                    address,
                     grpc.credentials.createInsecure()
                   )
-              )
+                };
+              })
             );
             context.logger.debug(
               `Found ${addresses.length} hubble client(s) in ${Date.now() -
@@ -304,21 +313,21 @@ export class DatabaseHubble implements IDatabase {
       args,
       options.flowsFiltersExtensionsCallback
     );
-    const clients = await this.getHubbleClients(context);
+    const hubbleClients = await this.getHubbleClients(context);
     const seenIds = new Set();
     return Promise.all(
-      clients.map(
-        (client, clientIndex) =>
+      hubbleClients.map(
+        (hubble, hubbleIndex) =>
           new Promise(async (resolve, reject) => {
             context.logger.debug(
-              `Fetching flows from client #${clientIndex}...`
+              `Fetching flows from hubble #${hubbleIndex} on address ${hubble.address}...`
             );
-            const flowsStream = client.getFlows(req);
+            const flowsStream = hubble.client.getFlows(req);
             const startClientGetFlows = Date.now();
 
             flowsStream.on("end", () => {
               context.logger.debug(
-                `Fetched flows from client #${clientIndex} in ${Date.now() -
+                `Fetched flows from hubble ${hubble.address} in ${Date.now() -
                   startClientGetFlows}ms`
               );
               resolve();
@@ -326,7 +335,9 @@ export class DatabaseHubble implements IDatabase {
 
             flowsStream.on("close", () => {
               context.logger.debug(
-                `Client #${clientIndex} closes stream, fetched flows in ${Date.now() -
+                `Hubble ${
+                  hubble.address
+                } closes stream, fetched flows in ${Date.now() -
                   startClientGetFlows}ms`
               );
               resolve();
