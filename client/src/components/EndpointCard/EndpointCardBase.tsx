@@ -2,8 +2,7 @@ import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 
-import { EndpointCardHeader } from '~/components/EndpointCardHeader';
-// import { EndpointCardLabels } from '~/components/EndpointCardLabels';
+import { LayerProps } from './general';
 
 import { useStore } from '~/store/hooks';
 import { sizes } from '~/ui';
@@ -11,13 +10,6 @@ import { ServiceCard } from '~/domain/service-card';
 import { XY } from '~/domain/geometry';
 
 import css from './styles.scss';
-
-export interface LayerProps {
-  readonly card: ServiceCard;
-  readonly coords: XY;
-  readonly layer1?: boolean;
-  readonly onHeightChange?: (_: number) => void;
-}
 
 // TODO: prevent this component from rerendering
 const LayerComponent: FunctionComponent<LayerProps> = props => {
@@ -70,16 +62,3 @@ const LayerComponent: FunctionComponent<LayerProps> = props => {
 };
 
 export const EndpointCardLayer = observer(LayerComponent);
-
-export const EndpointCardBackplate: FunctionComponent<LayerProps> = props => {
-  return <EndpointCardLayer layer1 {...props} />;
-};
-
-export const EndpointCardContent: FunctionComponent<LayerProps> = props => {
-  return (
-    <EndpointCardLayer {...props}>
-      <EndpointCardHeader card={props.card} />
-      {/*<EndpointCardLabels endpoint={props.endpoint} />*/}
-    </EndpointCardLayer>
-  );
-};
