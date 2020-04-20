@@ -1,11 +1,10 @@
-import { observable, autorun, reaction } from 'mobx';
-
-import { Service, Link } from '~/domain/service-map';
-
+import { autorun, observable } from 'mobx';
+import { IFlow } from '~/domain/flows';
+import { Service } from '~/domain/service-map';
 import InteractionStore from './interaction';
-import ServiceStore from './service';
-import RouteStore from './route';
 import LayoutStore from './layout';
+import RouteStore from './route';
+import ServiceStore from './service';
 
 export class Store {
   @observable
@@ -48,7 +47,14 @@ export class Store {
     return new Store();
   }
 
-  public setup(services: Array<Service>) {
+  public setup({
+    flows,
+    services,
+  }: {
+    flows: Array<IFlow>;
+    services: Array<Service>;
+  }) {
+    this.interactions.setFlows(flows);
     this.services.set(services);
   }
 

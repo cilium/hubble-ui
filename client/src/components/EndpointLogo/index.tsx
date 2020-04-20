@@ -1,9 +1,7 @@
-import React, { FunctionComponent, ReactElement } from 'react';
-import classnames from 'classnames';
-import * as logos from './logos';
-
+import React, { FunctionComponent } from 'react';
 import { ServiceCard } from '~/domain/service-card';
-import { extractLogo, LogoType } from './helpers';
+import { extractLogo } from './helpers';
+import * as logos from './logos';
 
 export interface Props {
   card: ServiceCard;

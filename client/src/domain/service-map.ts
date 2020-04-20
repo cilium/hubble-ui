@@ -1,3 +1,4 @@
+import { Verdict } from './flows';
 import { KV } from './misc';
 
 export interface Service {
@@ -27,12 +28,6 @@ export enum IPProtocol {
   UDP,
   ICMPv4,
   ICMPv6,
-}
-
-export enum Verdict {
-  Unknown,
-  Forwarded,
-  Dropped,
 }
 
 export enum ApplicationKind {
