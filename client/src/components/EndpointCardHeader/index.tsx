@@ -1,4 +1,9 @@
-import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
+import React, {
+  FunctionComponent,
+  useEffect,
+  useCallback,
+  useState,
+} from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 
@@ -11,16 +16,23 @@ import { XY } from '~/domain/geometry';
 import css from './styles.scss';
 
 export interface LayerProps {
-  readonly card: ServiceCard;
+  card: ServiceCard;
+  onClick?: Function;
 }
 
 export const EndpointCardHeader: FunctionComponent<LayerProps> = props => {
   const cls = classnames(css.wrapper);
   const card = props.card;
 
+  const onClick = useCallback(() => {
+    if (props.onClick == null) return;
+
+    props.onClick();
+  }, [props.onClick]);
+
   return (
     <div className={css.wrapper}>
-      <div className={css.headline}>
+      <div className={css.headline} onClick={onClick}>
         <div className={css.icon}>
           <EndpointLogo card={card} />
         </div>

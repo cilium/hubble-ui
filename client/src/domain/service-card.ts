@@ -1,4 +1,5 @@
 import { Service, ApplicationKind } from './service-map';
+import { KV } from '~/domain/misc';
 import { reserved } from './cilium';
 
 // This entity maintains ONLY THE DATA of service card
@@ -53,6 +54,10 @@ export class ServiceCard {
 
   public get caption(): string {
     return this.appLabel || 'Unknown App';
+  }
+
+  public get labels(): Array<KV> {
+    return this.service.labels;
   }
 
   public get isWorld(): boolean {

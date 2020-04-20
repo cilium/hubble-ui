@@ -12,7 +12,6 @@ $headingMaxWidth: calc(
   width: 100%;
   max-width: 100%;
 
-  border-bottom: 1px solid #e4e4e4;
   padding: $wrapperPadding;
 }
 
@@ -27,7 +26,7 @@ $headingMaxWidth: calc(
   $size: var(--endpoint-icon-width);
   @include exact-size($size, $size);
 
-  padding: 5px $icon-side-padding;
+  padding-right: $icon-side-padding;
 
   img {
     max-width: 100%;
@@ -73,7 +72,7 @@ $headingMaxWidth: calc(
   @include row(space-between, center);
   border-bottom: 1px solid #e4e4e4;
 
-  padding: 10px 15px 10px;
+  padding: 10px 10px 10px;
   margin: 5px 0 10px;
 
   .left,

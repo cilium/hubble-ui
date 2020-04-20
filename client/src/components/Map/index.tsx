@@ -38,6 +38,10 @@ const MapElements = React.memo(function MapElements(props: MapElementsProps) {
     setNsXYWH(nsBBox);
   }, []);
 
+  const onHeaderClick = useCallback((card: ServiceCard) => {
+    console.log('clicked on header of: ', card.caption);
+  }, []);
+
   return (
     <>
       <NamespaceBackplate namespace={namespace} xywh={nsXYWH} />
@@ -57,6 +61,7 @@ const MapElements = React.memo(function MapElements(props: MapElementsProps) {
           coords={plc.geometry}
           card={plc.serviceCard}
           onHeightChange={updateNamespaceLayer}
+          onHeaderClick={onHeaderClick}
         />
       ))}
     </>
