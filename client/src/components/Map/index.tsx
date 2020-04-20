@@ -14,17 +14,18 @@ import { useZoom } from '~/ui/hooks/useZoom';
 import { ServiceCard } from '~/domain/service-card';
 import { dummy as geom, XYWH } from '~/domain/geometry';
 import { Placement, PlacementEntry } from '~/domain/layout';
+import { Dictionary } from '~/domain/misc';
 
 import css from './styles.scss';
 
 export interface Props {
-  readonly services: Array<ServiceCard>;
-  readonly namespace: string | undefined;
+  services: Array<ServiceCard>;
+  activeServices?: Set<string>;
+  namespace: string | undefined;
+  onServiceSelect?: (srvc: ServiceCard) => void;
 }
 
-export interface MapElementsProps {
-  namespace: string | undefined;
-}
+export type MapElementsProps = Omit<Props, 'services'>;
 
 const MapElements = React.memo(function MapElements(props: MapElementsProps) {
   const { layout } = useStore();
@@ -38,9 +39,15 @@ const MapElements = React.memo(function MapElements(props: MapElementsProps) {
     setNsXYWH(nsBBox);
   }, []);
 
-  const onHeaderClick = useCallback((card: ServiceCard) => {
-    console.log('clicked on header of: ', card.caption);
-  }, []);
+  const isCardActive = useCallback(
+    (srvc: ServiceCard) => {
+      const set = props.activeServices;
+      const r = set == null ? false : set.has(srvc.id);
+
+      return r;
+    },
+    [props.activeServices],
+  );
 
   return (
     <>
@@ -57,11 +64,12 @@ const MapElements = React.memo(function MapElements(props: MapElementsProps) {
 
       {placement.map(plc => (
         <EndpointCardContent
+          active={isCardActive(plc.serviceCard)}
           key={plc.serviceCard.id}
           coords={plc.geometry}
           card={plc.serviceCard}
           onHeightChange={updateNamespaceLayer}
-          onHeaderClick={onHeaderClick}
+          onHeaderClick={props.onServiceSelect}
         />
       ))}
     </>
@@ -75,7 +83,11 @@ const MapComponent = (props: Props) => {
   return (
     <svg ref={ref} className={css.wrapper}>
       <g transform={zoomProps ? zoomProps.toString() : ''}>
-        <MapElements namespace={props.namespace} />
+        <MapElements
+          namespace={props.namespace}
+          onServiceSelect={props.onServiceSelect}
+          activeServices={props.activeServices}
+        />
       </g>
     </svg>
   );
