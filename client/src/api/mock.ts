@@ -1,9 +1,42 @@
 import _ from 'lodash';
 
 import { FlowType, IFlow, Verdict } from '~/domain/hubble';
-import { Link, Service } from '~/domain/service-map';
+import { Link, Service, IPProtocol } from '~/domain/service-map';
 
-export const links: Array<Link> = [];
+export const links: Array<Link> = [
+  {
+    id: '1',
+    sourceId: 'a8de92d55119c9a6bb6a6dd66bcf012fabefb32d',
+    destinationId: '91085aa98c983e249442e887d70ebc568f4ef07b',
+    destinationPort: 9981,
+    ipProtocol: IPProtocol.TCP,
+    verdict: Verdict.Forwarded,
+  },
+  {
+    id: '2',
+    sourceId: 'a8de92d55119c9a6bb6a6dd66bcf012fabefb32d',
+    destinationId: 'ca111583bf9c9a3547c0c10aa5e77aa97d0e6a14',
+    destinationPort: 9200,
+    ipProtocol: IPProtocol.UDP,
+    verdict: Verdict.Forwarded,
+  },
+  {
+    id: '3',
+    sourceId: 'a8de92d55119c9a6bb6a6dd66bcf012fabefb32d',
+    destinationId: '5eee91c15081c2d4fac733c517ecb71ac095053a',
+    destinationPort: 9092,
+    ipProtocol: IPProtocol.ICMPv4,
+    verdict: Verdict.Forwarded,
+  },
+  {
+    id: '4',
+    sourceId: 'a8de92d55119c9a6bb6a6dd66bcf012fabefb32d',
+    destinationId: '3ccf93bf4b7a7e6b832bcfac1df78ddf26450a9e',
+    destinationPort: 9982,
+    ipProtocol: IPProtocol.ICMPv6,
+    verdict: Verdict.Forwarded,
+  },
+];
 
 export const endpoints: Array<Service> = [
   {

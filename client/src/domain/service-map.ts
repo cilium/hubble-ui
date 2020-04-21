@@ -30,6 +30,18 @@ export enum IPProtocol {
   ICMPv6,
 }
 
+export enum InteractionKind {
+  Links = 'links',
+  Flows = 'flows',
+}
+
+export type InteractionKindMap = {
+  [InteractionKind.Links]?: Array<Link>;
+  [InteractionKind.Flows]?: Array<any>; // should be Array<Flow>
+};
+
+export type Interactions<O = {}> = O & InteractionKindMap;
+
 export enum ApplicationKind {
   HTTP = 'http',
   GRPC = 'grpc',

@@ -39,3 +39,13 @@
     }
   }
 }
+
+.accessPoints {
+  @include column();
+
+  margin: 0 20px 20px;
+  padding: 15px;
+
+  border: 1px solid #d4d4d4;
+  border-radius: 10px;
+}
