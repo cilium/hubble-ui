@@ -1,6 +1,7 @@
 import { observable } from 'mobx';
 
 import ServiceStore from './service';
+import InteractionStore from './interaction';
 
 import { ServiceCard } from '~/domain/service-card';
 import { WH, XYWH, dummy as geom } from '~/domain/geometry';
@@ -16,8 +17,12 @@ export default class LayoutStore {
   @observable
   private services: ServiceStore;
 
-  constructor(services: ServiceStore) {
+  @observable
+  private interactions: InteractionStore;
+
+  constructor(services: ServiceStore, interactions: InteractionStore) {
     this.services = services;
+    this.interactions = interactions;
 
     this.whs = new Map();
   }

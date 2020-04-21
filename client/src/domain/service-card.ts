@@ -1,19 +1,34 @@
-import { Service, ApplicationKind } from './service-map';
+import { Service, Link, ApplicationKind, Interactions } from './service-map';
 import { KV } from '~/domain/misc';
 import { reserved } from './cilium';
 
 // This entity maintains ONLY THE DATA of service card
-export class ServiceCard {
+export class ServiceCard<InteractionsExt = {}> {
   public static readonly AppLabel = 'k8s:app';
 
   public service: Service;
+  private incidentInteractions: Interactions<InteractionsExt>;
 
   constructor(service: Service) {
     this.service = service;
+    this.incidentInteractions = {} as Interactions<InteractionsExt>;
   }
 
   public static fromService(srvc: Service): ServiceCard {
     return new ServiceCard(srvc);
+  }
+
+  public updateLinkEndpoint(link: Link) {
+    const links = this.incidentInteractions.links || [];
+
+    // TODO: do real actions
+    links.push(link);
+
+    this.incidentInteractions.links = links;
+  }
+
+  public get links(): Array<Link> {
+    return this.incidentInteractions.links || [];
   }
 
   public get appProtocol(): ApplicationKind | undefined {

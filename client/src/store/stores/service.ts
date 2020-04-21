@@ -1,7 +1,7 @@
 import { reaction, autorun, observable, action } from 'mobx';
 
 import { ServiceCard } from '~/domain/service-card';
-import { Service } from '~/domain/service-map';
+import { Service, Link } from '~/domain/service-map';
 
 export default class ServiceStore {
   @observable
@@ -48,6 +48,15 @@ export default class ServiceStore {
 
   public set(services: Array<Service>) {
     this.cards = services.map(ServiceCard.fromService);
+  }
+
+  public updateLinkEndpoints(links: Array<Link>) {
+    links.forEach((l: Link) => {
+      const card = this.map.get(l.destinationId);
+      if (card == null) return;
+
+      card.updateLinkEndpoint(l);
+    });
   }
 
   private rebuildIndex() {

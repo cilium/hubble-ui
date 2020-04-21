@@ -2,7 +2,7 @@ import { observable } from 'mobx';
 import { Flow, IFlow } from '~/domain/flows';
 import { Link } from '~/domain/service-map';
 
-// This store maintains ANY interactions that may received from relay API
+// This store maintains ANY interactions that may present on the map
 export default class InteractionStore {
   @observable
   public flows: Array<Flow>;
@@ -15,7 +15,17 @@ export default class InteractionStore {
     this.links = [];
   }
 
+  public setLinks(links: Array<Link>) {
+    this.links = links;
+  }
+
   public setFlows(flows: Array<IFlow>) {
     this.flows = flows.map(flow => new Flow(flow));
+  }
+
+  get all() {
+    return {
+      links: this.links,
+    };
   }
 }

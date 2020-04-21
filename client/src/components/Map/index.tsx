@@ -11,6 +11,7 @@ import {
 import { NamespaceBackplate } from './NamespaceBackplate';
 import { useZoom } from '~/ui/hooks/useZoom';
 
+import { Link, Interactions } from '~/domain/service-map';
 import { ServiceCard } from '~/domain/service-card';
 import { dummy as geom, XYWH } from '~/domain/geometry';
 import { Placement, PlacementEntry } from '~/domain/layout';
@@ -21,13 +22,15 @@ import css from './styles.scss';
 export interface Props {
   services: Array<ServiceCard>;
   activeServices?: Set<string>;
+  links?: Array<Link>;
   namespace: string | undefined;
+  interactions?: Interactions;
   onServiceSelect?: (srvc: ServiceCard) => void;
 }
 
 export type MapElementsProps = Omit<Props, 'services'>;
 
-const MapElements = React.memo(function MapElements(props: MapElementsProps) {
+export const MapElementsComponent = (props: MapElementsProps) => {
   const { layout } = useStore();
   const { namespace } = props;
   const [nsXYWH, setNsXYWH] = useState(geom.xywh());
@@ -74,7 +77,9 @@ const MapElements = React.memo(function MapElements(props: MapElementsProps) {
       ))}
     </>
   );
-});
+};
+
+export const MapElements = React.memo(MapElementsComponent);
 
 const MapComponent = (props: Props) => {
   const ref = React.useRef<SVGSVGElement>(null);
@@ -84,6 +89,7 @@ const MapComponent = (props: Props) => {
     <svg ref={ref} className={css.wrapper}>
       <g transform={zoomProps ? zoomProps.toString() : ''}>
         <MapElements
+          interactions={props.interactions}
           namespace={props.namespace}
           onServiceSelect={props.onServiceSelect}
           activeServices={props.activeServices}

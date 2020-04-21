@@ -1,6 +1,13 @@
-import { autorun, observable } from 'mobx';
+import { observable, autorun, reaction } from 'mobx';
+
+import {
+  Service,
+  Link,
+  Interactions,
+  InteractionKind,
+} from '~/domain/service-map';
 import { IFlow } from '~/domain/flows';
-import { Service } from '~/domain/service-map';
+
 import InteractionStore from './interaction';
 import LayoutStore from './layout';
 import RouteStore from './route';
@@ -16,15 +23,15 @@ export class Store {
   @observable
   public route: RouteStore;
 
-  // TODO: consider namespace things to move to separate store
+  @observable
+  public layout: LayoutStore;
+
+  // TODO: consider namespace things to move to separate store (ex: MapStore)
   @observable
   public namespaces: Array<string> = [];
 
   @observable
   public currentNsIdx = -1;
-
-  @observable
-  public layout: LayoutStore;
 
   constructor() {
     this.interactions = new InteractionStore();
@@ -34,7 +41,7 @@ export class Store {
     // LayoutStore is a store which knows geometry props of service map
     // It will be depending on flows / links as these are used to determine
     // positions of cards
-    this.layout = new LayoutStore(this.services /* this.flows */);
+    this.layout = new LayoutStore(this.services, this.interactions);
 
     autorun(() => {
       const ns = this.route.pathParts[0];
@@ -73,5 +80,27 @@ export class Store {
   public setNamespaceByName(ns: string) {
     const idx = this.namespaces.findIndex(n => n === ns);
     this.currentNsIdx = idx;
+  }
+
+  public updateInteractions<T = {}>(
+    interactions: Interactions<T>,
+    handleInteractions?: (kind: string, interactions: any) => void,
+  ) {
+    // TODO: in fact it should accurately apply a diff with current interactions
+
+    Object.keys(interactions).forEach((k: string) => {
+      const key = k as keyof Interactions<T>;
+
+      if (key === InteractionKind.Links) {
+        const links = (interactions.links || []) as Array<Link>;
+
+        this.services.updateLinkEndpoints(links);
+        this.interactions.setLinks(links);
+      } else if (key === InteractionKind.Flows) {
+        return;
+      } else if (handleInteractions != null) {
+        handleInteractions(k, interactions[key]);
+      }
+    });
   }
 }
