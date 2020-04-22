@@ -1,4 +1,4 @@
-import { Verdict } from './flows';
+import { Verdict } from './hubble';
 import { KV } from './misc';
 
 export interface Service {
