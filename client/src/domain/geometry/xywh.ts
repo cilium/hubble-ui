@@ -1,12 +1,4 @@
-export interface XY {
-  x: number;
-  y: number;
-}
-
-export interface WH {
-  w: number;
-  h: number;
-}
+import { XY, WH } from './general';
 
 export class XYWH implements XY, WH {
   public x: number;
@@ -23,6 +15,10 @@ export class XYWH implements XY, WH {
 
   public static fromArgs(x: number, y: number, w: number, h: number): XYWH {
     return new XYWH(x, y, w, h);
+  }
+
+  public static empty(): XYWH {
+    return new XYWH(0, 0, 0, 0);
   }
 
   // The same logic as in CSS
@@ -65,13 +61,16 @@ export class XYWH implements XY, WH {
       this.h * scale,
     );
   }
-}
 
-export const dummy = {
-  xy(x = 0, y = 0): XY {
-    return { x, y };
-  },
-  xywh(x = 0, y = 0, w = 0, h = 0): XYWH {
-    return XYWH.fromArgs(x, y, w, h);
-  },
-};
+  public setWH(wh: WH): XYWH {
+    return XYWH.fromArgs(this.x, this.y, wh.w, wh.h);
+  }
+
+  public setHeight(h: number): XYWH {
+    return XYWH.fromArgs(this.x, this.y, this.w, h);
+  }
+
+  public setXY(x?: number, y?: number): XYWH {
+    return XYWH.fromArgs(x ?? this.x, y ?? this.y, this.w, this.h);
+  }
+}
