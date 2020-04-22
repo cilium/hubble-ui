@@ -1,19 +1,23 @@
 import { RouteComponentProps, Router, useNavigate } from '@reach/router';
 import { observer } from 'mobx-react';
+import { animated } from 'react-spring';
+
 import React, {
   FunctionComponent,
   useCallback,
   useEffect,
   useState,
 } from 'react';
-import { animated } from 'react-spring';
-import { API } from '~/api';
+
 import { FlowsTable } from '~/components/FlowsTable';
 import { Map } from '~/components/Map';
 import { TopBar } from '~/components/TopBar';
 import { ServiceCard } from '~/domain/service-card';
+
+import { API } from '~/api';
 import { useStore } from '~/store';
 import { usePanelDrag } from './hooks/usePanelDrag';
+
 import css from './styles.scss';
 
 export interface AppProps extends RouteComponentProps {

@@ -45,9 +45,9 @@ const TableBody: React.FunctionComponent<TableBodyProps> = props => {
         // TODO: replace flowIdx with stable key
         return (
           <tr key={flowIdx}>
-            <td>{flow.data.source?.labelsList}</td>
-            <td>{flow.data.destination?.labelsList}</td>
-            <td>{flow.data.l4?.tcp?.destinationPort}</td>
+            <td>{flow.source?.labelsList}</td>
+            <td>{flow.destination?.labelsList}</td>
+            <td>{flow.l4?.tcp?.destinationPort}</td>
             <td>{flow.verdictLabel}</td>
             <td>{new Date().toISOString()}</td>
           </tr>
