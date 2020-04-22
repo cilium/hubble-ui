@@ -8,19 +8,21 @@ import React, {
   useState,
 } from 'react';
 
-import { API, ThrottledFlowsStream } from '~/api/general';
 import { DragPanel } from '~/components/DragPanel';
 import { FlowsTable } from '~/components/FlowsTable';
 import { FlowsTableSidebar } from '~/components/FlowsTable/Sidebar';
 import { Map } from '~/components/Map';
 import { TopBar } from '~/components/TopBar';
 
+import { HubbleFlow } from '~/domain/flows';
 import { ServiceCard } from '~/domain/service-card';
 import { Interactions } from '~/domain/service-map';
 import { ResolveType } from '~/domain/misc';
+import { Vec2 } from '~/domain/geometry';
 
 import { useStore } from '~/store';
 import { usePanelDrag } from './hooks/usePanelDrag';
+import { API, ThrottledFlowsStream } from '~/api/general';
 
 import css from './styles.scss';
 
@@ -52,6 +54,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
 
   useEffect(() => {
     api.v1.getNamespaces().then((nss: Array<string>) => {
+      console.log('in getNamespaces');
       store.setNamespaces(nss);
     });
   }, []);
@@ -100,6 +103,10 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     store.selectTableFlow(null);
   }, []);
 
+  const onEmitAPConnectorCoords = useCallback((apId: string, coords: Vec2) => {
+    store.layout.setAPCoords(apId, coords);
+  }, []);
+
   const interactions = useMemo(() => {
     return {
       links: store.interactions.links,
@@ -123,8 +130,9 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
           services={store.services.data}
           namespace={store.currentNamespace}
           interactions={interactions}
-          onServiceSelect={onServiceSelect}
           activeServices={store.services.activeSet}
+          onServiceSelect={onServiceSelect}
+          onEmitAPConnectorCoords={onEmitAPConnectorCoords}
         />
       </div>
       <DragPanel bindDrag={bindDrag} />

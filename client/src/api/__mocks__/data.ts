@@ -35,6 +35,14 @@ export const links: Array<Link> = [
     ipProtocol: IPProtocol.ICMPv6,
     verdict: Verdict.Forwarded,
   },
+  {
+    id: '5',
+    sourceId: '91085aa98c983e249442e887d70ebc568f4ef07b',
+    destinationId: 'ca111583bf9c9a3547c0c10aa5e77aa97d0e6a14',
+    destinationPort: 9201,
+    ipProtocol: IPProtocol.TCP,
+    verdict: Verdict.Forwarded,
+  },
 ];
 
 export const endpoints: Array<Service> = [
