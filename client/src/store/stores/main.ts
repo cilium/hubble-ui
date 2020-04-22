@@ -1,4 +1,5 @@
-import { action, autorun, configure, observable } from 'mobx';
+import { trace, action, autorun, configure, observable } from 'mobx';
+
 import { Flow } from '~/domain/flows';
 import {
   InteractionKind,
@@ -6,6 +7,7 @@ import {
   Link,
   Service,
 } from '~/domain/service-map';
+
 import InteractionStore from './interaction';
 import LayoutStore from './layout';
 import RouteStore from './route';

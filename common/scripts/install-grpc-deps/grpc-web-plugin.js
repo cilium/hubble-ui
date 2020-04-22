@@ -21,7 +21,6 @@ const run = async (targetDir, version) => {
     process.exit(1);
   });
 
-
   const p = new Promise((resolve, reject) => {
     const pluginStream = fs.createWriteStream(filePath);
     pluginStream.end(buffer);
@@ -32,6 +31,6 @@ const run = async (targetDir, version) => {
 
   await p;
   fs.chmodSync(filePath, '0755');
-}
+};
 
 module.exports = run;
