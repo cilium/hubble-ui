@@ -11,12 +11,13 @@ import { XY } from '~/domain/geometry';
 
 import css from './styles.scss';
 
-// TODO: prevent this component from rerendering
 const LayerComponent: FunctionComponent<CardProps> = props => {
+  const rootRef = useRef<SVGGElement>(null);
+
   const layer1 = !!props.layer1;
   const serviceId = props.card.id;
   const shadowSize = sizes.endpointShadowSize * 2;
-  const { x, y } = props.coords;
+  const { x, y, w, h } = props.coords;
 
   const cls = classnames(
     css.wrapper,
@@ -32,28 +33,35 @@ const LayerComponent: FunctionComponent<CardProps> = props => {
   useEffect(() => {
     if (layer1) return;
 
-    const currentHeight = layout.cardHeight(serviceId);
     const div = divRef.current as HTMLDivElement;
     const elemHeight = div.offsetHeight + shadowSize;
 
-    // TODO: this component shouldn't write its height directly to store
-    layout.setCardHeight(serviceId, elemHeight);
+    if (elemHeight === h) return;
 
-    if (elemHeight !== currentHeight && props.onHeightChange) {
-      props.onHeightChange(elemHeight);
-    }
-  }, [(divRef.current || {}).offsetHeight, props.active]);
+    props.onHeightChange && props.onHeightChange(props.card, elemHeight);
+  }, [props.active, divRef]);
 
-  const currentHeight = layout.cardHeight(serviceId);
+  useEffect(() => {
+    if (
+      props.onEmitBoundingBox == null ||
+      rootRef == null ||
+      rootRef.current == null
+    )
+      return;
+
+    const bbox = rootRef.current!.getBoundingClientRect();
+    props.onEmitBoundingBox(bbox);
+  }, [rootRef.current, props.onEmitBoundingBox]);
+
   const styles = {
-    height: layer1 ? `${currentHeight - shadowSize}px` : 'auto',
+    height: layer1 ? `${h - shadowSize}px` : 'auto',
   };
 
   return (
-    <g transform={`translate(${x}, ${y})`}>
+    <g transform={`translate(${x}, ${y})`} ref={rootRef}>
       <foreignObject
         width={layout.endpointWidth(serviceId) + shadowSize}
-        height={currentHeight}
+        height={h}
       >
         <div className={cls} ref={divRef} style={styles}>
           {props.children}
@@ -63,4 +71,5 @@ const LayerComponent: FunctionComponent<CardProps> = props => {
   );
 };
 
+LayerComponent.displayName = 'EndpointCardBase';
 export const EndpointCardLayer = observer(LayerComponent);

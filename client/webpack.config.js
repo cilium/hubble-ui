@@ -15,22 +15,24 @@ const isProduction = process.env.NODE_ENV === 'production';
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 const stylesLoaders = sassEnabled => {
-  const cssLoaderOpts = sassEnabled
-    ? {
-        modules: {
-          mode: 'local',
-          localIdentName: '[name]_[local]_[hash:base64:5]',
-        },
-        importLoaders: 2,
-        localsConvention: 'camelCase',
-        sourceMap: true,
-      }
-    : {
-        modules: false,
-        importLoaders: 1,
-        localsConvention: 'camelCase',
-        sourceMap: true,
-      };
+  const sassOpts = {
+    modules: {
+      mode: 'local',
+      localIdentName: '[name]_[local]_[hash:base64:5]',
+    },
+    importLoaders: 2,
+    localsConvention: 'camelCase',
+    sourceMap: true,
+  };
+
+  const cssOpts = {
+    modules: false,
+    importLoaders: 1,
+    localsConvention: 'camelCase',
+    sourceMap: true,
+  };
+
+  const cssLoaderOpts = sassEnabled ? sassOpts : cssOpts;
 
   return [
     {

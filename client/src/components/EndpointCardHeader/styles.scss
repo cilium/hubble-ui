@@ -29,6 +29,7 @@ $headingMaxWidth: calc(
   padding-right: $icon-side-padding;
 
   img {
+    max-height: 100%;
     max-width: 100%;
     width: 100%;
   }
@@ -79,6 +80,7 @@ $headingMaxWidth: calc(
   .right {
     @include row(default, center);
     font-size: 20px;
+    height: 40px;
 
     img {
       width: 35px;
