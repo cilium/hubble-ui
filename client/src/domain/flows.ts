@@ -1,14 +1,15 @@
+import hash from 'object-hash';
 import {
-  Verdict,
+  CiliumEventType,
+  Endpoint,
   Ethernet,
+  FlowType,
+  IFlow,
   IP,
   Layer4,
   Layer7,
   Service,
-  Endpoint,
-  FlowType,
-  CiliumEventType,
-  IFlow,
+  Verdict,
 } from '~/domain/hubble';
 
 export { IFlow };
@@ -34,6 +35,8 @@ export class Flow implements IFlow {
   public destinationService?: Service;
   public summary: string;
 
+  private _id: string;
+
   constructor(flow: IFlow) {
     this.time = flow.time;
     this.verdict = flow.verdict;
@@ -53,6 +56,12 @@ export class Flow implements IFlow {
     this.sourceService = flow.sourceService;
     this.destinationService = flow.destinationService;
     this.summary = flow.summary;
+
+    this._id = this.buildId();
+  }
+
+  public get id() {
+    return this._id;
   }
 
   public get verdictLabel(): string {
@@ -67,5 +76,13 @@ export class Flow implements IFlow {
 
     console.warn(`wrong verdict data: ${this.verdict}`, this);
     return 'wrong';
+  }
+
+  private buildId() {
+    return hash([
+      [...(this.source?.labelsList || [])].sort(),
+      this.verdict,
+      this.time,
+    ]);
   }
 }
