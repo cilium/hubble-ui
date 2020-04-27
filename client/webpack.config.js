@@ -186,7 +186,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       filename: path.resolve(__dirname, `../server/public/index.html`),
       template: path.resolve(__dirname, `./src/index.html`),
-      chunksSortMode: 'dependency',
+      chunksSortMode: 'auto',
       minify: true,
     }),
   ].concat(
