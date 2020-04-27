@@ -15,12 +15,11 @@ import { Map } from '~/components/Map';
 import { TopBar } from '~/components/TopBar';
 
 import { ServiceCard } from '~/domain/service-card';
-import { InteractionKind, Interactions } from '~/domain/service-map';
+import { Interactions } from '~/domain/service-map';
 
 import { usePanelDrag } from './hooks/usePanelDrag';
 import { useStore } from '~/store';
 import { API } from '~/api';
-
 
 import css from './styles.scss';
 
@@ -29,11 +28,11 @@ export interface AppProps extends RouteComponentProps {
 }
 
 const loadData = async (api: API) => {
-  const flows = await api.v1.getFlows();
+  const flowsStream = await api.v1.getFlowsStream();
   const services = await api.v1.getServices();
   const links = await api.v1.getLinks();
 
-  return { flows, services, links };
+  return { flowsStream, services, links };
 };
 
 export const AppComponent: FunctionComponent<AppProps> = observer(function(
@@ -53,10 +52,13 @@ export const AppComponent: FunctionComponent<AppProps> = observer(function(
 
   useEffect(() => {
     loadData(api)
-      .then(({ flows, services, links }) => {
+      .then(({ flowsStream, services, links }) => {
         // Kind a temporal function to setup everything we need for now in store
-        store.setup({ flows, services });
+        store.setup({ services });
         store.updateInteractions({ links } as Interactions);
+        flowsStream.subscribe(flows => {
+          store.interactions.addFlows(flows);
+        });
       })
       .finally(() => {
         setLoading(false);

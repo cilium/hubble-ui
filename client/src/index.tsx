@@ -5,7 +5,7 @@ import { StoreProvider } from '~/store';
 import { App } from './components/App';
 
 import * as ui from '~/ui';
-import api from '~/api';
+import api from '~/grpc';
 
 import './blueprint.css';
 import './index.scss';
