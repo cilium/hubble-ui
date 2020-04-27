@@ -20,7 +20,7 @@ $border-color: #c6cace;
 
 .table {
   width: 100%;
-  table-layout: auto;
+  table-layout: fixed;
   background-color: #fff;
 
   td,
@@ -29,6 +29,8 @@ $border-color: #c6cace;
     padding-right: 8px;
     font-size: 11px;
     line-height: 20px;
+    word-break: break-all;
+    vertical-align: top;
 
     &:not(:last-child) {
       border-right: 1px solid $border-color;

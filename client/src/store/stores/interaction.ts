@@ -1,3 +1,4 @@
+import uniqBy from 'lodash/uniqBy';
 import { observable } from 'mobx';
 import { Flow, IFlow } from '~/domain/flows';
 import { Link } from '~/domain/service-map';
@@ -21,6 +22,15 @@ export default class InteractionStore {
 
   public setFlows(flows: Array<IFlow>) {
     this.flows = flows.map(flow => new Flow(flow));
+  }
+
+  public addFlows(flows: Array<IFlow>) {
+    const newFlows = flows.map(flow => new Flow(flow));
+    const concatFlows = newFlows.concat(this.flows);
+    const uniqFlows = uniqBy(concatFlows, f => f.id);
+    if (this.flows.length < uniqFlows.length) {
+      this.flows = uniqFlows;
+    }
   }
 
   get all() {
