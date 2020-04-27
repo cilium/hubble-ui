@@ -9,16 +9,16 @@
     "lint:scss:fix": "npm run lint:scss -- --fix",
     "watch:server": "cd server && npm run watch",
     "watch:client": "cd client && npm run watch",
-    "watch": "npm run generate-types && run-p watch:*",
+    "watch": "npm run generate-proto && run-p watch:*",
     "build:server": "cd server && npm run build",
     "build:client": "cd client && npm run build",
-    "build": "npm run generate-types && run-s build:*",
+    "build": "npm run generate-proto && run-s build:*",
     "upgrade-deps:server": "cd server && npm run upgrade-deps",
     "upgrade-deps:client": "cd client && npm run upgrade-deps",
     "upgrade-deps:common": "cd common && npm run upgrade-deps",
     "upgrade-deps:root": "npm-check --update --save-exact",
     "upgrade-deps": "run-s upgrade-deps:*",
-    "generate-types": "cd common && npm run generate-types"
+    "generate-proto": "cd common && npm run generate-proto"
   },
   "lint-staged": {
     "./client/src/**/*.{ts,tsx,js,jsx,mjs}": [
