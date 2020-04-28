@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const { Readable } = require('stream');
-
 const fs = require('fs-extra');
 const path = require('path');
 const unzipper = require('unzipper');
@@ -26,9 +24,9 @@ const run = async (targetDir, version) => {
 
   const p = new Promise((resolve, reject) => {
     const pluginStream = fs.createWriteStream(filePath);
-    pluginStream.write(buffer);
+    pluginStream.end(buffer);
 
-    pluginStream.on('end', resolve);
+    pluginStream.on('close', resolve);
     pluginStream.on('error', reject);
   });
 
