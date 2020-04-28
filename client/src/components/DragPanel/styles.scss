@@ -1,0 +1,19 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f2f4f6;
+  border-top: 1px solid #c6cace;
+  transition: all 0.25s ease-out;
+  cursor: grab;
+  user-select: none;
+
+  &:hover {
+    background-color: #edf1f3;
+  }
+
+  &:active {
+    background-color: #e7eaec;
+    cursor: grabbing;
+  }
+}

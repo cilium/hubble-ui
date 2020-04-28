@@ -1,9 +1,9 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import { useDrag } from 'react-use-gesture';
 
 export function usePanelDrag() {
-  const [dimensions, setDimensions] = React.useState(calcDefaultDimensions());
-  const [gridTemplateRows, setGridTemplateRows] = React.useState<string>(
+  const [dimensions, setDimensions] = useState(calcDefaultDimensions());
+  const [gridTemplateRows, setGridTemplateRows] = useState<string>(
     crateGridTemplateRows(
       dimensions.topBarHeight,
       dimensions.mapHeight,
@@ -11,8 +11,32 @@ export function usePanelDrag() {
     ),
   );
 
-  React.useEffect(() => {
-    let resizeTimer: NodeJS.Timeout;
+  const [bindDrag] = useState(
+    useDrag(({ down, movement: [mx, my] }) => {
+      const nextMapHeight = Math.max(
+        dimensions.contentHeight / 7,
+        Math.min(dimensions.contentHeight / 1.3, dimensions.mapHeight + my),
+      );
+
+      if (down) {
+        setGridTemplateRows(
+          crateGridTemplateRows(
+            dimensions.topBarHeight,
+            nextMapHeight,
+            dimensions.dragPanelHeight,
+          ),
+        );
+      } else {
+        setDimensions(dimensions => ({
+          ...dimensions,
+          mapHeight: nextMapHeight,
+        }));
+      }
+    }),
+  );
+
+  useEffect(() => {
+    let resizeTimer: any;
     const onResize = () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
@@ -33,28 +57,6 @@ export function usePanelDrag() {
       window.removeEventListener('resize', onResize);
     };
   }, []);
-
-  const bindDrag = useDrag(({ down, movement: [mx, my] }) => {
-    const nextMapHeight = Math.max(
-      dimensions.contentHeight / 7,
-      Math.min(dimensions.contentHeight / 1.3, dimensions.mapHeight + my),
-    );
-
-    if (down) {
-      setGridTemplateRows(
-        crateGridTemplateRows(
-          dimensions.topBarHeight,
-          nextMapHeight,
-          dimensions.dragPanelHeight,
-        ),
-      );
-    } else {
-      setDimensions(dimensions => ({
-        ...dimensions,
-        mapHeight: nextMapHeight,
-      }));
-    }
-  });
 
   return { bindDrag, gridTemplateRows };
 }
