@@ -14,21 +14,23 @@ const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const isProduction = process.env.NODE_ENV === 'production';
 const isDevelopment = process.env.NODE_ENV === 'development';
 
-const stylesLoaders = (sassEnabled) => {
-  const cssLoaderOpts = sassEnabled ? {
-    modules: {
-      mode: 'local',
-      localIdentName: '[name]_[local]_[hash:base64:5]',
-    },
-    importLoaders: 2,
-    localsConvention: 'camelCase',
-    sourceMap: true,
-  } : {
-    modules: false,
-    importLoaders: 1,
-    localsConvention: 'camelCase',
-    sourceMap: true,
-  };
+const stylesLoaders = sassEnabled => {
+  const cssLoaderOpts = sassEnabled
+    ? {
+        modules: {
+          mode: 'local',
+          localIdentName: '[name]_[local]_[hash:base64:5]',
+        },
+        importLoaders: 2,
+        localsConvention: 'camelCase',
+        sourceMap: true,
+      }
+    : {
+        modules: false,
+        importLoaders: 1,
+        localsConvention: 'camelCase',
+        sourceMap: true,
+      };
 
   return [
     {
@@ -40,7 +42,7 @@ const stylesLoaders = (sassEnabled) => {
     },
     {
       loader: 'css-loader',
-      options: cssLoaderOpts
+      options: cssLoaderOpts,
     },
     {
       loader: 'postcss-loader',
@@ -49,14 +51,18 @@ const stylesLoaders = (sassEnabled) => {
         plugins: [autoprefixer()],
       },
     },
-  ].concat(sassEnabled ? [
-    {
-      loader: 'sass-loader',
-      options: {
-        sourceMap: true,
-      },
-    },
-  ] : [])
+  ].concat(
+    sassEnabled
+      ? [
+          {
+            loader: 'sass-loader',
+            options: {
+              sourceMap: true,
+            },
+          },
+        ]
+      : [],
+  );
 };
 
 module.exports = {
@@ -87,10 +93,7 @@ module.exports = {
       {
         test: /\.ts(x?)$/,
         exclude: /node_modules/,
-        use: [
-          'babel-loader',
-          'ts-loader',
-        ]
+        use: ['babel-loader', 'ts-loader'],
       },
       {
         enforce: 'pre',
@@ -109,9 +112,7 @@ module.exports = {
       {
         test: /\.svg$/,
         exclude: /node_modules/,
-        use: [
-          'svg-react-loader',
-        ],
+        use: ['svg-react-loader'],
       },
       {
         test: /\.css$/,

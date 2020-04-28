@@ -28,8 +28,11 @@ $border-color: #c6cace;
     padding-left: 8px;
     padding-right: 8px;
     font-size: 11px;
-    line-height: 20px;
-    word-break: break-all;
+    height: var(--flows-table-row-height);
+    line-height: var(--flows-table-row-height);
+    white-space: pre;
+    text-overflow: ellipsis;
+    overflow: hidden;
     vertical-align: top;
 
     &:not(:last-child) {
@@ -45,6 +48,21 @@ $border-color: #c6cace;
     text-align: left;
     font-weight: 700;
     color: #7c8389;
+  }
+
+  .loadingRow {
+    th {
+      text-align: center;
+      vertical-align: middle;
+      color: #666;
+      font-weight: 400;
+      background-color: #f2f4f6;
+    }
+
+    .loadingLabel {
+      display: flex;
+      justify-content: center;
+    }
   }
 
   tbody {

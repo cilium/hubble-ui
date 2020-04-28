@@ -15,19 +15,6 @@
 .drag {
   grid-row-start: row-drag;
   grid-row-end: row-panel;
-  background-color: #f2f4f6;
-  transition: all 0.25s ease-out;
-  cursor: grab;
-  user-select: none;
-
-  &:hover {
-    background-color: #edf1f3;
-  }
-
-  &:active {
-    background-color: #e7eaec;
-    cursor: grabbing;
-  }
 }
 
 .panel {

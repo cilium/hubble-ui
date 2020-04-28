@@ -1,9 +1,9 @@
-@import "~/styles/common/layout.scss";
+@import '~/styles/common/layout.scss';
 
 $icon-side-padding: 10px;
 $wrapperPadding: 10px 20px;
 $headingMaxWidth: calc(
-  100% - var(--endpoint-icon-width) - #{$icon-side-padding} * 2 - #{$wrapperPadding}
+  100% - var(--endpoint-icon-width) - #{$icon-side-padding} * 2
 );
 
 .wrapper {
