@@ -2,16 +2,62 @@
 const autoprefixer = require('autoprefixer');
 const path = require('path');
 const webpack = require('webpack');
+
+const Dotenv = require('dotenv-webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
-const Dotenv = require('dotenv-webpack');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 /* eslint-enable @typescript-eslint/no-var-requires */
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isDevelopment = process.env.NODE_ENV === 'development';
+
+const stylesLoaders = (sassEnabled) => {
+  const cssLoaderOpts = sassEnabled ? {
+    modules: {
+      mode: 'local',
+      localIdentName: '[name]_[local]_[hash:base64:5]',
+    },
+    importLoaders: 2,
+    localsConvention: 'camelCase',
+    sourceMap: true,
+  } : {
+    modules: false,
+    importLoaders: 1,
+    localsConvention: 'camelCase',
+    sourceMap: true,
+  };
+
+  return [
+    {
+      loader: MiniCssExtractPlugin.loader,
+      options: {
+        hmr: isDevelopment,
+        sourceMap: true,
+      },
+    },
+    {
+      loader: 'css-loader',
+      options: cssLoaderOpts
+    },
+    {
+      loader: 'postcss-loader',
+      options: {
+        sourceMap: true,
+        plugins: [autoprefixer()],
+      },
+    },
+  ].concat(sassEnabled ? [
+    {
+      loader: 'sass-loader',
+      options: {
+        sourceMap: true,
+      },
+    },
+  ] : [])
+};
 
 module.exports = {
   target: 'web',
@@ -20,7 +66,7 @@ module.exports = {
   ]),
   mode: isProduction ? 'production' : 'development',
   watch: isDevelopment,
-  devtool: isProduction ? 'source-map' : 'inline-cheap-module-source-map',
+  devtool: isProduction ? 'source-map' : 'inline-source-map',
   output: {
     path: path.resolve(__dirname, '../server/public'),
     filename: 'bundle.js',
@@ -39,129 +85,41 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(js|jsx|mjs)$/,
-        loader: 'source-map-loader',
+        test: /\.ts(x?)$/,
+        exclude: /node_modules/,
+        use: [
+          'babel-loader',
+          'ts-loader',
+        ]
+      },
+      {
         enforce: 'pre',
+        test: /\.(js|jsx|mjs|ts|tsx)$/,
+        loader: 'source-map-loader',
         include: path.resolve(__dirname, 'src'),
       },
       {
-        oneOf: [
-          {
-            test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
-            loader: 'url-loader',
-            options: {
-              limit: 10000,
-              name: 'static/media/[name].[hash:8].[ext]',
-            },
-          },
-          {
-            test: /\.svg$/,
-            exclude: /node_modules/,
-            use: {
-              loader: 'svg-react-loader',
-            },
-          },
-          {
-            test: /\.mjs$/,
-            type: 'javascript/auto',
-          },
-          {
-            test: /\.(js|jsx)$/,
-            use: [
-              {
-                loader: 'babel-loader',
-              },
-            ],
-            exclude: path.resolve(__dirname, 'node_modules'),
-          },
-          {
-            test: /\.(ts|tsx)$/,
-            use: [
-              {
-                loader: 'babel-loader',
-              },
-              {
-                loader: 'ts-loader',
-                options: {
-                  experimentalWatchApi: true,
-                },
-              },
-            ],
-            exclude: path.resolve(__dirname, 'node_modules'),
-          },
-          {
-            test: /\.css$/,
-            use: [
-              {
-                loader: MiniCssExtractPlugin.loader,
-                options: {
-                  hmr: isDevelopment,
-                  sourceMap: true,
-                },
-              },
-              {
-                loader: 'css-loader',
-                options: {
-                  modules: false,
-                  importLoaders: 1,
-                  localsConvention: 'camelCase',
-                  sourceMap: true,
-                },
-              },
-              {
-                loader: 'postcss-loader',
-                options: {
-                  sourceMap: true,
-                  plugins: [autoprefixer()],
-                },
-              },
-            ],
-          },
-          {
-            test: /\.scss$/,
-            use: [
-              {
-                loader: MiniCssExtractPlugin.loader,
-                options: {
-                  hmr: isDevelopment,
-                  sourceMap: true,
-                },
-              },
-              {
-                loader: 'css-loader',
-                options: {
-                  modules: {
-                    mode: 'local',
-                    localIdentName: '[name]_[local]_[hash:base64:5]',
-                  },
-                  importLoaders: 2,
-                  localsConvention: 'camelCase',
-                  sourceMap: true,
-                },
-              },
-              {
-                loader: 'postcss-loader',
-                options: {
-                  sourceMap: true,
-                  plugins: [autoprefixer()],
-                },
-              },
-              {
-                loader: 'sass-loader',
-                options: {
-                  sourceMap: true,
-                },
-              },
-            ],
-          },
-          {
-            exclude: [/\.(js|jsx|ts|tsx|mjs)$/, /\.html$/, /\.json$/],
-            loader: 'file-loader',
-            options: {
-              name: 'static/media/[name].[hash:8].[ext]',
-            },
-          },
+        test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
+        loader: 'url-loader',
+        options: {
+          limit: 10000,
+          name: 'static/media/[name].[hash:8].[ext]',
+        },
+      },
+      {
+        test: /\.svg$/,
+        exclude: /node_modules/,
+        use: [
+          'svg-react-loader',
         ],
+      },
+      {
+        test: /\.css$/,
+        use: stylesLoaders(false),
+      },
+      {
+        test: /\.s[ac]ss$/,
+        use: stylesLoaders(true),
       },
     ],
   },
