@@ -1,14 +1,14 @@
+import 'mobx-react-lite/batchingForReactDom';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { StoreProvider } from '~/store';
-import { App } from './components/App';
-
-import * as ui from '~/ui';
-import api from '~/grpc';
-
 import './blueprint.css';
 import './index.scss';
+
+import { App } from './components/App';
+import { StoreProvider } from '~/store';
+import * as ui from '~/ui';
+import api from './api/grpc';
 
 const run = async () => {
   ui.setCSSVars(ui.sizes);

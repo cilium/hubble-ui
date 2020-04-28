@@ -1,26 +1,21 @@
-import React, {
-  FunctionComponent,
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-} from 'react';
-
 import { RouteComponentProps, Router, useNavigate } from '@reach/router';
 import { observer } from 'mobx-react';
-import { animated } from 'react-spring';
-
+import React, {
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { API } from '~/api';
+import { DragPanel } from '~/components/DragPanel';
 import { FlowsTable } from '~/components/FlowsTable';
 import { Map } from '~/components/Map';
 import { TopBar } from '~/components/TopBar';
-
 import { ServiceCard } from '~/domain/service-card';
 import { Interactions } from '~/domain/service-map';
-
-import { usePanelDrag } from './hooks/usePanelDrag';
 import { useStore } from '~/store';
-import { API } from '~/api';
-
+import { usePanelDrag } from './hooks/usePanelDrag';
 import css from './styles.scss';
 
 export interface AppProps extends RouteComponentProps {
@@ -101,9 +96,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(function(
           activeServices={store.services.activeSet}
         />
       </div>
-      <animated.div {...bindDrag()} className={css.drag}>
-        Drag
-      </animated.div>
+      <DragPanel bindDrag={bindDrag} />
       <div className={css.panel}>
         <FlowsTable flows={store.interactions.flows} />
       </div>

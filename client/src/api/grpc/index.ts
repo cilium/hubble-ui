@@ -1,7 +1,6 @@
 import { ObserverClient } from '~/../../common/src/types/hubble/observer/observer_grpc_web_pb';
-import { GetFlowsRequest } from '~/../../common/src/types/hubble/observer/observer_pb';
 import { API, CoreAPIv1 } from '~/api';
-import { FlowsStream } from './flows-stream';
+import { FlowsStream } from './flows';
 import { endpoints, links } from './mock';
 
 export class APIv1 implements CoreAPIv1 {
@@ -11,9 +10,8 @@ export class APIv1 implements CoreAPIv1 {
     this.client = new ObserverClient('http://127.0.0.1:8080');
   }
 
-  public getFlowsStream(request = new GetFlowsRequest()) {
-    request.setNumber(1);
-    request.setFollow(true);
+  public getFlowsStream() {
+    const request = FlowsStream.buildGrpcRequest();
     const stream = this.client.getFlows(request, {});
     return new FlowsStream(stream);
   }

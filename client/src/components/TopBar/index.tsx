@@ -1,4 +1,4 @@
-import React, { FunctionComponent } from 'react';
+import React, { memo } from 'react';
 import { NamespaceDropdown } from './NamespaceDropdown';
 
 import css from './styles.scss';
@@ -9,7 +9,7 @@ export interface BarProps {
   onNsChange?: (ns: string) => void;
 }
 
-export const TopBar: FunctionComponent<BarProps> = props => {
+export const TopBar = memo<BarProps>(props => {
   return (
     <div className={css.topbar}>
       <div className={css.left}>
@@ -23,4 +23,6 @@ export const TopBar: FunctionComponent<BarProps> = props => {
       <div className={css.right}></div>
     </div>
   );
-};
+});
+
+TopBar.displayName = 'TopBar';

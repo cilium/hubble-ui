@@ -1,7 +1,6 @@
-import _ from 'lodash';
-
-import { FlowType, IFlow, Verdict } from '~/domain/hubble';
-import { Link, Service, IPProtocol } from '~/domain/service-map';
+import range from 'lodash/range';
+import { FlowType, HubbleFlow, Verdict } from '~/domain/hubble';
+import { IPProtocol, Link, Service } from '~/domain/service-map';
 
 export const links: Array<Link> = [
   {
@@ -171,7 +170,7 @@ export const endpoints: Array<Service> = [
   },
 ];
 
-export const flows: Array<IFlow> = _.range(100).map(() => {
+export const flows: Array<HubbleFlow> = range(100).map(() => {
   return {
     source: {
       id: 0,
