@@ -138,5 +138,8 @@
       "at-rule-empty-line-before": null,
       "no-descending-specificity": null
     }
+  },
+  "devDependencies": {
+    "style-loader": "^1.2.0"
   }
 }
