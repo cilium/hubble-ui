@@ -1,3 +1,5 @@
-public
+public/*.css
+public/*.js
+public/*.html
 build
 server
