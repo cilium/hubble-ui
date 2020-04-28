@@ -1,24 +1,27 @@
 import { KV } from './misc';
 
-export interface IFlow {
-  time?: number; // consider using BigInt here
-  verdict: Verdict;
-  dropReason: number;
-  ethernet?: Ethernet;
-  ip?: IP;
-  l4?: Layer4;
-  source?: Endpoint;
-  destination?: Endpoint;
-  type: FlowType;
-  nodeName: string;
-  sourceNamesList: Array<string>;
-  destinationNamesList: Array<string>;
-  l7?: Layer7;
-  reply: boolean;
-  eventType?: CiliumEventType;
-  sourceService?: Service;
-  destinationService?: Service;
-  summary: string;
+export interface HubbleFlow {
+  readonly time?: {
+    readonly seconds: number;
+    readonly nanos: number;
+  };
+  readonly verdict: Verdict;
+  readonly dropReason: number;
+  readonly ethernet?: Ethernet;
+  readonly ip?: IP;
+  readonly l4?: Layer4;
+  readonly source?: Endpoint;
+  readonly destination?: Endpoint;
+  readonly type: FlowType;
+  readonly nodeName: string;
+  readonly sourceNamesList: Array<string>;
+  readonly destinationNamesList: Array<string>;
+  readonly l7?: Layer7;
+  readonly reply: boolean;
+  readonly eventType?: CiliumEventType;
+  readonly sourceService?: Service;
+  readonly destinationService?: Service;
+  readonly summary: string;
 }
 
 export interface Endpoint {

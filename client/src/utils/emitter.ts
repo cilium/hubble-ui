@@ -1,36 +1,44 @@
-export class EventEmitter {
-  private onHandlers: { [key: string]: Array<(...args: any[]) => any> };
-  private onceHandlers: { [key: string]: Array<(...args: any[]) => any> };
+interface HandlerTypes {
+  [event: string]: (...args: any[]) => any;
+}
+
+export class EventEmitter<T extends HandlerTypes> {
+  private onHandlers: { [event in keyof T]?: Array<(...args: any[]) => any> };
+  private onceHandlers: { [event in keyof T]?: Array<(...args: any[]) => any> };
 
   constructor() {
     this.onHandlers = {};
     this.onceHandlers = {};
   }
 
-  on(event: string, handler: (...args: any[]) => any) {
-    if (this.onHandlers[event] == null) {
+  on<K extends keyof T>(event: K, handler: T[K]) {
+    const onHandlers = this.onHandlers[event];
+    if (!onHandlers) {
       this.onHandlers[event] = [handler];
     } else {
-      this.onHandlers[event].push(handler);
+      onHandlers.push(handler);
     }
+
     return () => {
       this.off(event, handler);
     };
   }
 
-  once(event: string, handler: (...args: any[]) => any) {
-    if (this.onceHandlers[event] === null) {
+  once<K extends keyof T>(event: K, handler: T[K]) {
+    const onceHandlers = this.onceHandlers[event];
+    if (!onceHandlers) {
       this.onceHandlers[event] = [handler];
     } else {
-      this.onceHandlers[event].push(handler);
+      onceHandlers.push(handler);
     }
+
     return () => {
       this.off(event, handler);
     };
   }
 
-  off(event: string, handler: Function) {
-    if (handler == null) {
+  off<K extends keyof T>(event: K, handler?: T[K] | null) {
+    if (!handler) {
       this.onHandlers[event] = [];
       this.onceHandlers[event] = [];
       return;
@@ -39,33 +47,32 @@ export class EventEmitter {
     const onHandlers = this.onHandlers[event];
     const onceHandlers = this.onceHandlers[event];
 
-    if (onHandlers != null) {
-      this.onHandlers[event] = onHandlers.filter((h: Function) => {
+    if (onHandlers) {
+      this.onHandlers[event] = onHandlers.filter(h => {
         return h !== handler;
       });
     }
 
-    if (onceHandlers != null) {
-      this.onceHandlers[event] = onceHandlers.filter((h: Function) => {
+    if (onceHandlers) {
+      this.onceHandlers[event] = onceHandlers.filter(h => {
         return h != handler;
       });
     }
   }
 
-  emit(event: string, ...args: any[]) {
-    if (this.onHandlers[event] != null) {
-      this.onHandlers[event].forEach((handler: Function) => {
-        handler(...args);
-      });
+  emit<K extends keyof T>(event: K, ...args: Parameters<T[K]>) {
+    const onHandlers = this.onHandlers[event];
+    if (onHandlers) {
+      onHandlers.forEach(handler => handler(...args));
     }
 
     const onceHandlers = this.onceHandlers[event];
-    if (onceHandlers == null) return;
-
-    while (onceHandlers.length > 0) {
-      const handler = onceHandlers.pop();
-      if (handler) {
-        handler(...args);
+    if (onceHandlers) {
+      while (onceHandlers.length > 0) {
+        const handler = onceHandlers.pop();
+        if (handler) {
+          handler(...args);
+        }
       }
     }
   }

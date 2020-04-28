@@ -1,6 +1,6 @@
-import uniqBy from 'lodash/uniqBy';
+import _ from 'lodash';
 import { observable } from 'mobx';
-import { Flow, IFlow } from '~/domain/flows';
+import { Flow, HubbleFlow } from '~/domain/flows';
 import { Link } from '~/domain/service-map';
 
 // This store maintains ANY interactions that may present on the map
@@ -20,16 +20,16 @@ export default class InteractionStore {
     this.links = links;
   }
 
-  public setFlows(flows: Array<IFlow>) {
-    this.flows = flows.map(flow => new Flow(flow));
-  }
+  public addFlows(flows: Array<HubbleFlow>) {
+    const nextFlows = _(flows)
+      .reverse()
+      .map(f => new Flow(f))
+      .concat(this.flows)
+      .uniqBy(f => f.id)
+      .value();
 
-  public addFlows(flows: Array<IFlow>) {
-    const newFlows = flows.map(flow => new Flow(flow));
-    const concatFlows = newFlows.concat(this.flows);
-    const uniqFlows = uniqBy(concatFlows, f => f.id);
-    if (this.flows.length < uniqFlows.length) {
-      this.flows = uniqFlows;
+    if (this.flows.length < nextFlows.length) {
+      this.flows = nextFlows.slice(0, 1000);
     }
   }
 

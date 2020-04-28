@@ -3,7 +3,7 @@
   "scripts": {
     "start": "cd server && npm start",
     "postinstall": "cd client && npm install && cd ../server && npm install",
-    "lint:ts": "eslint --ignore-path .gitignore --ext .ts,.tsx,.js,.jsx,.mjs .",
+    "lint:ts": "eslint --ignore-path .gitignore \"./{common,client,server}/src/**/*.{ts,tsx,js,jsx,mjs}\"",
     "lint:ts:fix": "npm run lint:ts -- --fix",
     "lint:scss": "stylelint --ignore-path .gitignore \"./**/*.scss\" --syntax scss",
     "lint:scss:fix": "npm run lint:scss -- --fix",
@@ -56,6 +56,7 @@
     "npm-run-all": "4.1.5",
     "prettier": "1.19.1",
     "source-map-explorer": "2.3.1",
+    "style-loader": "1.2.0",
     "stylelint": "13.2.0",
     "stylelint-config-css-modules": "2.2.0",
     "stylelint-config-standard": "20.0.0",
@@ -138,8 +139,5 @@
       "at-rule-empty-line-before": null,
       "no-descending-specificity": null
     }
-  },
-  "devDependencies": {
-    "style-loader": "^1.2.0"
   }
 }

@@ -15,3 +15,8 @@ export const reserved = {
   init: { id: 5, label: ReservedLabel.Init },
   remoteNode: { id: 6, label: ReservedLabel.RemoteNode },
 };
+
+export enum CiliumEventTypes {
+  DROP = 1,
+  TRACE = 4,
+}

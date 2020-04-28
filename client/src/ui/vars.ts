@@ -17,6 +17,7 @@ export const sizes = {
   ingressConnectorPadding: 24,
   linkWidth: 2,
   linkCurveRadius: 8,
+  flowsTableRowHeight: 20,
 };
 
 // C O L O R S

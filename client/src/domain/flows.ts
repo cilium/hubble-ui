@@ -1,71 +1,68 @@
+import distanceInWords from 'date-fns/distance_in_words';
 import hash from 'object-hash';
-import {
-  CiliumEventType,
-  Endpoint,
-  Ethernet,
-  FlowType,
-  IFlow,
-  IP,
-  Layer4,
-  Layer7,
-  Service,
-  Verdict,
-} from '~/domain/hubble';
+import { HubbleFlow, Verdict } from '~/domain/hubble';
+import { Labels } from './labels';
+import { KV } from './misc';
 
-export { IFlow };
+export { HubbleFlow };
 
-export class Flow implements IFlow {
-  // TODO: probably some of these field could be private
-  public time?: number;
-  public verdict: Verdict;
-  public dropReason: number;
-  public ethernet?: Ethernet;
-  public ip?: IP;
-  public l4?: Layer4;
-  public source?: Endpoint;
-  public destination?: Endpoint;
-  public type: FlowType;
-  public nodeName: string;
-  public sourceNamesList: Array<string>;
-  public destinationNamesList: Array<string>;
-  public l7?: Layer7;
-  public reply: boolean;
-  public eventType?: CiliumEventType;
-  public sourceService?: Service;
-  public destinationService?: Service;
-  public summary: string;
+export class Flow {
+  private ref: HubbleFlow;
 
   private _id: string;
+  private _sourceLabels: KV[];
+  private _destinationLabels: KV[];
 
-  constructor(flow: IFlow) {
-    this.time = flow.time;
-    this.verdict = flow.verdict;
-    this.dropReason = flow.dropReason;
-    this.ethernet = flow.ethernet;
-    this.ip = flow.ip;
-    this.l4 = flow.l4;
-    this.source = flow.source;
-    this.destination = flow.destination;
-    this.type = flow.type;
-    this.nodeName = flow.nodeName;
-    this.sourceNamesList = flow.sourceNamesList;
-    this.destinationNamesList = flow.destinationNamesList;
-    this.l7 = flow.l7;
-    this.reply = flow.reply;
-    this.eventType = flow.eventType;
-    this.sourceService = flow.sourceService;
-    this.destinationService = flow.destinationService;
-    this.summary = flow.summary;
+  constructor(flow: HubbleFlow) {
+    this.ref = flow;
 
     this._id = this.buildId();
+    this._sourceLabels = this.mapLabelsToKv(flow.source?.labelsList || []);
+    this._destinationLabels = this.mapLabelsToKv(
+      flow.destination?.labelsList || [],
+    );
   }
 
   public get id() {
     return this._id;
   }
 
+  public get sourceLabels() {
+    return this._sourceLabels;
+  }
+
+  public get destinationLabels() {
+    return this._destinationLabels;
+  }
+
+  public get sourceNamespace() {
+    return Labels.findNamespaceInLabels(this.sourceLabels);
+  }
+
+  public get destinationNamespace() {
+    return Labels.findNamespaceInLabels(this.destinationLabels);
+  }
+
+  public get sourceAppName() {
+    return Labels.findAppNameInLabels(this.sourceLabels);
+  }
+
+  public get destinationAppName() {
+    return Labels.findAppNameInLabels(this.destinationLabels);
+  }
+
+  public get destinationPort() {
+    if (this.ref.l4?.tcp) {
+      return this.ref.l4.tcp.destinationPort;
+    }
+    if (this.ref.l4?.udp) {
+      return this.ref.l4.udp.destinationPort;
+    }
+    return null;
+  }
+
   public get verdictLabel(): string {
-    switch (this.verdict) {
+    switch (this.ref.verdict) {
       case Verdict.Forwarded:
         return 'forwarded';
       case Verdict.Dropped:
@@ -74,15 +71,47 @@ export class Flow implements IFlow {
         return 'unknown';
     }
 
-    console.warn(`wrong verdict data: ${this.verdict}`, this);
+    console.warn(`wrong verdict data: ${this.ref.verdict}`, this);
     return 'wrong';
+  }
+
+  public get millisecondsTimestamp() {
+    if (!this.ref.time) {
+      return null;
+    }
+    return new Date(this.ref.time.seconds * 1000).valueOf();
+  }
+
+  public get isoTimestamp() {
+    if (!this.millisecondsTimestamp) {
+      return null;
+    }
+    return new Date(this.millisecondsTimestamp).toISOString();
+  }
+
+  public static formatRelativeTimestamp(date: Date) {
+    return distanceInWords(new Date(), date, {
+      includeSeconds: true,
+    });
   }
 
   private buildId() {
     return hash([
-      [...(this.source?.labelsList || [])].sort(),
-      this.verdict,
-      this.time,
+      [...(this.ref.source?.labelsList || [])].sort(),
+      [...(this.ref.destination?.labelsList || [])].sort(),
+      this.ref.l4?.tcp?.destinationPort,
+      this.ref.verdict,
+      this.ref.time,
     ]);
+  }
+
+  private mapLabelsToKv(labels: string[]) {
+    return labels.map(label => {
+      const [key, value] = label.split('=', 2);
+      return {
+        key,
+        value: value ? value : '',
+      };
+    });
   }
 }
