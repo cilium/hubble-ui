@@ -3,13 +3,13 @@ on:
   push:
     branches:
       - master
-      - v.*
+      - v*
     tags:
-      - v.*
+      - v*
   pull_request:
     branches:
     - master
-    - v.*
+    - v*
 jobs:
   build:
     runs-on: ubuntu-latest
