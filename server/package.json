@@ -37,6 +37,9 @@
     "slugify": "^1.3.4",
     "uuid": "3.4.0"
   },
+  "resolutions": {
+    "minimist": ">=0.2.1"
+  },
   "scripts": {
     "build": "npm run generate && tsc && npm run copy-schema",
     "generate": "rm -f ./src/graphqlTypes.ts && gql-gen && ./generate.sh",
