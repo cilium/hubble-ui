@@ -10,9 +10,9 @@ export class APIv1 implements CoreAPIv1 {
     this.client = new ObserverClient('http://127.0.0.1:8080');
   }
 
-  public getFlowsStream() {
-    const request = FlowsStream.buildGrpcRequest();
-    const stream = this.client.getFlows(request, {});
+  public getFlowsStream(params: Parameters<CoreAPIv1['getFlowsStream']>[0]) {
+    const request = FlowsStream.buildGrpcRequest(params);
+    const stream = this.client.getFlows(request);
     return new FlowsStream(stream);
   }
 
@@ -25,11 +25,7 @@ export class APIv1 implements CoreAPIv1 {
   }
 
   async getNamespaces(): Promise<Array<string>> {
-    const namespaces: Array<string> = [
-      'namespace-1',
-      'namespace-2',
-      'namespace-3',
-    ];
+    const namespaces: Array<string> = ['default', 'kube-system'];
 
     const delay = 1 + 2 * Math.random();
 

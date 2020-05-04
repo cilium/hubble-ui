@@ -43,7 +43,7 @@ export class FlowsStream implements IStream<HubbleFlow[]> {
     this.stream.stop();
   }
 
-  public static buildGrpcRequest() {
+  public static buildGrpcRequest({ namespace }: { namespace: string }) {
     const request = new GetFlowsRequest();
 
     const srcWhitelistBaseFilter = new FlowFilter();
@@ -59,8 +59,11 @@ export class FlowsStream implements IStream<HubbleFlow[]> {
       dstWhitelistBaseFilter.addEventType(eventTypeFilter);
     });
 
-    srcWhitelistBaseFilter.addSourcePod(`kube-system/`);
-    dstWhitelistBaseFilter.addDestinationPod(`kube-system/`);
+    srcWhitelistBaseFilter.addSourcePod(`${namespace}/`);
+    dstWhitelistBaseFilter.addDestinationPod(`${namespace}/`);
+
+    // srcWhitelistBaseFilter.addReply(false);
+    // dstWhitelistBaseFilter.addReply(false);
 
     srcBlacklistReservedUnknownFilter.addSourceLabel('reserved:unknown');
     dstBlacklistReservedUnknownFilter.addDestinationLabel('reserved:unknown');

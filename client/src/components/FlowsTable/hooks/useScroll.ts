@@ -1,29 +1,31 @@
 import { useEffect, useRef, useState } from 'react';
-import { Flow } from '~/domain/flows';
 import { sizes } from '~/ui';
 import { useDetectScroll } from '~/ui/hooks/useDetectScroll';
 
-export function useFlows<E extends HTMLElement>(nextFlows: Flow[]) {
+export function useScroll<E extends HTMLElement>(nextFlowsDiffCount: {
+  value: number;
+}) {
   const ref = useRef<E>(null);
   const scrolling = useDetectScroll(ref.current);
-
-  const [flows, setFlows] = useState(nextFlows);
+  const [flowsDiffCount, setFlowsDiffCount] = useState(nextFlowsDiffCount);
 
   useEffect(() => {
-    setFlows(nextFlows);
-    const diff = nextFlows.length - flows.length;
-    setTimeout(() => {
-      if (ref.current) {
-        scroll({
-          element: ref.current,
-          offset: diff * sizes.flowsTableRowHeight,
-          scrolling: scrolling.current,
-        });
-      }
+    if (nextFlowsDiffCount === flowsDiffCount) return;
+    setFlowsDiffCount(flowsDiffCount);
+    const timeout = setTimeout(() => {
+      if (!ref.current) return;
+      scroll({
+        element: ref.current,
+        offset: nextFlowsDiffCount.value * sizes.flowsTableRowHeight,
+        scrolling: scrolling.current,
+      });
     });
-  }, [nextFlows]);
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [nextFlowsDiffCount]);
 
-  return { ref, flows };
+  return { ref };
 }
 
 function scroll({
@@ -41,7 +43,7 @@ function scroll({
   if (scrolling) {
     element.scrollTop = element.scrollTop + offset;
   } else {
-    element.scrollTo({
+    element.scroll({
       top: element.scrollTop + offset,
       behavior: 'smooth',
     });

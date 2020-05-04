@@ -1,4 +1,5 @@
-import { autorun, observable } from 'mobx';
+import { action, autorun, configure, observable } from 'mobx';
+import { Flow } from '~/domain/flows';
 import {
   InteractionKind,
   Interactions,
@@ -9,6 +10,8 @@ import InteractionStore from './interaction';
 import LayoutStore from './layout';
 import RouteStore from './route';
 import ServiceStore from './service';
+
+configure({ enforceActions: 'observed' });
 
 export class Store {
   @observable
@@ -29,6 +32,9 @@ export class Store {
 
   @observable
   public currentNsIdx = -1;
+
+  @observable
+  public selectedTableFlow: Flow | null = null;
 
   constructor() {
     this.interactions = new InteractionStore();
@@ -51,6 +57,7 @@ export class Store {
     return new Store();
   }
 
+  @action.bound
   public setup({ services }: { services: Array<Service> }) {
     this.services.set(services);
   }
@@ -59,6 +66,7 @@ export class Store {
     return this.namespaces[this.currentNsIdx];
   }
 
+  @action.bound
   public setNamespaces(nss: Array<string>, activateFirst?: boolean) {
     this.namespaces = nss;
 
@@ -67,11 +75,18 @@ export class Store {
     }
   }
 
+  @action.bound
   public setNamespaceByName(ns: string) {
     const idx = this.namespaces.findIndex(n => n === ns);
     this.currentNsIdx = idx;
   }
 
+  @action.bound
+  public selectTableFlow(flow: Flow | null) {
+    this.selectedTableFlow = flow;
+  }
+
+  @action.bound
   public updateInteractions<T = {}>(
     interactions: Interactions<T>,
     handleInteractions?: (kind: string, interactions: any) => void,

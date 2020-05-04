@@ -1,10 +1,12 @@
 import _ from 'lodash';
-import { observable } from 'mobx';
+import { action, observable } from 'mobx';
 import { Flow, HubbleFlow } from '~/domain/flows';
 import { Link } from '~/domain/service-map';
 
 // This store maintains ANY interactions that may present on the map
 export default class InteractionStore {
+  public static readonly FLOWS_MAX_COUNT = 1000;
+
   @observable
   public flows: Array<Flow>;
 
@@ -16,21 +18,30 @@ export default class InteractionStore {
     this.links = [];
   }
 
+  @action.bound
   public setLinks(links: Array<Link>) {
     this.links = links;
   }
 
+  @action.bound
+  public clearFlows() {
+    this.flows = [];
+  }
+
+  @action.bound
   public addFlows(flows: Array<HubbleFlow>) {
-    const nextFlows = _(flows)
+    this.flows = _(flows)
       .reverse()
       .map(f => new Flow(f))
       .concat(this.flows)
       .uniqBy(f => f.id)
-      .value();
+      .value()
+      .slice(0, InteractionStore.FLOWS_MAX_COUNT);
 
-    if (this.flows.length < nextFlows.length) {
-      this.flows = nextFlows.slice(0, 1000);
-    }
+    return {
+      flowsTotalCount: this.flows.length,
+      flowsDiffCount: flows.length,
+    };
   }
 
   get all() {
