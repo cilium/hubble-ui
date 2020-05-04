@@ -2,6 +2,9 @@ FROM node:13.7-slim
 
 ENV CI true
 
+# add non-root user
+RUN useradd -u 1001 hubble-ui
+
 # install global dependencies
 COPY package.json package.json
 
@@ -16,7 +19,7 @@ RUN apt-get update \
 
 # install client dependencies
 COPY client/package.json client/package.json
-COPY client/package-lock.json client/package-lock.json 
+COPY client/package-lock.json client/package-lock.json
 
 # install server dependencies
 COPY server/package.json server/package.json
@@ -49,5 +52,8 @@ COPY --from=0 /server/package.json server/package.json
 COPY --from=0 /server/build server/build
 COPY --from=0 /client/build client/build
 COPY --from=0 /client/index.html client/index.html
+COPY --from=0 /etc/passwd /etc/passwd
 WORKDIR /workspace/server
+USER 1001
+EXPOSE 12000
 CMD ["npm", "start"]
