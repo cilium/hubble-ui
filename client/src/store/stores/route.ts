@@ -1,11 +1,5 @@
-import { observable, autorun } from 'mobx';
-import {
-  createHistory,
-  History,
-  globalHistory,
-  HistoryLocation,
-} from '@reach/router';
-
+import { globalHistory, History, HistoryLocation } from '@reach/router';
+import { observable, runInAction } from 'mobx';
 import * as qs from 'query-string';
 
 export default class RouteStore {
@@ -20,9 +14,10 @@ export default class RouteStore {
 
     this.history.listen(({ location, action }) => {
       console.log('in history listen: ', location, action);
-      this.location = location;
-
-      this.dropCache();
+      runInAction(() => {
+        this.location = location;
+        this.dropCache();
+      });
     });
   }
 

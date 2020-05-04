@@ -13,9 +13,9 @@ $border-color: #c6cace;
 .wrapper {
   position: relative;
   overflow: auto;
-  max-height: 100%;
-  border-radius: 3px;
-  border: 1px solid $border-color;
+  height: 100%;
+  border-top: 1px solid $border-color;
+  background-color: #fff;
 }
 
 .table {
@@ -50,21 +50,6 @@ $border-color: #c6cace;
     color: #7c8389;
   }
 
-  .loadingRow {
-    th {
-      text-align: center;
-      vertical-align: middle;
-      color: #666;
-      font-weight: 400;
-      background-color: #f2f4f6;
-    }
-
-    .loadingLabel {
-      display: flex;
-      justify-content: center;
-    }
-  }
-
   tbody {
     tr {
       &:nth-child(odd) {
@@ -74,6 +59,107 @@ $border-color: #c6cace;
       &:nth-child(even) {
         background-color: #f2f4f6;
       }
+
+      &:not(.selected):hover {
+        background-color: #e0e2e4;
+        cursor: pointer;
+      }
+
+      &:last-child {
+        td {
+          border-bottom: 1px solid $border-color;
+        }
+      }
+
+      &.selected {
+        background-color: #7b7b7b;
+
+        td {
+          color: #fff;
+        }
+      }
     }
+  }
+}
+
+.sidebar {
+  $padding: 12px;
+
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 280px;
+  height: 100%;
+  overflow: auto;
+  background: #fff;
+  border-top: 1px solid #c6cace;
+  border-left: 1px solid #c6cace;
+  box-shadow: 0 22px 22px rgba(0, 0, 0, 0.25);
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: $padding;
+    padding-left: $padding;
+    padding-right: $padding;
+    padding-bottom: 16px;
+    font-size: 14px;
+    line-height: 17px;
+    color: #7b7b7b;
+
+    .close {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: fixed;
+      right: $padding;
+      margin-top: -1px;
+      margin-right: -3px;
+      padding: 3px;
+      border-radius: 3px;
+      background-color: rgba(255, 255, 255, 0.5);
+      color: #c2c2c2;
+
+      &:hover {
+        cursor: pointer;
+        color: #a0a0a0;
+      }
+    }
+  }
+
+  .block {
+    padding-left: $padding;
+    padding-right: $padding;
+
+    &:last-child {
+      padding-bottom: $padding;
+    }
+
+    .title {
+      margin-bottom: 2px;
+      font-size: 12px;
+      line-height: 14px;
+      font-weight: 700;
+      color: #303030;
+    }
+
+    .body {
+      padding-bottom: 10px;
+      overflow-x: auto;
+      font-size: 12px;
+      line-height: 17px;
+      color: #7b7b7b;
+    }
+  }
+
+  .block + hr {
+    display: block;
+    width: calc($padding + 100% + $padding + $padding);
+    height: 1px;
+    margin-bottom: 10px;
+    margin-left: -$padding;
+    border: none;
+    background-color: #d6d6d6;
   }
 }

@@ -2,7 +2,7 @@ import { HubbleFlow } from '~/domain/flows';
 import { Link, Service } from '~/domain/service-map';
 
 export interface CoreAPIv1 {
-  getFlowsStream: () => IStream<Array<HubbleFlow>>;
+  getFlowsStream: (params: { namespace: string }) => IStream<Array<HubbleFlow>>;
   getServices: () => Promise<Array<Service>>;
   getNamespaces: () => Promise<Array<string>>;
   getLinks: () => Promise<Array<Link>>;

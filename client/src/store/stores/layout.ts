@@ -1,12 +1,10 @@
-import { observable } from 'mobx';
-
-import ServiceStore from './service';
-import InteractionStore from './interaction';
-
+import { action, observable } from 'mobx';
+import { dummy as geom, WH, XYWH } from '~/domain/geometry';
+import { Placement, PlacementEntry } from '~/domain/layout';
 import { ServiceCard } from '~/domain/service-card';
-import { WH, XYWH, dummy as geom } from '~/domain/geometry';
-import { PlacementEntry, Placement } from '~/domain/layout';
 import { sizes } from '~/ui/vars';
+import InteractionStore from './interaction';
+import ServiceStore from './service';
 
 const hPadding = sizes.endpointHPadding;
 
@@ -27,10 +25,12 @@ export default class LayoutStore {
     this.whs = new Map();
   }
 
+  @action.bound
   public setCardWH(id: string, props: WH) {
     this.whs.set(`service-${id}`, props);
   }
 
+  @action.bound
   public setCardHeight(id: string, height: number) {
     const current = this.whs.get(id) || this.defaultCardWH();
     const newProps = { ...current, h: height };

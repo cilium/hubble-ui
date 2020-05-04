@@ -1,7 +1,6 @@
-import { reaction, autorun, observable, action } from 'mobx';
-
+import { action, observable, reaction } from 'mobx';
 import { ServiceCard } from '~/domain/service-card';
-import { Service, Link } from '~/domain/service-map';
+import { Link, Service } from '~/domain/service-map';
 
 export default class ServiceStore {
   @observable
@@ -37,19 +36,24 @@ export default class ServiceStore {
   }
 
   get activeSet(): Set<string> {
-    const k = [...this.active.keys()].filter(key => !!this.active.get(key)!);
+    const k = [...this.active.keys()].filter(key =>
+      Boolean(this.active.get(key)),
+    );
     return new Set(k);
   }
 
+  @action.bound
   public toggleActive(id: string) {
     const current = !!this.active.get(id);
     this.active.set(id, !current);
   }
 
+  @action.bound
   public set(services: Array<Service>) {
     this.cards = services.map(ServiceCard.fromService);
   }
 
+  @action.bound
   public updateLinkEndpoints(links: Array<Link>) {
     links.forEach((l: Link) => {
       const card = this.map.get(l.destinationId);
@@ -59,6 +63,7 @@ export default class ServiceStore {
     });
   }
 
+  @action.bound
   private rebuildIndex() {
     console.info('rebuilding endpointsMap');
 

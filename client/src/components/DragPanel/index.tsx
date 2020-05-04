@@ -11,7 +11,7 @@ export interface Props {
 export const DragPanel = memo<Props>(props => {
   return (
     <animated.div {...props.bindDrag} className={css.wrapper}>
-      <Button active rightIcon={<Spinner size={16} />}>
+      <Button small active rightIcon={<Spinner size={16} />}>
         Flows streaming
       </Button>
     </animated.div>
