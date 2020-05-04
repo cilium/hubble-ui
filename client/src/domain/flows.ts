@@ -3,6 +3,7 @@ import hash from 'object-hash';
 import { HubbleFlow, Verdict } from '~/domain/hubble';
 import { Labels } from './labels';
 import { KV } from './misc';
+import { CiliumEventSubTypesCodes } from './cilium';
 
 export { HubbleFlow };
 
@@ -25,6 +26,14 @@ export class Flow {
 
   public get id() {
     return this._id;
+  }
+
+  public get hasSource() {
+    return Boolean(this.ref.source);
+  }
+
+  public get hasDestination() {
+    return Boolean(this.ref.destination);
   }
 
   public get sourceLabels() {
@@ -51,6 +60,20 @@ export class Flow {
     return Labels.findAppNameInLabels(this.destinationLabels);
   }
 
+  public get sourcePodName() {
+    if (!this.ref.source) {
+      return null;
+    }
+    return this.ref.source.podName;
+  }
+
+  public get destinationPodName() {
+    if (!this.ref.destination) {
+      return null;
+    }
+    return this.ref.destination.podName;
+  }
+
   public get destinationPort() {
     if (this.ref.l4?.tcp) {
       return this.ref.l4.tcp.destinationPort;
@@ -61,6 +84,20 @@ export class Flow {
     return null;
   }
 
+  public get sourceIp() {
+    if (!this.ref.ip?.source) {
+      return null;
+    }
+    return this.ref.ip.source;
+  }
+
+  public get destinationIp() {
+    if (!this.ref.ip?.destination) {
+      return null;
+    }
+    return this.ref.ip.destination;
+  }
+
   public get verdictLabel(): string {
     switch (this.ref.verdict) {
       case Verdict.Forwarded:
@@ -69,10 +106,33 @@ export class Flow {
         return 'dropped';
       case Verdict.Unknown:
         return 'unknown';
+      default:
+        return 'unhandled';
     }
+  }
 
-    console.warn(`wrong verdict data: ${this.ref.verdict}`, this);
-    return 'wrong';
+  public get isReply() {
+    return this.ref.reply;
+  }
+
+  public get direction() {
+    return this.isReply ? 'response' : 'request';
+  }
+
+  public get ciliumEventSubTypeLabel() {
+    if (!this.ref.eventType) {
+      return null;
+    }
+    return CiliumEventSubTypesCodes[
+      this.ref.eventType.subType as keyof typeof CiliumEventSubTypesCodes
+    ];
+  }
+
+  public get destinationDns() {
+    if (!this.ref.destination || !this.ref.l7?.dns) {
+      return null;
+    }
+    return this.ref.l7.dns;
   }
 
   public get millisecondsTimestamp() {

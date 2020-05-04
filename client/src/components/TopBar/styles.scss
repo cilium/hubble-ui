@@ -3,7 +3,7 @@
 
 .topbar {
   @include row(space-between, center);
-  padding: 0 $default-padding;
+  padding: 0 8px;
 
   border-bottom: 1px solid #c6cace;
   background-color: #f2f4f6;

@@ -1,22 +1,15 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import * as d3 from 'd3';
-import _ from 'lodash';
-
-import { sizes } from '~/ui/vars';
-import { useStore } from '~/store/hooks';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   EndpointCardBackplate,
   EndpointCardContent,
 } from '~/components/EndpointCard';
-import { NamespaceBackplate } from './NamespaceBackplate';
-import { useZoom } from '~/ui/hooks/useZoom';
-
-import { Link, Interactions } from '~/domain/service-map';
+import { dummy as geom } from '~/domain/geometry';
 import { ServiceCard } from '~/domain/service-card';
-import { dummy as geom, XYWH } from '~/domain/geometry';
-import { Placement, PlacementEntry } from '~/domain/layout';
-import { Dictionary } from '~/domain/misc';
-
+import { Interactions, Link } from '~/domain/service-map';
+import { useStore } from '~/store/hooks';
+import { useZoom } from '~/ui/hooks/useZoom';
+import { sizes } from '~/ui/vars';
+import { NamespaceBackplate } from './NamespaceBackplate';
 import css from './styles.scss';
 
 export interface Props {

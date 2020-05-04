@@ -18,9 +18,11 @@
 }
 
 .panel {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
   grid-row-start: row-panel;
   max-height: 100%;
   overflow: hidden;
-  padding: 8px 11px;
   background-color: #f2f4f6;
 }

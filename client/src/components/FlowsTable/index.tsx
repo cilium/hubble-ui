@@ -1,19 +1,25 @@
-import { Spinner } from '@blueprintjs/core';
-import React, { memo } from 'react';
+import classnames from 'classnames';
+import { observer } from 'mobx-react';
+import React, { FunctionComponent, memo, useCallback } from 'react';
 import { Flow } from '~/domain/flows';
+import { useStore } from '~/store';
 import { FlowsTableColumn } from './constants';
-import { useFlows } from './hooks/useFlows';
 import { useFlowTimestamp } from './hooks/useFlowTimestamp';
+import { useScroll } from './hooks/useScroll';
 import css from './styles.scss';
 
-export const FlowsTable = memo<{ flows: Flow[] }>(props => {
-  const { ref, flows } = useFlows<HTMLDivElement>(props.flows);
+export interface Props {
+  flows: Flow[];
+  flowsDiffCount: { value: number };
+}
 
+export const FlowsTable = memo<Props>(props => {
+  const scroll = useScroll<HTMLDivElement>(props.flowsDiffCount);
   return (
-    <div ref={ref} className={css.wrapper}>
+    <div {...scroll} className={css.wrapper}>
       <table className={css.table}>
         <TableHeader />
-        <TableBody flows={flows} />
+        <TableBody flows={props.flows} />
       </table>
     </div>
   );
@@ -46,7 +52,10 @@ const TableBody = memo<{ flows: Flow[] }>(props => {
 });
 TableBody.displayName = 'FlowsTableBody';
 
-const Row = memo<{ flow: Flow }>(({ flow }) => {
+const Row: FunctionComponent<{ flow: Flow }> = observer(({ flow }) => {
+  const store = useStore();
+
+  const onClick = useCallback(() => store.selectTableFlow(flow), []);
   const timestamp = useFlowTimestamp(flow.millisecondsTimestamp);
 
   const sourceAppName = flow.sourceAppName ?? 'No app name';
@@ -68,8 +77,12 @@ const Row = memo<{ flow: Flow }>(({ flow }) => {
   // prettier-ignore
   const destinationTitle = <>{destinationAppName} {destinationNamespace}</>;
 
+  const className = classnames({
+    [css.selected]: flow === store.selectedTableFlow,
+  });
+
   return (
-    <tr>
+    <tr className={className} onClick={onClick}>
       <td>{sourceTitle}</td>
       <td>{destinationTitle}</td>
       <td>{flow.destinationPort}</td>
@@ -79,16 +92,3 @@ const Row = memo<{ flow: Flow }>(({ flow }) => {
   );
 });
 Row.displayName = 'FlowsTableRow';
-
-const LoadingRow: React.FunctionComponent = () => {
-  return (
-    <tr className={css.loadingRow}>
-      <th colSpan={5}>
-        <div className={css.loadingLabel}>
-          Streaming flows <Spinner size={12} />
-        </div>
-      </th>
-    </tr>
-  );
-};
-LoadingRow.displayName = 'FlowsTableLoadingRow';
