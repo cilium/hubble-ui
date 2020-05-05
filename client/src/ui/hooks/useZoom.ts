@@ -30,8 +30,8 @@ export const useZoom = (ref: SVGRef, initials?: Initials) => {
     const initialScale = initials!.scale || 0.5;
 
     const initialTransform = d3.zoomIdentity
-      .translate(initialTx, initialTy)
-      .scale(initialScale);
+      .scale(initialScale)
+      .translate(initialTx, initialTy);
 
     const zoom = d3
       .zoom()
@@ -40,10 +40,16 @@ export const useZoom = (ref: SVGRef, initials?: Initials) => {
         setZoomTransform(d3.event.transform);
       });
 
-    d3.select(ref.current)
+    const zooming = d3
+      .select(ref.current)
       .attr('cursor', 'grab')
-      .call(zoom as any)
-      .call(zoom.transform as any, initialTransform);
+      .call(zoom as any);
+
+    // Dirty hack for tests: jsdom doesn't have full svg support
+    // https://github.com/jsdom/jsdom/issues/2531
+    if ('baseVal' in zoom.transform) {
+      zooming.call(zoom.transform as any, initialTransform);
+    }
 
     return () => {
       if (ref.current) {

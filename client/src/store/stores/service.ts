@@ -65,8 +65,6 @@ export default class ServiceStore {
 
   @action.bound
   private rebuildIndex() {
-    console.info('rebuilding endpointsMap');
-
     this.cards.forEach(c => {
       this.map.set(c.service.id, c);
     });
