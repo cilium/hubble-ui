@@ -4,7 +4,8 @@ import { flows } from '~/api/mock';
 
 export class FlowsStream implements IStream<HubbleFlow[]> {
   public subscribe(callback: (data: HubbleFlow[]) => void) {
-    return () => callback(flows);
+    callback(flows);
+    return () => void 0;
   }
 
   public stop() {

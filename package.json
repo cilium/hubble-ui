@@ -3,6 +3,9 @@
   "scripts": {
     "test": "cd client && npm test",
     "start": "cd server && npm start",
+    "install:common": "cd common && npm install",
+    "install:client": "cd client && npm install",
+    "install:all": "npm install && npm run install:common && npm run install:client",
     "postinstall": "cd client && npm install && cd ../server && npm install",
     "lint:ts": "eslint --ignore-path .gitignore \"./{common,client,server}/src/**/*.{ts,tsx,js,jsx,mjs}\"",
     "lint:ts:fix": "npm run lint:ts -- --fix",
