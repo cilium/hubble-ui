@@ -1,6 +1,7 @@
 {
   "private": true,
   "scripts": {
+    "test": "cd client && npm test",
     "start": "cd server && npm start",
     "postinstall": "cd client && npm install && cd ../server && npm install",
     "lint:ts": "eslint --ignore-path .gitignore \"./{common,client,server}/src/**/*.{ts,tsx,js,jsx,mjs}\"",

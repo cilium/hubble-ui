@@ -1,8 +1,5 @@
-import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
-
-import { ServiceCard } from '~/domain/service-card';
-import { Link, IPProtocol } from '~/domain/service-map';
-
+import React, { FunctionComponent } from 'react';
+import { IPProtocol } from '~/domain/service-map';
 import css from './styles.scss';
 
 export interface Props {
@@ -11,8 +8,6 @@ export interface Props {
 }
 
 export const Component: FunctionComponent<Props> = props => {
-  console.log('rendering accessPoint', props);
-
   return (
     <div className={css.accessPoint}>
       <div className={css.icons}>
