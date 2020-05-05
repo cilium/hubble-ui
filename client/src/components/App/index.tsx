@@ -55,7 +55,6 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     // }
     loadData(api, store.currentNamespace || 'default')
       .then(({ services, links, ...data }) => {
-        console.log(data);
         // Kind a temporal function to setup everything we need for now in store
         store.setup({ services });
         store.updateInteractions({ links });
