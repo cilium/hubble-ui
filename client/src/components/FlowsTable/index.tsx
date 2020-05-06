@@ -1,14 +1,9 @@
-import React, { FunctionComponent, memo, useCallback } from 'react';
 import classnames from 'classnames';
-import { observer } from 'mobx-react';
-
+import React, { memo, useCallback } from 'react';
+import { Flow } from '~/domain/flows';
+import { FlowsTableColumn } from './constants';
 import { useFlowTimestamp } from './hooks/useFlowTimestamp';
 import { useScroll } from './hooks/useScroll';
-
-import { FlowsTableColumn } from './constants';
-import { Flow } from '~/domain/flows';
-import { useStore } from '~/store';
-
 import css from './styles.scss';
 
 export const DEFAULT_TS_UPDATE_DELAY = 2500;
@@ -16,6 +11,8 @@ export const DEFAULT_TS_UPDATE_DELAY = 2500;
 export interface Props {
   flows: Flow[];
   flowsDiffCount: { value: number };
+  selectedFlow: Flow | null;
+  onSelectFlow: (flow: Flow) => void;
   tsUpdateDelay?: number;
 }
 
@@ -26,15 +23,19 @@ export const FlowsTable = memo<Props>(function FlowsTable(props: Props) {
   return (
     <div {...scroll} className={css.wrapper}>
       <table className={css.table}>
-        <TableHeader />
-        <TableBody flows={props.flows} tsUpdateDelay={tsUpdateDelay} />
+        <Header />
+        <Body
+          flows={props.flows}
+          selectedFlow={props.selectedFlow}
+          onSelectFlow={props.onSelectFlow}
+          tsUpdateDelay={tsUpdateDelay}
+        />
       </table>
     </div>
   );
 });
-FlowsTable.displayName = 'FlowsTable';
 
-const TableHeader = memo(function TableHeader() {
+const Header = memo(function FlowsTableHeader() {
   return (
     <thead>
       <tr>
@@ -47,38 +48,44 @@ const TableHeader = memo(function TableHeader() {
     </thead>
   );
 });
-TableHeader.displayName = 'FlowsTableHeader';
 
 export interface BodyProps {
   flows: Flow[];
+  selectedFlow: Flow | null;
+  onSelectFlow: (flow: Flow) => void;
   tsUpdateDelay: number;
 }
 
-const TableBody = memo<BodyProps>(function FlowsTableBody(props) {
+const Body = memo<BodyProps>(function FlowsTableBody(props) {
   return (
     <tbody>
       {props.flows.map(flow => (
-        <Row key={flow.id} flow={flow} tsUpdateDelay={props.tsUpdateDelay} />
+        <Row
+          key={flow.id}
+          flow={flow}
+          selected={props.selectedFlow?.id === flow.id}
+          onSelect={props.onSelectFlow}
+          tsUpdateDelay={props.tsUpdateDelay}
+        />
       ))}
     </tbody>
   );
 });
-TableBody.displayName = 'FlowsTableBody';
 
 export interface RowProps {
   flow: Flow;
+  selected: boolean;
+  onSelect: (flow: Flow) => void;
   tsUpdateDelay: number;
 }
 
-const Row: FunctionComponent<RowProps> = observer(function FlowsTableRow({
-  flow,
-  tsUpdateDelay,
-}) {
-  const ts = flow.millisecondsTimestamp;
-  const store = useStore();
+const Row = memo<RowProps>(function FlowsTableRow(props) {
+  const { flow } = props;
 
-  const onClick = useCallback(() => store.selectTableFlow(flow), []);
-  const timestamp = useFlowTimestamp(ts, tsUpdateDelay);
+  const ts = flow.millisecondsTimestamp;
+
+  const onClick = useCallback(() => props.onSelect(flow), []);
+  const timestamp = useFlowTimestamp(ts, props.tsUpdateDelay);
 
   const sourceAppName = flow.sourceAppName ?? 'No app name';
   const destinationAppName = flow.destinationAppName ?? 'No app name';
@@ -99,9 +106,7 @@ const Row: FunctionComponent<RowProps> = observer(function FlowsTableRow({
   // prettier-ignore
   const destinationTitle = <>{destinationAppName} {destinationNamespace}</>;
 
-  const className = classnames({
-    [css.selected]: flow === store.selectedTableFlow,
-  });
+  const className = classnames({ [css.selected]: props.selected });
 
   return (
     <tr className={className} onClick={onClick}>
@@ -113,4 +118,3 @@ const Row: FunctionComponent<RowProps> = observer(function FlowsTableRow({
     </tr>
   );
 });
-Row.displayName = 'FlowsTableRow';
