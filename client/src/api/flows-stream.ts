@@ -6,12 +6,12 @@ import {
   GetFlowsRequest,
   GetFlowsResponse,
 } from '~/../../common/src/types/hubble/observer/observer_pb';
-import { IStream } from '~/api/general';
+import { IThrottledStream } from '~/api/general';
 import { CiliumEventTypes } from '~/domain/cilium';
 import { HubbleFlow } from '~/domain/flows';
 import { DataStream, GrpcStream, StreamEvent } from './stream';
 
-export class FlowsStream implements IStream<HubbleFlow[]> {
+export class FlowsStream implements IThrottledStream<HubbleFlow[]> {
   public static readonly THROTTLE_DELAY_MS = 5000;
 
   private stream: DataStream<GetFlowsResponse>;
@@ -82,5 +82,9 @@ export class FlowsStream implements IStream<HubbleFlow[]> {
     request.setFollow(true);
 
     return request;
+  }
+
+  public get throttleDelay(): number {
+    return FlowsStream.THROTTLE_DELAY_MS;
   }
 }
