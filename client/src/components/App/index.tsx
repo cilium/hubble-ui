@@ -8,14 +8,13 @@ import React, {
   useState,
 } from 'react';
 
-import { API, IThrottledStream, ThrottledFlowsStream } from '~/api/general';
+import { API, ThrottledFlowsStream } from '~/api/general';
 import { DragPanel } from '~/components/DragPanel';
 import { FlowsTable } from '~/components/FlowsTable';
 import { FlowsTableSidebar } from '~/components/FlowsTable/Sidebar';
 import { Map } from '~/components/Map';
 import { TopBar } from '~/components/TopBar';
 
-import { HubbleFlow } from '~/domain/flows';
 import { ServiceCard } from '~/domain/service-card';
 import { Interactions } from '~/domain/service-map';
 import { ResolveType } from '~/domain/misc';
@@ -44,9 +43,9 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   const { bindDrag, gridTemplateRows } = usePanelDrag();
   const [loading, setLoading] = useState(true);
   const [flowsDiffCount, setFlowsDiffCount] = useState({ value: 0 });
-  const [flowsStream, setFlowsStream] = useState<IThrottledStream<
-    HubbleFlow[]
-  > | null>(null);
+  const [flowsStream, setFlowsStream] = useState<ThrottledFlowsStream | null>(
+    null,
+  );
 
   const store = useStore();
   const navigate = useNavigate();
@@ -133,6 +132,8 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
         <FlowsTable
           flows={store.interactions.flows}
           flowsDiffCount={flowsDiffCount}
+          selectedFlow={store.selectedTableFlow}
+          onSelectFlow={store.selectTableFlow}
           tsUpdateDelay={flowsStream?.throttleDelay}
         />
         {store.selectedTableFlow && (
