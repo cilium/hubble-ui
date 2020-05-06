@@ -47,7 +47,7 @@ export const useZoom = (ref: SVGRef, initials?: Initials) => {
 
     // Dirty hack for tests: jsdom doesn't have full svg support
     // https://github.com/jsdom/jsdom/issues/2531
-    if ('baseVal' in zoom.transform) {
+    if (process.env.NODE_ENV !== 'test') {
       zooming.call(zoom.transform as any, initialTransform);
     }
 
