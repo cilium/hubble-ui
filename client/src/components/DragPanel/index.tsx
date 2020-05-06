@@ -8,7 +8,7 @@ export interface Props {
   bindDrag: ReactEventHandlers;
 }
 
-export const DragPanel = memo<Props>(props => {
+export const Component = function DragPanelComponent(props: Props) {
   return (
     <animated.div {...props.bindDrag} className={css.wrapper}>
       <Button small active rightIcon={<Spinner size={16} />}>
@@ -16,6 +16,7 @@ export const DragPanel = memo<Props>(props => {
       </Button>
     </animated.div>
   );
-});
+};
 
-DragPanel.displayName = 'DragPanel';
+export const DragPanel = memo<Props>(Component);
+DragPanel.displayName = 'DragPanelMemoized';

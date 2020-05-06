@@ -7,17 +7,22 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { API, IStream } from '~/api/general';
+
+import { API, IThrottledStream, ThrottledFlowsStream } from '~/api/general';
 import { DragPanel } from '~/components/DragPanel';
 import { FlowsTable } from '~/components/FlowsTable';
 import { FlowsTableSidebar } from '~/components/FlowsTable/Sidebar';
 import { Map } from '~/components/Map';
 import { TopBar } from '~/components/TopBar';
+
 import { HubbleFlow } from '~/domain/flows';
 import { ServiceCard } from '~/domain/service-card';
 import { Interactions } from '~/domain/service-map';
+import { ResolveType } from '~/domain/misc';
+
 import { useStore } from '~/store';
 import { usePanelDrag } from './hooks/usePanelDrag';
+
 import css from './styles.scss';
 
 export interface AppProps extends RouteComponentProps {
@@ -32,14 +37,17 @@ const loadData = async (api: API, namespace: string) => {
   return { flowsStream, services, links };
 };
 
+type LoadedData = ResolveType<ReturnType<typeof loadData>>;
+
 export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   const { api } = props;
   const { bindDrag, gridTemplateRows } = usePanelDrag();
   const [loading, setLoading] = useState(true);
   const [flowsDiffCount, setFlowsDiffCount] = useState({ value: 0 });
-  const [flowsStream, setFlowsStream] = useState<IStream<HubbleFlow[]> | null>(
-    null,
-  );
+  const [flowsStream, setFlowsStream] = useState<IThrottledStream<
+    HubbleFlow[]
+  > | null>(null);
+
   const store = useStore();
   const navigate = useNavigate();
 
@@ -53,22 +61,28 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     // if (!store.currentNamespace) {
     //   return;
     // }
-    loadData(api, store.currentNamespace || 'default')
-      .then(({ services, links, ...data }) => {
-        // Kind a temporal function to setup everything we need for now in store
-        store.setup({ services });
-        store.updateInteractions({ links });
 
-        if (flowsStream) {
-          flowsStream.stop();
-          store.interactions.clearFlows();
-        }
-        data.flowsStream.subscribe(flows => {
-          const { flowsDiffCount } = store.interactions.addFlows(flows);
-          setFlowsDiffCount({ value: flowsDiffCount });
-        });
-        setFlowsStream(data.flowsStream);
-      })
+    const onLoad = (data: LoadedData) => {
+      const { services, links } = data;
+      // Kind a temporal function to setup everything we need for now in store
+      store.setup({ services });
+      store.updateInteractions({ links });
+
+      if (flowsStream) {
+        flowsStream.stop();
+        store.interactions.clearFlows();
+      }
+
+      data.flowsStream.subscribe(flows => {
+        const { flowsDiffCount } = store.interactions.addFlows(flows);
+        setFlowsDiffCount({ value: flowsDiffCount });
+      });
+
+      setFlowsStream(data.flowsStream);
+    };
+
+    loadData(api, store.currentNamespace || 'default')
+      .then(onLoad)
       .finally(() => {
         setLoading(false);
       });
@@ -119,6 +133,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
         <FlowsTable
           flows={store.interactions.flows}
           flowsDiffCount={flowsDiffCount}
+          tsUpdateDelay={flowsStream?.throttleDelay}
         />
         {store.selectedTableFlow && (
           <FlowsTableSidebar
