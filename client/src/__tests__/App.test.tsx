@@ -1,16 +1,9 @@
-import { act, render } from '@testing-library/react';
-import 'mobx-react-lite/batchingForReactDom';
-import React from 'react';
-import api from '~/api/test';
+import { act, React, render } from '@test-utils';
+import api from '~/api';
 import { App } from '~/components/App';
-import { StoreProvider } from '~/store';
 
 test('App renders without exceptions', async () => {
   await act(async () => {
-    render(
-      <StoreProvider>
-        <App api={api} />
-      </StoreProvider>,
-    );
+    render(<App api={api} />);
   });
 });

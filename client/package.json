@@ -109,6 +109,13 @@
       "^~/(.*)$": "<rootDir>/src/$1",
       "^~common/(.*)$": "<rootDir>/../common/src/$1",
       "\\.(css|less|sass|scss)$": "identity-obj-proxy"
-    }
+    },
+    "moduleDirectories": [
+      "node_modules",
+      "utils"
+    ],
+    "setupFilesAfterEnv": [
+      "./scripts/jest.setup.js"
+    ]
   }
 }

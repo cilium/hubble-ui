@@ -1,7 +1,7 @@
 import { ObserverClient } from '~/../../common/src/types/hubble/observer/observer_grpc_web_pb';
-import { API, CoreAPIv1 } from '~/api';
-import { endpoints, links } from '~/api/mock';
-import { FlowsStream } from './flows';
+import { API, CoreAPIv1 } from '~/api/general';
+import { endpoints, links } from './__mocks__/data';
+import { FlowsStream } from './flows-stream';
 
 export class APIv1 implements CoreAPIv1 {
   private client: ObserverClient;

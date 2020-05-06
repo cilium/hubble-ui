@@ -1,18 +1,3 @@
-import { HubbleFlow } from '~/domain/flows';
-import { Link, Service } from '~/domain/service-map';
+import api from '~/api/grpc';
 
-export interface CoreAPIv1 {
-  getFlowsStream: (params: { namespace: string }) => IStream<Array<HubbleFlow>>;
-  getServices: () => Promise<Array<Service>>;
-  getNamespaces: () => Promise<Array<string>>;
-  getLinks: () => Promise<Array<Link>>;
-}
-
-export interface API {
-  v1: CoreAPIv1;
-}
-
-export interface IStream<Data> {
-  subscribe(callback: (data: Data) => void): () => void;
-  stop(): void;
-}
+export default api;
