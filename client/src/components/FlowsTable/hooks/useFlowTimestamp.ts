@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
+import { FlowsStream } from '~/api/flows-stream';
 import { Flow } from '~/domain/flows';
-import { FlowsStream } from '~/api/grpc/flows';
 
 export function useFlowTimestamp(milliseconds?: number | null) {
   const [timestamp, setTimestamp] = useState(
