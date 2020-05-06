@@ -2,6 +2,8 @@ import { API, CoreAPIv1 } from '~/api/general';
 import { endpoints, links } from './data';
 import { FlowsStream } from './flows-stream';
 
+export { FlowsStream };
+
 export class APIv1 implements CoreAPIv1 {
   public getFlowsStream() {
     return new FlowsStream();

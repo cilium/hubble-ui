@@ -3,6 +3,8 @@ import { API, CoreAPIv1 } from '~/api/general';
 import { endpoints, links } from './__mocks__/data';
 import { FlowsStream } from './flows-stream';
 
+export { FlowsStream };
+
 export class APIv1 implements CoreAPIv1 {
   private client: ObserverClient;
 
