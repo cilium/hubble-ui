@@ -1,6 +1,6 @@
-import { IStream } from '~/api';
+import { IStream } from '~/api/general';
 import { HubbleFlow } from '~/domain/flows';
-import { flows } from '~/api/mock';
+import { flows } from './data';
 
 export class FlowsStream implements IStream<HubbleFlow[]> {
   public subscribe(callback: (data: HubbleFlow[]) => void) {

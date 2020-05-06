@@ -8,7 +8,7 @@ import './index.scss';
 import { App } from './components/App';
 import { StoreProvider } from '~/store';
 import * as ui from '~/ui';
-import api from './api/grpc';
+import api from '~/api';
 
 const run = async () => {
   ui.setCSSVars(ui.sizes);
