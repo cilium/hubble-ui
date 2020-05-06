@@ -6,10 +6,10 @@ import {
   GetFlowsRequest,
   GetFlowsResponse,
 } from '~/../../common/src/types/hubble/observer/observer_pb';
-import { IStream } from '~/api';
+import { IStream } from '~/api/general';
+import { CiliumEventTypes } from '~/domain/cilium';
 import { HubbleFlow } from '~/domain/flows';
 import { DataStream, GrpcStream, StreamEvent } from './stream';
-import { CiliumEventTypes } from '~/domain/cilium';
 
 export class FlowsStream implements IStream<HubbleFlow[]> {
   public static readonly THROTTLE_DELAY_MS = 5000;

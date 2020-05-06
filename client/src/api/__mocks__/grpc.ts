@@ -1,6 +1,6 @@
-import { API, CoreAPIv1 } from '~/api';
-import { endpoints, links } from '~/api/mock';
-import { FlowsStream } from './flows';
+import { API, CoreAPIv1 } from '~/api/general';
+import { endpoints, links } from './data';
+import { FlowsStream } from './flows-stream';
 
 export class APIv1 implements CoreAPIv1 {
   public getFlowsStream() {

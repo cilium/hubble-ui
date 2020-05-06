@@ -7,7 +7,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { API, IStream } from '~/api';
+import { API, IStream } from '~/api/general';
 import { DragPanel } from '~/components/DragPanel';
 import { FlowsTable } from '~/components/FlowsTable';
 import { FlowsTableSidebar } from '~/components/FlowsTable/Sidebar';
