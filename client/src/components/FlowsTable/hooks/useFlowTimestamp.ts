@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FlowsStream } from '~/api/flows-stream';
+import { FlowsStream } from '~/api';
 import { Flow } from '~/domain/flows';
 
 export function useFlowTimestamp(milliseconds?: number | null) {
