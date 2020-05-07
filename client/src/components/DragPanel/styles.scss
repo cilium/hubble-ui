@@ -1,10 +1,13 @@
-.wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+@import "~/styles/common/layout.scss";
+
+.dragPanel {
+  @include row(center, center);
+
   background-color: #f2f4f6;
   border-top: 1px solid #c6cace;
   transition: all 0.25s ease-out;
+  height: 100%;
+
   cursor: grab;
   user-select: none;
 

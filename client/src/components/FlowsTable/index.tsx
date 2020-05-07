@@ -12,7 +12,7 @@ export interface Props {
   flows: Flow[];
   flowsDiffCount: { value: number };
   selectedFlow: Flow | null;
-  onSelectFlow: (flow: Flow) => void;
+  onSelectFlow?: (flow: Flow | null) => void;
   tsUpdateDelay?: number;
 }
 
@@ -52,11 +52,18 @@ const Header = memo(function FlowsTableHeader() {
 export interface BodyProps {
   flows: Flow[];
   selectedFlow: Flow | null;
-  onSelectFlow: (flow: Flow) => void;
+  onSelectFlow?: (flow: Flow | null) => void;
   tsUpdateDelay: number;
 }
 
 const Body = memo<BodyProps>(function FlowsTableBody(props) {
+  const onSelectFlow = useCallback(
+    (flow: Flow) => {
+      props.onSelectFlow && props.onSelectFlow(flow);
+    },
+    [props.onSelectFlow],
+  );
+
   return (
     <tbody>
       {props.flows.map(flow => (
@@ -64,7 +71,7 @@ const Body = memo<BodyProps>(function FlowsTableBody(props) {
           key={flow.id}
           flow={flow}
           selected={props.selectedFlow?.id === flow.id}
-          onSelect={props.onSelectFlow}
+          onSelect={onSelectFlow}
           tsUpdateDelay={props.tsUpdateDelay}
         />
       ))}

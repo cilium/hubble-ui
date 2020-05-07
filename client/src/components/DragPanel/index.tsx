@@ -1,16 +1,25 @@
+import React, { useMemo, memo } from 'react';
 import { Button, Spinner } from '@blueprintjs/core';
-import React, { memo } from 'react';
 import { animated } from 'react-spring';
 import { ReactEventHandlers } from 'react-use-gesture/dist/types';
+import { useDrag } from 'react-use-gesture';
+
 import css from './styles.scss';
 
 export interface Props {
-  bindDrag: ReactEventHandlers;
+  onResize?: (dy: number) => void;
 }
 
 export const Component = function DragPanelComponent(props: Props) {
+  // XXX: this thing cannot be used inside useMemo ???
+  const bind = useDrag(e => {
+    const dy = e.delta[1];
+
+    props.onResize && props.onResize(dy);
+  });
+
   return (
-    <animated.div {...props.bindDrag} className={css.wrapper}>
+    <animated.div {...bind()} className={css.dragPanel}>
       <Button small active rightIcon={<Spinner size={16} />}>
         Flows streaming
       </Button>
