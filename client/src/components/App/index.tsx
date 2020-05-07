@@ -8,11 +8,9 @@ import React, {
   useState,
 } from 'react';
 
-import { DragPanel } from '~/components/DragPanel';
-import { FlowsTable } from '~/components/FlowsTable';
-import { FlowsTableSidebar } from '~/components/FlowsTable/Sidebar';
 import { Map } from '~/components/Map';
 import { TopBar } from '~/components/TopBar';
+import { DetailsPanel } from '~/components/DetailsPanel';
 
 import { HubbleFlow } from '~/domain/flows';
 import { ServiceCard } from '~/domain/service-card';
@@ -21,7 +19,6 @@ import { ResolveType } from '~/domain/misc';
 import { Vec2 } from '~/domain/geometry';
 
 import { useStore } from '~/store';
-import { usePanelDrag } from './hooks/usePanelDrag';
 import { API, ThrottledFlowsStream } from '~/api/general';
 
 import css from './styles.scss';
@@ -42,7 +39,6 @@ type LoadedData = ResolveType<ReturnType<typeof loadData>>;
 
 export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   const { api } = props;
-  const { bindDrag, gridTemplateRows } = usePanelDrag();
   const [loading, setLoading] = useState(true);
   const [flowsDiffCount, setFlowsDiffCount] = useState({ value: 0 });
   const [flowsStream, setFlowsStream] = useState<ThrottledFlowsStream | null>(
@@ -118,7 +114,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   }
 
   return (
-    <div className={css.wrapper} style={{ gridTemplateRows }}>
+    <div className={css.app}>
       <TopBar
         namespaces={store.namespaces}
         currentNsIdx={store.currentNsIdx}
@@ -135,22 +131,16 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
           onEmitAPConnectorCoords={onEmitAPConnectorCoords}
         />
       </div>
-      <DragPanel bindDrag={bindDrag} />
-      <div className={css.panel}>
-        <FlowsTable
-          flows={store.interactions.flows}
-          flowsDiffCount={flowsDiffCount}
-          selectedFlow={store.selectedTableFlow}
-          onSelectFlow={store.selectTableFlow}
-          tsUpdateDelay={flowsStream?.throttleDelay}
-        />
-        {store.selectedTableFlow && (
-          <FlowsTableSidebar
-            flow={store.selectedTableFlow}
-            onClose={onCloseFlowsTableSidebar}
-          />
-        )}
-      </div>
+
+      <DetailsPanel
+        resizable={true}
+        flows={store.interactions.flows}
+        flowsDiffCount={flowsDiffCount}
+        selectedFlow={store.selectedTableFlow}
+        onSelectFlow={store.selectTableFlow}
+        tsUpdateDelay={flowsStream?.throttleDelay}
+        onSidebarClose={onCloseFlowsTableSidebar}
+      />
     </div>
   );
 });
