@@ -1,11 +1,5 @@
 name: Testing
-on:
-  push:
-    branches:
-      - pr/**
-  pull_request:
-    branches:
-      - pr/**
+on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
