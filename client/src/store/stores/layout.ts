@@ -64,6 +64,7 @@ export default class LayoutStore {
     });
   }
 
+  @action.bound
   public setAPCoords(id: string, coords: Vec2) {
     this.apCoords.set(id, coords);
   }

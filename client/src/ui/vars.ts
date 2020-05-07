@@ -23,6 +23,7 @@ export const sizes = {
   linkCurveRadius: 8,
   flowsTableRowHeight: 20,
   feetWidth: 2,
+  topBarHeight: 50,
 };
 
 // C O L O R S

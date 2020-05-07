@@ -1,28 +1,19 @@
-.wrapper {
-  display: grid;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-}
+@import "~/styles/common/layout.scss";
 
-.map {
-  grid-row-start: row-map;
-  grid-row-end: row-drag;
-  box-shadow: inset 0 0 23px rgba(8, 44, 65, 0.12);
-  background-color: #f0f4f8;
-}
+.app {
+  @include column();
+  flex-grow: 1;
 
-.drag {
-  grid-row-start: row-drag;
-  grid-row-end: row-panel;
-}
-
-.panel {
   position: relative;
-  display: flex;
-  align-items: flex-start;
-  grid-row-start: row-panel;
-  max-height: 100%;
   overflow: hidden;
-  background-color: #f2f4f6;
+
+  width: 100%;
+  height: 100%;
+
+  .map {
+    box-shadow: inset 0 0 23px rgba(8, 44, 65, 0.12);
+    background-color: #f0f4f8;
+
+    flex-grow: 1;
+  }
 }

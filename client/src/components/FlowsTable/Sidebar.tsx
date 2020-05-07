@@ -7,7 +7,7 @@ import { KV } from '~/domain/misc';
 
 export interface Props {
   flow: Flow;
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 export const FlowsTableSidebar = memo<Props>(props => {
