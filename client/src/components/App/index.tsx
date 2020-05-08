@@ -50,7 +50,6 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
 
   useEffect(() => {
     api.v1.getNamespaces().then((nss: Array<string>) => {
-      console.log('in getNamespaces');
       store.setNamespaces(nss);
     });
   }, []);

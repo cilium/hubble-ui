@@ -1,9 +1,11 @@
-import classnames from 'classnames';
 import React, { memo, useCallback } from 'react';
-import { Flow } from '~/domain/flows';
-import { FlowsTableColumn } from './constants';
-import { useFlowTimestamp } from './hooks/useFlowTimestamp';
+
+import { Row } from './Row';
 import { useScroll } from './hooks/useScroll';
+
+import { FlowsTableColumn } from './constants';
+import { Flow } from '~/domain/flows';
+
 import css from './styles.scss';
 
 export const DEFAULT_TS_UPDATE_DELAY = 2500;
@@ -56,7 +58,7 @@ export interface BodyProps {
   tsUpdateDelay: number;
 }
 
-const Body = memo<BodyProps>(function FlowsTableBody(props) {
+export const Body = memo<BodyProps>(function FlowsTableBody(props) {
   const onSelectFlow = useCallback(
     (flow: Flow) => {
       props.onSelectFlow && props.onSelectFlow(flow);
@@ -76,52 +78,5 @@ const Body = memo<BodyProps>(function FlowsTableBody(props) {
         />
       ))}
     </tbody>
-  );
-});
-
-export interface RowProps {
-  flow: Flow;
-  selected: boolean;
-  onSelect: (flow: Flow) => void;
-  tsUpdateDelay: number;
-}
-
-const Row = memo<RowProps>(function FlowsTableRow(props) {
-  const { flow } = props;
-
-  const ts = flow.millisecondsTimestamp;
-
-  const onClick = useCallback(() => props.onSelect(flow), []);
-  const timestamp = useFlowTimestamp(ts, props.tsUpdateDelay);
-
-  const sourceAppName = flow.sourceAppName ?? 'No app name';
-  const destinationAppName = flow.destinationAppName ?? 'No app name';
-
-  const sourceNamespace = flow.sourceNamespace ? (
-    <i>{flow.sourceNamespace}</i>
-  ) : (
-    ''
-  );
-  const destinationNamespace = flow.destinationNamespace ? (
-    <i>{flow.destinationNamespace}</i>
-  ) : (
-    ''
-  );
-
-  // prettier-ignore
-  const sourceTitle = <>{sourceAppName} {sourceNamespace}</>;
-  // prettier-ignore
-  const destinationTitle = <>{destinationAppName} {destinationNamespace}</>;
-
-  const className = classnames({ [css.selected]: props.selected });
-
-  return (
-    <tr className={className} onClick={onClick}>
-      <td>{sourceTitle}</td>
-      <td>{destinationTitle}</td>
-      <td>{flow.destinationPort}</td>
-      <td>{flow.verdictLabel}</td>
-      <td title={flow.isoTimestamp || undefined}>{timestamp}</td>
-    </tr>
   );
 });

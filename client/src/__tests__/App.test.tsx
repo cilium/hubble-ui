@@ -1,6 +1,6 @@
-import { act, React, render } from '@test-utils';
-import api from '~/api';
+import { act, React, render } from '~/testing';
 import { App } from '~/components/App';
+import api from '~/api';
 
 jest.mock('~/api');
 
