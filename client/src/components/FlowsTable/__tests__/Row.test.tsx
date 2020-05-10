@@ -49,42 +49,59 @@ const runInteractionTests = (
   });
 };
 
-const runVisualTests = (container: HTMLElement, exps: Expectations) => {
-  const sourceTitle = container!.querySelector('tr > td');
-  const destTitle = container!.querySelector('tr > td:nth-child(2)');
-  const destPort = container!.querySelector('tr > td:nth-child(3)');
-  const verdictLabel = container!.querySelector('tr > td:nth-child(4)');
+const runAppearanceTests = (
+  container: HTMLElement,
+  exps: Expectations,
+  selected: boolean,
+) => {
+  const tr = container!.querySelector('tr')!;
+
+  const sourceTitle = tr.querySelector('td');
+  const destTitle = tr.querySelector('td:nth-child(2)');
+  const destPort = tr.querySelector('td:nth-child(3)');
+  const verdictLabel = tr.querySelector('td:nth-child(4)');
 
   expect(sourceTitle!.textContent!.trim()).toBe(exps.sourceTitle);
   expect(destTitle!.textContent!.trim()).toBe(exps.destTitle);
   expect(destPort!.textContent).toBe(String(exps.destPort));
   expect(verdictLabel!.textContent).toBe(exps.verdict);
+
+  if (selected) {
+    expect(tr.className).toContain('selected');
+  } else {
+    expect(tr.className).not.toContain('selected');
+  }
 };
 
 const runTest = (ntest: number, hf: HubbleFlow, exps: Expectations) => {
   const flow = new Flow(hf);
-  const onSelect = jest.fn((f: Flow) => void 0);
+  const isSelected = [false, true];
 
-  describe(`FlowsTable: Row / test ${ntest}`, () => {
-    let container: HTMLElement | null = null;
+  isSelected.forEach(selected => {
+    const onSelect = jest.fn((f: Flow) => void 0);
+    const selectedStr = selected ? 'selected' : 'not-selected';
 
-    beforeEach(() => {
-      container = renderRow(
-        <Row
-          flow={flow}
-          selected={false}
-          onSelect={onSelect}
-          tsUpdateDelay={1000}
-        ></Row>,
-      );
-    });
+    describe(`FlowsTable: Row (${selectedStr}) / test ${ntest}`, () => {
+      let container: HTMLElement | null = null;
 
-    test(`visual`, () => {
-      runVisualTests(container!, exps);
-    });
+      beforeEach(() => {
+        container = renderRow(
+          <Row
+            flow={flow}
+            selected={selected}
+            onSelect={onSelect}
+            tsUpdateDelay={1000}
+          ></Row>,
+        );
+      });
 
-    test(`interactions`, () => {
-      runInteractionTests(container!, flow, onSelect);
+      test(`visual`, () => {
+        runAppearanceTests(container!, exps, selected);
+      });
+
+      test(`interactions`, () => {
+        runInteractionTests(container!, flow, onSelect);
+      });
     });
   });
 };
