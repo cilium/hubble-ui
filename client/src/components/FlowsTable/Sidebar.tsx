@@ -102,7 +102,7 @@ export const FlowsTableSidebar = memo<Props>(props => {
           </div>
         </section>
       )}
-      {hasDestination && (
+      {hasDestination && destinationIp && (
         <section className={css.block}>
           <span className={css.title}>Destination IP</span>
           <div className={css.body}>
@@ -147,14 +147,23 @@ const DNSInfo: FunctionComponent<{ dns: DNS }> = props => {
 };
 
 const Labels: FunctionComponent<{ labels: KV[] }> = props => {
+  const cnt = props.labels.length;
+
   return (
     <div className={css.labels}>
-      {props.labels.map(({ key, value }) => {
+      {props.labels.map(({ key, value }, idx) => {
+        const isLastLabel = idx + 1 === cnt;
+
         let title = key;
         if (value) {
           title += `=${value}`;
         }
-        return <div key={`${key}=${value}`}>{title}</div>;
+        return (
+          <React.Fragment key={`${key}=${value}`}>
+            <div>{title}</div>
+            {isLastLabel ? '' : ' '}
+          </React.Fragment>
+        );
       })}
     </div>
   );
