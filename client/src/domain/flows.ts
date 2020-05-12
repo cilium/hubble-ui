@@ -1,4 +1,3 @@
-import distanceInWords from 'date-fns/distance_in_words';
 import hash from 'object-hash';
 import { HubbleFlow, Verdict } from '~/domain/hubble';
 import { Labels } from './labels';
@@ -147,12 +146,6 @@ export class Flow {
       return null;
     }
     return new Date(this.millisecondsTimestamp).toISOString();
-  }
-
-  public static formatRelativeTimestamp(date: Date) {
-    return distanceInWords(new Date(), date, {
-      includeSeconds: true,
-    });
   }
 
   private buildId() {
