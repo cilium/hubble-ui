@@ -11,15 +11,18 @@ export function useScroll<E extends HTMLElement>(nextFlowsDiffCount: {
 
   useEffect(() => {
     if (nextFlowsDiffCount === flowsDiffCount) return;
+
     setFlowsDiffCount(flowsDiffCount);
     const timeout = setTimeout(() => {
       if (!ref.current) return;
+
       scroll({
         element: ref.current,
         offset: nextFlowsDiffCount.value * sizes.flowsTableRowHeight,
-        scrolling: scrolling.current,
+        scrolling,
       });
     });
+
     return () => {
       clearTimeout(timeout);
     };
@@ -37,15 +40,15 @@ function scroll({
   offset: number;
   scrolling: boolean;
 }) {
-  if (!element || element.scrollTop === 0) {
-    return;
-  }
+  if (!element || element.scrollTop === 0) return;
+
   if (scrolling) {
     element.scrollTop = element.scrollTop + offset;
-  } else {
-    element.scroll({
-      top: element.scrollTop + offset,
-      behavior: 'smooth',
-    });
+    return;
   }
+
+  element.scroll({
+    top: element.scrollTop + offset,
+    behavior: 'smooth',
+  });
 }

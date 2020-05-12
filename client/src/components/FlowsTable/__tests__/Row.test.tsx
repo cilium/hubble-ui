@@ -5,6 +5,11 @@ import { Row } from '~/components/FlowsTable/Row';
 
 import { Flow } from '~/domain/flows';
 import { HubbleFlow } from '~/domain/hubble';
+import { elapsedInWords } from '~/utils/time';
+
+const tsUpdateDelay = 5000;
+
+jest.useFakeTimers();
 
 interface Expectations {
   sourceTitle: string;
@@ -73,6 +78,21 @@ const runAppearanceTests = (
   }
 };
 
+const runTemporalTests = (container: HTMLElement, flow: Flow) => {
+  jest.clearAllTimers();
+  const flowTime = new Date(flow.millisecondsTimestamp || Date.now());
+
+  const tr = container!.querySelector('tr')!;
+  const tsLabel = tr.querySelector('td:nth-child(5)')!;
+
+  // Just checks that tsLabel contains smth
+  jest.advanceTimersByTime(0);
+  expect(tsLabel.textContent).toContain(elapsedInWords(flowTime));
+
+  jest.advanceTimersByTime(tsUpdateDelay / 2);
+  expect(tsLabel.textContent).toContain(elapsedInWords(flowTime));
+};
+
 const runTest = (ntest: number, hf: HubbleFlow, exps: Expectations) => {
   const flow = new Flow(hf);
   const isSelected = [false, true];
@@ -90,13 +110,17 @@ const runTest = (ntest: number, hf: HubbleFlow, exps: Expectations) => {
             flow={flow}
             selected={selected}
             onSelect={onSelect}
-            tsUpdateDelay={1000}
+            tsUpdateDelay={tsUpdateDelay}
           ></Row>,
         );
       });
 
       test(`visual`, () => {
         runAppearanceTests(container!, exps, selected);
+      });
+
+      test(`temporal`, () => {
+        runTemporalTests(container!, flow);
       });
 
       test(`interactions`, () => {
@@ -155,5 +179,4 @@ runTest(7, data.flows.hubbleVerdictUnknown, {
   verdict: 'unknown',
 });
 
-// TODO: test className on tr
 // TODO: test useFlowTimestamp
