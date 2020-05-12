@@ -1,7 +1,7 @@
 import React, { memo, useCallback } from 'react';
 import classnames from 'classnames';
 
-import { useFlowTimestamp } from './hooks/useFlowTimestamp';
+import { useWhenOccured } from './hooks/useWhenOccured';
 import { Flow } from '~/domain/flows';
 
 import css from './styles.scss';
@@ -18,7 +18,7 @@ export const Row = memo<RowProps>(function FlowsTableRow(props) {
   const ts = flow.millisecondsTimestamp;
 
   const onClick = useCallback(() => props.onSelect(flow), []);
-  const timestamp = useFlowTimestamp(ts, props.tsUpdateDelay);
+  const timestamp = useWhenOccured(ts, props.tsUpdateDelay);
 
   const sourceAppName = flow.sourceAppName ?? 'No app name';
   const destinationAppName = flow.destinationAppName ?? 'No app name';

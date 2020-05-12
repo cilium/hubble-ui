@@ -1,26 +1,32 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 
 export function useDetectScroll(element?: Element | null) {
-  const scrollTimeout = useRef<any>();
-  const scrolling = useRef(false);
+  const [timerId, setTimerId] = useState<any>(0);
+  const [isScrollingNow, setIsScrolling] = useState(false);
+
+  const onScroll = useCallback(() => {
+    clearTimeout(timerId);
+    setIsScrolling(true);
+
+    const tid = setTimeout(() => {
+      setIsScrolling(false);
+    }, 100);
+
+    setTimerId(tid);
+  }, []);
 
   useEffect(() => {
     if (!element) {
       return;
     }
-    const onScroll = () => {
-      clearInterval(scrollTimeout.current);
-      scrolling.current = true;
-      scrollTimeout.current = setTimeout(() => {
-        scrolling.current = false;
-      }, 100);
-    };
+
     element.addEventListener('scroll', onScroll);
+
     return () => {
-      clearInterval(scrollTimeout.current);
+      clearTimeout(timerId);
       element.removeEventListener('scroll', onScroll);
     };
   }, [element]);
 
-  return scrolling;
+  return isScrollingNow;
 }
