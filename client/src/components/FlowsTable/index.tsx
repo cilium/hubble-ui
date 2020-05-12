@@ -1,8 +1,8 @@
 import React, { memo, useCallback } from 'react';
 
-import { Row } from './Row';
-import { useScroll } from './hooks/useScroll';
+import { Body } from './Body';
 
+import { useScroll } from './hooks/useScroll';
 import { FlowsTableColumn } from './constants';
 import { Flow } from '~/domain/flows';
 
@@ -48,35 +48,5 @@ const Header = memo(function FlowsTableHeader() {
         <th>{FlowsTableColumn.TIMESTAMP}</th>
       </tr>
     </thead>
-  );
-});
-
-export interface BodyProps {
-  flows: Flow[];
-  selectedFlow: Flow | null;
-  onSelectFlow?: (flow: Flow | null) => void;
-  tsUpdateDelay: number;
-}
-
-export const Body = memo<BodyProps>(function FlowsTableBody(props) {
-  const onSelectFlow = useCallback(
-    (flow: Flow) => {
-      props.onSelectFlow && props.onSelectFlow(flow);
-    },
-    [props.onSelectFlow],
-  );
-
-  return (
-    <tbody>
-      {props.flows.map(flow => (
-        <Row
-          key={flow.id}
-          flow={flow}
-          selected={props.selectedFlow?.id === flow.id}
-          onSelect={onSelectFlow}
-          tsUpdateDelay={props.tsUpdateDelay}
-        />
-      ))}
-    </tbody>
   );
 });
