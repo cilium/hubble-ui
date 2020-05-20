@@ -24,6 +24,7 @@ export const sizes = {
   flowsTableRowHeight: 20,
   feetWidth: 2,
   topBarHeight: 50,
+  arrowHandleHWRatio: 10.87 / 11.61,
 };
 
 // C O L O R S

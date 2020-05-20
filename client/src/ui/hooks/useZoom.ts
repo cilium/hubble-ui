@@ -15,7 +15,7 @@ export const useZoom = (ref: SVGRef, initials?: Initials) => {
     setZoomTransform,
   ] = React.useState<d3.ZoomTransform | null>(null);
 
-  initials = initials || { scale: 0.5, tx: undefined, ty: undefined };
+  initials = initials || { scale: 1, tx: undefined, ty: undefined };
 
   React.useEffect(() => {
     if (!ref.current) {

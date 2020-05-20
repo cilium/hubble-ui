@@ -1,5 +1,3 @@
-import api, { FlowsStream } from './grpc';
-
-export { FlowsStream };
+import api, { EventStream } from './grpc';
 
 export default api;

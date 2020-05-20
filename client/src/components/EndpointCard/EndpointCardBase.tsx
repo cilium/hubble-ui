@@ -31,14 +31,21 @@ const LayerComponent: FunctionComponent<CardProps> = props => {
   // TODO: it looks unreliable in case when element resize wasn't connected
   // with this component props ><
   useEffect(() => {
-    if (layer1) return;
-
+    if (layer1 || !props.onHeightChange) return;
     const div = divRef.current as HTMLDivElement;
-    const elemHeight = div.offsetHeight + shadowSize;
 
-    if (elemHeight === h) return;
+    const observer = new MutationObserver(_ => {
+      // TODO: consider using throttling/debounce/fastdom
+      const elemHeight = div.offsetHeight + shadowSize;
 
-    props.onHeightChange && props.onHeightChange(props.card, elemHeight);
+      if (Math.abs(elemHeight - h) < Number.EPSILON) return;
+      props.onHeightChange!(props.card, elemHeight);
+    });
+
+    observer.observe(div, {
+      childList: true,
+      subtree: true,
+    });
   }, [props.active, divRef]);
 
   useEffect(() => {

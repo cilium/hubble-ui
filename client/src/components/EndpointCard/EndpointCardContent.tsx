@@ -12,11 +12,11 @@ import { CardProps, RootRef } from './general';
 import { EndpointCardLayer } from './EndpointCardBase';
 import { EndpointCardLabels } from './EndpointCardLabels';
 import { EndpointCardHeader } from '~/components/EndpointCardHeader';
-import { AccessPoint } from '~/components/AccessPoint';
+import { AccessPoint, CenterGetter } from '~/components/AccessPoint';
 
 import { Vec2 } from '~/domain/geometry';
 import { ServiceCard } from '~/domain/service-card';
-import { Link } from '~/domain/service-map';
+import { Link, AccessPoint as AccessPointDatum } from '~/domain/service-map';
 import { ids } from '~/domain/ids';
 import { Dictionary } from '~/domain/misc';
 
@@ -29,34 +29,32 @@ export type Props = CardProps & {
 
 export const Component: FunctionComponent<Props> = props => {
   const [rootRef, setRootRef] = useState<RootRef>(null as any);
-  const [connCenters, setConnCenters] = useState<Dictionary<Vec2>>({});
-
-  const onEmitRootRef = useCallback((rootRef: RootRef) => {
-    setRootRef(rootRef);
+  const centerGetters = useMemo((): Map<string, CenterGetter> => {
+    return new Map();
   }, []);
 
-  const onConnectorPosEmit = useCallback(
-    (connCenter: Vec2, apId: string) => {
-      setConnCenters({ ...connCenters, [apId]: connCenter });
-    },
-    [setConnCenters],
-  );
+  // prettier-ignore
+  const onEmitRootRef = useCallback((ref: RootRef) => {
+    setRootRef(ref);
+  }, [setRootRef]);
 
-  // XXX: don't know why, but simple callback is not working, rootRef is always
-  // XXX: null, but this gives the same result as callback did
-  useEffect(() => {
-    if (
-      props.onEmitAPConnectorCoords == null ||
-      rootRef == null ||
-      rootRef.current == null
-    )
-      return;
+  const onConnectorReady = useCallback((apId: string, cg: CenterGetter) => {
+    centerGetters.set(apId, cg);
+  }, []);
+
+  const emitConnectorCoords = useCallback(() => {
+    // prettier-ignore
+    if (props.onEmitAPConnectorCoords == null || rootRef == null) return;
 
     const bbox = rootRef.current!.getBoundingClientRect();
+    if (bbox.width === 0 || bbox.height === 0) {
+      return;
+    }
 
-    Object.keys(connCenters).forEach((apId: string) => {
-      const connectorCenter = connCenters[apId];
+    centerGetters.forEach((cg: CenterGetter, apId: string) => {
+      const connectorCenter = centerGetters.get(apId)!();
       const relCoords = connectorCenter.sub(Vec2.fromXY(bbox));
+
       const factorCoords = Vec2.from(
         relCoords.x / bbox.width,
         relCoords.y / bbox.height,
@@ -69,26 +67,45 @@ export const Component: FunctionComponent<Props> = props => {
 
       props.onEmitAPConnectorCoords!(apId, svgCoords);
     });
-  }, [rootRef, connCenters]);
+  }, [props.onEmitAPConnectorCoords, rootRef, centerGetters, props.coords]);
+
+  // react to placement change
+  useEffect(emitConnectorCoords, [
+    props.coords,
+    centerGetters,
+    emitConnectorCoords,
+  ]);
 
   const accessPoints = useMemo(() => {
-    return props.card.links.map((l: Link) => {
-      const id = ids.accessPoint(props.card.id, l.destinationPort);
+    if (!props.accessPoints) return [];
+    const aps = Array.from(props.accessPoints!.values());
 
+    return aps.map((ap: AccessPointDatum) => {
       return (
         <AccessPoint
-          key={id + l.sourceId}
-          id={id}
-          port={l.destinationPort}
-          protocol={l.ipProtocol}
-          onConnectorPosEmit={onConnectorPosEmit}
+          key={ap.id}
+          id={ap.id}
+          port={ap.port}
+          protocol={ap.protocol}
+          onConnectorReady={onConnectorReady}
         />
       );
     });
-  }, [props.card.links]);
+  }, [props.accessPoints, onConnectorReady]);
+
+  // prettier-ignore
+  const onHeightChange = useCallback((card: ServiceCard, h: number) => {
+    if (props.onHeightChange) props.onHeightChange(card, h);
+    emitConnectorCoords();
+
+  }, [emitConnectorCoords, props.onHeightChange]);
 
   return (
-    <EndpointCardLayer {...props} onEmitRootRef={onEmitRootRef}>
+    <EndpointCardLayer
+      {...props}
+      onHeightChange={onHeightChange}
+      onEmitRootRef={onEmitRootRef}
+    >
       <EndpointCardHeader card={props.card} onClick={props.onHeaderClick} />
 
       {accessPoints.length > 0 && (

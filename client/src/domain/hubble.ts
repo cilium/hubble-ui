@@ -1,10 +1,7 @@
 import { KV } from './misc';
 
 export interface HubbleFlow {
-  readonly time?: {
-    readonly seconds: number;
-    readonly nanos: number;
-  };
+  readonly time?: Time;
   readonly verdict: Verdict;
   readonly dropReason: number;
   readonly ethernet?: Ethernet;
@@ -22,6 +19,11 @@ export interface HubbleFlow {
   readonly sourceService?: Service;
   readonly destinationService?: Service;
   readonly summary: string;
+}
+
+export interface Time {
+  seconds: number;
+  nanos: number;
 }
 
 export interface Endpoint {

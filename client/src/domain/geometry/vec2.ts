@@ -66,6 +66,10 @@ export class Vec2 implements XY {
     return Math.acos(cos);
   }
 
+  public directionAngle(): number {
+    return this.angle(Vec2.from(1, 0));
+  }
+
   public dot(rhs: Vec2): number {
     return this.x * rhs.x + this.y * rhs.y;
   }

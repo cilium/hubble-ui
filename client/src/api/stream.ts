@@ -101,6 +101,7 @@ export class DataStream<Message extends ProtobufMessage> extends EventEmitter<
       if (!this.throttleEmitData) {
         throw new Error('throttle emit data should be initialized');
       }
+
       this.throttleBuffer.push(data);
       this.throttleEmitData();
     };
