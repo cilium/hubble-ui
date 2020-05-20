@@ -1,11 +1,4 @@
-export enum ReservedLabel {
-  Host = 'reserved:host',
-  World = 'reserved:world',
-  Unmanaged = 'reserved:unmanaged',
-  Health = 'reserved:health',
-  Init = 'reserved:init',
-  RemoteNode = 'reserved:remote-node',
-}
+import { ReservedLabel } from './labels';
 
 export const reserved = {
   host: { id: 1, label: ReservedLabel.Host },

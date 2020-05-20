@@ -1,4 +1,4 @@
-import { action, computed, observable, reaction } from 'mobx';
+import { action, computed, observable, reaction, autorun } from 'mobx';
 import _ from 'lodash';
 
 import { dummy as geom, Vec2, XY, WH, XYWH } from '~/domain/geometry';
@@ -49,7 +49,7 @@ export default class LayoutStore {
     this.apCoords = new Map();
 
     reaction(
-      () => this.services.cards,
+      () => this.services.data,
       () => {
         this.initUnitializedCards();
       },
@@ -62,6 +62,7 @@ export default class LayoutStore {
 
   @action.bound
   initUnitializedCards() {
+    console.log('in initUnitializedCards');
     this.services.cards.forEach(card => {
       if (this.cardDimensions.has(card.id)) return;
 

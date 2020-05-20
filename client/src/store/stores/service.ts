@@ -1,12 +1,12 @@
 import { action, observable, reaction, computed } from 'mobx';
+
 import { ServiceCard } from '~/domain/service-card';
 import { Link, Service } from '~/domain/service-map';
+import { StateChange } from '~/domain/misc';
 
 export default class ServiceStore {
   @observable cards: Array<ServiceCard>;
-
   @observable active: Map<string, boolean>;
-
   @observable cardsMap: Map<string, ServiceCard>;
 
   constructor() {
@@ -23,7 +23,7 @@ export default class ServiceStore {
   }
 
   @computed get data() {
-    return this.cards;
+    return this.cards.slice();
   }
 
   @computed get byId() {
@@ -65,5 +65,29 @@ export default class ServiceStore {
     this.cards.forEach(c => {
       this.cardsMap.set(c.service.id, c);
     });
+  }
+
+  @action.bound
+  applyServiceChange(svc: Service, change: StateChange) {
+    if (change === StateChange.Deleted) {
+      return this.deleteService(svc);
+    }
+
+    // TODO: handle all cases properly (patch current service)
+    const idx = this.cards.findIndex(s => s.id === svc.id);
+    if (idx !== -1) return;
+
+    this.cards.push(ServiceCard.fromService(svc));
+  }
+
+  @action.bound
+  deleteService(svc: Service) {
+    if (!this.cardsMap.has(svc.id)) return;
+
+    const idx = this.cards.findIndex(s => s.id === svc.id);
+    if (idx === -1) return;
+
+    this.cards.splice(idx, 1);
+    this.active.delete(svc.id);
   }
 }

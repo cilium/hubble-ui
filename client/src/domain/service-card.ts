@@ -1,6 +1,7 @@
 import { Service, Link, ApplicationKind, Interactions } from './service-map';
-import { KV } from '~/domain/misc';
+import { KV } from './misc';
 import { reserved } from './cilium';
+import { Labels } from './labels';
 
 // This entity maintains ONLY THE DATA of service card
 export class ServiceCard<InteractionsExt = {}> {
@@ -45,13 +46,8 @@ export class ServiceCard<InteractionsExt = {}> {
     return undefined;
   }
 
-  // TODO: this will probably changed with new backend API
-  // For now it's a part of legacy code
-  public get appLabel(): string | undefined {
-    const label = this.service.labels.find(l => l.key === ServiceCard.AppLabel);
-    if (!label) return undefined;
-
-    return label.value;
+  public get appLabel(): string | null {
+    return Labels.findAppNameInLabels(this.service.labels);
   }
 
   public get isCovalentRelated(): boolean {
@@ -76,15 +72,15 @@ export class ServiceCard<InteractionsExt = {}> {
   }
 
   public get isWorld(): boolean {
-    return this.service.labels.some(l => l.key === reserved.world.label);
+    return Labels.isWorld(this.service.labels);
   }
 
   public get isHost(): boolean {
-    return this.service.labels.some(l => l.key === reserved.host.label);
+    return Labels.isHost(this.service.labels);
   }
 
   public get isInit(): boolean {
-    return this.service.labels.some(l => l.key === reserved.init.label);
+    return Labels.isInit(this.service.labels);
   }
 
   public get isCIDR(): boolean {

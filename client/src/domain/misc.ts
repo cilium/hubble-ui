@@ -10,3 +10,11 @@ export interface Dictionary<T> {
 export type ResolveType<T> = T extends PromiseLike<infer U> ? U : T;
 
 export type PropType<TObj, TProp extends keyof TObj> = TObj[TProp];
+
+export enum StateChange {
+  Unknown = 'unknown',
+  Added = 'added',
+  Modified = 'modified',
+  Deleted = 'deleted',
+  Exists = 'exists',
+}

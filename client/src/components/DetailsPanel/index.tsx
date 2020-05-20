@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react';
-import React, { FunctionComponent, useMemo, useRef } from 'react';
+import React, { FunctionComponent, useMemo, useRef, useCallback } from 'react';
 
 import { DragPanel, DragPanelBaseProps } from '~/components/DragPanel';
 import { FlowsTable } from '~/components/FlowsTable';
@@ -19,8 +19,9 @@ interface TableProps {
   flows: Flow[];
   flowsDiffCount?: { value: number };
   selectedFlow: Flow | null;
-  onSelectFlow?: (flow: Flow | null) => void;
   tsUpdateDelay?: number;
+  onSelectFlow?: (flow: Flow | null) => void;
+  onStreamStop?: () => void;
 }
 
 interface PanelProps {
@@ -39,6 +40,12 @@ export const DetailsPanelComponent = function(props: Props) {
     return { value: 0 };
   }, [props.flowsDiffCount]);
 
+  const onStreamStop = useCallback(() => {
+    if (!props.onStreamStop) return;
+
+    props.onStreamStop();
+  }, [props.onStreamStop]);
+
   return (
     <div className={css.panel} ref={rootRef} style={resizeStyles}>
       <div className={css.dragPanel}>
@@ -50,6 +57,7 @@ export const DetailsPanelComponent = function(props: Props) {
           flowFilters={props.flowFilters}
           onChangeFlowFilters={props.onChangeFlowFilters}
           onResize={onResize}
+          onStreamStop={onStreamStop}
         />
       </div>
 
