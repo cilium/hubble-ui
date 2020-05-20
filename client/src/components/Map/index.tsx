@@ -1,25 +1,17 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
-
 import { observer } from 'mobx-react';
-import * as d3 from 'd3';
-import _ from 'lodash';
-
+import React, { useCallback, useState } from 'react';
+import { ArrowsRenderer } from '~/components/ArrowsRenderer';
 import {
   EndpointCardBackplate,
   EndpointCardContent,
 } from '~/components/EndpointCard';
-import { NamespaceBackplate } from './NamespaceBackplate';
-import { ArrowsRenderer } from '~/components/ArrowsRenderer';
-
-import { dummy as geom, XYWH, Vec2 } from '~/domain/geometry';
+import { dummy as geom, Vec2 } from '~/domain/geometry';
 import { ServiceCard } from '~/domain/service-card';
-import { Placement, PlacementEntry } from '~/domain/layout';
 import { Interactions, Link } from '~/domain/service-map';
-
 import { useStore } from '~/store/hooks';
 import { useZoom } from '~/ui/hooks/useZoom';
 import { sizes } from '~/ui/vars';
-
+import { NamespaceBackplate } from './NamespaceBackplate';
 import css from './styles.scss';
 
 export interface Props {
@@ -66,9 +58,9 @@ export const MapElementsComponent = observer((props: MapElementsProps) => {
 
       {layout.placement.map(plc => (
         <EndpointCardBackplate
-          key={plc.serviceCard.id}
+          key={plc.card.id}
           coords={plc.geometry}
-          card={plc.serviceCard}
+          card={plc.card}
           onHeightChange={onCardHeightChange}
         />
       ))}
@@ -80,10 +72,10 @@ export const MapElementsComponent = observer((props: MapElementsProps) => {
 
       {layout.placement.map(plc => (
         <EndpointCardContent
-          active={isCardActive(plc.serviceCard)}
-          key={plc.serviceCard.id}
+          active={isCardActive(plc.card)}
+          key={plc.card.id}
           coords={plc.geometry}
-          card={plc.serviceCard}
+          card={plc.card}
           onHeightChange={onCardHeightChange}
           onHeaderClick={props.onServiceSelect}
           onEmitAPConnectorCoords={props.onEmitAPConnectorCoords}
