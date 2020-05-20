@@ -1,4 +1,4 @@
-import { trace, action, autorun, configure, observable } from 'mobx';
+import { trace, action, autorun, configure, observable, computed } from 'mobx';
 
 import { Flow } from '~/domain/flows';
 import {
@@ -16,27 +16,21 @@ import ServiceStore from './service';
 configure({ enforceActions: 'observed' });
 
 export class Store {
-  @observable
-  public interactions: InteractionStore;
+  @observable interactions: InteractionStore;
 
-  @observable
-  public services: ServiceStore;
+  @observable services: ServiceStore;
 
-  @observable
-  public route: RouteStore;
+  @observable route: RouteStore;
 
-  @observable
-  public layout: LayoutStore;
+  @observable layout: LayoutStore;
 
   // TODO: consider namespace things to move to separate store (ex: MapStore)
-  @observable
-  public namespaces: Array<string> = [];
 
-  @observable
-  public currentNsIdx = -1;
+  @observable namespaces: Array<string> = [];
 
-  @observable
-  public selectedTableFlow: Flow | null = null;
+  @observable currentNsIdx = -1;
+
+  @observable selectedTableFlow: Flow | null = null;
 
   constructor() {
     this.interactions = new InteractionStore();
@@ -59,17 +53,17 @@ export class Store {
     return new Store();
   }
 
-  @action.bound
-  public setup({ services }: { services: Array<Service> }) {
-    this.services.set(services);
-  }
-
-  public get currentNamespace(): string | undefined {
+  @computed get currentNamespace(): string | undefined {
     return this.namespaces[this.currentNsIdx];
   }
 
   @action.bound
-  public setNamespaces(nss: Array<string>, activateFirst?: boolean) {
+  setup({ services }: { services: Array<Service> }) {
+    this.services.set(services);
+  }
+
+  @action.bound
+  setNamespaces(nss: Array<string>, activateFirst?: boolean) {
     this.namespaces = nss;
 
     if (!!activateFirst && nss.length > 0) {
@@ -78,18 +72,18 @@ export class Store {
   }
 
   @action.bound
-  public setNamespaceByName(ns: string) {
+  setNamespaceByName(ns: string) {
     const idx = this.namespaces.findIndex(n => n === ns);
     this.currentNsIdx = idx;
   }
 
   @action.bound
-  public selectTableFlow(flow: Flow | null) {
+  selectTableFlow(flow: Flow | null) {
     this.selectedTableFlow = flow;
   }
 
   @action.bound
-  public updateInteractions<T = {}>(
+  updateInteractions<T = {}>(
     interactions: Interactions<T>,
     handleInteractions?: (kind: string, interactions: any) => void,
   ) {
