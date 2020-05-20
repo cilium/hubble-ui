@@ -96,8 +96,7 @@ export class ServiceCard<InteractionsExt = {}> {
   }
 
   public get isDNS(): boolean {
-    return false;
-    // return endpoint.type && endpoint.type === AppEndpointType.DNS;
+    return this.service.dnsNames.length > 0;
   }
 
   public get isAWS(): boolean {
