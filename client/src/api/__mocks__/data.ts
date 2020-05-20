@@ -4,6 +4,22 @@ import { IPProtocol, Link, Service } from '~/domain/service-map';
 
 export const links: Array<Link> = [
   {
+    id: 'reserved:world:outgoing',
+    sourceId: 'reserved:world:outgoing',
+    destinationId: 'a8de92d55119c9a6bb6a6dd66bcf012fabefb32d',
+    destinationPort: 443,
+    ipProtocol: IPProtocol.TCP,
+    verdict: Verdict.Forwarded,
+  },
+  {
+    id: 'reserved:world:incoming',
+    sourceId: 'a8de92d55119c9a6bb6a6dd66bcf012fabefb32d',
+    destinationId: 'reserved:world:incoming',
+    destinationPort: 8080,
+    ipProtocol: IPProtocol.TCP,
+    verdict: Verdict.Forwarded,
+  },
+  {
     id: '1',
     sourceId: 'a8de92d55119c9a6bb6a6dd66bcf012fabefb32d',
     destinationId: '91085aa98c983e249442e887d70ebc568f4ef07b',
@@ -46,6 +62,28 @@ export const links: Array<Link> = [
 ];
 
 export const endpoints: Array<Service> = [
+  {
+    id: 'reserved:world:outgoing',
+    name: 'World',
+    namespace: 'default',
+    labels: [{ key: 'reserved:world', value: '' }],
+    dnsNames: [],
+    egressPolicyEnforced: false,
+    ingressPolicyEnforced: false,
+    visibilityPolicyStatus: '?unknown?',
+    creationTimestamp: Date.now(),
+  },
+  {
+    id: 'reserved:world:incoming',
+    name: 'google.com',
+    namespace: 'default',
+    labels: [{ key: 'reserved:world', value: '' }],
+    dnsNames: ['google.com'],
+    egressPolicyEnforced: false,
+    ingressPolicyEnforced: false,
+    visibilityPolicyStatus: '?unknown?',
+    creationTimestamp: Date.now(),
+  },
   {
     id: 'a8de92d55119c9a6bb6a6dd66bcf012fabefb32d',
     name: 'coreapi',
