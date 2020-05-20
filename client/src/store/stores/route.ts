@@ -1,5 +1,5 @@
 import { globalHistory, History, HistoryLocation } from '@reach/router';
-import { observable, runInAction } from 'mobx';
+import { observable, runInAction, computed, action } from 'mobx';
 import * as qs from 'query-string';
 
 export default class RouteStore {
@@ -21,7 +21,7 @@ export default class RouteStore {
     });
   }
 
-  get query() {
+  @computed get query() {
     if (this.cache.query != null) {
       return this.cache.query;
     }
@@ -31,7 +31,7 @@ export default class RouteStore {
     return this.cache.query;
   }
 
-  get pathParts(): Array<string> {
+  @computed get pathParts(): Array<string> {
     if (this.cache.pathParts) {
       return this.cache.pathParts;
     }
@@ -42,7 +42,7 @@ export default class RouteStore {
     return pp;
   }
 
-  private dropCache() {
+  @action.bound private dropCache() {
     this.cache = {};
   }
 }

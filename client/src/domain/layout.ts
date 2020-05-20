@@ -1,9 +1,34 @@
 import { XYWH, Vec2 } from './geometry';
 import { ServiceCard } from './service-card';
 
-export interface PlacementEntry {
-  serviceCard: ServiceCard;
+export enum PlacementType {
+  INGRESS_FROM_OUTSIDE_NAMESPACE = 'INGRESS_FROM_OUTSIDE_NAMESPACE',
+  EGRESS_TO_OUTSIDE_NAMESPACE = 'EGRESS_TO_OUTSIDE_NAMESPACE',
+  NAMESPACED_WITH_CONNECTIONS = 'NAMESPACED_WITH_CONNECTIONS',
+  NAMESPACED_WITHOUT_CONNECTIONS = 'NAMESPACED_WITHOUT_CONNECTIONS',
+}
+
+export interface PlacementMeta {
+  position: PlacementType;
+  card: ServiceCard;
+  weight: number;
+  incomingsCnt: number;
+  outgoingsCnt: number;
+  hasWorldOrHostAsSender: boolean;
+  hasWorldAsReceiver: boolean;
+}
+
+export interface PlacementEntry extends PlacementMeta {
   geometry: XYWH;
+  column: number;
+}
+
+export interface PlacementGrid {
+  placement: Map<string, PlacementEntry>;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 export interface Arrow {

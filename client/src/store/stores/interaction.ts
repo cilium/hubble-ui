@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { action, observable } from 'mobx';
+import { action, observable, computed } from 'mobx';
 import { Flow, HubbleFlow } from '~/domain/flows';
 import { Link } from '~/domain/service-map';
 
@@ -7,11 +7,8 @@ import { Link } from '~/domain/service-map';
 export default class InteractionStore {
   public static readonly FLOWS_MAX_COUNT = 1000;
 
-  @observable
-  public flows: Array<Flow>;
-
-  @observable
-  public links: Array<Link>;
+  @observable flows: Array<Flow>;
+  @observable links: Array<Link>;
 
   constructor() {
     this.flows = [];
@@ -19,17 +16,17 @@ export default class InteractionStore {
   }
 
   @action.bound
-  public setLinks(links: Array<Link>) {
+  setLinks(links: Array<Link>) {
     this.links = links;
   }
 
   @action.bound
-  public clearFlows() {
+  clearFlows() {
     this.flows = [];
   }
 
   @action.bound
-  public addFlows(flows: Array<HubbleFlow>) {
+  addFlows(flows: Array<HubbleFlow>) {
     this.flows = _(flows)
       .reverse()
       .map(f => new Flow(f))
@@ -44,7 +41,7 @@ export default class InteractionStore {
     };
   }
 
-  get all() {
+  @computed get all() {
     return {
       links: this.links,
     };
