@@ -7,7 +7,7 @@
     "install:client": "cd client && npm install",
     "install:all": "npm install && npm run install:common && npm run install:client",
     "postinstall": "cd client && npm install && cd ../server && npm install",
-    "lint:ts": "eslint --ignore-path .gitignore \"./{common,client,server}/src/**/*.{ts,tsx,js,jsx,mjs}\"",
+    "lint:ts": "eslint --ignore-path .gitignore \"./{client,server}/src/**/*.{ts,tsx,js,jsx,mjs}\"",
     "lint:ts:fix": "npm run lint:ts -- --fix",
     "lint:scss": "stylelint --ignore-path .gitignore \"./**/*.scss\" --syntax scss",
     "lint:scss:fix": "npm run lint:scss -- --fix",
@@ -26,20 +26,16 @@
   },
   "lint-staged": {
     "./client/src/**/*.{ts,tsx,js,jsx,mjs}": [
-      "npm run --silent lint:ts:fix",
-      "git add"
+      "npm run --silent lint:ts:fix"
     ],
     "./server/src/**/*.{ts,tsx,js,jsx,mjs}": [
-      "npm run --silent lint:ts:fix",
-      "git add"
+      "npm run --silent lint:ts:fix"
     ],
-    "./common/src/**/*.{ts,tsx,js,jsx,mjs}": [
-      "npm run --silent lint:ts:fix",
-      "git add"
+    "./common/src/!(proto)/**/*.{ts,tsx,js,jsx,mjs}": [
+      "npm run --silent lint:ts:fix"
     ],
     "./**/*.scss": [
-      "npm run --silent lint:scss:fix",
-      "git add"
+      "npm run --silent lint:scss:fix"
     ]
   },
   "husky": {
@@ -143,5 +139,8 @@
       "at-rule-empty-line-before": null,
       "no-descending-specificity": null
     }
+  },
+  "devDependencies": {
+    "tsconfig-paths-webpack-plugin": "^3.2.0"
   }
 }

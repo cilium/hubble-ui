@@ -22,8 +22,6 @@ export default class RouteStore {
   @observable
   private location: History['location'];
 
-  private static readonly NAMESPACE_LS_KEY = '@hubble-ui/namespace';
-
   constructor(historySource: RouteHistorySourceKind) {
     this.history =
       historySource === 'url'
@@ -33,7 +31,6 @@ export default class RouteStore {
     this.location = this.history.location;
 
     this.listen();
-    this.restoreNamespace();
   }
 
   @computed get parts(): Array<string> {
@@ -49,19 +46,36 @@ export default class RouteStore {
   }
 
   @computed get verdict(): Verdict | null {
-    const verdict = this.params['verdict'] as string | null | undefined;
-    return verdict ? parseInt(verdict) : null;
+    const arr = this.params.verdict;
+    if (arr == null) return null;
+
+    const num = Array.isArray(arr) ? parseInt(arr[0]) : parseInt(arr);
+    if (Number.isNaN(num)) {
+      return null;
+    }
+
+    return Verdict[num] ? num : null;
   }
 
   @computed get httpStatus(): string | null {
-    const httpStatus = this.params['http-status'] as string | null | undefined;
-    return httpStatus ? httpStatus : null;
+    const statuses = this.params['http-status'];
+    if (statuses == null) return null;
+
+    if (Array.isArray(statuses)) {
+      return statuses[0];
+    }
+
+    return statuses;
   }
 
   @computed get flowFilters(): FlowsFilterEntry[] {
-    let filters = this.params['flows-filter'] as string | string[];
+    let filters = this.params['flows-filter'];
     if (filters == null) return [];
-    if (typeof filters === 'string') filters = [filters];
+
+    if (!Array.isArray(filters)) {
+      filters = [filters];
+    }
+
     return filters.map(FlowsFilterUtils.createFilterObject);
   }
 
@@ -70,6 +84,7 @@ export default class RouteStore {
     if (opts?.resetParams || !this.location.search) {
       return this.history.navigate(to, opts);
     }
+
     return this.history.navigate(`${to}${this.location.search}`, opts);
   }
 
@@ -98,28 +113,16 @@ export default class RouteStore {
     this.history.listen(({ location }) => {
       runInAction(() => (this.location = location));
     });
-
-    reaction(
-      () => this.namespace,
-      namespace => {
-        if (!namespace) return;
-        localStorage.setItem(RouteStore.NAMESPACE_LS_KEY, namespace);
-      },
-    );
-  }
-
-  private restoreNamespace() {
-    if (this.namespace) return;
-
-    const storedNamespace = localStorage.getItem(RouteStore.NAMESPACE_LS_KEY);
-    if (!storedNamespace) return;
-
-    this.goto(`/${storedNamespace}`);
   }
 
   private static stringifyParams(params: qs.ParsedQuery<string>) {
     return qs.stringify(params, {
       sort: (a, b) => a.localeCompare(b),
     });
+  }
+
+  @computed
+  get hash() {
+    return this.location.hash.slice(1);
   }
 }

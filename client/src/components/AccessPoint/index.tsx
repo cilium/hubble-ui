@@ -4,6 +4,7 @@ import React, {
   useRef,
   useState,
   useMemo,
+  useCallback,
 } from 'react';
 
 import { ServiceCard } from '~/domain/service-card';
@@ -12,54 +13,40 @@ import { XY, Vec2 } from '~/domain/geometry';
 
 import css from './styles.scss';
 
+export type CenterGetter = () => Vec2;
+
 export interface Props {
   port: number;
   protocol: IPProtocol;
   id?: string | number;
-  onConnectorPosEmit?: (pos: Vec2, apId: string) => void;
+  onConnectorReady?: (apId: string, centerGetter: CenterGetter) => void;
 }
 
 export const Component: FunctionComponent<Props> = props => {
-  const imgRef = useRef<HTMLImageElement>(null);
-  const [imgCenter, setImgCenter] = useState<Vec2 | null>(null);
+  const imgContainer = useRef<HTMLDivElement>(null);
 
   const apId = useMemo(() => {
     return String(props.id ?? Date.now() + Math.random());
   }, [props.id]);
 
-  const emitConnectorPosition = () => {
-    if (
-      props.onConnectorPosEmit == null ||
-      imgRef.current == null ||
-      imgCenter == null
-    ) {
-      return;
-    }
+  const centerGetter = useCallback((): Vec2 => {
+    const imgBox = imgContainer.current!.getBoundingClientRect();
 
-    props.onConnectorPosEmit(imgCenter, apId);
-  };
+    const x = imgBox.x + imgBox.width / 2;
+    const y = imgBox.y + imgBox.height / 2;
 
-  const setupImageOnload = () => {
-    if (imgRef.current == null) return;
+    return Vec2.from(x, y);
+  }, [imgContainer]);
 
-    imgRef.current!.addEventListener('load', () => {
-      const imgBox = imgRef.current!.getBoundingClientRect();
-
-      const cx = imgBox.x + imgBox.width / 2;
-      const cy = imgBox.y + imgBox.height / 2;
-
-      setImgCenter(Vec2.from(cx, cy));
-    });
-  };
-
-  useEffect(setupImageOnload, [imgRef]);
-  useEffect(emitConnectorPosition, [imgCenter]);
+  useEffect(() => {
+    props.onConnectorReady!(apId, centerGetter);
+  }, [props.onConnectorReady, apId, centerGetter]);
 
   return (
     <div className={css.accessPoint} id={String(apId)}>
       <div className={css.icons}>
-        <div className={css.circle}>
-          <img src="/icons/misc/access-point.svg" ref={imgRef} />
+        <div className={css.circle} ref={imgContainer}>
+          <img src="/icons/misc/access-point.svg" />
         </div>
 
         <div className={css.arrow}>

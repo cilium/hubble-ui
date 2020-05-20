@@ -67,19 +67,22 @@ const startPlatesUpdate = (update: any) => {
   return update.select('g path').attr('d', startPlatePath);
 };
 
-const arrowHandle = (handle: [Vec2, Vec2] | null): string => {
+const arrowHandle = (id: string, handle: [Vec2, Vec2] | null): string => {
   if (handle == null) return '';
-  const figmaFactor = 10.87 / 11.61; // XXX: magic constants
+  const hwFactor = sizes.arrowHandleHWRatio;
 
   const [start, end] = handle;
   const width = start.distance(end);
-  const height = width * figmaFactor;
+  const height = width * hwFactor;
 
   const line = Line2.throughPoints(start, end);
   const side = line.normal.mul(width / 2);
 
   const baseA = start.add(side);
   const baseB = start.sub(side);
+
+  const lookingRight = end.x - start.x > 0;
+  const sweep = lookingRight ? 0 : 1;
 
   const r = 2;
   const [ar1, ar2] = gutils.roundCorner(r, [start, baseA, end]);
@@ -89,11 +92,11 @@ const arrowHandle = (handle: [Vec2, Vec2] | null): string => {
   return `
     M ${start.x} ${start.y}
     L ${ar1.x} ${ar1.y}
-    A ${r} ${r} 0 0 0 ${ar2.x} ${ar2.y}
+    A ${r} ${r} 0 0 ${sweep} ${ar2.x} ${ar2.y}
     L ${er1.x} ${er1.y}
-    A ${r} ${r} 0 0 0 ${er2.x} ${er2.y}
+    A ${r} ${r} 0 0 ${sweep} ${er2.x} ${er2.y}
     L ${br2.x} ${br2.y}
-    A ${r} ${r} 0 0 0 ${br1.x} ${br1.y}
+    A ${r} ${r} 0 0 ${sweep} ${br1.x} ${br1.y}
     Z
   `;
 };
@@ -114,7 +117,7 @@ const arrowsEnter = (enter: any) => {
     .attr('class', 'handle')
     .attr('fill', colors.arrowHandle)
     .attr('stroke', 'none')
-    .attr('d', (d: Arrow) => arrowHandle(d[1].handle));
+    .attr('d', (d: Arrow) => arrowHandle(d[0], d[1].handle));
 
   return arrowGroup;
 };
@@ -123,7 +126,7 @@ const arrowsUpdate = (update: any) => {
   update.select('path.line').attr('d', (d: Arrow) => arrowLine(d[1].points));
   update
     .select('path.handle')
-    .attr('d', (d: Arrow) => arrowHandle(d[1].handle));
+    .attr('d', (d: Arrow) => arrowHandle(d[0], d[1].handle));
 
   return update;
 };

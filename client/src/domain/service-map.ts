@@ -1,4 +1,4 @@
-import { Verdict } from './hubble';
+import { Verdict, Time } from './hubble';
 import { KV } from './misc';
 
 export interface Service {
@@ -10,7 +10,7 @@ export interface Service {
   egressPolicyEnforced: boolean;
   ingressPolicyEnforced: boolean;
   visibilityPolicyStatus: string;
-  creationTimestamp: number; // consider using BigInt here
+  creationTimestamp: Time;
 }
 
 export interface Link {
@@ -21,6 +21,15 @@ export interface Link {
   ipProtocol: IPProtocol;
   verdict: Verdict;
 }
+
+export interface AccessPoint {
+  id: string;
+  port: number;
+  protocol: IPProtocol;
+  serviceId: string;
+}
+
+export type AccessPoints = Map<string, Map<number, AccessPoint>>;
 
 export enum IPProtocol {
   Unknown,

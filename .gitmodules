@@ -1,3 +1,4 @@
-[submodule "hubble"]
-	path = hubble
-	url = https://github.com/cilium/hubble.git
+[submodule "cilium"]
+	path = cilium
+	url = https://github.com/cilium/cilium
+	branch = pr/michi/peerapi

@@ -20,9 +20,10 @@ $dot-size: 10px;
 
     .circle {
       @include centered();
+      @include exact-size(25px, 25px);
 
       img {
-        width: 25px;
+        width: 100%;
       }
     }
   }
