@@ -2,7 +2,7 @@ interface HandlerTypes {
   [event: string]: (...args: any[]) => any;
 }
 
-export class EventEmitter<T extends HandlerTypes> {
+export class EventEmitter<T extends HandlerTypes = {}> {
   private onHandlers: { [event in keyof T]?: Array<(...args: any[]) => any> };
   private onceHandlers: { [event in keyof T]?: Array<(...args: any[]) => any> };
 

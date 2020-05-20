@@ -1,17 +1,20 @@
 import { observer } from 'mobx-react';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
+
+import { dummy as geom, Vec2 } from '~/domain/geometry';
+import { ServiceCard } from '~/domain/service-card';
+import { Interactions, Link, AccessPoints } from '~/domain/service-map';
+import { useStore } from '~/store/hooks';
+import { useZoom } from '~/ui/hooks/useZoom';
+import { sizes } from '~/ui/vars';
+
 import { ArrowsRenderer } from '~/components/ArrowsRenderer';
+import { NamespaceBackplate } from './NamespaceBackplate';
 import {
   EndpointCardBackplate,
   EndpointCardContent,
 } from '~/components/EndpointCard';
-import { dummy as geom, Vec2 } from '~/domain/geometry';
-import { ServiceCard } from '~/domain/service-card';
-import { Interactions, Link } from '~/domain/service-map';
-import { useStore } from '~/store/hooks';
-import { useZoom } from '~/ui/hooks/useZoom';
-import { sizes } from '~/ui/vars';
-import { NamespaceBackplate } from './NamespaceBackplate';
+
 import css from './styles.scss';
 
 export interface Props {
@@ -20,6 +23,7 @@ export interface Props {
   links?: Array<Link>;
   namespace: string | null;
   interactions?: Interactions;
+  accessPoints: AccessPoints;
   onServiceSelect?: (srvc: ServiceCard) => void;
   onEmitAPConnectorCoords?: (apId: string, coords: Vec2) => void;
 }
@@ -41,15 +45,13 @@ export const MapElementsComponent = observer((props: MapElementsProps) => {
     updateNamespaceLayer();
   }, []);
 
-  const isCardActive = useCallback(
-    (srvc: ServiceCard) => {
-      const set = props.activeServices;
-      const r = set == null ? false : set.has(srvc.id);
+  // prettier-ignore
+  const isCardActive = useCallback((srvc: ServiceCard) => {
+    const set = props.activeServices;
+    const r = set == null ? false : set.has(srvc.id);
 
-      return r;
-    },
-    [props.activeServices],
-  );
+    return r;
+  }, [props.activeServices]);
 
   return (
     <>
@@ -69,17 +71,22 @@ export const MapElementsComponent = observer((props: MapElementsProps) => {
         apPositions={layout.apCoords}
       />
 
-      {layout.placement.map(plc => (
-        <EndpointCardContent
-          active={isCardActive(plc.card)}
-          key={plc.card.id}
-          coords={plc.geometry}
-          card={plc.card}
-          onHeightChange={onCardHeightChange}
-          onHeaderClick={props.onServiceSelect}
-          onEmitAPConnectorCoords={props.onEmitAPConnectorCoords}
-        />
-      ))}
+      {layout.placement.map(plc => {
+        const accessPoints = props.accessPoints.get(plc.card.id);
+
+        return (
+          <EndpointCardContent
+            active={isCardActive(plc.card)}
+            key={plc.card.id}
+            coords={plc.geometry}
+            card={plc.card}
+            accessPoints={accessPoints}
+            onHeightChange={onCardHeightChange}
+            onHeaderClick={props.onServiceSelect}
+            onEmitAPConnectorCoords={props.onEmitAPConnectorCoords}
+          />
+        );
+      })}
     </>
   );
 });
@@ -95,6 +102,7 @@ const MapComponent = (props: Props) => {
       <g transform={zoomProps ? zoomProps.toString() : ''}>
         <MapElements
           interactions={props.interactions}
+          accessPoints={props.accessPoints}
           namespace={props.namespace}
           onServiceSelect={props.onServiceSelect}
           activeServices={props.activeServices}

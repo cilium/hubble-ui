@@ -88,7 +88,10 @@ module.exports = {
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.jsx', '.json', '.mjs'],
-    plugins: [new TsconfigPathsPlugin()],
+    alias: {
+      '~': path.resolve(__dirname, './src/'),
+      '~common': path.resolve(__dirname, './../common/src/'),
+    }
   },
   module: {
     rules: [

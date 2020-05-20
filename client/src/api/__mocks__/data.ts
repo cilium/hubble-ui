@@ -1,6 +1,8 @@
 import range from 'lodash/range';
+
 import { FlowType, HubbleFlow, Verdict } from '~/domain/hubble';
 import { IPProtocol, Link, Service } from '~/domain/service-map';
+import * as dataHelpers from '~/domain/helpers';
 
 export const links: Array<Link> = [
   {
@@ -71,7 +73,7 @@ export const endpoints: Array<Service> = [
     egressPolicyEnforced: false,
     ingressPolicyEnforced: false,
     visibilityPolicyStatus: '?unknown?',
-    creationTimestamp: Date.now(),
+    creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
   },
   {
     id: 'reserved:world:incoming',
@@ -82,7 +84,7 @@ export const endpoints: Array<Service> = [
     egressPolicyEnforced: false,
     ingressPolicyEnforced: false,
     visibilityPolicyStatus: '?unknown?',
-    creationTimestamp: Date.now(),
+    creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
   },
   {
     id: 'a8de92d55119c9a6bb6a6dd66bcf012fabefb32d',
@@ -98,7 +100,7 @@ export const endpoints: Array<Service> = [
     egressPolicyEnforced: false,
     ingressPolicyEnforced: false,
     visibilityPolicyStatus: '?unknown?',
-    creationTimestamp: Date.now(),
+    creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
   },
   {
     id: '91085aa98c983e249442e887d70ebc568f4ef07b',
@@ -114,7 +116,7 @@ export const endpoints: Array<Service> = [
     egressPolicyEnforced: true,
     ingressPolicyEnforced: false,
     visibilityPolicyStatus: '?unknown?',
-    creationTimestamp: Date.now(),
+    creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
   },
   {
     id: 'ca111583bf9c9a3547c0c10aa5e77aa97d0e6a14',
@@ -130,7 +132,7 @@ export const endpoints: Array<Service> = [
     egressPolicyEnforced: false,
     ingressPolicyEnforced: true,
     visibilityPolicyStatus: '?unknown?',
-    creationTimestamp: Date.now(),
+    creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
   },
   {
     id: 'd2f41b3210a1447bae8f194e1f611793e381a4f0',
@@ -147,7 +149,7 @@ export const endpoints: Array<Service> = [
     egressPolicyEnforced: true,
     ingressPolicyEnforced: true,
     visibilityPolicyStatus: '?unknown?',
-    creationTimestamp: Date.now(),
+    creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
   },
   {
     id: '5eee91c15081c2d4fac733c517ecb71ac095053a',
@@ -164,7 +166,7 @@ export const endpoints: Array<Service> = [
     egressPolicyEnforced: false,
     ingressPolicyEnforced: false,
     visibilityPolicyStatus: '?unknown?',
-    creationTimestamp: Date.now(),
+    creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
   },
   {
     id: 'a31f0187f650569a41eb9ddd48ca470c96c7d753',
@@ -180,7 +182,7 @@ export const endpoints: Array<Service> = [
     egressPolicyEnforced: true,
     ingressPolicyEnforced: true,
     visibilityPolicyStatus: '?unknown?',
-    creationTimestamp: Date.now(),
+    creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
   },
   {
     id: '3ccf93bf4b7a7e6b832bcfac1df78ddf26450a9e',
@@ -196,7 +198,7 @@ export const endpoints: Array<Service> = [
     egressPolicyEnforced: false,
     ingressPolicyEnforced: true,
     visibilityPolicyStatus: '?unknown?',
-    creationTimestamp: Date.now(),
+    creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
   },
   {
     id: '669333a2d60b773d01e9a73837cd92fac3d9ecf0',
@@ -212,7 +214,7 @@ export const endpoints: Array<Service> = [
     egressPolicyEnforced: true,
     ingressPolicyEnforced: false,
     visibilityPolicyStatus: '?unknown?',
-    creationTimestamp: Date.now(),
+    creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
   },
 ];
 

@@ -1,5 +1,5 @@
-import { Button, Spinner } from '@blueprintjs/core';
-import React, { memo } from 'react';
+import React, { useMemo, memo, useCallback } from 'react';
+import { Button, Spinner, ButtonGroup, Icon } from '@blueprintjs/core';
 import { animated } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
 
@@ -23,6 +23,7 @@ export interface DragPanelBaseProps {
 
 export interface Props extends DragPanelBaseProps {
   onResize?: (dy: number) => void;
+  onStreamStop?: () => void;
 }
 
 export const Component = function DragPanelComponent(props: Props) {
@@ -33,6 +34,12 @@ export const Component = function DragPanelComponent(props: Props) {
     props.onResize && props.onResize(dy);
   });
 
+  const onStreamStop = useCallback(() => {
+    if (!props.onStreamStop) return;
+
+    props.onStreamStop();
+  }, [props.onStreamStop]);
+
   return (
     <animated.div {...bind()} className={css.dragPanel}>
       <div className={css.left}>
@@ -42,9 +49,17 @@ export const Component = function DragPanelComponent(props: Props) {
         />
       </div>
       <div className={css.center}>
-        <Button active rightIcon={<Spinner size={16} />}>
-          Flows streaming
-        </Button>
+        <ButtonGroup>
+          <Button small active rightIcon={<Spinner size={16} />}>
+            Flows streaming
+          </Button>
+
+          <Button
+            small
+            rightIcon={<Icon icon="cross" />}
+            onClick={onStreamStop}
+          ></Button>
+        </ButtonGroup>
       </div>
       <div className={css.right}>
         <ForwardingStatusDropdown

@@ -35,4 +35,11 @@ export class Line2 {
   public get normal(): Vec2 {
     return new Vec2(this.a, this.b).normalize();
   }
+
+  public get direction(): Vec2 {
+    const p1 = new Vec2(0, -this.c / this.b);
+    const p2 = new Vec2(-this.c / this.a, 0);
+
+    return p1.sub(p2).normalize();
+  }
 }

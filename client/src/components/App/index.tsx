@@ -1,5 +1,3 @@
-import { RouteComponentProps, Router } from '@reach/router';
-import { observer } from 'mobx-react';
 import React, {
   FunctionComponent,
   useCallback,
@@ -7,54 +5,89 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { API, FlowsStreamParams, ThrottledFlowsStream } from '~/api/general';
+import { RouteComponentProps, Router } from '@reach/router';
+import { observer } from 'mobx-react';
+
+import { TopBar } from '~/components/TopBar';
 import { DetailsPanel } from '~/components/DetailsPanel';
 import { Map } from '~/components/Map';
-import { TopBar } from '~/components/TopBar';
+
 import { FlowsFilterEntry, FlowsFilterUtils } from '~/domain/flows';
-import { Vec2 } from '~/domain/geometry';
-import { Verdict } from '~/domain/hubble';
 import { ResolveType } from '~/domain/misc';
+import { HubbleFlow, Verdict } from '~/domain/hubble';
 import { ServiceCard } from '~/domain/service-card';
 import { Interactions } from '~/domain/service-map';
+import { Vec2 } from '~/domain/geometry';
+
+import * as mockData from '~/api/__mocks__/data';
 import { useStore } from '~/store';
+
+import { API } from '~/api/general';
+import {
+  EventParamsSet,
+  EventKind as EventStreamEventKind,
+  NamespaceChange,
+  ServiceChange,
+  ServiceLinkChange,
+  DataFilters,
+  IEventStream,
+} from '~/api/general/event-stream';
+
 import css from './styles.scss';
 
 export interface AppProps extends RouteComponentProps {
   api: API;
 }
 
-interface LoadDataParams {
-  api: API;
-  flowsStreamParams: FlowsStreamParams;
-}
-
-const loadData = async (params: LoadDataParams) => {
-  const flowsStream = await params.api.v1.getFlowsStream(
-    params.flowsStreamParams,
-  );
-  const services = await params.api.v1.getServices();
-  const links = await params.api.v1.getLinks();
-
-  return { flowsStream, services, links };
-};
-
-type LoadedData = ResolveType<ReturnType<typeof loadData>>;
-
 export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   const { api } = props;
   const [loading, setLoading] = useState(true);
   const [flowsDiffCount, setFlowsDiffCount] = useState({ value: 0 });
-  const [flowsStream, setFlowsStream] = useState<ThrottledFlowsStream | null>(
-    null,
-  );
+  const [eventStream, setEventStream] = useState<IEventStream | null>(null);
 
   const store = useStore();
 
-  useEffect(() => {
-    api.v1.getNamespaces().then((nss: Array<string>) => {
-      store.setNamespaces(nss);
+  // prettier-ignore
+  const setupNamespaceEventHandlers = useCallback((stream: IEventStream) => {
+    stream.on(EventStreamEventKind.Namespace, (nsChange: NamespaceChange) => {
+      store.applyNamespaceChange(nsChange.name, nsChange.change);
     });
+  }, [store]);
+
+  // prettier-ignore
+  const setupServicesEventHandlers = useCallback((stream: IEventStream) => {
+    stream.on(EventStreamEventKind.Service, (svcChange: ServiceChange) => {
+      store.applyServiceChange(svcChange.service, svcChange.change);
+    });
+
+    stream.on(EventStreamEventKind.Flows, (flows: HubbleFlow[]) => {
+      // console.log('flows: ', flows);
+
+      const { flowsDiffCount } = store.interactions.addFlows(flows);
+      setFlowsDiffCount({ value: flowsDiffCount });
+    });
+
+    stream.on(EventStreamEventKind.ServiceLink, (link: ServiceLinkChange) => {
+      store.applyServiceLinkChange(link.serviceLink, link.change);
+    });
+  }, [store]);
+
+  useEffect(() => {
+    console.log('store.mocked: ', store.mocked);
+
+    if (store.mocked) {
+      const links = mockData.links;
+      const services = mockData.endpoints;
+
+      store.setup({ services });
+      store.updateInteractions({ links });
+      return;
+    }
+
+    const stream = api.v1.getEventStream(EventParamsSet.Namespaces);
+
+    setupNamespaceEventHandlers(stream);
+    setEventStream(stream);
   }, []);
 
   useEffect(() => {
@@ -62,38 +95,26 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       return;
     }
 
-    const onLoad = (data: LoadedData) => {
-      const { services, links } = data;
-      // Kind a temporal function to setup everything we need for now in store
-      store.setup({ services });
-      store.updateInteractions({ links });
-
-      if (flowsStream) {
-        flowsStream.stop();
-        store.interactions.clearFlows();
-      }
-
-      data.flowsStream.subscribe(flows => {
-        const { flowsDiffCount } = store.interactions.addFlows(flows);
-        setFlowsDiffCount({ value: flowsDiffCount });
-      });
-
-      setFlowsStream(data.flowsStream);
+    const streamParams = {
+      namespace: store.route.namespace,
+      verdict: store.route.verdict,
+      httpStatus: store.route.httpStatus,
+      filters: store.route.flowFilters,
     };
 
-    const params = {
-      api,
-      flowsStreamParams: {
-        namespace: store.route.namespace,
-        verdict: store.route.verdict,
-        httpStatus: store.route.httpStatus,
-        filters: store.route.flowFilters,
-      },
-    };
+    let previousStopped = Promise.resolve();
+    if (eventStream != null) {
+      previousStopped = eventStream.stop();
+    }
 
-    loadData(params)
-      .then(onLoad)
-      .finally(() => setLoading(false));
+    previousStopped.then(() => {
+      const newStream = api.v1.getEventStream(EventParamsSet.All, streamParams);
+
+      setupNamespaceEventHandlers(newStream);
+      setupServicesEventHandlers(newStream);
+
+      setEventStream(newStream);
+    });
   }, [
     store.route.namespace,
     store.route.verdict,
@@ -132,15 +153,13 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     store.layout.setAPCoords(apId, coords);
   }, []);
 
-  const interactions = useMemo(() => {
-    return {
-      links: store.interactions.links,
-    } as Interactions;
-  }, [store.interactions.all]);
+  const onStreamStop = useCallback(() => {
+    if (!eventStream) return;
 
-  if (loading) {
-    return <div>Loading</div>;
-  }
+    eventStream.stop().then(() => {
+      setEventStream(null);
+    });
+  }, [eventStream]);
 
   return (
     <div className={css.app}>
@@ -154,7 +173,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
         <Map
           services={store.services.data}
           namespace={store.route.namespace}
-          interactions={interactions}
+          accessPoints={store.accessPoints}
           activeServices={store.services.activeSet}
           onServiceSelect={onServiceSelect}
           onEmitAPConnectorCoords={onEmitAPConnectorCoords}
@@ -174,7 +193,8 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
         onCloseSidebar={onCloseFlowsTableSidebar}
         flowFilters={store.route.flowFilters}
         onChangeFlowFilters={onChangeFlowFilters}
-        tsUpdateDelay={flowsStream?.throttleDelay}
+        tsUpdateDelay={eventStream?.flowsDelay}
+        onStreamStop={onStreamStop}
       />
     </div>
   );

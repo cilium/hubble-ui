@@ -10,7 +10,7 @@ test('App renders without exceptions', async () => {
   });
 
   await waitFor(() => {
-    const getFlowsStream = jest.spyOn(api.v1, 'getFlowsStream');
-    expect(getFlowsStream).toHaveBeenCalled();
+    const getEventStream = jest.spyOn(api.v1, 'getEventStream');
+    expect(getEventStream).toHaveBeenCalled();
   });
 });

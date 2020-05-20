@@ -54,19 +54,30 @@ func (srv *RelayServer) GetEvents(
 		nsSource = watcherChan
 	}
 
-	flowDrain := make(chan *relay.GetEventsResponse)
-	go handleFlowStream(flowSource, flowDrain, flowEvent, sStateEvent, sLinkEvent)
+	flowDrain, handleFlows := handleFlowStream(
+		flowSource,
+		flowEvent,
+		sStateEvent,
+		sLinkEvent,
+	)
+
+	if handleFlows != nil {
+		go handleFlows()
+	}
 
 	nsDrain := make(chan *relay.GetEventsResponse)
 	go handleNsEvents(nsSource, nsDrain)
 
 	defer close(nsDrain)
-	defer close(flowDrain)
 
 F:
 	for {
 		select {
 		case flowEvent := <-flowDrain:
+			if flowEvent == nil {
+				break F
+			}
+
 			if err := stream.Send(flowEvent); err != nil {
 				break F
 			}
@@ -90,72 +101,79 @@ func handleNsEvents(src chan *NSEvent, drain chan *relay.GetEventsResponse) {
 
 func handleFlowStream(
 	src FlowStream,
-	drain chan *relay.GetEventsResponse,
 	flowEvent bool,
 	sStateEvent bool,
 	sLinkEvent bool,
-) {
+) (chan *relay.GetEventsResponse, func()) {
 	if src == nil {
-		return
+		return nil, nil
 	}
 
+	drain := make(chan *relay.GetEventsResponse)
 	svcCache := newServiceCache()
 
 	// TODO: do recovery when src.Recv() returns error
-	for {
-		flowResponse, err := src.Recv()
-		if err == io.EOF || err == context.Canceled {
-			log.Infof("flow stream is closed\n")
-			return
-		}
-
-		if err != nil {
-			if status.Code(err) == codes.Canceled {
+	thread := func() {
+		for {
+			flowResponse, err := src.Recv()
+			if err == io.EOF || err == context.Canceled {
 				log.Infof("flow stream is closed\n")
-				return
+				break
 			}
 
-			log.Warnf("flow stream error: %v\n", err)
-		}
+			if err != nil {
+				if status.Code(err) == codes.Canceled {
+					log.Infof("flow stream is closed\n")
+					break
+				}
 
-		flow := flowResponse.GetFlow()
-		if flow == nil {
-			continue
-		}
+				log.Warnf("flow stream error: %v\n", err)
+			}
 
-		log.Infof("flow: %v\n", flow)
+			flow := flowResponse.GetFlow()
+			if flow == nil {
+				continue
+			}
 
-		if flowEvent {
-			// Raw flow event sending
-			drain <- &relay.GetEventsResponse{
-				Node:      flowResponse.NodeName,
-				Timestamp: flowResponse.Time,
-				Event:     &relay.GetEventsResponse_Flow{flow},
+			log.Infof("flow: %v\n", flow)
+
+			if flowEvent {
+				// Raw flow event sending
+				drain <- &relay.GetEventsResponse{
+					Node:      flowResponse.NodeName,
+					Timestamp: flowResponse.Time,
+					Event:     &relay.GetEventsResponse_Flow{flow},
+				}
+			}
+
+			if sStateEvent {
+				senderEvent, receiverEvent := svcCache.FromFlow(flow)
+
+				// Service state event (only EXISTS state is handled)
+				if senderEvent != nil {
+					drain <- senderEvent
+				}
+
+				if receiverEvent != nil {
+					drain <- receiverEvent
+				}
+			}
+
+			if sLinkEvent {
+				// Service Link event (only EXISTS state is handled)
+				linkEvent := svcCache.LinkFromFlow(flow)
+
+				if linkEvent != nil {
+					drain <- linkEvent
+				}
 			}
 		}
 
-		if sStateEvent {
-			senderEvent, receiverEvent := svcCache.FromFlow(flow)
-
-			// Service state event (only EXISTS state is handled)
-			if senderEvent != nil {
-				drain <- senderEvent
-			}
-
-			if receiverEvent != nil {
-				drain <- receiverEvent
-			}
-		}
-
-		if sLinkEvent {
-			// Service Link event (only EXISTS state is handled)
-			linkEvent := svcCache.LinkFromFlow(flow)
-
-			if linkEvent != nil {
-				drain <- linkEvent
-			}
-		}
+		log.Infof("sending flows stopped\n")
+		close(drain)
 	}
+
+	return drain, thread
 }
 
 func eventRequested(events []relay.RelayEventType, et ...relay.RelayEventType) bool {
