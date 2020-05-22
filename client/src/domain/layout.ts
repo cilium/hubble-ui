@@ -30,13 +30,13 @@ export interface PlacementEntry {
   geometry: XYWH;
 }
 
-export interface PlacementGrid {
-  placement: Map<string, PlacementEntry>;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
+// export interface PlacementGrid {
+//   placement: Map<string, PlacementEntry>;
+//   x: number;
+//   y: number;
+//   width: number;
+//   height: number;
+// }
 
 export interface Arrow {
   fromServiceId: string;

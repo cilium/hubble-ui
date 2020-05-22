@@ -1,11 +1,10 @@
 import { action, computed, observable, reaction } from 'mobx';
-import { dummy as geom, Vec2, WH, XYWH } from '~/domain/geometry';
+import { dummy as geom, Vec2, XY, WH, XYWH } from '~/domain/geometry';
 import { ids } from '~/domain/ids';
 import {
   ConnectorArrow,
   Placement,
   PlacementEntry,
-  PlacementGrid,
   PlacementMeta,
   PlacementKind,
   SenderArrows,
@@ -22,6 +21,9 @@ export type ConnectionsMap = Map<string, Map<string, Set<string>>>;
 
 // { senderId -> { receiverId -> ServiceConnector } }
 export type Connectors = Map<string, Map<string, ServiceConnector>>;
+
+export type CardsPlacement = Map<string, PlacementEntry>;
+export type CardsColumns = Map<string, PlacementMeta[][]>;
 
 export interface Connections {
   readonly outgoings: ConnectionsMap;
@@ -82,9 +84,9 @@ export default class LayoutStore {
   }
 
   @computed
-  get cardsPlacement(): Map<string, PlacementEntry> {
+  get cardsPlacement(): CardsPlacement {
     const groups = this.placementGroups;
-    const columns = new Map();
+    const columns: Map<string, PlacementMeta[][]> = new Map();
 
     groups.forEach((placements: Set<PlacementMeta>, kind: PlacementKind) => {
       const kindColumns = this.buildPlacementColumns(placements);
@@ -92,12 +94,13 @@ export default class LayoutStore {
       columns.set(kind, kindColumns);
     });
 
-    // const placement = this.
+    const placement = this.assignCoordinates(columns);
 
     console.log('placement groups: ', groups);
     console.log('placement columns: ', columns);
+    console.log('placement: ', placement);
 
-    return new Map();
+    return placement;
 
     // const egress = this.createGrid(
     //   PlacementKind.EGRESS_TO_OUTSIDE_NAMESPACE,
@@ -135,32 +138,153 @@ export default class LayoutStore {
     // ]);
   }
 
+  private assignCoordinates(columns: CardsColumns): CardsPlacement {
+    const placement: CardsPlacement = new Map();
+
+    const top = this.alignColumns([
+      PlacementKind.EgressToOutside,
+      columns.get(PlacementKind.EgressToOutside),
+    ]);
+
+    const bottom = this.alignColumns(
+      [
+        PlacementKind.IngressFromOutside,
+        columns.get(PlacementKind.IngressFromOutside),
+      ],
+      [
+        PlacementKind.InsideWithConnections,
+        columns.get(PlacementKind.InsideWithConnections),
+      ],
+      [
+        PlacementKind.InsideWithoutConnections,
+        columns.get(PlacementKind.InsideWithoutConnections),
+      ],
+    );
+
+    const egressToOutside = top.get(PlacementKind.EgressToOutside);
+    const ingressFromOutside = bottom.get(PlacementKind.IngressFromOutside);
+    const insideWithConns = bottom.get(PlacementKind.InsideWithConnections);
+    const insideNoConns = bottom.get(PlacementKind.InsideWithoutConnections);
+
+    const shiftEntries = (shift: XY, entries: PlacementEntry[]) => {
+      entries.forEach((entry: PlacementEntry) => {
+        entry.geometry.x += shift.x;
+        entry.geometry.y += shift.y;
+      });
+    };
+
+    // EgressToOutside cards aligned to middle of InsideWithConnections cards
+    if (insideWithConns != null && egressToOutside != null) {
+      const outsideBBox = egressToOutside[1];
+      const insideBBox = insideWithConns[1];
+
+      const newOutsideBBoxX = (insideBBox.w - outsideBBox.w) / 2;
+      const x = (insideBBox.x - outsideBBox.x) / 2 + newOutsideBBoxX;
+
+      shiftEntries({ x, y: 0 }, egressToOutside[0]);
+    }
+
+    if (egressToOutside != null) {
+      // Shift all other cards below EgressToOutside cards
+      const bottomShift = {
+        x: 0,
+        y: egressToOutside[1].h + sizes.endpointVPadding,
+      };
+
+      // prettier-ignore
+      ingressFromOutside && shiftEntries(bottomShift, ingressFromOutside[0]);
+      insideWithConns && shiftEntries(bottomShift, insideWithConns[0]);
+      insideNoConns && shiftEntries(bottomShift, insideNoConns[0]);
+    }
+
+    const copyEntries = (entries: PlacementEntry[]) => {
+      entries.forEach(entry => {
+        placement.set(entry.card.id, entry);
+      });
+    };
+
+    egressToOutside && copyEntries(egressToOutside[0]);
+    ingressFromOutside && copyEntries(ingressFromOutside[0]);
+    insideWithConns && copyEntries(insideWithConns[0]);
+    insideNoConns && copyEntries(insideNoConns[0]);
+
+    return placement;
+  }
+
+  private alignColumns(
+    ...pairs: [PlacementKind, PlacementMeta[][] | undefined][]
+  ): Map<PlacementKind, [PlacementEntry[], XYWH]> {
+    const alignment = new Map();
+    const offset = { x: 0, y: 0 };
+
+    pairs.forEach(pair => {
+      const [kind, columns] = pair;
+      if (columns == null) return;
+
+      const entries: PlacementEntry[] = [];
+      const bbox = XYWH.fromArgs(offset.x, offset.y, 0, 0);
+
+      columns.forEach((column: PlacementMeta[]) => {
+        let columnWidth = 0;
+        offset.y = 0;
+
+        column.forEach((meta: PlacementMeta) => {
+          const cardWH = this.cardDimensions.get(meta.card.id);
+          if (cardWH == null) return;
+
+          const geometry = XYWH.fromArgs(
+            offset.x,
+            offset.y,
+            cardWH.w,
+            cardWH.h,
+          );
+          columnWidth = Math.max(columnWidth, cardWH.w);
+
+          entries.push({
+            card: meta.card,
+            kind: meta.kind,
+            geometry,
+          });
+
+          offset.y += cardWH.h + sizes.endpointVPadding;
+        });
+
+        offset.x += columnWidth + sizes.endpointHPadding;
+
+        bbox.w = Math.max(bbox.w, offset.x - sizes.endpointHPadding);
+        bbox.h = Math.max(bbox.h, offset.y - sizes.endpointVPadding);
+      });
+
+      alignment.set(kind, [entries, bbox]);
+    });
+
+    return alignment;
+  }
+
   private buildPlacementColumns(plcs: Set<PlacementMeta>): PlacementMeta[][] {
     // Heaviest cards go first
     const sorted = Array.from(plcs).sort((a, b) => b.weight - a.weight);
 
     // Make columns to be more like square
     const maxCardsInColumn = Math.ceil(Math.sqrt(plcs.size));
-    console.log(`maxCardsInColumn: `, maxCardsInColumn);
 
     const columns: PlacementMeta[][] = [];
-    let currentColumn: PlacementMeta[] = [];
-    let currentWeight: number | null = null;
+    let curColumn: PlacementMeta[] = [];
+    let curWeight: number | null = null;
 
     const flushColumn = () => {
-      columns.push(currentColumn);
-      currentColumn = [];
+      columns.push(curColumn);
+      curColumn = [];
     };
 
     sorted.forEach((plc: PlacementMeta, i: number) => {
-      const maxCardsReached = currentColumn.length >= maxCardsInColumn;
-      const weightChanged =
-        currentWeight != null && plc.weight !== currentWeight;
+      const maxCardsReached = curColumn.length >= maxCardsInColumn;
+      const weightChanged = curWeight != null && plc.weight !== curWeight;
 
       if (maxCardsReached || weightChanged) flushColumn();
 
-      currentWeight = plc.weight;
-      currentColumn.push(plc);
+      curWeight = plc.weight;
+      curColumn.push(plc);
 
       if (i === sorted.length - 1) flushColumn();
     });
@@ -481,110 +605,4 @@ export default class LayoutStore {
 
     return index;
   }
-
-  // private createGrid(type: PlacementKind, x: number, y: number): PlacementGrid {
-  //   console.log(`creating grid for type: ${type}, x: ${x}, y: ${y}`);
-
-  //   const placement: Map<string, PlacementEntry> = new Map();
-  //   let maxX = 0;
-  //   let maxY = 0;
-
-  //   const metas = this.placementMetas.get(type) ?? new Set();
-  //   const columnLimit = Math.ceil(Math.sqrt(metas.size));
-
-  //   let cardsInColumn = 1;
-  //   let columnIdx = 0;
-  //   let curX = x;
-  //   let curY = y;
-
-  //   // column idx -> column height
-  //   const columnsHeights = new Map<number, number>();
-
-  //   const metasArr = Array.from(metas).sort((a, b) => b.weight - a.weight);
-
-  //   // first pass to place cards in columns
-  //   metasArr.forEach((meta, metaIdx, arr) => {
-  //     const dims = this.cardDimensions.get(meta.card.id);
-  //     if (dims == null) return;
-
-  //     placement.set(meta.card.id, {
-  //       ...meta,
-  //       column: columnIdx,
-  //       geometry: XYWH.empty()
-  //         .setWH(dims)
-  //         .setXY(curX, curY),
-  //     });
-
-  //     const lastInColumn = cardsInColumn % columnLimit === 0;
-  //     const isLast = metaIdx + 1 === metas.size;
-  //     const nextWeightIsDifferent = arr[metaIdx + 1]?.weight !== meta.weight;
-
-  //     console.log(`lastInColumn: ${lastInColumn}, isLast: ${isLast}, nextWeightIsDifferent: ${nextWeightIsDifferent}`);
-  //     console.log(`card: `, meta.card.caption, meta.card.id);
-
-  //     if (isLast || lastInColumn || nextWeightIsDifferent) {
-  //       // move to next column
-  //       columnsHeights.set(columnIdx, curY + dims.h);
-
-  //       curX += dims.w;
-  //       maxX = Math.max(maxX, curX);
-
-  //       curX += sizes.endpointHPadding;
-
-  //       if (isLast && curY + dims.h > maxY) {
-  //         maxY = curY + dims.h;
-  //       } else {
-  //         curY = y;
-  //       }
-
-  //       cardsInColumn = 1;
-  //       columnIdx += 1;
-  //     } else {
-  //       // stay in current column
-  //       curY += dims.h;;
-  //       maxY = Math.max(maxY, curY);
-
-  //       curY += sizes.endpointVPadding;
-  //       cardsInColumn++;
-  //     }
-  //   });
-
-  //   // second pass to align cards vertically
-  //   metasArr.forEach(meta => {
-  //     const place = placement.get(meta.card.id);
-  //     if (place == null) return;
-
-  //     const columnHeight = columnsHeights.get(place.column);
-  //     if (typeof columnHeight !== 'number') return;
-
-  //     const diff = maxY - columnHeight;
-  //     const offset = diff / 2;
-  //     place.geometry = place.geometry.setXY(
-  //       place.geometry.x,
-  //       place.geometry.y + offset,
-  //     );
-  //   });
-
-  //   return { placement, x, y, width: maxX - x, height: maxY - y };
-  // }
-
-  // private alignGrid(
-  //   baseGrid: PlacementGrid,
-  //   gridToAlign: PlacementGrid,
-  //   axis: 'x' | 'y',
-  // ) {
-  //   const dim = axis === 'x' ? 'width' : 'height';
-
-  //   const offsetAxis = (baseGrid[axis] - gridToAlign[axis]) / 2;
-  //   const offsetDim = (baseGrid[dim] - gridToAlign[dim]) / 2;
-  //   const offset = offsetAxis + offsetDim;
-
-  //   gridToAlign[axis] = baseGrid[axis] + offset;
-  //   gridToAlign.placement.forEach(place => {
-  //     place.geometry = place.geometry.setXY(
-  //       place.geometry.x + (axis === 'x' ? offset : 0),
-  //       place.geometry.y + (axis === 'y' ? offset : 0),
-  //     );
-  //   });
-  // }
 }
