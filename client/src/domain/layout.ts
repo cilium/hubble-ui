@@ -8,16 +8,6 @@ export enum PlacementKind {
   InsideWithoutConnections = 'InsideWithoutConnections',
 }
 
-// export interface PlacementMeta {
-//   position: PlacementKind;
-//   card: ServiceCard;
-//   weight: number;
-//   incomingsCnt: number;
-//   outgoingsCnt: number;
-//   hasWorldOrHostAsSender: boolean;
-//   hasWorldAsReceiver: boolean;
-// }
-
 export interface PlacementMeta {
   kind: PlacementKind;
   card: ServiceCard;
@@ -29,14 +19,6 @@ export interface PlacementEntry {
   card: ServiceCard;
   geometry: XYWH;
 }
-
-// export interface PlacementGrid {
-//   placement: Map<string, PlacementEntry>;
-//   x: number;
-//   y: number;
-//   width: number;
-//   height: number;
-// }
 
 export interface Arrow {
   fromServiceId: string;
