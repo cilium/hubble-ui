@@ -33,7 +33,7 @@ export const MapElementsComponent = observer((props: MapElementsProps) => {
   const [nsXYWH, setNsXYWH] = useState(geom.xywh());
 
   const updateNamespaceLayer = useCallback(() => {
-    const nsBBox = layout.cardsBBox.addMargin(sizes.endpointHPadding / 2);
+    const nsBBox = layout.nsCardsBBox.addMargin(sizes.endpointHPadding / 2);
     setNsXYWH(nsBBox);
   }, []);
 
