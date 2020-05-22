@@ -95,47 +95,7 @@ export default class LayoutStore {
     });
 
     const placement = this.assignCoordinates(columns);
-
-    console.log('placement groups: ', groups);
-    console.log('placement columns: ', columns);
-    console.log('placement: ', placement);
-
     return placement;
-
-    // const egress = this.createGrid(
-    //   PlacementKind.EGRESS_TO_OUTSIDE_NAMESPACE,
-    //   0,
-    //   0,
-    // );
-
-    // const ingress = this.createGrid(
-    //   PlacementKind.INGRESS_FROM_OUTSIDE_NAMESPACE,
-    //   0,
-    //   egress.y + egress.height + sizes.endpointVPadding,
-    // );
-
-    // const nsWithConns = this.createGrid(
-    //   PlacementKind.NAMESPACED_WITH_CONNECTIONS,
-    //   ingress.x + ingress.width + sizes.endpointHPadding,
-    //   egress.y + egress.height + sizes.endpointVPadding,
-    // );
-
-    // const nsWithoutConns = this.createGrid(
-    //   PlacementKind.NAMESPACED_WITHOUT_CONNECTIONS,
-    //   nsWithConns.x + nsWithConns.width + sizes.endpointHPadding,
-    //   egress.y + egress.height + sizes.endpointVPadding,
-    // );
-
-    // this.alignGrid(nsWithConns, ingress, 'y');
-    // this.alignGrid(nsWithConns, nsWithoutConns, 'y');
-    // this.alignGrid(nsWithConns, egress, 'x');
-
-    // return new Map([
-    //   ...egress.placement,
-    //   ...ingress.placement,
-    //   ...nsWithConns.placement,
-    //   ...nsWithoutConns.placement,
-    // ]);
   }
 
   private assignCoordinates(columns: CardsColumns): CardsPlacement {
@@ -215,7 +175,10 @@ export default class LayoutStore {
     ...pairs: [PlacementKind, PlacementMeta[][] | undefined][]
   ): Map<PlacementKind, [PlacementEntry[], XYWH]> {
     const alignment = new Map();
+
+    const columnHeights: Map<PlacementEntry[], number> = new Map();
     const offset = { x: 0, y: 0 };
+    let entireHeight = 0;
 
     pairs.forEach(pair => {
       const [kind, columns] = pair;
@@ -225,37 +188,57 @@ export default class LayoutStore {
       const bbox = XYWH.fromArgs(offset.x, offset.y, 0, 0);
 
       columns.forEach((column: PlacementMeta[]) => {
+        const columnEntries: PlacementEntry[] = [];
+
         let columnWidth = 0;
+        let columnHeight = 0;
         offset.y = 0;
 
-        column.forEach((meta: PlacementMeta) => {
+        column.forEach((meta: PlacementMeta, ri: number) => {
           const cardWH = this.cardDimensions.get(meta.card.id);
           if (cardWH == null) return;
 
-          const geometry = XYWH.fromArgs(
-            offset.x,
-            offset.y,
-            cardWH.w,
-            cardWH.h,
-          );
-          columnWidth = Math.max(columnWidth, cardWH.w);
+          const geomtry = XYWH.fromArgs(offset.x, offset.y, cardWH.w, cardWH.h);
 
-          entries.push({
+          const entry = {
             card: meta.card,
             kind: meta.kind,
-            geometry,
-          });
+            geometry: geomtry,
+          };
+
+          entries.push(entry);
+          columnEntries.push(entry);
+
+          columnWidth = Math.max(columnWidth, cardWH.w);
+          columnHeight += cardWH.h + (ri === 0 ? 0 : sizes.endpointVPadding);
 
           offset.y += cardWH.h + sizes.endpointVPadding;
         });
+
+        columnHeights.set(columnEntries, columnHeight);
 
         offset.x += columnWidth + sizes.endpointHPadding;
 
         bbox.w = Math.max(bbox.w, offset.x - sizes.endpointHPadding);
         bbox.h = Math.max(bbox.h, offset.y - sizes.endpointVPadding);
+
+        entireHeight = Math.max(entireHeight, bbox.h);
       });
 
       alignment.set(kind, [entries, bbox]);
+    });
+
+    columnHeights.forEach((columnHeight: number, entries: PlacementEntry[]) => {
+      if (entries.length === 0) return;
+
+      const kind = entries[0].kind;
+      const [_, bbox] = alignment.get(kind)!;
+
+      const verticalOffset = (entireHeight - columnHeight) / 2;
+
+      entries.forEach(entry => {
+        entry.geometry.y += verticalOffset;
+      });
     });
 
     return alignment;
