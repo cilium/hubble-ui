@@ -3,14 +3,13 @@ import { dummy as geom, Vec2, WH, XYWH } from '~/domain/geometry';
 import { ids } from '~/domain/ids';
 import {
   ConnectorArrow,
-  ConnectorPlacement,
   Placement,
   PlacementEntry,
   PlacementGrid,
   PlacementMeta,
   PlacementType,
   SenderArrows,
-  SenderConnector,
+  ServiceConnector,
 } from '~/domain/layout';
 import { ServiceCard } from '~/domain/service-card';
 import { Link } from '~/domain/service-map';
@@ -18,20 +17,15 @@ import { sizes } from '~/ui/vars';
 import InteractionStore from './interaction';
 import ServiceStore from './service';
 
-export type ConnectionIndex = Map<
-  string,
-  Map<string, Map<string, ConnectorPlacement>>
->;
+// { cardId -> { cardId -> Set(apIds) } }
+export type ConnectionsMap = Map<string, Map<string, Set<string>>>;
 
-// { receiverId -> (senderIds) }
-export type IncomingConnections = Map<string, Set<string>>;
-
-// { senderId   -> { receiverId -> connector } }
-export type OutgoingConnections = Map<string, Map<string, SenderConnector>>;
+// { senderId -> { receiverId -> ServiceConnector } }
+export type Connectors = Map<string, Map<string, ServiceConnector>>;
 
 export interface Connections {
-  readonly outgoings: OutgoingConnections;
-  readonly incomings: IncomingConnections;
+  readonly outgoings: ConnectionsMap;
+  readonly incomings: ConnectionsMap;
 }
 
 export default class LayoutStore {
@@ -130,11 +124,12 @@ export default class LayoutStore {
 
   // { senderId -> SenderArrows }
   // SenderArrows: { senderId, startPoint, arrows: { receiverId -> Connector }}
-  @computed get connectionArrows(): Map<string, SenderArrows> {
+  @computed
+  get connectionArrows(): Map<string, SenderArrows> {
     const arrows: Map<string, SenderArrows> = new Map();
     const curveGap = Vec2.from(sizes.connectorCardGap, 0);
 
-    this.connections.outgoings.forEach((senderIndex, senderId) => {
+    this.connectors.forEach((senderIndex, senderId) => {
       const senderPlacement = this.cardsPlacement.get(senderId)?.geometry;
       if (senderPlacement == null) return;
 
@@ -165,15 +160,22 @@ export default class LayoutStore {
     return arrows;
   }
 
-  @computed get connections(): Connections {
-    const { outgoings, incomings } = this.logicalConnections;
+  @computed
+  get connectors(): Connectors {
+    // Connectors gives geometry information about where connector is located.
+    // It also gives secondary information about which APs are accessed
 
+    const index = new Map();
     const connectorIndices: Map<string, number> = new Map();
     const connectorGap = sizes.distanceBetweenConnectors;
 
-    outgoings.forEach(senderIndex => {
-      senderIndex.forEach((connector, receiverId) => {
-        const receivers = incomings.get(receiverId);
+    this.connections.outgoings.forEach((senderIndex, senderId) => {
+      if (!index.has(senderId)) {
+        index.set(senderId, new Map());
+      }
+
+      senderIndex.forEach((apIds, receiverId) => {
+        const receivers = this.connections.incomings.get(receiverId);
         if (receivers == null) return;
 
         const nReceivers = receivers.size;
@@ -190,9 +192,63 @@ export default class LayoutStore {
         position.y = midPoint.y - gutHeight / 2 + idx * connectorGap;
         position.x = cardBBox.x - sizes.connectorCardGap;
 
-        connector.position = position;
+        const connector: ServiceConnector = {
+          senderId,
+          receiverId,
+          apIds,
+          position,
+        };
+
+        index.get(senderId)!.set(receiverId, connector);
         connectorIndices.set(receiverId, idx + 1);
       });
+    });
+
+    return index;
+  }
+
+  @computed
+  get connections(): Connections {
+    // Connections only gives information about what services are connected
+    // and by which access point (apId), it doesnt provide geometry information
+    //
+    // outgoings: { senderId -> { receiverId -> Set(apIds) } }
+    //                   apIds sets are equal --> ||
+    // incomings: { receiverId -> { senderId -> Set(apIds) } }
+
+    const outgoings: ConnectionsMap = new Map();
+    const incomings: ConnectionsMap = new Map();
+
+    this.interactions.links.forEach((l: Link) => {
+      const senderId = l.sourceId;
+      const receiverId = l.destinationId;
+      const apId = ids.accessPoint(receiverId, l.destinationPort);
+
+      // Outgoing connection setup
+      if (!outgoings.has(senderId)) {
+        outgoings.set(senderId, new Map());
+      }
+
+      const sentTo = outgoings.get(senderId)!;
+      if (!sentTo.has(receiverId)) {
+        sentTo.set(receiverId, new Set());
+      }
+
+      const sentToApIds = sentTo.get(receiverId)!;
+      sentToApIds.add(apId);
+
+      // Incoming connection setup
+      if (!incomings.has(receiverId)) {
+        incomings.set(receiverId, new Map());
+      }
+
+      const receivedFrom = incomings.get(receiverId)!;
+      if (!receivedFrom.has(senderId)) {
+        receivedFrom.set(senderId, new Set());
+      }
+
+      const receivedToApIds = receivedFrom.get(senderId)!;
+      receivedToApIds.add(apId);
     });
 
     return { outgoings, incomings };
@@ -288,43 +344,6 @@ export default class LayoutStore {
     return index;
   }
 
-  @computed private get logicalConnections(): Connections {
-    const outgoings: OutgoingConnections = new Map();
-    const incomings: IncomingConnections = new Map();
-
-    this.interactions.links.forEach((l: Link) => {
-      const senderId = l.sourceId;
-      const receiverId = l.destinationId;
-      const apId = ids.accessPoint(receiverId, l.destinationPort);
-
-      if (!outgoings.has(senderId)) {
-        outgoings.set(senderId, new Map());
-      }
-
-      if (!incomings.has(receiverId)) {
-        incomings.set(receiverId, new Set());
-      }
-
-      const receivers = incomings.get(receiverId)!;
-      receivers.add(senderId);
-
-      const senders = outgoings.get(senderId)!;
-      if (!senders.has(receiverId)) {
-        senders.set(receiverId, {
-          senderId,
-          receiverId,
-          apIds: new Set(),
-          position: Vec2.from(0, 0),
-        });
-      }
-
-      const connector = senders.get(receiverId)!;
-      connector.apIds.add(apId);
-    });
-
-    return { outgoings, incomings };
-  }
-
   @computed private get placementMetas() {
     const index: Map<PlacementType, Set<PlacementMeta>> = new Map();
 
@@ -383,7 +402,7 @@ export default class LayoutStore {
   }
 
   private processIncomingConnectionsForCard(card: ServiceCard) {
-    const senders = this.logicalConnections.incomings.get(card.id);
+    const senders = this.connections.incomings.get(card.id);
     if (senders == null) {
       return {
         hasWorldOrHostAsSender: false,
@@ -392,7 +411,7 @@ export default class LayoutStore {
     }
 
     let hasWorldOrHostAsSender = false;
-    senders.forEach(senderId => {
+    senders.forEach((_, senderId) => {
       const senderCard = this.services.cardsMap.get(senderId);
       if (senderCard == null) return;
 
@@ -409,7 +428,7 @@ export default class LayoutStore {
   }
 
   private processOutgoingConnectionsForCard(card: ServiceCard) {
-    const receivers = this.logicalConnections.outgoings.get(card.id);
+    const receivers = this.connections.outgoings.get(card.id);
     if (!receivers) {
       return {
         outgoingsCnt: 0,
@@ -418,8 +437,8 @@ export default class LayoutStore {
     }
 
     let hasWorldAsReceiver = false;
-    receivers.forEach(connector => {
-      const receiverCard = this.services.cardsMap.get(connector.receiverId);
+    receivers.forEach((_, receiverId) => {
+      const receiverCard = this.services.cardsMap.get(receiverId);
       if (receiverCard == null) return;
 
       if (receiverCard.isWorld) {

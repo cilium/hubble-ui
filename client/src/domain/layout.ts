@@ -38,14 +38,7 @@ export interface Arrow {
 
 export type Placement = Array<PlacementEntry>;
 
-export interface ConnectorPlacement {
-  senderId: string;
-  receiverId: string;
-  apId: string;
-  position: Vec2;
-}
-
-export interface SenderConnector {
+export interface ServiceConnector {
   senderId: string;
   receiverId: string;
   apIds: Set<string>;
@@ -53,7 +46,7 @@ export interface SenderConnector {
 }
 
 export interface ConnectorArrow {
-  connector: SenderConnector;
+  connector: ServiceConnector;
   points: Array<Vec2>;
 }
 
