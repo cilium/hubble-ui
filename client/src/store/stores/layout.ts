@@ -84,8 +84,18 @@ export default class LayoutStore {
   @computed
   get cardsPlacement(): Map<string, PlacementEntry> {
     const groups = this.placementGroups;
+    const columns = new Map();
+
+    groups.forEach((placements: Set<PlacementMeta>, kind: PlacementKind) => {
+      const kindColumns = this.buildPlacementColumns(placements);
+
+      columns.set(kind, kindColumns);
+    });
+
+    // const placement = this.
 
     console.log('placement groups: ', groups);
+    console.log('placement columns: ', columns);
 
     return new Map();
 
@@ -125,6 +135,39 @@ export default class LayoutStore {
     // ]);
   }
 
+  private buildPlacementColumns(plcs: Set<PlacementMeta>): PlacementMeta[][] {
+    // Heaviest cards go first
+    const sorted = Array.from(plcs).sort((a, b) => b.weight - a.weight);
+
+    // Make columns to be more like square
+    const maxCardsInColumn = Math.ceil(Math.sqrt(plcs.size));
+    console.log(`maxCardsInColumn: `, maxCardsInColumn);
+
+    const columns: PlacementMeta[][] = [];
+    let currentColumn: PlacementMeta[] = [];
+    let currentWeight: number | null = null;
+
+    const flushColumn = () => {
+      columns.push(currentColumn);
+      currentColumn = [];
+    };
+
+    sorted.forEach((plc: PlacementMeta, i: number) => {
+      const maxCardsReached = currentColumn.length >= maxCardsInColumn;
+      const weightChanged =
+        currentWeight != null && plc.weight !== currentWeight;
+
+      if (maxCardsReached || weightChanged) flushColumn();
+
+      currentWeight = plc.weight;
+      currentColumn.push(plc);
+
+      if (i === sorted.length - 1) flushColumn();
+    });
+
+    return columns;
+  }
+
   @computed
   private get placementGroups() {
     const index: Map<PlacementKind, Set<PlacementMeta>> = new Map();
@@ -160,6 +203,8 @@ export default class LayoutStore {
       kind = PlacementKind.InsideWithConnections;
     }
 
+    // Weight determines how many connections the card has.
+    // If card has special interactions, it gains more weight.
     let weight = incomingsCount + outgoingsCount;
 
     weight += props.hasWorldAsSender || props.hasHostAsSender ? 1000 : 0;
@@ -180,22 +225,22 @@ export default class LayoutStore {
     let hasHostAsSender = false;
     let hasWorldAsReceiver = false;
 
-    senders != null &&
-      senders.forEach((_, senderId) => {
-        const sender = this.services.cardsMap.get(senderId);
-        if (sender == null) return;
+    // prettier-ignore
+    senders != null && senders.forEach((_, senderId) => {
+      const sender = this.services.cardsMap.get(senderId);
+      if (sender == null) return;
 
-        hasWorldAsSender = hasWorldAsSender || sender.isWorld;
-        hasHostAsSender = hasHostAsSender || sender.isHost;
-      });
+      hasWorldAsSender = hasWorldAsSender || sender.isWorld;
+      hasHostAsSender = hasHostAsSender || sender.isHost;
+    });
 
-    receivers != null &&
-      receivers.forEach((_, receiverId) => {
-        const receiver = this.services.cardsMap.get(receiverId);
-        if (receiver == null) return;
+    // prettier-ignore
+    receivers != null && receivers.forEach((_, receiverId) => {
+      const receiver = this.services.cardsMap.get(receiverId);
+      if (receiver == null) return;
 
-        hasWorldAsReceiver = hasWorldAsReceiver || receiver.isWorld;
-      });
+      hasWorldAsReceiver = hasWorldAsReceiver || receiver.isWorld;
+    });
 
     return {
       hasWorldAsReceiver,
