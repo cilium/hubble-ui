@@ -33,6 +33,25 @@ const arrowLine = d3
   .x(d => d.x)
   .y(d => d.y);
 
+const startPlatePath = (d: any) => {
+  const { x, y } = d[1];
+
+  // prettier-ignore
+  const r = 3, w = 10, h = 30;
+  const tr = `a ${r} ${r} 0 0 1 ${r} ${r}`;
+  const br = `a ${r} ${r} 0 0 1 -${r} ${r}`;
+
+  return `
+    M ${x} ${y - h / 2}
+    h ${w - r}
+    ${tr}
+    v ${h - 2 * r}
+    ${br}
+    h -${w - r}
+    z
+  `;
+};
+
 const startPlatesEnter = (enter: any) => {
   return enter
     .append('g')
@@ -41,17 +60,11 @@ const startPlatesEnter = (enter: any) => {
     .attr('fill', colors.connectorFill)
     .attr('stroke', colors.arrowStroke)
     .attr('stroke-width', sizes.linkWidth)
-    .attr('d', (d: any) => {
-      const { x, y } = d[1];
+    .attr('d', startPlatePath);
+};
 
-      // prettier-ignore
-      const r = 3, w = 10, h = 30;
-      const tr = `a ${r} ${r} 0 0 1 ${r} ${r}`;
-      const br = `a ${r} ${r} 0 0 1 -${r} ${r}`;
-
-      return `M ${x} ${y - h / 2} h ${w - r} ${tr} v ${h - 2 * r} ${br} h -${w -
-        r} z`;
-    });
+const startPlatesUpdate = (update: any) => {
+  return update.select('g path').attr('d', startPlatePath);
 };
 
 const arrowHandle = (handle: [Vec2, Vec2] | null): string => {
@@ -226,6 +239,7 @@ const manageArrows = (props: Props, g: SVGGElement) => {
   const fns = {
     startPlates: {
       enter: startPlatesEnter,
+      update: startPlatesUpdate,
     },
     arrows: {
       enter: arrowsEnter,
@@ -239,12 +253,15 @@ const manageArrows = (props: Props, g: SVGGElement) => {
       enter: feetsEnter,
       update: feetsUpdate,
     },
+    common: {
+      exit: (exit: any) => exit.remove(),
+    },
   };
 
   startPlatesGroup
     .selectAll('g')
     .data(startPlates, (d: any) => d[0])
-    .join(fns.startPlates.enter);
+    .join(fns.startPlates.enter, fns.startPlates.update);
 
   arrowsGroup
     .selectAll('g')
