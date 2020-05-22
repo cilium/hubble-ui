@@ -7,7 +7,7 @@ import {
   PlacementEntry,
   PlacementGrid,
   PlacementMeta,
-  PlacementType,
+  PlacementKind,
   SenderArrows,
   ServiceConnector,
 } from '~/domain/layout';
@@ -81,44 +81,131 @@ export default class LayoutStore {
     this.cardDimensions.set(id, updated);
   }
 
-  @computed get cardsPlacement(): Map<string, PlacementEntry> {
-    const egress = this.createGrid(
-      PlacementType.EGRESS_TO_OUTSIDE_NAMESPACE,
-      0,
-      0,
-    );
+  @computed
+  get cardsPlacement(): Map<string, PlacementEntry> {
+    const groups = this.placementGroups;
 
-    const ingress = this.createGrid(
-      PlacementType.INGRESS_FROM_OUTSIDE_NAMESPACE,
-      0,
-      egress.y + egress.height + sizes.endpointVPadding,
-    );
+    console.log('placement groups: ', groups);
 
-    const nsWithConns = this.createGrid(
-      PlacementType.NAMESPACED_WITH_CONNECTIONS,
-      ingress.x + ingress.width + sizes.endpointHPadding,
-      egress.y + egress.height + sizes.endpointVPadding,
-    );
+    return new Map();
 
-    const nsWithoutConns = this.createGrid(
-      PlacementType.NAMESPACED_WITHOUT_CONNECTIONS,
-      nsWithConns.x + nsWithConns.width + sizes.endpointHPadding,
-      egress.y + egress.height + sizes.endpointVPadding,
-    );
+    // const egress = this.createGrid(
+    //   PlacementKind.EGRESS_TO_OUTSIDE_NAMESPACE,
+    //   0,
+    //   0,
+    // );
 
-    this.alignGrid(nsWithConns, ingress, 'y');
-    this.alignGrid(nsWithConns, nsWithoutConns, 'y');
-    this.alignGrid(nsWithConns, egress, 'x');
+    // const ingress = this.createGrid(
+    //   PlacementKind.INGRESS_FROM_OUTSIDE_NAMESPACE,
+    //   0,
+    //   egress.y + egress.height + sizes.endpointVPadding,
+    // );
 
-    return new Map([
-      ...egress.placement,
-      ...ingress.placement,
-      ...nsWithConns.placement,
-      ...nsWithoutConns.placement,
-    ]);
+    // const nsWithConns = this.createGrid(
+    //   PlacementKind.NAMESPACED_WITH_CONNECTIONS,
+    //   ingress.x + ingress.width + sizes.endpointHPadding,
+    //   egress.y + egress.height + sizes.endpointVPadding,
+    // );
+
+    // const nsWithoutConns = this.createGrid(
+    //   PlacementKind.NAMESPACED_WITHOUT_CONNECTIONS,
+    //   nsWithConns.x + nsWithConns.width + sizes.endpointHPadding,
+    //   egress.y + egress.height + sizes.endpointVPadding,
+    // );
+
+    // this.alignGrid(nsWithConns, ingress, 'y');
+    // this.alignGrid(nsWithConns, nsWithoutConns, 'y');
+    // this.alignGrid(nsWithConns, egress, 'x');
+
+    // return new Map([
+    //   ...egress.placement,
+    //   ...ingress.placement,
+    //   ...nsWithConns.placement,
+    //   ...nsWithoutConns.placement,
+    // ]);
   }
 
-  @computed get placement(): Placement {
+  @computed
+  private get placementGroups() {
+    const index: Map<PlacementKind, Set<PlacementMeta>> = new Map();
+
+    this.services.cards.forEach((card: ServiceCard) => {
+      const meta = this.getCardPlacementMeta(card);
+      const kindSet = index.get(meta.kind) ?? new Set();
+      const cards = kindSet.add(meta);
+
+      index.set(meta.kind, cards);
+    });
+
+    return index;
+  }
+
+  private getCardPlacementMeta(card: ServiceCard): PlacementMeta {
+    const senders = this.connections.incomings.get(card.id);
+    const receivers = this.connections.outgoings.get(card.id);
+
+    const incomingsCount = senders?.size || 0;
+    const outgoingsCount = receivers?.size || 0;
+
+    // TODO: cache this ?
+    const props = this.findSpecialInteractions(card);
+
+    let kind = PlacementKind.InsideWithoutConnections;
+    if (card.isHost) {
+      kind = PlacementKind.IngressFromOutside;
+    } else if (card.isWorld) {
+      kind = PlacementKind.IngressFromOutside;
+      kind = incomingsCount > 0 ? PlacementKind.EgressToOutside : kind;
+    } else if (incomingsCount > 0 || outgoingsCount > 0) {
+      kind = PlacementKind.InsideWithConnections;
+    }
+
+    let weight = incomingsCount + outgoingsCount;
+
+    weight += props.hasWorldAsSender || props.hasHostAsSender ? 1000 : 0;
+    weight += props.hasWorldAsReceiver ? 500 : 0;
+
+    return {
+      kind,
+      card,
+      weight,
+    };
+  }
+
+  private findSpecialInteractions(card: ServiceCard) {
+    const senders = this.connections.incomings.get(card.id);
+    const receivers = this.connections.outgoings.get(card.id);
+
+    let hasWorldAsSender = false;
+    let hasHostAsSender = false;
+    let hasWorldAsReceiver = false;
+
+    senders != null &&
+      senders.forEach((_, senderId) => {
+        const sender = this.services.cardsMap.get(senderId);
+        if (sender == null) return;
+
+        hasWorldAsSender = hasWorldAsSender || sender.isWorld;
+        hasHostAsSender = hasHostAsSender || sender.isHost;
+      });
+
+    receivers != null &&
+      receivers.forEach((_, receiverId) => {
+        const receiver = this.services.cardsMap.get(receiverId);
+        if (receiver == null) return;
+
+        hasWorldAsReceiver = hasWorldAsReceiver || receiver.isWorld;
+      });
+
+    return {
+      hasWorldAsReceiver,
+      hasWorldAsSender,
+      hasHostAsSender,
+    };
+  }
+
+  @computed
+  get placement(): Placement {
     return [...this.cardsPlacement.values()];
   }
 
@@ -254,13 +341,15 @@ export default class LayoutStore {
     return { outgoings, incomings };
   }
 
-  @computed get cardWH() {
+  @computed
+  get cardWH() {
     return (id: string): WH | undefined => {
       return this.cardDimensions.get(`service-${id}`);
     };
   }
 
-  @computed get cardHeight() {
+  @computed
+  get cardHeight() {
     return (id: string): number => {
       const g = this.cardWH(id);
 
@@ -268,14 +357,16 @@ export default class LayoutStore {
     };
   }
 
-  @computed get endpointWidth() {
+  @computed
+  get endpointWidth() {
     return (id: string): number => {
       return sizes.endpointWidth;
     };
   }
 
   // TODO: can be a part of placement build
-  @computed get cardsBBox(): XYWH {
+  @computed
+  get cardsBBox(): XYWH {
     const bbox = geom.xywh(Infinity, Infinity);
 
     this.placement.forEach((e: PlacementEntry) => {
@@ -296,7 +387,8 @@ export default class LayoutStore {
   }
 
   // { serviceId -> { apId -> Set<senderId> } }
-  @computed get cardAccessIndex(): Map<string, Map<string, Set<string>>> {
+  @computed
+  get cardAccessIndex(): Map<string, Map<string, Set<string>>> {
     const index = new Map();
 
     this.interactions.links.forEach((l: Link) => {
@@ -322,7 +414,8 @@ export default class LayoutStore {
 
   // Gives mid of physical APs
   // { cardId -> Vec2 }
-  @computed get connectorMidPoints(): Map<string, Vec2> {
+  @computed
+  get connectorMidPoints(): Map<string, Vec2> {
     const index = new Map();
 
     this.cardAccessIndex.forEach((cardIndex, cardId) => {
@@ -344,209 +437,109 @@ export default class LayoutStore {
     return index;
   }
 
-  @computed private get placementMetas() {
-    const index: Map<PlacementType, Set<PlacementMeta>> = new Map();
+  // private createGrid(type: PlacementKind, x: number, y: number): PlacementGrid {
+  //   console.log(`creating grid for type: ${type}, x: ${x}, y: ${y}`);
 
-    this.services.cards.forEach((card: ServiceCard) => {
-      const placementInfo = this.findPlacementMetaForCard(card);
-      const cards = (index.get(placementInfo.position) ?? new Set()).add(
-        placementInfo,
-      );
-      index.set(placementInfo.position, cards);
-    });
+  //   const placement: Map<string, PlacementEntry> = new Map();
+  //   let maxX = 0;
+  //   let maxY = 0;
 
-    return index;
-  }
+  //   const metas = this.placementMetas.get(type) ?? new Set();
+  //   const columnLimit = Math.ceil(Math.sqrt(metas.size));
 
-  private findPlacementMetaForCard(card: ServiceCard): PlacementMeta {
-    const {
-      incomingsCnt,
-      hasWorldOrHostAsSender,
-    } = this.processIncomingConnectionsForCard(card);
+  //   let cardsInColumn = 1;
+  //   let columnIdx = 0;
+  //   let curX = x;
+  //   let curY = y;
 
-    const {
-      outgoingsCnt,
-      hasWorldAsReceiver,
-    } = this.processOutgoingConnectionsForCard(card);
+  //   // column idx -> column height
+  //   const columnsHeights = new Map<number, number>();
 
-    let type = PlacementType.NAMESPACED_WITHOUT_CONNECTIONS;
-    if (card.isHost) {
-      type = PlacementType.INGRESS_FROM_OUTSIDE_NAMESPACE;
-    } else if (card.isWorld) {
-      if (incomingsCnt > 0) {
-        type = PlacementType.EGRESS_TO_OUTSIDE_NAMESPACE;
-      } else {
-        type = PlacementType.INGRESS_FROM_OUTSIDE_NAMESPACE;
-      }
-    } else if (incomingsCnt > 0 || outgoingsCnt > 0) {
-      type = PlacementType.NAMESPACED_WITH_CONNECTIONS;
-    }
+  //   const metasArr = Array.from(metas).sort((a, b) => b.weight - a.weight);
 
-    let weight = outgoingsCnt + incomingsCnt;
-    if (hasWorldOrHostAsSender) {
-      weight += 1000;
-    }
-    if (hasWorldAsReceiver) {
-      weight += 500;
-    }
+  //   // first pass to place cards in columns
+  //   metasArr.forEach((meta, metaIdx, arr) => {
+  //     const dims = this.cardDimensions.get(meta.card.id);
+  //     if (dims == null) return;
 
-    return {
-      position: type,
-      card,
-      weight,
-      incomingsCnt,
-      outgoingsCnt,
-      hasWorldOrHostAsSender,
-      hasWorldAsReceiver,
-    };
-  }
+  //     placement.set(meta.card.id, {
+  //       ...meta,
+  //       column: columnIdx,
+  //       geometry: XYWH.empty()
+  //         .setWH(dims)
+  //         .setXY(curX, curY),
+  //     });
 
-  private processIncomingConnectionsForCard(card: ServiceCard) {
-    const senders = this.connections.incomings.get(card.id);
-    if (senders == null) {
-      return {
-        hasWorldOrHostAsSender: false,
-        incomingsCnt: 0,
-      };
-    }
+  //     const lastInColumn = cardsInColumn % columnLimit === 0;
+  //     const isLast = metaIdx + 1 === metas.size;
+  //     const nextWeightIsDifferent = arr[metaIdx + 1]?.weight !== meta.weight;
 
-    let hasWorldOrHostAsSender = false;
-    senders.forEach((_, senderId) => {
-      const senderCard = this.services.cardsMap.get(senderId);
-      if (senderCard == null) return;
+  //     console.log(`lastInColumn: ${lastInColumn}, isLast: ${isLast}, nextWeightIsDifferent: ${nextWeightIsDifferent}`);
+  //     console.log(`card: `, meta.card.caption, meta.card.id);
 
-      if (senderCard.isWorld || senderCard.isHost) {
-        hasWorldOrHostAsSender = true;
-        return;
-      }
-    });
+  //     if (isLast || lastInColumn || nextWeightIsDifferent) {
+  //       // move to next column
+  //       columnsHeights.set(columnIdx, curY + dims.h);
 
-    return {
-      hasWorldOrHostAsSender,
-      incomingsCnt: senders.size,
-    };
-  }
+  //       curX += dims.w;
+  //       maxX = Math.max(maxX, curX);
 
-  private processOutgoingConnectionsForCard(card: ServiceCard) {
-    const receivers = this.connections.outgoings.get(card.id);
-    if (!receivers) {
-      return {
-        outgoingsCnt: 0,
-        hasWorldAsReceiver: false,
-      };
-    }
+  //       curX += sizes.endpointHPadding;
 
-    let hasWorldAsReceiver = false;
-    receivers.forEach((_, receiverId) => {
-      const receiverCard = this.services.cardsMap.get(receiverId);
-      if (receiverCard == null) return;
+  //       if (isLast && curY + dims.h > maxY) {
+  //         maxY = curY + dims.h;
+  //       } else {
+  //         curY = y;
+  //       }
 
-      if (receiverCard.isWorld) {
-        hasWorldAsReceiver = true;
-        return;
-      }
-    });
+  //       cardsInColumn = 1;
+  //       columnIdx += 1;
+  //     } else {
+  //       // stay in current column
+  //       curY += dims.h;;
+  //       maxY = Math.max(maxY, curY);
 
-    return {
-      outgoingsCnt: receivers.size,
-      hasWorldAsReceiver,
-    };
-  }
+  //       curY += sizes.endpointVPadding;
+  //       cardsInColumn++;
+  //     }
+  //   });
 
-  private createGrid(type: PlacementType, x: number, y: number): PlacementGrid {
-    const placement: Map<string, PlacementEntry> = new Map();
-    let maxX = 0;
-    let maxY = 0;
+  //   // second pass to align cards vertically
+  //   metasArr.forEach(meta => {
+  //     const place = placement.get(meta.card.id);
+  //     if (place == null) return;
 
-    const metas = this.placementMetas.get(type) ?? new Set();
-    const columnLimit = Math.ceil(Math.sqrt(metas.size));
+  //     const columnHeight = columnsHeights.get(place.column);
+  //     if (typeof columnHeight !== 'number') return;
 
-    let cardsInColumn = 1;
-    let columnIdx = 0;
-    let curX = x;
-    let curY = y;
+  //     const diff = maxY - columnHeight;
+  //     const offset = diff / 2;
+  //     place.geometry = place.geometry.setXY(
+  //       place.geometry.x,
+  //       place.geometry.y + offset,
+  //     );
+  //   });
 
-    // column idx -> column height
-    const columnsHeights = new Map<number, number>();
+  //   return { placement, x, y, width: maxX - x, height: maxY - y };
+  // }
 
-    const metasArr = Array.from(metas).sort((a, b) => b.weight - a.weight);
+  // private alignGrid(
+  //   baseGrid: PlacementGrid,
+  //   gridToAlign: PlacementGrid,
+  //   axis: 'x' | 'y',
+  // ) {
+  //   const dim = axis === 'x' ? 'width' : 'height';
 
-    // first pass to place cards in columns
-    metasArr.forEach((meta, metaIdx, arr) => {
-      const dims = this.cardDimensions.get(meta.card.id);
-      if (dims == null) return;
+  //   const offsetAxis = (baseGrid[axis] - gridToAlign[axis]) / 2;
+  //   const offsetDim = (baseGrid[dim] - gridToAlign[dim]) / 2;
+  //   const offset = offsetAxis + offsetDim;
 
-      placement.set(meta.card.id, {
-        ...meta,
-        column: columnIdx,
-        geometry: XYWH.empty()
-          .setWH(dims)
-          .setXY(curX, curY),
-      });
-
-      const lastInColumn = cardsInColumn % columnLimit === 0;
-      const isLast = metaIdx + 1 === metas.size;
-      const nextWeightIsDifferent = arr[metaIdx + 1]?.weight !== meta.weight;
-
-      // move to next column
-      if (isLast || lastInColumn || nextWeightIsDifferent) {
-        columnsHeights.set(columnIdx++, curY + dims.h);
-
-        curX += dims.w;
-        if (curX > maxX) maxX = curX;
-        curX += sizes.endpointHPadding;
-        if (isLast && curY + dims.h > maxY) {
-          maxY = curY + dims.h;
-        } else {
-          curY = y;
-        }
-
-        cardsInColumn = 1;
-        // stay in current column
-      } else {
-        curY += dims.h;
-        if (curY > maxY) maxY = curY;
-        curY += sizes.endpointVPadding;
-        cardsInColumn++;
-      }
-    });
-
-    // second pass to align cards vertically
-    metasArr.forEach(meta => {
-      const place = placement.get(meta.card.id);
-      if (place == null) return;
-
-      const columnHeight = columnsHeights.get(place.column);
-      if (typeof columnHeight !== 'number') return;
-
-      const diff = maxY - columnHeight;
-      const offset = diff / 2;
-      place.geometry = place.geometry.setXY(
-        place.geometry.x,
-        place.geometry.y + offset,
-      );
-    });
-
-    return { placement, x, y, width: maxX - x, height: maxY - y };
-  }
-
-  private alignGrid(
-    baseGrid: PlacementGrid,
-    gridToAlign: PlacementGrid,
-    axis: 'x' | 'y',
-  ) {
-    const dim = axis === 'x' ? 'width' : 'height';
-
-    const offsetAxis = (baseGrid[axis] - gridToAlign[axis]) / 2;
-    const offsetDim = (baseGrid[dim] - gridToAlign[dim]) / 2;
-    const offset = offsetAxis + offsetDim;
-
-    gridToAlign[axis] = baseGrid[axis] + offset;
-    gridToAlign.placement.forEach(place => {
-      place.geometry = place.geometry.setXY(
-        place.geometry.x + (axis === 'x' ? offset : 0),
-        place.geometry.y + (axis === 'y' ? offset : 0),
-      );
-    });
-  }
+  //   gridToAlign[axis] = baseGrid[axis] + offset;
+  //   gridToAlign.placement.forEach(place => {
+  //     place.geometry = place.geometry.setXY(
+  //       place.geometry.x + (axis === 'x' ? offset : 0),
+  //       place.geometry.y + (axis === 'y' ? offset : 0),
+  //     );
+  //   });
+  // }
 }

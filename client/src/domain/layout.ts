@@ -1,26 +1,33 @@
 import { XYWH, Vec2 } from './geometry';
 import { ServiceCard } from './service-card';
 
-export enum PlacementType {
-  INGRESS_FROM_OUTSIDE_NAMESPACE = 'INGRESS_FROM_OUTSIDE_NAMESPACE',
-  EGRESS_TO_OUTSIDE_NAMESPACE = 'EGRESS_TO_OUTSIDE_NAMESPACE',
-  NAMESPACED_WITH_CONNECTIONS = 'NAMESPACED_WITH_CONNECTIONS',
-  NAMESPACED_WITHOUT_CONNECTIONS = 'NAMESPACED_WITHOUT_CONNECTIONS',
+export enum PlacementKind {
+  IngressFromOutside = 'IngressFromOutside',
+  EgressToOutside = 'EgressToOutside',
+  InsideWithConnections = 'InsideWithConnections',
+  InsideWithoutConnections = 'InsideWithoutConnections',
 }
+
+// export interface PlacementMeta {
+//   position: PlacementKind;
+//   card: ServiceCard;
+//   weight: number;
+//   incomingsCnt: number;
+//   outgoingsCnt: number;
+//   hasWorldOrHostAsSender: boolean;
+//   hasWorldAsReceiver: boolean;
+// }
 
 export interface PlacementMeta {
-  position: PlacementType;
+  kind: PlacementKind;
   card: ServiceCard;
   weight: number;
-  incomingsCnt: number;
-  outgoingsCnt: number;
-  hasWorldOrHostAsSender: boolean;
-  hasWorldAsReceiver: boolean;
 }
 
-export interface PlacementEntry extends PlacementMeta {
+export interface PlacementEntry {
+  kind: PlacementKind;
+  card: ServiceCard;
   geometry: XYWH;
-  column: number;
 }
 
 export interface PlacementGrid {
