@@ -1,4 +1,6 @@
 import { action, computed, observable, reaction } from 'mobx';
+import _ from 'lodash';
+
 import { dummy as geom, Vec2, XY, WH, XYWH } from '~/domain/geometry';
 import { ids } from '~/domain/ids';
 import {
@@ -29,6 +31,8 @@ export interface Connections {
   readonly outgoings: ConnectionsMap;
   readonly incomings: ConnectionsMap;
 }
+
+type PlacementFilter = (e: PlacementEntry) => boolean;
 
 export default class LayoutStore {
   @observable apCoords: Map<string, Vec2>; // { apId -> Vec2 }
@@ -101,25 +105,13 @@ export default class LayoutStore {
   private assignCoordinates(columns: CardsColumns): CardsPlacement {
     const placement: CardsPlacement = new Map();
 
-    const top = this.alignColumns([
-      PlacementKind.EgressToOutside,
-      columns.get(PlacementKind.EgressToOutside),
+    // prettier-ignore
+    const top = this.alignColumns(columns, [ PlacementKind.EgressToOutside ]);
+    const bottom = this.alignColumns(columns, [
+      PlacementKind.IngressFromOutside,
+      PlacementKind.InsideWithConnections,
+      PlacementKind.InsideWithoutConnections,
     ]);
-
-    const bottom = this.alignColumns(
-      [
-        PlacementKind.IngressFromOutside,
-        columns.get(PlacementKind.IngressFromOutside),
-      ],
-      [
-        PlacementKind.InsideWithConnections,
-        columns.get(PlacementKind.InsideWithConnections),
-      ],
-      [
-        PlacementKind.InsideWithoutConnections,
-        columns.get(PlacementKind.InsideWithoutConnections),
-      ],
-    );
 
     const egressToOutside = top.get(PlacementKind.EgressToOutside);
     const ingressFromOutside = bottom.get(PlacementKind.IngressFromOutside);
@@ -172,7 +164,8 @@ export default class LayoutStore {
   }
 
   private alignColumns(
-    ...pairs: [PlacementKind, PlacementMeta[][] | undefined][]
+    cardsColumns: CardsColumns,
+    kinds: PlacementKind[],
   ): Map<PlacementKind, [PlacementEntry[], XYWH]> {
     const alignment = new Map();
 
@@ -180,8 +173,8 @@ export default class LayoutStore {
     const offset = { x: 0, y: 0 };
     let entireHeight = 0;
 
-    pairs.forEach(pair => {
-      const [kind, columns] = pair;
+    kinds.forEach(kind => {
+      const columns = cardsColumns.get(kind);
       if (columns == null) return;
 
       const entries: PlacementEntry[] = [];
@@ -356,6 +349,28 @@ export default class LayoutStore {
     };
   }
 
+  private placementBBox(filterFn: PlacementFilter = _.identity) {
+    const bbox = geom.xywh(Infinity, Infinity);
+
+    this.placement.forEach((e: PlacementEntry) => {
+      if (!filterFn(e)) return;
+
+      const { x, y, w, h } = e.geometry;
+
+      bbox.x = Math.min(bbox.x, x);
+      bbox.y = Math.min(bbox.y, y);
+
+      // Temporarily store here maxX, maxY for a while
+      bbox.w = Math.max(bbox.w, x + w);
+      bbox.h = Math.max(bbox.h, y + h);
+    });
+
+    bbox.w -= bbox.x;
+    bbox.h -= bbox.y;
+
+    return bbox;
+  }
+
   @computed
   get placement(): Placement {
     return [...this.cardsPlacement.values()];
@@ -516,26 +531,19 @@ export default class LayoutStore {
     };
   }
 
-  // TODO: can be a part of placement build
   @computed
   get cardsBBox(): XYWH {
-    const bbox = geom.xywh(Infinity, Infinity);
+    return this.placementBBox();
+  }
 
-    this.placement.forEach((e: PlacementEntry) => {
-      const { x, y, w, h } = e.geometry;
+  @computed
+  get nsCardsBBox(): XYWH {
+    return this.placementBBox(e => {
+      const one = e.kind === PlacementKind.InsideWithConnections;
+      const two = e.kind === PlacementKind.InsideWithoutConnections;
 
-      bbox.x = Math.min(bbox.x, x);
-      bbox.y = Math.min(bbox.y, y);
-
-      // Temporarily store here maxX, maxY for a while
-      bbox.w = Math.max(bbox.w, x + w);
-      bbox.h = Math.max(bbox.h, y + h);
+      return one || two;
     });
-
-    bbox.w -= bbox.x;
-    bbox.h -= bbox.y;
-
-    return bbox;
   }
 
   // { serviceId -> { apId -> Set<senderId> } }
