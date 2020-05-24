@@ -12,7 +12,7 @@ import { XY } from '~/domain/geometry';
 import css from './styles.scss';
 
 const LayerComponent: FunctionComponent<CardProps> = props => {
-  const rootRef = useRef<SVGGElement>(null);
+  const rootRef = useRef<SVGGElement | null>(null);
 
   const layer1 = !!props.layer1;
   const serviceId = props.card.id;
@@ -42,16 +42,10 @@ const LayerComponent: FunctionComponent<CardProps> = props => {
   }, [props.active, divRef]);
 
   useEffect(() => {
-    if (
-      props.onEmitBoundingBox == null ||
-      rootRef == null ||
-      rootRef.current == null
-    )
-      return;
+    if (props.onEmitRootRef == null || rootRef == null) return;
 
-    const bbox = rootRef.current!.getBoundingClientRect();
-    props.onEmitBoundingBox(bbox);
-  }, [rootRef.current, props.onEmitBoundingBox]);
+    props.onEmitRootRef(rootRef);
+  }, [rootRef.current, props.onEmitRootRef]);
 
   const styles = {
     height: layer1 ? `${h - shadowSize}px` : 'auto',

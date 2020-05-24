@@ -546,43 +546,27 @@ export default class LayoutStore {
     });
   }
 
-  // { serviceId -> { apId -> Set<senderId> } }
-  @computed
-  get cardAccessIndex(): Map<string, Map<string, Set<string>>> {
-    const index = new Map();
-
-    this.interactions.links.forEach((l: Link) => {
-      const senderId = l.sourceId;
-      const receiverId = l.destinationId;
-      const apId = ids.accessPoint(receiverId, l.destinationPort);
-
-      if (!index.has(receiverId)) {
-        index.set(receiverId, new Map());
-      }
-      const cardIndex = index.get(receiverId)!;
-
-      if (!cardIndex.has(apId)) {
-        cardIndex.set(apId, new Set());
-      }
-      const apSenders = cardIndex.get(apId)!;
-
-      apSenders.add(senderId);
-    });
-
-    return index;
-  }
-
   // Gives mid of physical APs
   // { cardId -> Vec2 }
   @computed
   get connectorMidPoints(): Map<string, Vec2> {
     const index = new Map();
 
-    this.cardAccessIndex.forEach((cardIndex, cardId) => {
+    this.connections.incomings.forEach((receiverIndex, receiverId) => {
       let midPoint = Vec2.from(0, 0);
       let npoints = 0;
 
-      cardIndex.forEach((_, apId: string) => {
+      // TODO: would be cool to be able to fetch it from service card
+      // WARN: it could be a strange architecture
+      let receiverAPs: Set<string> = new Set();
+
+      receiverIndex.forEach((apIds: Set<string>) => {
+        apIds.forEach((apId: string) => {
+          receiverAPs = new Set([...receiverAPs, ...apIds]);
+        });
+      });
+
+      receiverAPs.forEach((apId: string) => {
         const apPos = this.apCoords.get(apId);
         if (apPos == null) return;
 
@@ -591,7 +575,7 @@ export default class LayoutStore {
       });
 
       if (npoints === 0) return;
-      index.set(cardId, midPoint.mul(1 / npoints));
+      index.set(receiverId, midPoint.mul(1 / npoints));
     });
 
     return index;
