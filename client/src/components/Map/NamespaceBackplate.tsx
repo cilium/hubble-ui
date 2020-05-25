@@ -1,12 +1,10 @@
-import React, { useMemo, useState, useEffect } from 'react';
-
-import { sizes } from '~/ui/vars';
+import React from 'react';
 import { XYWH } from '~/domain/geometry';
-
+import { sizes } from '~/ui/vars';
 import css from './styles.scss';
 
 export interface Props {
-  namespace: string | undefined;
+  namespace: string | null;
   xywh: XYWH;
 }
 

@@ -9,12 +9,13 @@ import { App } from './components/App';
 import { StoreProvider } from '~/store';
 import * as ui from '~/ui';
 import api from '~/api';
+import { RouteHistorySourceKind } from './store/stores/route';
 
 const run = async () => {
   ui.setCSSVars(ui.sizes);
 
   const elems = (
-    <StoreProvider>
+    <StoreProvider historySource={RouteHistorySourceKind.URL}>
       <App api={api} />
     </StoreProvider>
   );
