@@ -1,5 +1,4 @@
-import { trace, action, autorun, configure, observable, computed } from 'mobx';
-
+import { action, configure, observable } from 'mobx';
 import { Flow } from '~/domain/flows';
 import {
   InteractionKind,
@@ -7,13 +6,16 @@ import {
   Link,
   Service,
 } from '~/domain/service-map';
-
 import InteractionStore from './interaction';
 import LayoutStore from './layout';
-import RouteStore from './route';
+import RouteStore, { RouteHistorySourceKind } from './route';
 import ServiceStore from './service';
 
 configure({ enforceActions: 'observed' });
+
+export interface Props {
+  historySource: RouteHistorySourceKind;
+}
 
 export class Store {
   @observable interactions: InteractionStore;
@@ -24,37 +26,19 @@ export class Store {
 
   @observable layout: LayoutStore;
 
-  // TODO: consider namespace things to move to separate store (ex: MapStore)
-
   @observable namespaces: Array<string> = [];
-
-  @observable currentNsIdx = -1;
 
   @observable selectedTableFlow: Flow | null = null;
 
-  constructor() {
+  constructor({ historySource }: Props) {
     this.interactions = new InteractionStore();
     this.services = new ServiceStore();
-    this.route = new RouteStore();
+    this.route = new RouteStore(historySource);
 
     // LayoutStore is a store which knows geometry props of service map
     // It will be depending on flows / links as these are used to determine
     // positions of cards
     this.layout = new LayoutStore(this.services, this.interactions);
-
-    autorun(() => {
-      const ns = this.route.pathParts[0];
-
-      this.setNamespaceByName(ns);
-    });
-  }
-
-  static new(): Store {
-    return new Store();
-  }
-
-  @computed get currentNamespace(): string | undefined {
-    return this.namespaces[this.currentNsIdx];
   }
 
   @action.bound
@@ -63,18 +47,12 @@ export class Store {
   }
 
   @action.bound
-  setNamespaces(nss: Array<string>, activateFirst?: boolean) {
+  setNamespaces(nss: Array<string>) {
     this.namespaces = nss;
 
-    if (!!activateFirst && nss.length > 0) {
-      this.currentNsIdx = 0;
+    if (!this.route.namespace && nss.length > 0) {
+      this.route.navigate(`/${nss[0]}`);
     }
-  }
-
-  @action.bound
-  setNamespaceByName(ns: string) {
-    const idx = this.namespaces.findIndex(n => n === ns);
-    this.currentNsIdx = idx;
   }
 
   @action.bound

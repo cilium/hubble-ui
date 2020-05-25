@@ -5,7 +5,7 @@ import css from './styles.scss';
 
 export interface BarProps {
   namespaces: Array<string>;
-  currentNsIdx: number;
+  currentNamespace: string | null;
   onNsChange?: (ns: string) => void;
 }
 
@@ -15,7 +15,7 @@ export const TopBar = memo<BarProps>(props => {
       <div className={css.left}>
         <NamespaceDropdown
           namespaces={props.namespaces}
-          currentIdx={props.currentNsIdx}
+          currentNamespace={props.currentNamespace}
           onChange={props.onNsChange}
         />
       </div>
