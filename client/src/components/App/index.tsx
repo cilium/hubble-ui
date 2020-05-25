@@ -1,4 +1,4 @@
-import { RouteComponentProps, Router, useNavigate } from '@reach/router';
+import { RouteComponentProps, Router } from '@reach/router';
 import { observer } from 'mobx-react';
 import React, {
   FunctionComponent,
@@ -7,20 +7,15 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-
+import { API, ThrottledFlowsStream } from '~/api/general';
+import { DetailsPanel } from '~/components/DetailsPanel';
 import { Map } from '~/components/Map';
 import { TopBar } from '~/components/TopBar';
-import { DetailsPanel } from '~/components/DetailsPanel';
-
-import { HubbleFlow } from '~/domain/flows';
+import { Vec2 } from '~/domain/geometry';
+import { ResolveType } from '~/domain/misc';
 import { ServiceCard } from '~/domain/service-card';
 import { Interactions } from '~/domain/service-map';
-import { ResolveType } from '~/domain/misc';
-import { Vec2 } from '~/domain/geometry';
-
 import { useStore } from '~/store';
-import { API, ThrottledFlowsStream } from '~/api/general';
-
 import css from './styles.scss';
 
 export interface AppProps extends RouteComponentProps {
@@ -46,7 +41,6 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   );
 
   const store = useStore();
-  const navigate = useNavigate();
 
   useEffect(() => {
     api.v1.getNamespaces().then((nss: Array<string>) => {
@@ -78,16 +72,15 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       setFlowsStream(data.flowsStream);
     };
 
-    loadData(api, store.currentNamespace || 'default')
+    loadData(api, store.route.namespace || 'default')
       .then(onLoad)
       .finally(() => {
         setLoading(false);
       });
-  }, [store.currentNamespace]);
+  }, [store.route.namespace]);
 
   const onNsChange = useCallback((ns: string) => {
-    store.setNamespaceByName(ns);
-    navigate(`/${ns}`);
+    store.route.navigate(`/${ns}`);
   }, []);
 
   const onServiceSelect = useCallback((srvc: ServiceCard) => {
@@ -116,14 +109,14 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     <div className={css.app}>
       <TopBar
         namespaces={store.namespaces}
-        currentNsIdx={store.currentNsIdx}
+        currentNamespace={store.route.namespace}
         onNsChange={onNsChange}
       />
 
       <div className={css.map}>
         <Map
           services={store.services.data}
-          namespace={store.currentNamespace}
+          namespace={store.route.namespace}
           interactions={interactions}
           activeServices={store.services.activeSet}
           onServiceSelect={onServiceSelect}
