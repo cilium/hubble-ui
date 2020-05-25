@@ -18,7 +18,7 @@ export interface Props {
   services: Array<ServiceCard>;
   activeServices?: Set<string>;
   links?: Array<Link>;
-  namespace: string | undefined;
+  namespace: string | null;
   interactions?: Interactions;
   onServiceSelect?: (srvc: ServiceCard) => void;
   onEmitAPConnectorCoords?: (apId: string, coords: Vec2) => void;
@@ -27,7 +27,6 @@ export interface Props {
 export type MapElementsProps = Omit<Props, 'services'>;
 
 export const MapElementsComponent = observer((props: MapElementsProps) => {
-  const store = useStore();
   const { layout } = useStore();
   const { namespace } = props;
   const [nsXYWH, setNsXYWH] = useState(geom.xywh());

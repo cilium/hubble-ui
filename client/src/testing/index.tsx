@@ -3,9 +3,14 @@ import React, { FunctionComponent } from 'react';
 
 import { StoreProvider } from '~/store';
 import * as data from './data';
+import { RouteHistorySourceKind } from '~/store/stores/route';
 
 const AllProviders: FunctionComponent = ({ children }) => {
-  return <StoreProvider>{children}</StoreProvider>;
+  return (
+    <StoreProvider historySource={RouteHistorySourceKind.URL}>
+      {children}
+    </StoreProvider>
+  );
 };
 
 const customRender = (

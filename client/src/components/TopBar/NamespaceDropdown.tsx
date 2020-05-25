@@ -36,7 +36,7 @@ const filterItem: ItemPredicate<string> = (query, value, idx, exactMatch) => {
 
 export interface Props {
   namespaces: Array<string>;
-  currentIdx: number;
+  currentNamespace: string | null;
   onChange?: (ns: string) => void;
 }
 
@@ -52,9 +52,9 @@ export const NamespaceDropdown: FunctionComponent<Props> = props => {
   );
 
   const currentValue =
-    props.currentIdx === -1
+    props.currentNamespace == null
       ? 'Choose namespace'
-      : props.namespaces[props.currentIdx];
+      : props.currentNamespace;
 
   return (
     <div className={css.nsDropdown}>

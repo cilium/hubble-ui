@@ -1,24 +1,38 @@
-import { globalHistory, History, HistoryLocation } from '@reach/router';
-import { observable, runInAction, computed, action } from 'mobx';
+import {
+  createHistory,
+  createMemorySource,
+  globalHistory,
+  History,
+  NavigateOptions,
+} from '@reach/router';
+import { action, autorun, computed, observable, runInAction } from 'mobx';
 import * as qs from 'query-string';
+
+export enum RouteHistorySourceKind {
+  Memory = 'memory',
+  URL = 'url',
+}
 
 export default class RouteStore {
   @observable
-  public location: HistoryLocation = window.location as HistoryLocation;
   public history: History;
 
+  @observable
+  private location: History['location'];
+
   private cache: any = {};
+  private static NAMESPACE_LS_KEY = '@hubble-ui/namespace';
 
-  constructor() {
-    this.history = globalHistory;
+  constructor(historySource: RouteHistorySourceKind) {
+    this.history =
+      historySource === 'url'
+        ? globalHistory
+        : createHistory(createMemorySource('/'));
 
-    this.history.listen(({ location, action }) => {
-      console.log('in history listen: ', location, action);
-      runInAction(() => {
-        this.location = location;
-        this.dropCache();
-      });
-    });
+    this.location = this.history.location;
+
+    this.listen();
+    this.restoreNamespace();
   }
 
   @computed get query() {
@@ -42,7 +56,42 @@ export default class RouteStore {
     return pp;
   }
 
-  @action.bound private dropCache() {
+  @computed get namespace(): string | null {
+    return this.pathParts[0] || null;
+  }
+
+  @action.bound
+  navigate(to: string, options?: NavigateOptions<{}>) {
+    return this.history.navigate(to, options);
+  }
+
+  @action.bound
+  private dropCache() {
     this.cache = {};
+  }
+
+  private listen() {
+    this.history.listen(({ location, action }) => {
+      // console.log('in history listen: ', location, action);
+      runInAction(() => {
+        this.dropCache();
+        this.location = location;
+      });
+    });
+
+    autorun(() => {
+      if (this.namespace) {
+        localStorage.setItem(RouteStore.NAMESPACE_LS_KEY, this.namespace);
+      }
+    });
+  }
+
+  private restoreNamespace() {
+    if (this.namespace) return;
+
+    const storedNamespace = localStorage.getItem(RouteStore.NAMESPACE_LS_KEY);
+    if (!storedNamespace) return;
+
+    this.navigate(`/${storedNamespace}`);
   }
 }
