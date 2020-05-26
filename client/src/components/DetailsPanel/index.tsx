@@ -1,26 +1,18 @@
-import { RouteComponentProps, Router, useNavigate } from '@reach/router';
 import { observer } from 'mobx-react';
-import React, {
-  FunctionComponent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  useRef,
-} from 'react';
+import React, { FunctionComponent, useMemo, useRef } from 'react';
 
-import { DragPanel } from '~/components/DragPanel';
+import { DragPanel, DragPanelBaseProps } from '~/components/DragPanel';
 import { FlowsTable } from '~/components/FlowsTable';
 import { FlowsTableSidebar } from '~/components/FlowsTable/Sidebar';
-import { usePanelResize } from './hooks';
 
 import { Flow } from '~/domain/flows';
-import { XY } from '~/domain/geometry';
+
+import { usePanelResize } from './hooks';
 
 import css from './styles.scss';
 
 interface SidebarProps {
-  onSidebarClose?: () => void;
+  onCloseSidebar?: () => void;
 }
 
 interface TableProps {
@@ -35,11 +27,11 @@ interface PanelProps {
   resizable: boolean;
 }
 
-export type Props = SidebarProps & TableProps & PanelProps;
+export type Props = SidebarProps & TableProps & PanelProps & DragPanelBaseProps;
 
 export const DetailsPanelComponent = function(props: Props) {
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const [resizeStyles, onResize] = usePanelResize(rootRef, 0.66);
+  const [resizeStyles, onResize] = usePanelResize(rootRef);
 
   const diffCount = useMemo(() => {
     if (props.flowsDiffCount != null) return props.flowsDiffCount;
@@ -50,7 +42,15 @@ export const DetailsPanelComponent = function(props: Props) {
   return (
     <div className={css.panel} ref={rootRef} style={resizeStyles}>
       <div className={css.dragPanel}>
-        <DragPanel onResize={onResize} />
+        <DragPanel
+          selectedVerdict={props.selectedVerdict}
+          onSelectVerdict={props.onSelectVerdict}
+          selectedHttpStatus={props.selectedHttpStatus}
+          onSelectHttpStatus={props.onSelectHttpStatus}
+          flowFilters={props.flowFilters}
+          onChangeFlowFilters={props.onChangeFlowFilters}
+          onResize={onResize}
+        />
       </div>
 
       <div className={css.tableWrapper}>
@@ -66,7 +66,7 @@ export const DetailsPanelComponent = function(props: Props) {
       {props.selectedFlow && (
         <FlowsTableSidebar
           flow={props.selectedFlow}
-          onClose={props.onSidebarClose}
+          onClose={props.onCloseSidebar}
         />
       )}
     </div>

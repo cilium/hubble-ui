@@ -51,7 +51,7 @@ export class Store {
     this.namespaces = nss;
 
     if (!this.route.namespace && nss.length > 0) {
-      this.route.navigate(`/${nss[0]}`);
+      this.route.goto(`/${nss[0]}`);
     }
   }
 

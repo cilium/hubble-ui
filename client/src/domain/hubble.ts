@@ -135,9 +135,10 @@ export interface Service {
 }
 
 export enum Verdict {
-  Unknown,
-  Forwarded,
-  Dropped,
+  Unknown = 0,
+  Forwarded = 1,
+  Dropped = 2,
+  Error = 3,
 }
 
 export enum FlowType {
