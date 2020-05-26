@@ -20,3 +20,28 @@
     cursor: grabbing;
   }
 }
+
+.left,
+.right {
+  flex: 1;
+  position: relative;
+}
+
+.left {
+  @include row(flex-start, center);
+
+  padding-left: 10px;
+}
+
+.center {
+  @include row(center, center);
+
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+.right {
+  @include row(flex-start, center);
+
+  padding-right: 10px;
+}

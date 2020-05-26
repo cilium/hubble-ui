@@ -1,0 +1,27 @@
+.button {
+  margin: 0 20px;
+}
+
+.outer {
+  padding: 10px;
+}
+
+.wrapper {
+  display: flex;
+  width: 200px;
+
+  button {
+    margin-left: 10px;
+  }
+}
+
+.note {
+  display: block;
+  color: #666;
+  margin-top: 10px;
+
+  svg {
+    position: relative;
+    top: -1px;
+  }
+}
