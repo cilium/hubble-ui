@@ -38,6 +38,14 @@ $border-color: #c6cace;
     &:not(:last-child) {
       border-right: 1px solid $border-color;
     }
+
+    &:first-child {
+      padding-left: 10px;
+    }
+
+    &:last-child {
+      padding-right: 10px;
+    }
   }
 
   th {

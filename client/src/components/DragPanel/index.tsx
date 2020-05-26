@@ -1,12 +1,27 @@
-import React, { useMemo, memo } from 'react';
 import { Button, Spinner } from '@blueprintjs/core';
+import React, { memo } from 'react';
 import { animated } from 'react-spring';
-import { ReactEventHandlers } from 'react-use-gesture/dist/types';
 import { useDrag } from 'react-use-gesture';
+
+import { FlowsFilterInput } from '~/components/InputElements/FlowsFilterInput';
+import { ForwardingStatusDropdown } from '~/components/InputElements/ForwardingStatusDropdown';
+import { HttpStatusCodeDropdown } from '~/components/InputElements/HttpStatusCodeDropdown';
+
+import { FlowsFilterEntry } from '~/domain/flows';
+import { Verdict } from '~/domain/hubble';
 
 import css from './styles.scss';
 
-export interface Props {
+export interface DragPanelBaseProps {
+  selectedVerdict: Verdict | null;
+  onSelectVerdict: (verdict: Verdict | null) => void;
+  selectedHttpStatus: string | null;
+  onSelectHttpStatus: (httpStatus: string | null) => void;
+  flowFilters: FlowsFilterEntry[];
+  onChangeFlowFilters: (filters: FlowsFilterEntry[]) => void;
+}
+
+export interface Props extends DragPanelBaseProps {
   onResize?: (dy: number) => void;
 }
 
@@ -20,9 +35,27 @@ export const Component = function DragPanelComponent(props: Props) {
 
   return (
     <animated.div {...bind()} className={css.dragPanel}>
-      <Button small active rightIcon={<Spinner size={16} />}>
-        Flows streaming
-      </Button>
+      <div className={css.left}>
+        <FlowsFilterInput
+          filters={props.flowFilters}
+          onChange={props.onChangeFlowFilters}
+        />
+      </div>
+      <div className={css.center}>
+        <Button active rightIcon={<Spinner size={16} />}>
+          Flows streaming
+        </Button>
+      </div>
+      <div className={css.right}>
+        <ForwardingStatusDropdown
+          verdict={props.selectedVerdict}
+          onSelect={props.onSelectVerdict}
+        />
+        <HttpStatusCodeDropdown
+          httpStatus={props.selectedHttpStatus}
+          onSelect={props.onSelectHttpStatus}
+        />
+      </div>
     </animated.div>
   );
 };

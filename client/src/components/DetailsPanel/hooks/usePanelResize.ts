@@ -1,20 +1,22 @@
 import {
   MutableRefObject,
-  useState,
-  useEffect,
   useCallback,
+  useEffect,
   useMemo,
+  useState,
 } from 'react';
-
 import { sizes } from '~/ui/vars';
 
 type HookData = [{ top: string }, (dy: number) => void];
 
+const LS_POS_KEY = '@hubble-ui/panel-position';
+
 export const usePanelResize = (
   rootRef: MutableRefObject<HTMLDivElement | null>,
-  initialPanelTop: number,
 ): HookData => {
-  const [panelTop, setPanelTop] = useState(initialPanelTop);
+  const lsPosition = localStorage.getItem(LS_POS_KEY);
+  const initialPosition = lsPosition ? +lsPosition : 0.66;
+  const [panelTop, setPanelTop] = useState(initialPosition);
 
   const topBarThreshold = useMemo(() => {
     return sizes.topBarHeight / window.innerHeight;
@@ -22,13 +24,18 @@ export const usePanelResize = (
 
   useEffect(() => {
     if (rootRef.current == null) return;
-    const bbox = rootRef.current!.getBoundingClientRect();
+    const bbox = rootRef.current.getBoundingClientRect();
 
     setPanelTop(1 - bbox.y / window.innerHeight);
   }, [rootRef.current]);
 
+  useEffect(() => {
+    localStorage.setItem(LS_POS_KEY, String(panelTop));
+  }, [panelTop]);
+
   const onResize = useCallback((dy: number) => {
-    const bbox = rootRef.current!.getBoundingClientRect();
+    if (rootRef.current == null) return;
+    const bbox = rootRef.current.getBoundingClientRect();
 
     const panelTop = bbox.y / window.innerHeight;
     const change = dy / window.innerHeight;
