@@ -7,11 +7,13 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { API, ThrottledFlowsStream } from '~/api/general';
+import { API, FlowsStreamParams, ThrottledFlowsStream } from '~/api/general';
 import { DetailsPanel } from '~/components/DetailsPanel';
 import { Map } from '~/components/Map';
 import { TopBar } from '~/components/TopBar';
+import { FlowsFilterEntry, FlowsFilterUtils } from '~/domain/flows';
 import { Vec2 } from '~/domain/geometry';
+import { Verdict } from '~/domain/hubble';
 import { ResolveType } from '~/domain/misc';
 import { ServiceCard } from '~/domain/service-card';
 import { Interactions } from '~/domain/service-map';
@@ -22,10 +24,17 @@ export interface AppProps extends RouteComponentProps {
   api: API;
 }
 
-const loadData = async (api: API, namespace: string) => {
-  const flowsStream = await api.v1.getFlowsStream({ namespace });
-  const services = await api.v1.getServices();
-  const links = await api.v1.getLinks();
+interface LoadDataParams {
+  api: API;
+  flowsStreamParams: FlowsStreamParams;
+}
+
+const loadData = async (params: LoadDataParams) => {
+  const flowsStream = await params.api.v1.getFlowsStream(
+    params.flowsStreamParams,
+  );
+  const services = await params.api.v1.getServices();
+  const links = await params.api.v1.getLinks();
 
   return { flowsStream, services, links };
 };
@@ -49,9 +58,9 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   }, []);
 
   useEffect(() => {
-    // if (!store.currentNamespace) {
-    //   return;
-    // }
+    if (!store.route.namespace) {
+      return;
+    }
 
     const onLoad = (data: LoadedData) => {
       const { services, links } = data;
@@ -72,19 +81,47 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       setFlowsStream(data.flowsStream);
     };
 
-    loadData(api, store.route.namespace || 'default')
+    const params = {
+      api,
+      flowsStreamParams: {
+        namespace: store.route.namespace,
+        verdict: store.route.verdict,
+        httpStatus: store.route.httpStatus,
+        filters: store.route.flowFilters,
+      },
+    };
+
+    loadData(params)
       .then(onLoad)
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [store.route.namespace]);
+      .finally(() => setLoading(false));
+  }, [
+    store.route.namespace,
+    store.route.verdict,
+    store.route.httpStatus,
+    store.route.flowFilters,
+  ]);
 
   const onNsChange = useCallback((ns: string) => {
-    store.route.navigate(`/${ns}`);
+    store.route.goto(`/${ns}`);
   }, []);
 
   const onServiceSelect = useCallback((srvc: ServiceCard) => {
     store.services.toggleActive(srvc.id);
+  }, []);
+
+  const onSelectVerdict = useCallback((verdict: Verdict | null) => {
+    store.route.setParam('verdict', verdict);
+  }, []);
+
+  const onSelectHttpStatus = useCallback((httpStatus: string | null) => {
+    store.route.setParam('http-status', httpStatus);
+  }, []);
+
+  const onChangeFlowFilters = useCallback((values: FlowsFilterEntry[]) => {
+    store.route.setParam(
+      'flows-filter',
+      values.map(FlowsFilterUtils.createFilterString),
+    );
   }, []);
 
   const onCloseFlowsTableSidebar = useCallback(() => {
@@ -130,8 +167,14 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
         flowsDiffCount={flowsDiffCount}
         selectedFlow={store.selectedTableFlow}
         onSelectFlow={store.selectTableFlow}
+        selectedVerdict={store.route.verdict}
+        onSelectVerdict={onSelectVerdict}
+        selectedHttpStatus={store.route.httpStatus}
+        onSelectHttpStatus={onSelectHttpStatus}
+        onCloseSidebar={onCloseFlowsTableSidebar}
+        flowFilters={store.route.flowFilters}
+        onChangeFlowFilters={onChangeFlowFilters}
         tsUpdateDelay={flowsStream?.throttleDelay}
-        onSidebarClose={onCloseFlowsTableSidebar}
       />
     </div>
   );

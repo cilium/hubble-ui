@@ -48,8 +48,11 @@ export class DataStream<Message extends ProtobufMessage> extends EventEmitter<
     this.setupEventHandlers();
   }
 
-  public stop() {
+  public stop(clearBuffer = true) {
     this.grpcStream.cancel();
+    if (clearBuffer) {
+      this.throttleBuffer = [];
+    }
   }
 
   public get batched() {
@@ -59,7 +62,6 @@ export class DataStream<Message extends ProtobufMessage> extends EventEmitter<
   public get dataEvent() {
     return this.batched ? StreamEvent.BATCH_DRAIN : StreamEvent.DATA;
   }
-
   private setupThrottling() {
     if (this.throttleDelayMs === 0) return;
 

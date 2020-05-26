@@ -67,14 +67,10 @@ export const NamespaceDropdown: FunctionComponent<Props> = props => {
         items={props.namespaces || []}
         noResults={<MenuItem disabled={true} text="No matches" />}
         onItemSelect={onChange}
+        inputProps={{ placeholder: 'Filter namespaces…' }}
       >
         <ButtonGroup>
-          <Button
-            small
-            rightIcon="caret-down"
-            icon={btnIcon}
-            text={currentValue}
-          />
+          <Button rightIcon="caret-down" icon={btnIcon} text={currentValue} />
           {/*{props.clearable && props.namespaceFromParams && (
             <Button small icon="cross" onClick={onReset} />
           )}*/}
