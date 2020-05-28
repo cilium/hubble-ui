@@ -32,7 +32,7 @@ RUN npm run install:all
 COPY patches/ patches/
 RUN patch -p1 < patches/request_issue3274.patch
 
-COPY hubble/ hubble/
+COPY cilium/ cilium/
 COPY server/ server/
 
 # run test and build server
