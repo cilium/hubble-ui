@@ -103,14 +103,17 @@ export class FlowsStream implements IThrottledStream<HubbleFlow[]> {
           switch (filter.kind) {
             case FlowsFilterKind.Label: {
               srcWhitelistBaseFilter.addSourceLabel(filter.query);
+              dstWhitelistBaseFilter.addSourceLabel(filter.query);
               break;
             }
             case FlowsFilterKind.Ip: {
               srcWhitelistBaseFilter.addSourceIp(filter.query);
+              dstWhitelistBaseFilter.addSourceIp(filter.query);
               break;
             }
             case FlowsFilterKind.Dns: {
               srcWhitelistBaseFilter.addSourceFqdn(filter.query);
+              dstWhitelistBaseFilter.addSourceFqdn(filter.query);
               break;
             }
           }
@@ -119,14 +122,17 @@ export class FlowsStream implements IThrottledStream<HubbleFlow[]> {
         case FlowsFilterDirection.To: {
           switch (filter.kind) {
             case FlowsFilterKind.Label: {
+              srcWhitelistBaseFilter.addDestinationLabel(filter.query);
               dstWhitelistBaseFilter.addDestinationLabel(filter.query);
               break;
             }
             case FlowsFilterKind.Ip: {
+              srcWhitelistBaseFilter.addDestinationIp(filter.query);
               dstWhitelistBaseFilter.addDestinationIp(filter.query);
               break;
             }
             case FlowsFilterKind.Dns: {
+              srcWhitelistBaseFilter.addDestinationFqdn(filter.query);
               dstWhitelistBaseFilter.addDestinationFqdn(filter.query);
               break;
             }
