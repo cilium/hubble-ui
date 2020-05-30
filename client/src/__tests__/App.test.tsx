@@ -4,13 +4,8 @@ import api from '~/api';
 
 jest.mock('~/api');
 
-test('App renders without exceptions', async () => {
-  await act(async () => {
+test('App renders without exceptions', () => {
+  act(() => {
     render(<App api={api} />);
-  });
-
-  await waitFor(() => {
-    const getEventStream = jest.spyOn(api.v1, 'getEventStream');
-    expect(getEventStream).toHaveBeenCalled();
   });
 });
