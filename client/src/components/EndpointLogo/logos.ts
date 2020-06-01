@@ -1,5 +1,6 @@
 export const kubernetes = '/icons/logos/kubernetes-logo.svg';
 export const world = '/icons/logos/world-logo.svg';
+export const host = world;
 export const mongodb = '/icons/logos/mongodb-logo.svg';
 export const redis = '/icons/logos/redis-logo.svg';
 export const rabbitmq = '/icons/logos/rabbitmq-logo.svg';

@@ -53,11 +53,13 @@ export const MapElementsComponent = observer((props: MapElementsProps) => {
     return r;
   }, [props.activeServices]);
 
+  const placement = layout.placement;
+
   return (
     <>
       <NamespaceBackplate namespace={namespace} xywh={nsXYWH} />
 
-      {layout.placement.map(plc => (
+      {placement.map(plc => (
         <EndpointCardBackplate
           key={plc.card.id}
           coords={plc.geometry}
@@ -71,7 +73,7 @@ export const MapElementsComponent = observer((props: MapElementsProps) => {
         apPositions={layout.apCoords}
       />
 
-      {layout.placement.map(plc => {
+      {placement.map(plc => {
         const accessPoints = props.accessPoints.get(plc.card.id);
 
         return (

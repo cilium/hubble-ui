@@ -13,6 +13,7 @@ import _ from 'lodash';
 
 import { sizes, colors } from '~/ui/vars';
 
+import { chunks } from '~/utils/iter-tools';
 import { XYWH, Vec2, Line2, utils as gutils } from '~/domain/geometry';
 import { ConnectorArrow, SenderArrows } from '~/domain/layout';
 
@@ -28,10 +29,37 @@ interface ArrowData {
 
 type Arrow = [string, ArrowData];
 
-const arrowLine = d3
-  .line<Vec2>()
-  .x(d => d.x)
-  .y(d => d.y);
+const arrowLine = (points: Vec2[]): string => {
+  if (points.length < 2) return '';
+
+  if (points.length === 2) {
+    const [a, b] = points;
+    return `M ${a.x} ${a.y} L${b.x} ${b.y}`;
+  }
+
+  const first = points[0];
+  const last = points[points.length - 1];
+  const r = sizes.arrowRadius;
+
+  let line = `M ${first.x} ${first.y}`;
+
+  chunks(points, 3, 2).forEach((chunk: Vec2[]) => {
+    const [a, b, c] = chunk;
+    const [d, e] = gutils.roundCorner(r, [a, b, c]);
+
+    const ab = Vec2.from(b.x - a.x, b.y - a.y);
+    const bc = Vec2.from(c.x - b.x, c.y - b.y);
+    const sweep = ab.isClockwise(bc) ? 0 : 1;
+
+    line += `
+      L ${d.x} ${d.y}
+      A ${r} ${r} 0 0 ${sweep} ${e.x} ${e.y}
+    `;
+  });
+
+  line += `L ${last.x} ${last.y}`;
+  return line;
+};
 
 const startPlatePath = (d: any) => {
   const { x, y } = d[1];

@@ -16,6 +16,7 @@ export const sizes = {
   connectorCardGap: 40,
   arrowStartTopOffset: 50,
   arrowHandleWidth: 20,
+  arrowRadius: 5,
   endpointProtocolHeight: 16,
   egressConnectorWidth: 38,
   ingressConnectorPadding: 24,

@@ -14,6 +14,7 @@ import InteractionStore from './interaction';
 import LayoutStore from './layout';
 import RouteStore, { RouteHistorySourceKind } from './route';
 import ServiceStore from './service';
+import ControlStore from './controls';
 
 import { ids } from '~/domain/ids';
 import * as storage from '~/storage/local';
@@ -33,22 +34,26 @@ export class Store {
 
   @observable layout: LayoutStore;
 
-  @observable namespaces: Array<string> = [];
-
-  @observable selectedTableFlow: Flow | null = null;
+  @observable controls: ControlStore;
 
   constructor({ historySource }: Props) {
     this.interactions = new InteractionStore();
     this.services = new ServiceStore();
+    this.controls = new ControlStore();
     this.route = new RouteStore(historySource);
 
     // LayoutStore is a store which knows geometry props of service map
     // It will be depending on flows / links as these are used to determine
     // positions of cards
-    this.layout = new LayoutStore(this.services, this.interactions);
+    this.layout = new LayoutStore(
+      this.services,
+      this.interactions,
+      this.controls,
+    );
 
     this.restoreNamespace();
     this.setupReactions();
+    this.setupDebugTools();
   }
 
   @action.bound
@@ -58,42 +63,11 @@ export class Store {
 
   @action.bound
   setNamespaces(nss: Array<string>) {
-    this.namespaces = nss;
+    this.controls.namespaces = nss;
 
     if (!this.route.namespace && nss.length > 0) {
-      this.route.goto(`/${nss[0]}`);
+      this.controls.setCurrentNamespace(nss[0]);
     }
-  }
-
-  @action.bound
-  addNamespace(ns: string) {
-    const nsIdx = this.namespaces.findIndex((nss: string) => nss === ns);
-    if (nsIdx !== -1) return;
-
-    this.namespaces.push(ns);
-  }
-
-  @action.bound
-  removeNamespace(ns: string) {
-    const nsIdx = this.namespaces.findIndex((nss: string) => nss === ns);
-    if (nsIdx === -1) return;
-
-    this.namespaces.splice(nsIdx, 1);
-  }
-
-  @action.bound
-  applyNamespaceChange(ns: string, change: StateChange) {
-    if (change === StateChange.Deleted) {
-      this.removeNamespace(ns);
-      return;
-    }
-
-    this.addNamespace(ns);
-  }
-
-  @action.bound
-  selectTableFlow(flow: Flow | null) {
-    this.selectedTableFlow = flow;
   }
 
   @action.bound
@@ -133,6 +107,16 @@ export class Store {
     this.interactions.applyLinkChange(link, change);
   }
 
+  @action.bound
+  applyNamespaceChange(ns: string, change: StateChange) {
+    if (change === StateChange.Deleted) {
+      this.controls.removeNamespace(ns);
+      return;
+    }
+
+    this.controls.addNamespace(ns);
+  }
+
   @computed
   get accessPoints(): AccessPoints {
     const index: AccessPoints = new Map();
@@ -162,19 +146,53 @@ export class Store {
 
   private setupReactions() {
     // prettier-ignore
-    reaction(() => this.route.namespace, namespace => {
+    reaction(() => this.controls.currentNamespace, namespace => {
       if (!namespace) return;
 
       storage.saveLastNamespace(namespace);
+      this.route.setNamespace(namespace);
     });
   }
 
   private restoreNamespace() {
-    if (this.route.namespace) return;
+    if (this.route.namespace) {
+      this.controls.setCurrentNamespace(this.route.namespace);
+      return;
+    }
 
     const lastNamespace = storage.getLastNamespace();
     if (!lastNamespace) return;
 
-    this.route.goto(`/${lastNamespace}`);
+    // this.route.goto(`/${lastNamespace}`);
+    this.route.setNamespace(lastNamespace);
+  }
+
+  // D E B U G
+  public setupDebugTools() {
+    if (window.debugTools != null) return;
+
+    window.debugTools = {
+      printMapData: () => {
+        this.printMapData();
+      },
+      printLayoutData: () => {
+        this.printLayoutData();
+      },
+    };
+  }
+
+  public printMapData() {
+    const data = {
+      cards: this.services.cards,
+      links: this.interactions.links,
+    };
+
+    console.log(JSON.stringify(data, null, 2));
+  }
+
+  public printLayoutData() {
+    const data = this.layout.debugData;
+
+    console.log(JSON.stringify(data, null, 2));
   }
 }

@@ -2,8 +2,9 @@ import { XYWH, Vec2 } from './geometry';
 import { ServiceCard } from './service-card';
 
 export enum PlacementKind {
-  IngressFromOutside = 'IngressFromOutside',
-  EgressToOutside = 'EgressToOutside',
+  FromWorld = 'FromWorld',
+  ToWorld = 'ToWorld',
+  AnotherNamespace = 'AnotherNamespace',
   InsideWithConnections = 'InsideWithConnections',
   InsideWithoutConnections = 'InsideWithoutConnections',
 }
@@ -18,6 +19,11 @@ export interface PlacementEntry {
   kind: PlacementKind;
   card: ServiceCard;
   geometry: XYWH;
+}
+
+export interface EntriesGroup {
+  entries: PlacementEntry[];
+  bbox: XYWH;
 }
 
 export interface Arrow {

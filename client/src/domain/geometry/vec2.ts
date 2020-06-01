@@ -85,4 +85,8 @@ export class Vec2 implements XY {
   public isZero(): boolean {
     return this.length() < Number.EPSILON;
   }
+
+  public isClockwise(rhs: Vec2): boolean {
+    return this.x * rhs.y - this.y * rhs.x < 0;
+  }
 }
