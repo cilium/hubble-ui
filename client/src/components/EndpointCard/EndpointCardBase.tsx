@@ -1,4 +1,10 @@
-import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
+import React, {
+  FunctionComponent,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 
@@ -28,31 +34,39 @@ const LayerComponent: FunctionComponent<CardProps> = props => {
   const divRef = useRef<HTMLDivElement>(null);
   const { layout } = useStore();
 
-  // TODO: it looks unreliable in case when element resize wasn't connected
-  // with this component props ><
+  const emitCardHeight = useCallback(() => {
+    if (!divRef || !divRef.current || !props.onHeightChange) return;
+
+    // TODO: consider using throttling/debounce/fastdom
+    const elemHeight = divRef.current.offsetHeight + shadowSize;
+
+    if (Math.abs(elemHeight - h) < Number.EPSILON) return;
+    props.onHeightChange!(props.card, elemHeight);
+  }, [props.onHeightChange, divRef]);
+
   useEffect(() => {
-    if (layer1 || !props.onHeightChange) return;
-    const div = divRef.current as HTMLDivElement;
+    if (layer1) return;
+    const observer = new MutationObserver(emitCardHeight);
 
-    const observer = new MutationObserver(_ => {
-      // TODO: consider using throttling/debounce/fastdom
-      const elemHeight = div.offsetHeight + shadowSize;
-
-      if (Math.abs(elemHeight - h) < Number.EPSILON) return;
-      props.onHeightChange!(props.card, elemHeight);
-    });
-
-    observer.observe(div, {
+    observer.observe(divRef.current as HTMLDivElement, {
       childList: true,
       subtree: true,
+      attributes: true,
+      characterData: true,
     });
-  }, [props.active, divRef]);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [layer1, divRef, emitCardHeight]);
 
   useEffect(() => {
     if (props.onEmitRootRef == null || rootRef == null) return;
 
     props.onEmitRootRef(rootRef);
   }, [rootRef.current, props.onEmitRootRef]);
+
+  useEffect(emitCardHeight, [emitCardHeight]);
 
   const styles = {
     height: layer1 ? `${h - shadowSize}px` : 'auto',

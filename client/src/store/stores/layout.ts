@@ -1,36 +1,31 @@
 import { action, computed, observable, reaction, autorun } from 'mobx';
 import _ from 'lodash';
 
-import { dummy as geom, Vec2, XY, WH, XYWH } from '~/domain/geometry';
 import { ids } from '~/domain/ids';
+import { dummy as geom, Vec2, XY, WH, XYWH } from '~/domain/geometry';
+import { ServiceCard } from '~/domain/service-card';
+import { Link } from '~/domain/service-map';
 import {
   ConnectorArrow,
   Placement,
   PlacementEntry,
   PlacementMeta,
   PlacementKind,
+  EntriesGroup,
   SenderArrows,
   ServiceConnector,
 } from '~/domain/layout';
-import { ServiceCard } from '~/domain/service-card';
-import { Link } from '~/domain/service-map';
-import { sizes } from '~/ui/vars';
+
 import InteractionStore from './interaction';
 import ServiceStore from './service';
+import ControlStore from './controls';
 
-// { cardId -> { cardId -> Set(apIds) } }
-export type ConnectionsMap = Map<string, Map<string, Set<string>>>;
-
+import { sizes } from '~/ui/vars';
 // { senderId -> { receiverId -> ServiceConnector } }
 export type Connectors = Map<string, Map<string, ServiceConnector>>;
 
 export type CardsPlacement = Map<string, PlacementEntry>;
 export type CardsColumns = Map<string, PlacementMeta[][]>;
-
-export interface Connections {
-  readonly outgoings: ConnectionsMap;
-  readonly incomings: ConnectionsMap;
-}
 
 type PlacementFilter = (e: PlacementEntry) => boolean;
 
@@ -39,11 +34,17 @@ export default class LayoutStore {
 
   @observable private services: ServiceStore;
   @observable private interactions: InteractionStore;
+  @observable private controls: ControlStore;
   @observable private cardDimensions: Map<string, WH>;
 
-  constructor(services: ServiceStore, interactions: InteractionStore) {
+  constructor(
+    services: ServiceStore,
+    interactions: InteractionStore,
+    controls: ControlStore,
+  ) {
     this.services = services;
     this.interactions = interactions;
+    this.controls = controls;
 
     this.cardDimensions = new Map();
     this.apCoords = new Map();
@@ -89,13 +90,20 @@ export default class LayoutStore {
   }
 
   @computed
+  get placement(): Placement {
+    return [...this.cardsPlacement.values()];
+  }
+
+  @computed
   get cardsPlacement(): CardsPlacement {
     const groups = this.placementGroups;
     const columns: Map<string, PlacementMeta[][]> = new Map();
+    const skipAnotherNs = !this.controls.showCrossNamespaceActivity;
 
     groups.forEach((placements: Set<PlacementMeta>, kind: PlacementKind) => {
-      const kindColumns = this.buildPlacementColumns(placements);
+      if (skipAnotherNs && kind === PlacementKind.AnotherNamespace) return;
 
+      const kindColumns = this.buildPlacementColumns(placements);
       columns.set(kind, kindColumns);
     });
 
@@ -103,178 +111,13 @@ export default class LayoutStore {
     return placement;
   }
 
-  private assignCoordinates(columns: CardsColumns): CardsPlacement {
-    const placement: CardsPlacement = new Map();
-
-    // prettier-ignore
-    const top = this.alignColumns(columns, [ PlacementKind.EgressToOutside ]);
-    const bottom = this.alignColumns(columns, [
-      PlacementKind.IngressFromOutside,
-      PlacementKind.InsideWithConnections,
-      PlacementKind.InsideWithoutConnections,
-    ]);
-
-    const egressToOutside = top.get(PlacementKind.EgressToOutside);
-    const ingressFromOutside = bottom.get(PlacementKind.IngressFromOutside);
-    const insideWithConns = bottom.get(PlacementKind.InsideWithConnections);
-    const insideNoConns = bottom.get(PlacementKind.InsideWithoutConnections);
-
-    const shiftEntries = (shift: XY, entries: PlacementEntry[]) => {
-      entries.forEach((entry: PlacementEntry) => {
-        entry.geometry.x += shift.x;
-        entry.geometry.y += shift.y;
-      });
-    };
-
-    // EgressToOutside cards aligned to middle of InsideWithConnections cards
-    if (insideWithConns != null && egressToOutside != null) {
-      const outsideBBox = egressToOutside[1];
-      const insideBBox = insideWithConns[1];
-
-      const newOutsideBBoxX = (insideBBox.w - outsideBBox.w) / 2;
-      const x = (insideBBox.x - outsideBBox.x) / 2 + newOutsideBBoxX;
-
-      shiftEntries({ x, y: 0 }, egressToOutside[0]);
-    }
-
-    if (egressToOutside != null) {
-      // Shift all other cards below EgressToOutside cards
-      const bottomShift = {
-        x: 0,
-        y: egressToOutside[1].h + sizes.endpointVPadding,
-      };
-
-      // prettier-ignore
-      ingressFromOutside && shiftEntries(bottomShift, ingressFromOutside[0]);
-      insideWithConns && shiftEntries(bottomShift, insideWithConns[0]);
-      insideNoConns && shiftEntries(bottomShift, insideNoConns[0]);
-    }
-
-    const copyEntries = (entries: PlacementEntry[]) => {
-      entries.forEach(entry => {
-        placement.set(entry.card.id, entry);
-      });
-    };
-
-    egressToOutside && copyEntries(egressToOutside[0]);
-    ingressFromOutside && copyEntries(ingressFromOutside[0]);
-    insideWithConns && copyEntries(insideWithConns[0]);
-    insideNoConns && copyEntries(insideNoConns[0]);
-
-    return placement;
-  }
-
-  private alignColumns(
-    cardsColumns: CardsColumns,
-    kinds: PlacementKind[],
-  ): Map<PlacementKind, [PlacementEntry[], XYWH]> {
-    const alignment = new Map();
-
-    const columnHeights: Map<PlacementEntry[], number> = new Map();
-    const offset = { x: 0, y: 0 };
-    let entireHeight = 0;
-
-    kinds.forEach(kind => {
-      const columns = cardsColumns.get(kind);
-      if (columns == null) return;
-
-      const entries: PlacementEntry[] = [];
-      const bbox = XYWH.fromArgs(offset.x, offset.y, 0, 0);
-
-      columns.forEach((column: PlacementMeta[]) => {
-        const columnEntries: PlacementEntry[] = [];
-
-        let columnWidth = 0;
-        let columnHeight = 0;
-        offset.y = 0;
-
-        column.forEach((meta: PlacementMeta, ri: number) => {
-          const cardWH = this.cardDimensions.get(meta.card.id);
-          if (cardWH == null) return;
-
-          const geomtry = XYWH.fromArgs(offset.x, offset.y, cardWH.w, cardWH.h);
-
-          const entry = {
-            card: meta.card,
-            kind: meta.kind,
-            geometry: geomtry,
-          };
-
-          entries.push(entry);
-          columnEntries.push(entry);
-
-          columnWidth = Math.max(columnWidth, cardWH.w);
-          columnHeight += cardWH.h + (ri === 0 ? 0 : sizes.endpointVPadding);
-
-          offset.y += cardWH.h + sizes.endpointVPadding;
-        });
-
-        columnHeights.set(columnEntries, columnHeight);
-
-        offset.x += columnWidth + sizes.endpointHPadding;
-
-        bbox.w = Math.max(bbox.w, offset.x - sizes.endpointHPadding);
-        bbox.h = Math.max(bbox.h, offset.y - sizes.endpointVPadding);
-
-        entireHeight = Math.max(entireHeight, bbox.h);
-      });
-
-      alignment.set(kind, [entries, bbox]);
-    });
-
-    columnHeights.forEach((columnHeight: number, entries: PlacementEntry[]) => {
-      if (entries.length === 0) return;
-
-      const kind = entries[0].kind;
-      const [_, bbox] = alignment.get(kind)!;
-
-      const verticalOffset = (entireHeight - columnHeight) / 2;
-
-      entries.forEach(entry => {
-        entry.geometry.y += verticalOffset;
-      });
-    });
-
-    return alignment;
-  }
-
-  private buildPlacementColumns(plcs: Set<PlacementMeta>): PlacementMeta[][] {
-    // Heaviest cards go first
-    const sorted = Array.from(plcs).sort((a, b) => b.weight - a.weight);
-
-    // Make columns to be more like square
-    const maxCardsInColumn = Math.ceil(Math.sqrt(plcs.size));
-
-    const columns: PlacementMeta[][] = [];
-    let curColumn: PlacementMeta[] = [];
-    let curWeight: number | null = null;
-
-    const flushColumn = () => {
-      columns.push(curColumn);
-      curColumn = [];
-    };
-
-    sorted.forEach((plc: PlacementMeta, i: number) => {
-      const maxCardsReached = curColumn.length >= maxCardsInColumn;
-      const weightChanged = curWeight != null && plc.weight !== curWeight;
-
-      if (maxCardsReached || weightChanged) flushColumn();
-
-      curWeight = plc.weight;
-      curColumn.push(plc);
-
-      if (i === sorted.length - 1) flushColumn();
-    });
-
-    return columns;
-  }
-
   @computed
   private get placementGroups() {
     const index: Map<PlacementKind, Set<PlacementMeta>> = new Map();
+    const currentNs = this.controls.currentNamespace;
 
     this.services.cards.forEach((card: ServiceCard) => {
-      const meta = this.getCardPlacementMeta(card);
+      const meta = this.getCardPlacementMeta(card, currentNs || undefined);
       const kindSet = index.get(meta.kind) ?? new Set();
       const cards = kindSet.add(meta);
 
@@ -284,7 +127,7 @@ export default class LayoutStore {
     return index;
   }
 
-  private getCardPlacementMeta(card: ServiceCard): PlacementMeta {
+  private getCardPlacementMeta(card: ServiceCard, ns?: string): PlacementMeta {
     const senders = this.connections.incomings.get(card.id);
     const receivers = this.connections.outgoings.get(card.id);
 
@@ -295,11 +138,13 @@ export default class LayoutStore {
     const props = this.findSpecialInteractions(card);
 
     let kind = PlacementKind.InsideWithoutConnections;
-    if (card.isHost) {
-      kind = PlacementKind.IngressFromOutside;
+    if (card.isHost || card.isRemoteNode) {
+      kind = PlacementKind.FromWorld;
     } else if (card.isWorld) {
-      kind = PlacementKind.IngressFromOutside;
-      kind = incomingsCount > 0 ? PlacementKind.EgressToOutside : kind;
+      kind = PlacementKind.FromWorld;
+      kind = incomingsCount > 0 ? PlacementKind.ToWorld : kind;
+    } else if (ns != null && card.namespace !== ns) {
+      kind = PlacementKind.AnotherNamespace;
     } else if (incomingsCount > 0 || outgoingsCount > 0) {
       kind = PlacementKind.InsideWithConnections;
     }
@@ -350,6 +195,223 @@ export default class LayoutStore {
     };
   }
 
+  private buildPlacementColumns(plcs: Set<PlacementMeta>): PlacementMeta[][] {
+    // Heaviest cards go first
+    const sorted = Array.from(plcs).sort((a, b) => b.weight - a.weight);
+
+    // Make columns to be more like square
+    const maxCardsInColumn = Math.ceil(Math.sqrt(plcs.size));
+
+    const columns: PlacementMeta[][] = [];
+    let curColumn: PlacementMeta[] = [];
+    let curWeight: number | null = null;
+
+    const flushColumn = () => {
+      columns.push(curColumn);
+      curColumn = [];
+    };
+
+    sorted.forEach((plc: PlacementMeta, i: number) => {
+      const maxCardsReached = curColumn.length >= maxCardsInColumn;
+      const weightChanged = curWeight != null && plc.weight !== curWeight;
+
+      if (maxCardsReached || weightChanged) flushColumn();
+
+      curWeight = plc.weight;
+      curColumn.push(plc);
+
+      if (i === sorted.length - 1) flushColumn();
+    });
+
+    return columns;
+  }
+
+  private assignCoordinates(columns: CardsColumns): CardsPlacement {
+    const placement: CardsPlacement = new Map();
+
+    // prettier-ignore
+    const top = this.alignColumns(columns, [
+      PlacementKind.ToWorld,
+    ]);
+
+    // prettier-ignore
+    const middle = this.alignColumns(columns, [
+      PlacementKind.FromWorld,
+      PlacementKind.InsideWithConnections,
+      PlacementKind.InsideWithoutConnections,
+    ]);
+
+    // prettier-ignore
+    const bottom = this.alignColumns(columns, [
+      PlacementKind.AnotherNamespace,
+    ]);
+
+    const toOutside = top.get(PlacementKind.ToWorld);
+    const fromOutside = middle.get(PlacementKind.FromWorld);
+    const insideWithConns = middle.get(PlacementKind.InsideWithConnections);
+    const insideNoConns = middle.get(PlacementKind.InsideWithoutConnections);
+    const anotherNs = bottom.get(PlacementKind.AnotherNamespace);
+
+    const shiftEntries = (shift: XY, entries: PlacementEntry[]) => {
+      entries.forEach((entry: PlacementEntry) => {
+        entry.geometry.x += shift.x;
+        entry.geometry.y += shift.y;
+      });
+    };
+
+    const shiftToInsideCenter = (bbox: XYWH): XY => {
+      const insideBBox = insideWithConns!.bbox;
+
+      const relativeOffset = insideBBox.x - bbox.x;
+      const bboxDiff = (insideBBox.w - bbox.w) / 2;
+      const x = relativeOffset + bboxDiff;
+
+      return { x, y: 0 };
+    };
+
+    // ToWorld cards aligned to middle of InsideWithConnections cards
+    if (insideWithConns != null && toOutside != null) {
+      shiftEntries(shiftToInsideCenter(toOutside.bbox), toOutside.entries);
+    }
+
+    if (toOutside != null) {
+      // Shift all other cards below ToWorld cards
+      const middleShift = {
+        x: 0,
+        y: toOutside.bbox.h + sizes.endpointVPadding,
+      };
+
+      // prettier-ignore
+      fromOutside && shiftEntries(middleShift, fromOutside.entries);
+      insideWithConns && shiftEntries(middleShift, insideWithConns.entries);
+      insideNoConns && shiftEntries(middleShift, insideNoConns.entries);
+    }
+
+    const buildShiftForBottom = (): XY => {
+      const shift = { x: 0, y: 0 };
+
+      if (toOutside != null) {
+        shift.y += toOutside.bbox.h + sizes.endpointVPadding;
+      }
+
+      let middleHeight = 0;
+      if (fromOutside != null) {
+        middleHeight = Math.max(middleHeight, fromOutside.bbox.h);
+      }
+
+      if (insideWithConns != null) {
+        middleHeight = Math.max(middleHeight, insideWithConns.bbox.h);
+      }
+
+      if (insideNoConns != null) {
+        middleHeight = Math.max(middleHeight, insideNoConns.bbox.h);
+      }
+
+      if (middleHeight > Number.EPSILON) {
+        shift.y += middleHeight + sizes.endpointVPadding;
+      }
+
+      if (insideWithConns != null) {
+        const insideShift = shiftToInsideCenter(anotherNs!.bbox);
+        shift.x = insideShift.x;
+      }
+
+      return shift;
+    };
+
+    if (anotherNs != null) {
+      // Shift card from another namespace below others
+      const shift = buildShiftForBottom();
+      shiftEntries(shift, anotherNs.entries);
+    }
+
+    const copyEntries = (entries: PlacementEntry[]) => {
+      entries.forEach(entry => {
+        placement.set(entry.card.id, entry);
+      });
+    };
+
+    toOutside && copyEntries(toOutside.entries);
+    fromOutside && copyEntries(fromOutside.entries);
+    insideWithConns && copyEntries(insideWithConns.entries);
+    insideNoConns && copyEntries(insideNoConns.entries);
+    anotherNs && copyEntries(anotherNs.entries);
+
+    return placement;
+  }
+
+  private alignColumns(
+    cardsColumns: CardsColumns,
+    kinds: PlacementKind[],
+  ): Map<PlacementKind, EntriesGroup> {
+    const alignment = new Map();
+
+    const columnHeights: Map<PlacementEntry[], number> = new Map();
+    const offset = { x: 0, y: 0 };
+    let entireHeight = 0;
+
+    kinds.forEach(kind => {
+      const columns = cardsColumns.get(kind);
+      if (columns == null) return;
+
+      const entries: PlacementEntry[] = [];
+      const bbox = XYWH.fromArgs(offset.x, offset.y, 0, 0);
+
+      columns.forEach((column: PlacementMeta[], ci: number) => {
+        const columnEntries: PlacementEntry[] = [];
+
+        let columnWidth = 0;
+        let columnHeight = 0;
+        offset.y = 0;
+
+        column.forEach((meta: PlacementMeta, ri: number) => {
+          const cardWH = this.cardDimensions.get(meta.card.id);
+          if (cardWH == null) return;
+
+          const geomtry = XYWH.fromArgs(offset.x, offset.y, cardWH.w, cardWH.h);
+
+          const entry = {
+            card: meta.card,
+            kind: meta.kind,
+            geometry: geomtry,
+          };
+
+          entries.push(entry);
+          columnEntries.push(entry);
+
+          columnWidth = Math.max(columnWidth, cardWH.w);
+          columnHeight += cardWH.h + (ri === 0 ? 0 : sizes.endpointVPadding);
+
+          offset.y += cardWH.h + sizes.endpointVPadding;
+        });
+
+        columnHeights.set(columnEntries, columnHeight);
+
+        offset.x += columnWidth + sizes.endpointHPadding;
+
+        bbox.w += columnWidth + (ci === 0 ? 0 : sizes.endpointHPadding);
+        bbox.h = Math.max(bbox.h, offset.y - sizes.endpointVPadding);
+
+        entireHeight = Math.max(entireHeight, bbox.h);
+      });
+
+      alignment.set(kind, { entries, bbox });
+    });
+
+    columnHeights.forEach((columnHeight: number, entries: PlacementEntry[]) => {
+      if (entries.length === 0) return;
+
+      const kind = entries[0].kind;
+      const verticalOffset = (entireHeight - columnHeight) / 2;
+
+      entries.forEach(entry => {
+        entry.geometry.y += verticalOffset;
+      });
+    });
+
+    return alignment;
+  }
+
   private placementBBox(filterFn: PlacementFilter = _.identity) {
     const bbox = geom.xywh(Infinity, Infinity);
 
@@ -370,11 +432,6 @@ export default class LayoutStore {
     bbox.h -= bbox.y;
 
     return bbox;
-  }
-
-  @computed
-  get placement(): Placement {
-    return [...this.cardsPlacement.values()];
   }
 
   // { senderId -> SenderArrows }
@@ -463,50 +520,8 @@ export default class LayoutStore {
   }
 
   @computed
-  get connections(): Connections {
-    // Connections only gives information about what services are connected
-    // and by which access point (apId), it doesnt provide geometry information
-    //
-    // outgoings: { senderId -> { receiverId -> Set(apIds) } }
-    //                   apIds sets are equal --> ||
-    // incomings: { receiverId -> { senderId -> Set(apIds) } }
-
-    const outgoings: ConnectionsMap = new Map();
-    const incomings: ConnectionsMap = new Map();
-
-    this.interactions.links.forEach((l: Link) => {
-      const senderId = l.sourceId;
-      const receiverId = l.destinationId;
-      const apId = ids.accessPoint(receiverId, l.destinationPort);
-
-      // Outgoing connection setup
-      if (!outgoings.has(senderId)) {
-        outgoings.set(senderId, new Map());
-      }
-
-      const sentTo = outgoings.get(senderId)!;
-      if (!sentTo.has(receiverId)) {
-        sentTo.set(receiverId, new Set());
-      }
-
-      const sentToApIds = sentTo.get(receiverId)!;
-      sentToApIds.add(apId);
-
-      // Incoming connection setup
-      if (!incomings.has(receiverId)) {
-        incomings.set(receiverId, new Map());
-      }
-
-      const receivedFrom = incomings.get(receiverId)!;
-      if (!receivedFrom.has(senderId)) {
-        receivedFrom.set(senderId, new Set());
-      }
-
-      const receivedToApIds = receivedFrom.get(senderId)!;
-      receivedToApIds.add(apId);
-    });
-
-    return { outgoings, incomings };
+  get connections() {
+    return this.interactions.connections;
   }
 
   @computed
@@ -580,5 +595,15 @@ export default class LayoutStore {
     });
 
     return index;
+  }
+
+  // D E B U G
+  @computed
+  get debugData() {
+    return {
+      dimensions: this.cardDimensions,
+      apCoords: this.apCoords,
+      placement: this.placement,
+    };
   }
 }
