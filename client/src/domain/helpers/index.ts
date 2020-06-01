@@ -256,7 +256,6 @@ export const relayServiceFromPb = (svc: PBRelayService): Service => {
   obj.labelsList.forEach(l => {
     const parts = l.split('=');
 
-    if (parts.length < 2) return;
     const key = parts[0];
     const value = parts.slice(1).join('=');
 

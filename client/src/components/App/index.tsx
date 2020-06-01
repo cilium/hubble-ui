@@ -81,6 +81,8 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
 
       store.setup({ services });
       store.updateInteractions({ links });
+      store.controls.setCurrentNamespace(mockData.selectedNamespace);
+      store.controls.setCrossNamespaceActivity(true);
       return;
     }
 
@@ -91,12 +93,12 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   }, []);
 
   useEffect(() => {
-    if (!store.route.namespace) {
+    if (!store.controls.currentNamespace || store.mocked) {
       return;
     }
 
     const streamParams = {
-      namespace: store.route.namespace,
+      namespace: store.controls.currentNamespace,
       verdict: store.route.verdict,
       httpStatus: store.route.httpStatus,
       filters: store.route.flowFilters,
@@ -116,14 +118,15 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       setEventStream(newStream);
     });
   }, [
-    store.route.namespace,
+    store.controls.currentNamespace,
+    // TODO: hide it behind abstraction, like: store.filters.verdict
     store.route.verdict,
     store.route.httpStatus,
     store.route.flowFilters,
   ]);
 
   const onNsChange = useCallback((ns: string) => {
-    store.route.goto(`/${ns}`);
+    store.controls.setCurrentNamespace(ns);
   }, []);
 
   const onServiceSelect = useCallback((srvc: ServiceCard) => {
@@ -131,22 +134,19 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   }, []);
 
   const onSelectVerdict = useCallback((verdict: Verdict | null) => {
-    store.route.setParam('verdict', verdict);
+    store.route.setVerdict(verdict);
   }, []);
 
   const onSelectHttpStatus = useCallback((httpStatus: string | null) => {
-    store.route.setParam('http-status', httpStatus);
+    store.route.setHttpStatus(httpStatus);
   }, []);
 
   const onChangeFlowFilters = useCallback((values: FlowsFilterEntry[]) => {
-    store.route.setParam(
-      'flows-filter',
-      values.map(FlowsFilterUtils.createFilterString),
-    );
+    store.route.setFlowFilters(values.map(FlowsFilterUtils.createFilterString));
   }, []);
 
   const onCloseFlowsTableSidebar = useCallback(() => {
-    store.selectTableFlow(null);
+    store.controls.selectTableFlow(null);
   }, []);
 
   const onEmitAPConnectorCoords = useCallback((apId: string, coords: Vec2) => {
@@ -164,15 +164,15 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   return (
     <div className={css.app}>
       <TopBar
-        namespaces={store.namespaces}
-        currentNamespace={store.route.namespace}
+        namespaces={store.controls.namespaces}
+        currentNamespace={store.controls.currentNamespace}
         onNsChange={onNsChange}
       />
 
       <div className={css.map}>
         <Map
           services={store.services.data}
-          namespace={store.route.namespace}
+          namespace={store.controls.currentNamespace}
           accessPoints={store.accessPoints}
           activeServices={store.services.activeSet}
           onServiceSelect={onServiceSelect}
@@ -184,8 +184,8 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
         resizable={true}
         flows={store.interactions.flows}
         flowsDiffCount={flowsDiffCount}
-        selectedFlow={store.selectedTableFlow}
-        onSelectFlow={store.selectTableFlow}
+        selectedFlow={store.controls.selectedTableFlow}
+        onSelectFlow={store.controls.selectTableFlow}
         selectedVerdict={store.route.verdict}
         onSelectVerdict={onSelectVerdict}
         selectedHttpStatus={store.route.httpStatus}
