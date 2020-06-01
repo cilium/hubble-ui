@@ -79,4 +79,8 @@ export class Labels {
   public static isHealth(labels: KV[]): boolean {
     return Labels.haveReserved(labels, ReservedLabel.Health);
   }
+
+  public static isRemoteNode(labels: KV[]): boolean {
+    return Labels.haveReserved(labels, ReservedLabel.RemoteNode);
+  }
 }

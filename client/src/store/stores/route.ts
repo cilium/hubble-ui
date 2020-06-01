@@ -7,13 +7,32 @@ import {
 } from '@reach/router';
 import { action, computed, observable, reaction, runInAction } from 'mobx';
 import * as qs from 'query-string';
+
 import { FlowsFilterEntry, FlowsFilterUtils } from '~/domain/flows';
 import { Verdict } from '~/domain/hubble';
+
+import { Dictionary } from '~/domain/misc';
 
 export enum RouteHistorySourceKind {
   Memory = 'memory',
   URL = 'url',
 }
+
+export enum RouteParam {
+  Verdict = 'verdict',
+  FlowsFilter = 'flows-filter',
+  HttpStatus = 'http-status',
+}
+
+type ReplacementFunction = (
+  parts: string[],
+  params: Dictionary<string | string[]>,
+  hash: string,
+) => {
+  parts: string[];
+  params: Dictionary<string | string[]>;
+  hash: string;
+};
 
 export default class RouteStore {
   @observable
@@ -89,7 +108,50 @@ export default class RouteStore {
   }
 
   @action.bound
-  setParam(key: string, value?: string | string[] | number | null) {
+  setVerdict(v: Verdict | null) {
+    this.setParam(RouteParam.Verdict, v);
+  }
+
+  @action.bound
+  setHttpStatus(st: string | null) {
+    this.setParam(RouteParam.HttpStatus, st);
+  }
+
+  @action.bound
+  setFlowFilters(ff: string[]) {
+    this.setParam(RouteParam.FlowsFilter, ff);
+  }
+
+  @action.bound
+  setNamespace(ns: string) {
+    this.gotoFn((parts, params, hash) => {
+      parts = [ns].concat(parts.slice(1));
+
+      return { parts, params, hash };
+    });
+  }
+
+  @action.bound
+  gotoFn(cb: ReplacementFunction) {
+    const parts = this.parts;
+
+    const transformed = cb(
+      this.parts.slice(),
+      this.params as Dictionary<string | string[]>,
+      this.hash,
+    );
+
+    const qs = RouteStore.stringifyParams(transformed.params);
+
+    const path = transformed.parts.join('/');
+    const query = qs.length > 0 ? '?' + qs : '';
+    const hash = transformed.hash.length > 0 ? '#' + this.hash : '';
+
+    this.history.navigate(`/${path}${qs}${hash}`);
+  }
+
+  @action.bound
+  setParam(key: RouteParam, value?: string | string[] | number | null) {
     const nextParamsObj = { ...this.params };
 
     if (value == null || (Array.isArray(value) && value.length === 0)) {

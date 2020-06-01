@@ -11,6 +11,12 @@ import * as ui from '~/ui';
 import api from '~/api';
 import { RouteHistorySourceKind } from './store/stores/route';
 
+declare global {
+  interface Window {
+    debugTools: any;
+  }
+}
+
 const run = async () => {
   ui.setCSSVars(ui.sizes);
 

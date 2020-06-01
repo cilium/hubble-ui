@@ -71,6 +71,10 @@ export class ServiceCard<InteractionsExt = {}> {
     return this.service.labels;
   }
 
+  public get namespace(): string | null {
+    return Labels.findNamespaceInLabels(this.labels);
+  }
+
   public get isWorld(): boolean {
     return Labels.isWorld(this.service.labels);
   }
@@ -81,6 +85,10 @@ export class ServiceCard<InteractionsExt = {}> {
 
   public get isInit(): boolean {
     return Labels.isInit(this.service.labels);
+  }
+
+  public get isRemoteNode(): boolean {
+    return Labels.isRemoteNode(this.service.labels);
   }
 
   public get isCIDR(): boolean {

@@ -51,6 +51,8 @@ export const Component: FunctionComponent<Props> = props => {
       return;
     }
 
+    // console.log(`emitting connector coords from card: ${props.card.appLabel || props.card.id}`);
+    // console.log(`center getters: `, centerGetters);
     centerGetters.forEach((cg: CenterGetter, apId: string) => {
       const connectorCenter = centerGetters.get(apId)!();
       const relCoords = connectorCenter.sub(Vec2.fromXY(bbox));
@@ -96,7 +98,10 @@ export const Component: FunctionComponent<Props> = props => {
   // prettier-ignore
   const onHeightChange = useCallback((card: ServiceCard, h: number) => {
     if (props.onHeightChange) props.onHeightChange(card, h);
-    emitConnectorCoords();
+
+    // WARN: do not emit new connector coords from here cz
+    // old coords will be received in props.coords hence wrong connector coords
+    // will be emitted
 
   }, [emitConnectorCoords, props.onHeightChange]);
 
