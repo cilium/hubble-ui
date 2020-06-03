@@ -18,3 +18,7 @@ export enum StateChange {
   Deleted = 'deleted',
   Exists = 'exists',
 }
+
+export const tooSmall = (num: number): boolean => {
+  return Math.abs(num) <= Number.EPSILON;
+};

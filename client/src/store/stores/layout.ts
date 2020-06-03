@@ -2,7 +2,7 @@ import { action, computed, observable, reaction, autorun } from 'mobx';
 import _ from 'lodash';
 
 import { ids } from '~/domain/ids';
-import { dummy as geom, Vec2, XY, WH, XYWH } from '~/domain/geometry';
+import { dummy as geom, Vec2, XY, WH, XYWH, rounding } from '~/domain/geometry';
 import { ServiceCard } from '~/domain/service-card';
 import { Link } from '~/domain/service-map';
 import {
@@ -445,9 +445,8 @@ export default class LayoutStore {
       const senderPlacement = this.cardsPlacement.get(senderId)?.geometry;
       if (senderPlacement == null) return;
 
-      // TODO: shadow size wat???, need to get rid of that
       const arrowStart = Vec2.from(
-        senderPlacement.x + senderPlacement.w + sizes.endpointShadowSize,
+        senderPlacement.x + senderPlacement.w,
         senderPlacement.y + sizes.arrowStartTopOffset,
       );
 
@@ -460,7 +459,21 @@ export default class LayoutStore {
 
       senderIndex.forEach((connector, receiverId) => {
         const shiftedConnector = connector.position.sub(curveGap);
-        const points = [shiftedStart, shiftedConnector, connector.position];
+        let firstPoints = [shiftedStart, shiftedConnector];
+
+        const tooBended = arrowStart.x > connector.position.x;
+        if (tooBended) {
+          // prettier-ignore
+          firstPoints = rounding.goAroundTheBox(
+            senderPlacement,
+            shiftedStart,
+            shiftedConnector,
+            sizes.aroundCardPadX,
+            sizes.aroundCardPadY,
+          ).map(Vec2.fromXY);
+        }
+
+        const points = firstPoints.concat([connector.position]);
         const connArrow: ConnectorArrow = { connector, points };
 
         arrow.arrows.set(receiverId, connArrow);
