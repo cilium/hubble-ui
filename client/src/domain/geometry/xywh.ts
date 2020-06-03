@@ -1,5 +1,12 @@
 import { XY, WH } from './general';
 
+export interface Sides {
+  top: [XY, XY];
+  bottom: [XY, XY];
+  left: [XY, XY];
+  right: [XY, XY];
+}
+
 export class XYWH implements XY, WH {
   public x: number;
   public y: number;
@@ -72,5 +79,33 @@ export class XYWH implements XY, WH {
 
   public setXY(x?: number, y?: number): XYWH {
     return XYWH.fromArgs(x ?? this.x, y ?? this.y, this.w, this.h);
+  }
+
+  public get sides(): Sides {
+    const leftX = this.x;
+    const rightX = this.x + this.w;
+
+    const topY = this.y;
+    const bottomY = this.y + this.h;
+
+    // prettier-ignore
+    return {
+      top: [
+        { x: leftX, y: topY },
+        { x: rightX, y: topY },
+      ],
+      bottom: [
+        { x: leftX, y: bottomY },
+        { x: rightX, y: bottomY },
+      ],
+      left: [
+        { x: leftX, y: topY },
+        { x: leftX, y: bottomY },
+      ],
+      right: [
+        { x: rightX, y: topY },
+        { x: rightX, y: bottomY },
+      ],
+    };
   }
 }

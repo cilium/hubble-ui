@@ -8,7 +8,7 @@ import React, {
   RefObject,
 } from 'react';
 
-import { CardProps, RootRef } from './general';
+import { CardProps, DivRef } from './general';
 import { EndpointCardLayer } from './EndpointCardBase';
 import { EndpointCardLabels } from './EndpointCardLabels';
 import { EndpointCardHeader } from '~/components/EndpointCardHeader';
@@ -19,6 +19,7 @@ import { ServiceCard } from '~/domain/service-card';
 import { Link, AccessPoint as AccessPointDatum } from '~/domain/service-map';
 import { ids } from '~/domain/ids';
 import { Dictionary } from '~/domain/misc';
+import { sizes } from '~/ui';
 
 import css from './styles.scss';
 
@@ -28,15 +29,15 @@ export type Props = CardProps & {
 };
 
 export const Component: FunctionComponent<Props> = props => {
-  const [rootRef, setRootRef] = useState<RootRef>(null as any);
+  const [divRef, setContentRef] = useState<DivRef>(null as any);
   const centerGetters = useMemo((): Map<string, CenterGetter> => {
     return new Map();
   }, []);
 
   // prettier-ignore
-  const onEmitRootRef = useCallback((ref: RootRef) => {
-    setRootRef(ref);
-  }, [setRootRef]);
+  const onEmitContentRef = useCallback((ref: DivRef) => {
+    setContentRef(ref);
+  }, [setContentRef]);
 
   const onConnectorReady = useCallback((apId: string, cg: CenterGetter) => {
     centerGetters.set(apId, cg);
@@ -44,9 +45,9 @@ export const Component: FunctionComponent<Props> = props => {
 
   const emitConnectorCoords = useCallback(() => {
     // prettier-ignore
-    if (props.onEmitAPConnectorCoords == null || rootRef == null) return;
+    if (props.onEmitAPConnectorCoords == null || divRef == null) return;
 
-    const bbox = rootRef.current!.getBoundingClientRect();
+    const bbox = divRef.current!.getBoundingClientRect();
     if (bbox.width === 0 || bbox.height === 0) {
       return;
     }
@@ -69,7 +70,7 @@ export const Component: FunctionComponent<Props> = props => {
 
       props.onEmitAPConnectorCoords!(apId, svgCoords);
     });
-  }, [props.onEmitAPConnectorCoords, rootRef, centerGetters, props.coords]);
+  }, [props.onEmitAPConnectorCoords, divRef, centerGetters, props.coords]);
 
   // react to placement change
   useEffect(emitConnectorCoords, [
@@ -109,7 +110,7 @@ export const Component: FunctionComponent<Props> = props => {
     <EndpointCardLayer
       {...props}
       onHeightChange={onHeightChange}
-      onEmitRootRef={onEmitRootRef}
+      onEmitContentRef={onEmitContentRef}
     >
       <EndpointCardHeader card={props.card} onClick={props.onHeaderClick} />
 

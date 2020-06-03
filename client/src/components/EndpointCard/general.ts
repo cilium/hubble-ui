@@ -5,6 +5,7 @@ import { XY, XYWH } from '~/domain/geometry';
 import { AccessPoint } from '~/domain/service-map';
 
 export type RootRef = React.MutableRefObject<SVGGElement | null>;
+export type DivRef = React.MutableRefObject<HTMLDivElement | null>;
 
 export interface CardProps {
   card: ServiceCard;
@@ -15,4 +16,5 @@ export interface CardProps {
   accessPoints?: Map<number, AccessPoint>;
   onHeightChange?: (card: ServiceCard, h: number) => void;
   onEmitRootRef?: (ref: RootRef) => void;
+  onEmitContentRef?: (ref: DivRef) => void;
 }

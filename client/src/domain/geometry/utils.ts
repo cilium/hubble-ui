@@ -1,4 +1,5 @@
 import { XY } from './general';
+import { XYWH, Sides } from './xywh';
 import { Vec2 } from './vec2';
 
 // Calculate points where arc should start from and to where should it go
@@ -23,4 +24,11 @@ export const roundCorner = (r: number, points: [XY, XY, XY]): [Vec2, Vec2] => {
   const roundEnd = p1.linterp(p2, offset / p2.distance(p1));
 
   return [roundStart, roundEnd];
+};
+
+export const distance = (from: XY, to: XY): number => {
+  const dx = Math.abs(to.x - from.x);
+  const dy = Math.abs(to.y - from.y);
+
+  return Math.sqrt(dx ** 2 + dy ** 2);
 };
