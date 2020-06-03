@@ -24,7 +24,7 @@ export interface Props {
 
 interface ArrowData {
   points: Array<Vec2>;
-  handle: [Vec2, Vec2] | null;
+  handles: [Vec2, Vec2][];
 }
 
 type Arrow = [string, ArrowData];
@@ -95,7 +95,7 @@ const startPlatesUpdate = (update: any) => {
   return update.select('g path').attr('d', startPlatePath);
 };
 
-const arrowHandle = (id: string, handle: [Vec2, Vec2] | null): string => {
+const arrowHandle = (handle: [Vec2, Vec2] | null): string => {
   if (handle == null) return '';
   const hwFactor = sizes.arrowHandleHWRatio;
 
@@ -129,6 +129,27 @@ const arrowHandle = (id: string, handle: [Vec2, Vec2] | null): string => {
   `;
 };
 
+const arrowHandleId = (handle: [Vec2, Vec2]): string => {
+  console.log('arrowHandleId: ', handle);
+  const [from, to] = handle;
+  const mid = from.mid(to);
+
+  return `${mid.x},${mid.y}`;
+};
+
+const arrowHandleEnter = (enter: any) => {
+  return enter
+    .append('path')
+    .attr('class', 'handle')
+    .attr('fill', colors.arrowHandle)
+    .attr('stroke', 'none')
+    .attr('d', (handle: [Vec2, Vec2]) => arrowHandle(handle));
+};
+
+const arrowHandleUpdate = (update: any) => {
+  return update.attr('d', (handle: [Vec2, Vec2]) => arrowHandle(handle));
+};
+
 const arrowsEnter = (enter: any) => {
   const arrowGroup = enter.append('g').attr('class', (d: Arrow) => d[0]);
 
@@ -141,11 +162,9 @@ const arrowsEnter = (enter: any) => {
     .attr('d', (d: Arrow) => arrowLine(d[1].points));
 
   arrowGroup
-    .append('path')
-    .attr('class', 'handle')
-    .attr('fill', colors.arrowHandle)
-    .attr('stroke', 'none')
-    .attr('d', (d: Arrow) => arrowHandle(d[0], d[1].handle));
+    .selectAll('path.handle')
+    .data((d: Arrow) => d[1].handles, arrowHandleId)
+    .join(arrowHandleEnter);
 
   return arrowGroup;
 };
@@ -153,8 +172,9 @@ const arrowsEnter = (enter: any) => {
 const arrowsUpdate = (update: any) => {
   update.select('path.line').attr('d', (d: Arrow) => arrowLine(d[1].points));
   update
-    .select('path.handle')
-    .attr('d', (d: Arrow) => arrowHandle(d[0], d[1].handle));
+    .selectAll('path.handle')
+    .data((d: Arrow) => d[1].handles, arrowHandleId)
+    .join(arrowHandleEnter, arrowHandleUpdate);
 
   return update;
 };
@@ -201,24 +221,27 @@ const connectorsUpdate = (update: any) => {
     .attr('cy', (d: any) => d[1].y);
 };
 
-// Assumed, points is an array of 4 points of arrow
-// * -> * \
-//         \ <- this is where arrow handle should be
-//          \ * -> *
-const arrowHandleFromPoints = (points: Vec2[]): [Vec2, Vec2] | null => {
-  if (points.length < 3) return null;
+// Handle is created for each segment of arrow whose length >= minArrowLength
+const arrowHandlesFromPoints = (points: Vec2[]): [Vec2, Vec2][] => {
+  if (points.length < 2) return [];
 
-  const [start, end] = [points[1], points[2]];
-  const mid = start.linterp(end, 0.5);
-  const direction = end.sub(start).normalize();
+  const handles: [Vec2, Vec2][] = [];
+  chunks(points, 2, 1).forEach(([start, end]) => {
+    if (start.distance(end) < sizes.minArrowLength) return;
 
-  if (direction.isZero()) return null;
+    const mid = start.linterp(end, 0.5);
+    const direction = end.sub(start).normalize();
 
-  const handleLength = sizes.arrowHandleWidth;
-  const handleFrom = mid.sub(direction.mul(handleLength / 2));
-  const handleTo = mid.add(direction.mul(handleLength / 2));
+    if (direction.isZero()) return;
 
-  return [handleFrom, handleTo];
+    const handleLength = sizes.arrowHandleWidth;
+    const handleFrom = mid.sub(direction.mul(handleLength / 2));
+    const handleTo = mid.add(direction.mul(handleLength / 2));
+
+    handles.push([handleFrom, handleTo]);
+  });
+
+  return handles;
 };
 
 const manageArrows = (props: Props, g: SVGGElement) => {
@@ -245,12 +268,12 @@ const manageArrows = (props: Props, g: SVGGElement) => {
     senderArrows.arrows.forEach((connectorArrow, receiverId) => {
       const fromToId = `${senderId} -> ${receiverId}`;
       const allPoints = [senderArrows.startPoint].concat(connectorArrow.points);
-      const arrowHandle = arrowHandleFromPoints(allPoints);
+      const arrowHandles = arrowHandlesFromPoints(allPoints);
 
       // prettier-ignore
       arrows.push([fromToId, {
           points: allPoints,
-          handle: arrowHandle,
+          handles: arrowHandles,
       }]);
 
       const connectorPosition = connectorArrow.connector.position;
