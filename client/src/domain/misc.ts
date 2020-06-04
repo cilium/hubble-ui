@@ -22,3 +22,13 @@ export enum StateChange {
 export const tooSmall = (num: number): boolean => {
   return Math.abs(num) <= Number.EPSILON;
 };
+
+export const setupDebugProp = (obj: object) => {
+  if (window.debugTools == null) {
+    window.debugTools = {};
+  }
+
+  Object.keys(obj).forEach(key => {
+    window.debugTools[key] = (obj as any)[key];
+  });
+};
