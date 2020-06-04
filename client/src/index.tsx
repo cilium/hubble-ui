@@ -7,9 +7,11 @@ import './index.scss';
 
 import { App } from './components/App';
 import { StoreProvider } from '~/store';
+import { RouteHistorySourceKind } from '~/store/stores/route';
+import { NotifierProvider } from '~/notifier';
+
 import * as ui from '~/ui';
 import api from '~/api';
-import { RouteHistorySourceKind } from './store/stores/route';
 
 declare global {
   interface Window {
@@ -21,9 +23,11 @@ const run = async () => {
   ui.setCSSVars(ui.sizes);
 
   const elems = (
-    <StoreProvider historySource={RouteHistorySourceKind.URL}>
-      <App api={api} />
-    </StoreProvider>
+    <NotifierProvider>
+      <StoreProvider historySource={RouteHistorySourceKind.URL}>
+        <App api={api} />
+      </StoreProvider>
+    </NotifierProvider>
   );
 
   ReactDOM.render(elems, document.getElementById('app'));

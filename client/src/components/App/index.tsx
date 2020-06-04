@@ -18,6 +18,7 @@ import { Vec2 } from '~/domain/geometry';
 
 import * as mockData from '~/api/__mocks__/data';
 import { useStore } from '~/store';
+import { useNotifier } from '~/notifier';
 
 import { API } from '~/api/general';
 import {
@@ -41,6 +42,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   const [eventStream, setEventStream] = useState<IEventStream | null>(null);
 
   const store = useStore();
+  const notifier = useNotifier();
 
   // prettier-ignore
   const setupNamespaceEventHandlers = useCallback((stream: IEventStream) => {
