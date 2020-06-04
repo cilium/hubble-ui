@@ -1,8 +1,10 @@
-import React, { useMemo, memo, useCallback } from 'react';
-import { Button, Spinner, ButtonGroup, Icon } from '@blueprintjs/core';
+import { Button, ButtonGroup, Icon, Spinner } from '@blueprintjs/core';
+import React, { memo, useCallback } from 'react';
 import { animated } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
 
+import { FlowsTableColumnsSelector } from '~/components/FlowsTable/ColumnsSelector';
+import { FlowsTableColumnKey } from '~/components/FlowsTable/general';
 import { FlowsFilterInput } from '~/components/InputElements/FlowsFilterInput';
 import { ForwardingStatusDropdown } from '~/components/InputElements/ForwardingStatusDropdown';
 import { HttpStatusCodeDropdown } from '~/components/InputElements/HttpStatusCodeDropdown';
@@ -22,6 +24,8 @@ export interface DragPanelBaseProps {
 }
 
 export interface Props extends DragPanelBaseProps {
+  isVisibleFlowsTableColumn: (column: FlowsTableColumnKey) => boolean;
+  toggleFlowsTableColumn: (column: FlowsTableColumnKey) => void;
   onResize?: (dy: number) => void;
   onStreamStop?: () => void;
 }
@@ -50,12 +54,10 @@ export const Component = function DragPanelComponent(props: Props) {
       </div>
       <div className={css.center}>
         <ButtonGroup>
-          <Button small active rightIcon={<Spinner size={16} />}>
+          <Button active rightIcon={<Spinner size={16} />}>
             Flows streaming
           </Button>
-
           <Button
-            small
             rightIcon={<Icon icon="cross" />}
             onClick={onStreamStop}
           ></Button>
@@ -69,6 +71,10 @@ export const Component = function DragPanelComponent(props: Props) {
         <HttpStatusCodeDropdown
           httpStatus={props.selectedHttpStatus}
           onSelect={props.onSelectHttpStatus}
+        />
+        <FlowsTableColumnsSelector
+          isVisibleColumn={props.isVisibleFlowsTableColumn}
+          toggleColumn={props.toggleFlowsTableColumn}
         />
       </div>
     </animated.div>

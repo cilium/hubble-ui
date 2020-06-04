@@ -17,7 +17,7 @@ export interface Connections {
 
 // This store maintains ANY interactions that may present on the map
 export default class InteractionStore {
-  public static readonly FLOWS_MAX_COUNT = 1000;
+  public static readonly FLOWS_MAX_COUNT = 500;
 
   @observable flows: Array<Flow>;
   @observable links: Array<Link>;

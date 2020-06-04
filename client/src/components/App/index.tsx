@@ -2,7 +2,6 @@ import React, {
   FunctionComponent,
   useCallback,
   useEffect,
-  useMemo,
   useState,
 } from 'react';
 import { RouteComponentProps, Router } from '@reach/router';
@@ -13,10 +12,8 @@ import { DetailsPanel } from '~/components/DetailsPanel';
 import { Map } from '~/components/Map';
 
 import { FlowsFilterEntry, FlowsFilterUtils } from '~/domain/flows';
-import { ResolveType } from '~/domain/misc';
 import { HubbleFlow, Verdict } from '~/domain/hubble';
 import { ServiceCard } from '~/domain/service-card';
-import { Interactions } from '~/domain/service-map';
 import { Vec2 } from '~/domain/geometry';
 
 import * as mockData from '~/api/__mocks__/data';
@@ -29,7 +26,6 @@ import {
   NamespaceChange,
   ServiceChange,
   ServiceLinkChange,
-  DataFilters,
   IEventStream,
 } from '~/api/general/event-stream';
 
@@ -41,7 +37,6 @@ export interface AppProps extends RouteComponentProps {
 
 export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   const { api } = props;
-  const [loading, setLoading] = useState(true);
   const [flowsDiffCount, setFlowsDiffCount] = useState({ value: 0 });
   const [eventStream, setEventStream] = useState<IEventStream | null>(null);
 
@@ -61,8 +56,6 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     });
 
     stream.on(EventStreamEventKind.Flows, (flows: HubbleFlow[]) => {
-      // console.log('flows: ', flows);
-
       const { flowsDiffCount } = store.interactions.addFlows(flows);
       setFlowsDiffCount({ value: flowsDiffCount });
     });

@@ -1,6 +1,8 @@
 import { Flow } from '~/domain/flows';
 import { HubbleFlow, Verdict, FlowType, Endpoint } from '~/domain/hubble';
 
+const nowMs = Date.now();
+
 export const hubbleOne: HubbleFlow = {
   verdict: Verdict.Forwarded,
   dropReason: 0,
@@ -30,6 +32,10 @@ export const hubbleOne: HubbleFlow = {
   reply: false,
   summary: '',
   type: FlowType.L34,
+  time: {
+    seconds: nowMs / 1000,
+    nanos: nowMs * 1000000,
+  },
 };
 
 export const hubbleNoSourceName: HubbleFlow = {
