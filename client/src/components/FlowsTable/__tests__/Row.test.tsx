@@ -61,10 +61,10 @@ const runAppearanceTests = (
 ) => {
   const tr = container!.querySelector('tr')!;
 
-  const sourceTitle = tr.querySelector('td');
-  const destTitle = tr.querySelector('td:nth-child(2)');
-  const destPort = tr.querySelector('td:nth-child(3)');
-  const verdictLabel = tr.querySelector('td:nth-child(4)');
+  const sourceTitle = tr.querySelector('td:nth-child(3)');
+  const destTitle = tr.querySelector('td:nth-child(6)');
+  const destPort = tr.querySelector('td:nth-child(7)');
+  const verdictLabel = tr.querySelector('td:nth-child(8)');
 
   expect(sourceTitle!.textContent!.trim()).toBe(exps.sourceTitle);
   expect(destTitle!.textContent!.trim()).toBe(exps.destTitle);
@@ -83,7 +83,7 @@ const runTemporalTests = (container: HTMLElement, flow: Flow) => {
   const flowTime = new Date(flow.millisecondsTimestamp || Date.now());
 
   const tr = container!.querySelector('tr')!;
-  const tsLabel = tr.querySelector('td:nth-child(5)')!;
+  const tsLabel = tr.querySelector('td:nth-child(9)')!;
 
   // Just checks that tsLabel contains smth
   jest.advanceTimersByTime(0);
@@ -108,6 +108,7 @@ const runTest = (ntest: number, hf: HubbleFlow, exps: Expectations) => {
         container = renderRow(
           <Row
             flow={flow}
+            isVisibleColumn={() => true}
             selected={selected}
             onSelect={onSelect}
             tsUpdateDelay={tsUpdateDelay}
