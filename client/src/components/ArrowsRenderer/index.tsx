@@ -130,7 +130,6 @@ const arrowHandle = (handle: [Vec2, Vec2] | null): string => {
 };
 
 const arrowHandleId = (handle: [Vec2, Vec2]): string => {
-  console.log('arrowHandleId: ', handle);
   const [from, to] = handle;
   const mid = from.mid(to);
 
