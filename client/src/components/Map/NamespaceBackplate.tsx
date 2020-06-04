@@ -12,8 +12,6 @@ export interface Props {
 
 export const Component = (props: Props) => {
   if (props.namespace == null) return null;
-  console.log(props.xywh);
-
   const xywh =
     props.xywh.h > 0
       ? props.xywh

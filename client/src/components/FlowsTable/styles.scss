@@ -88,6 +88,11 @@ $border-color: #c6cace;
       }
     }
   }
+
+  .emptyValue {
+    color: #999;
+    font-weight: 400;
+  }
 }
 
 .sidebar {
@@ -163,7 +168,7 @@ $border-color: #c6cace;
 
   .block + hr {
     display: block;
-    width: calc($padding + 100% + $padding + $padding);
+    width: calc(#{$padding} + 100% + #{$padding} + #{$padding});
     height: 1px;
     margin-bottom: 10px;
     margin-left: -$padding;
