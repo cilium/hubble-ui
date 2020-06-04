@@ -2,8 +2,9 @@ import React, { memo, useCallback } from 'react';
 
 import { Row } from './Row';
 import { Flow } from '~/domain/flows';
+import { CommonProps } from './general';
 
-export interface BodyProps {
+export interface BodyProps extends CommonProps {
   flows: Flow[];
   selectedFlow: Flow | null;
   onSelectFlow?: (flow: Flow | null) => void;
@@ -24,6 +25,7 @@ export const Body = memo<BodyProps>(function FlowsTableBody(props) {
         <Row
           key={flow.id}
           flow={flow}
+          isVisibleColumn={props.isVisibleColumn}
           selected={props.selectedFlow?.id === flow.id}
           onSelect={onSelectFlow}
           tsUpdateDelay={props.tsUpdateDelay}

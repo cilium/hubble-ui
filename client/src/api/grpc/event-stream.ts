@@ -28,8 +28,6 @@ import {
   DataFilters,
 } from '~/api/general/event-stream';
 
-import { NamespaceChange } from '~/api/general/event-stream';
-
 import EventCase = GetEventsResponse.EventCase;
 
 type GRPCEventStream = ClientReadableStream<GetEventsResponse>;
@@ -209,7 +207,7 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
     this.throttledFlowReceived = _.throttle(() => {
       this.emit(EventKind.Flows, this.flowBuffer);
       this.flowBuffer = [];
-    });
+    }, this.flowsDelay);
   }
 
   private setupEventHandlers() {

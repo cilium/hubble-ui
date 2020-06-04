@@ -35,7 +35,7 @@ export const useZoom = (ref: SVGRef, initials?: Initials) => {
 
     const zoom = d3
       .zoom()
-      .scaleExtent([0.25, 2])
+      .scaleExtent([0.1, 1.5])
       .on('zoom', function handleZoom() {
         setZoomTransform(d3.event.transform);
       });

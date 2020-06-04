@@ -4,6 +4,7 @@ import React, { FunctionComponent, useMemo, useRef, useCallback } from 'react';
 import { DragPanel, DragPanelBaseProps } from '~/components/DragPanel';
 import { FlowsTable } from '~/components/FlowsTable';
 import { FlowsTableSidebar } from '~/components/FlowsTable/Sidebar';
+import { useFlowsTableColumns } from '~/components/FlowsTable/hooks/useColumns';
 
 import { Flow } from '~/domain/flows';
 
@@ -33,6 +34,7 @@ export type Props = SidebarProps & TableProps & PanelProps & DragPanelBaseProps;
 export const DetailsPanelComponent = function(props: Props) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [resizeStyles, onResize] = usePanelResize(rootRef);
+  const flowsTableColumns = useFlowsTableColumns();
 
   const diffCount = useMemo(() => {
     if (props.flowsDiffCount != null) return props.flowsDiffCount;
@@ -56,6 +58,8 @@ export const DetailsPanelComponent = function(props: Props) {
           onSelectHttpStatus={props.onSelectHttpStatus}
           flowFilters={props.flowFilters}
           onChangeFlowFilters={props.onChangeFlowFilters}
+          isVisibleFlowsTableColumn={flowsTableColumns.isVisibleColumn}
+          toggleFlowsTableColumn={flowsTableColumns.toggleColumn}
           onResize={onResize}
           onStreamStop={onStreamStop}
         />
@@ -65,6 +69,7 @@ export const DetailsPanelComponent = function(props: Props) {
         <FlowsTable
           flows={props.flows}
           flowsDiffCount={diffCount}
+          isVisibleColumn={flowsTableColumns.isVisibleColumn}
           selectedFlow={props.selectedFlow}
           onSelectFlow={props.onSelectFlow}
           tsUpdateDelay={props.tsUpdateDelay}
