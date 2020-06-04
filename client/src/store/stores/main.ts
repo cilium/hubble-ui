@@ -17,6 +17,7 @@ import ServiceStore from './service';
 import ControlStore from './controls';
 
 import { ids } from '~/domain/ids';
+import { setupDebugProp } from '~/domain/misc';
 import * as storage from '~/storage/local';
 
 configure({ enforceActions: 'observed' });
@@ -169,16 +170,14 @@ export class Store {
 
   // D E B U G
   public setupDebugTools() {
-    if (window.debugTools != null) return;
-
-    window.debugTools = {
+    setupDebugProp({
       printMapData: () => {
         this.printMapData();
       },
       printLayoutData: () => {
         this.printLayoutData();
       },
-    };
+    });
   }
 
   public printMapData() {
