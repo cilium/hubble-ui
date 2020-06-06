@@ -6,7 +6,7 @@
     "@kubernetes/client-node": "0.11.1",
     "@sentry/node": "5.11.2",
     "apollo-server-caching": "0.5.1",
-    "apollo-server-express": "2.9.16",
+    "apollo-server-express": "2.14.2",
     "aws-sdk": "2.610.0",
     "bunyan": "^1.8.10",
     "compression": "^1.7.3",
