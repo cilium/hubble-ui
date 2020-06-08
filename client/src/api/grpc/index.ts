@@ -14,7 +14,7 @@ export class APIv1 implements CoreAPIv1 {
   public static readonly defaultEventStreamParams = EventParamsSet.Namespaces;
 
   public constructor() {
-    this.client = new HubbleRelayClient('http://127.0.0.1:8081');
+    this.client = new HubbleRelayClient('http://localhost:12345');
   }
 
   public getEventStream(
