@@ -2,13 +2,14 @@ import { render, RenderResult } from '@testing-library/react';
 import React, { FunctionComponent } from 'react';
 
 import { StoreProvider } from '~/store';
-import * as data from './data';
 import { RouteHistorySourceKind } from '~/store/stores/route';
+import { NotifierProvider } from '~/notifier';
+import * as data from './data';
 
 const AllProviders: FunctionComponent = ({ children }) => {
   return (
     <StoreProvider historySource={RouteHistorySourceKind.URL}>
-      {children}
+      <NotifierProvider>{children}</NotifierProvider>
     </StoreProvider>
   );
 };
