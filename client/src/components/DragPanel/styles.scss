@@ -4,7 +4,6 @@
   @include row(center, center);
 
   background-color: #f2f4f6;
-  border-top: 1px solid #c6cace;
   transition: all 0.25s ease-out;
   height: 100%;
 
@@ -30,7 +29,7 @@
 .left {
   @include row(flex-start, center);
 
-  padding-left: 10px;
+  padding-left: 2.5px;
 }
 
 .center {
@@ -43,5 +42,5 @@
 .right {
   @include row(flex-start, center);
 
-  padding-right: 10px;
+  padding-right: 2.5px;
 }
