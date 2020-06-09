@@ -1,5 +1,6 @@
 .container {
-  width: 100%;
+  flex: 1;
+  max-width: 720px;
 
   :global(.bp3-popover-target) {
     width: 100%;

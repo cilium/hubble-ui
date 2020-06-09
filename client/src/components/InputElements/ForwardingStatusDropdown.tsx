@@ -6,7 +6,7 @@ import {
   Popover,
 } from '@blueprintjs/core';
 import { find } from 'lodash';
-import React, { memo, useCallback, useEffect } from 'react';
+import React, { memo, useCallback } from 'react';
 import { Verdict } from '~/domain/hubble';
 
 export interface Props {
