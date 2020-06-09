@@ -114,12 +114,18 @@ const getAroundPointByCase = (
 
   // All cases are independent
   if (verticalCase) {
-    x = second.x < first.x ? leftX - padX : rightX + padX;
+    const midX = (leftX + rightX) / 2;
+    const keepLeft = (second.x + first.x) / 2 < midX && second.x < first.x;
+
+    x = keepLeft ? leftX - padX : rightX + padX;
     y = first === xsect.bottom ? bottomY + padY : topY - padY;
   }
 
   if (horizontalCase) {
-    y = second.y < first.y ? topY - padY : bottomY + padY;
+    const midY = (bottomY + topY) / 2;
+    const keepTop = (second.y + first.y) / 2 < midY && second.y < first.y;
+
+    y = keepTop ? topY - padY : bottomY + padY;
     x = first === xsect.left ? leftX - padX : rightX + padX;
   }
 
