@@ -22,6 +22,13 @@ export default class ServiceStore {
     );
   }
 
+  @action.bound
+  clear() {
+    this.cards = [];
+    this.cardsMap.clear();
+    this.active.clear();
+  }
+
   @computed get data() {
     return this.cards.slice();
   }

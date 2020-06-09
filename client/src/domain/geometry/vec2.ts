@@ -58,13 +58,6 @@ export class Vec2 implements XY {
     return Math.sqrt(dx ** 2 + dy ** 2);
   }
 
-  public mid(to: Vec2): Vec2 {
-    const midX = (this.x + to.x) / 2;
-    const midY = (this.y + to.y) / 2;
-
-    return new Vec2(midX, midY);
-  }
-
   public angle(rhs: Vec2): number {
     const [l1, l2] = [this.length(), rhs.length()];
     if (l1 < Number.EPSILON || l2 < Number.EPSILON) return 0;

@@ -62,6 +62,12 @@ export default class LayoutStore {
   }
 
   @action.bound
+  clear() {
+    this.apCoords.clear();
+    this.cardDimensions.clear();
+  }
+
+  @action.bound
   initUnitializedCards() {
     console.log('in initUnitializedCards');
     this.services.cards.forEach(card => {
@@ -441,6 +447,12 @@ export default class LayoutStore {
     const arrows: Map<string, SenderArrows> = new Map();
     const curveGap = Vec2.from(sizes.connectorCardGap, 0);
 
+    // Offsets is used for arrows going around card not to overlap with another
+    // arrows that go around the same card. They vary depending on direction:
+    // whether it goes from bottom to connector of from top to connector.
+    const topOffsets: Map<string, number> = new Map();
+    const bottomOffsets: Map<string, number> = new Map();
+
     this.connectors.forEach((senderIndex, senderId) => {
       const senderPlacement = this.cardsPlacement.get(senderId)?.geometry;
       if (senderPlacement == null) return;
@@ -458,12 +470,16 @@ export default class LayoutStore {
       };
 
       senderIndex.forEach((connector, receiverId) => {
+        const receiverPlacement = this.cardsPlacement.get(receiverId)?.geometry;
+        if (receiverPlacement == null) return;
+
         const shiftedConnector = connector.position.sub(curveGap);
         let firstPoints = [shiftedStart, shiftedConnector];
 
-        const tooBended = arrowStart.x > connector.position.x;
-        if (tooBended) {
+        const startIsTooBend = arrowStart.x > connector.position.x;
+        if (startIsTooBend) {
           // prettier-ignore
+
           firstPoints = rounding.goAroundTheBox(
             senderPlacement,
             shiftedStart,
@@ -471,6 +487,41 @@ export default class LayoutStore {
             sizes.aroundCardPadX,
             sizes.aroundCardPadY,
           ).map(Vec2.fromXY);
+        }
+
+        // prettier-ignore
+        const offsets = arrowStart.y > connector.position.y ?
+          bottomOffsets :
+          topOffsets;
+
+        const npoints = firstPoints.length;
+        const senderPoint = firstPoints[npoints - 2]; // Always not undefined
+
+        // prettier-ignore
+        const lastPoints = rounding
+          .goAroundTheBox(
+            receiverPlacement,
+            senderPoint,
+            shiftedConnector,
+            sizes.aroundCardPadX,
+            sizes.aroundCardPadY,
+          )
+          .map(Vec2.fromXY);
+
+        if (lastPoints.length > 2) {
+          const offsetNum = offsets.get(receiverId) ?? 1;
+          const offset = offsetNum * sizes.arrowOverlapGap;
+          offsets.set(receiverId, offsetNum + 1);
+
+          const atConnector = connector.position.clone();
+          atConnector.x -= offset;
+
+          // TODO: this is not fair offset, vector prolongation should be used
+          const beforeConnector = lastPoints[lastPoints.length - 2];
+          beforeConnector.x = connector.position.x - offset;
+
+          lastPoints.splice(lastPoints.length - 1, 1, atConnector);
+          firstPoints.splice(npoints - 1, 1, ...lastPoints.slice(1));
         }
 
         const points = firstPoints.concat([connector.position]);

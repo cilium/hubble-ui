@@ -11,7 +11,10 @@ import { Vec2 } from './vec2';
 //           |     \
 // points[0] *      * points[2]
 
-export const roundCorner = (r: number, points: [XY, XY, XY]): [Vec2, Vec2] => {
+export const roundCorner = (
+  r: number,
+  points: [XY, XY, XY],
+): [Vec2, Vec2, number] => {
   const p0 = Vec2.fromXY(points[0]);
   const p1 = Vec2.fromXY(points[1]);
   const p2 = Vec2.fromXY(points[2]);
@@ -23,7 +26,7 @@ export const roundCorner = (r: number, points: [XY, XY, XY]): [Vec2, Vec2] => {
   const roundStart = p1.linterp(p0, offset / p0.distance(p1));
   const roundEnd = p1.linterp(p2, offset / p2.distance(p1));
 
-  return [roundStart, roundEnd];
+  return [roundStart, roundEnd, angle];
 };
 
 export const distance = (from: XY, to: XY): number => {
@@ -31,4 +34,11 @@ export const distance = (from: XY, to: XY): number => {
   const dy = Math.abs(to.y - from.y);
 
   return Math.sqrt(dx ** 2 + dy ** 2);
+};
+
+export const linterp2 = (from: XY, to: XY, t: number): XY => {
+  return {
+    x: from.x * (1 - t) + to.x * t,
+    y: from.y * (1 - t) + to.y * t,
+  };
 };

@@ -28,6 +28,12 @@ export default class InteractionStore {
   }
 
   @action.bound
+  clear() {
+    this.flows = [];
+    this.links = [];
+  }
+
+  @action.bound
   setLinks(links: Array<Link>) {
     this.links = links;
   }

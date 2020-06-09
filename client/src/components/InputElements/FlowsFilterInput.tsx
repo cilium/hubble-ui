@@ -2,11 +2,7 @@ import { Button, Classes, Icon, MenuItem } from '@blueprintjs/core';
 import { ItemRenderer, MultiSelect } from '@blueprintjs/select';
 import { trim } from 'lodash';
 import React, { useCallback, useState } from 'react';
-import {
-  FlowsFilterDirection,
-  FlowsFilterEntry,
-  FlowsFilterUtils,
-} from '~/domain/flows';
+import { FlowsFilterDirection, FlowsFilterEntry } from '~/domain/flows';
 import css from './FlowsFilterInput.scss';
 
 interface Props {
@@ -14,7 +10,7 @@ interface Props {
   onChange: (filters: FlowsFilterEntry[]) => void;
 }
 
-const FilterMultiSelect = MultiSelect.ofType<FlowsFilterEntry>();
+const FilterMultiSelect = MultiSelect.ofType<FlowsFilterEntry | null>();
 
 export const FlowsFilterInput = (props: Props) => {
   const [userInput, setUserInput] = useState<string>('');
@@ -47,25 +43,20 @@ export const FlowsFilterInput = (props: Props) => {
     setUserInput(query.replace(/\s/, ''));
   }, []);
 
-  const handleItemSelect = useCallback(
-    (item: FlowsFilterEntry) => {
-      if (trim(item.query).length === 0) {
-        return;
-      }
-      props.onChange([...props.filters, item]);
-      setUserInput('');
-    },
-    [props.filters, props.onChange, userInput],
-  );
+  // prettier-ignore
+  const handleItemSelect = useCallback((item: FlowsFilterEntry | null) => {
+    if (!item || trim(item.query).length === 0) return;
 
-  const handleTagDelete = useCallback(
-    (val: string, idx: number) => {
-      props.onChange(
-        props.filters.filter((_: FlowsFilterEntry, i: number) => i !== idx),
-      );
-    },
-    [props.filters, props.onChange],
-  );
+    props.onChange([...props.filters, item]);
+    setUserInput('');
+  }, [props.filters, props.onChange, userInput]);
+
+  // prettier-ignore
+  const handleTagDelete = useCallback((val: string, idx: number) => {
+    props.onChange(
+      props.filters.filter((_: FlowsFilterEntry, i: number) => i !== idx),
+    );
+  }, [props.filters, props.onChange]);
 
   const rightElement = props.filters.length ? (
     <Button minimal icon="cross" onClick={onClear} />
@@ -79,7 +70,7 @@ export const FlowsFilterInput = (props: Props) => {
       selectedItems={props.filters}
       onQueryChange={handleQueryChange}
       onItemSelect={handleItemSelect}
-      createNewItemFromQuery={FlowsFilterUtils.createFilterObject}
+      createNewItemFromQuery={FlowsFilterEntry.parse}
       createNewItemRenderer={renderCreateNewItem}
       itemRenderer={renderItem}
       tagRenderer={renderTag}
@@ -103,11 +94,13 @@ export const FlowsFilterInput = (props: Props) => {
   );
 };
 
-const renderItem: ItemRenderer<FlowsFilterEntry> = () => {
+const renderItem: ItemRenderer<FlowsFilterEntry | null> = () => {
   return null;
 };
 
-const renderTag = (item: FlowsFilterEntry) => {
+const renderTag = (item: FlowsFilterEntry | null) => {
+  if (!item) return null;
+
   let color: string;
   let directionLabel: 'from:' | 'to:' | 'from|to:';
   let icon: 'arrow-left' | 'arrow-right' | 'arrows-horizontal';
