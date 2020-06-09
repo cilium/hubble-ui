@@ -5,6 +5,12 @@
   position: absolute;
   bottom: 0;
   top: 66%;
+  margin: 0 10px;
+  border-top: 1px solid #c6cace;
+  border-left: 1px solid #c6cace;
+  border-right: 1px solid #c6cace;
+  border-radius: 3px 3px 0 0;
+  box-shadow: 0 0 23px rgba(8, 44, 65, 0.12);
 
   overflow: hidden;
   background-color: #f2f4f6;
@@ -15,7 +21,6 @@
 
   .tableWrapper {
     flex-grow: 0;
-    margin: 0 10px 10px 10px;
     overflow: hidden;
   }
 }
