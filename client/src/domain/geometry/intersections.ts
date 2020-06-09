@@ -15,8 +15,11 @@ const outOfSegments = (
   const [seg2xlm, seg2xrm] = p3.x < p4.x ? [p3.x, p4.x] : [p4.x, p3.x];
   const [seg2ylm, seg2yrm] = p3.y < p4.y ? [p3.y, p4.y] : [p4.y, p3.y];
 
-  const ok1 = x >= seg1xlm && x <= seg1xrm && y >= seg1ylm && y <= seg1yrm;
+  // Avoid precision loss
+  y -= y - Number(y.toFixed(3));
+  x -= x - Number(x.toFixed(3));
 
+  const ok1 = x >= seg1xlm && x <= seg1xrm && y >= seg1ylm && y <= seg1yrm;
   const ok2 = x >= seg2xlm && x <= seg2xrm && y >= seg2ylm && y <= seg2yrm;
 
   return !(ok1 && ok2);

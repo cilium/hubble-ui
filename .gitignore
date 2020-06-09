@@ -43,6 +43,7 @@ jspm_packages
 # production
 /build
 /client/build
+/server/public/bundle.*
 
 # misc
 .DS_Store

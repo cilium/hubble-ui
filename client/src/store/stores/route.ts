@@ -8,7 +8,7 @@ import {
 import { action, computed, observable, reaction, runInAction } from 'mobx';
 import * as qs from 'query-string';
 
-import { FlowsFilterEntry, FlowsFilterUtils } from '~/domain/flows';
+import { FlowsFilterEntry } from '~/domain/flows';
 import { Verdict } from '~/domain/hubble';
 
 import { Dictionary } from '~/domain/misc';
@@ -95,7 +95,13 @@ export default class RouteStore {
       filters = [filters];
     }
 
-    return filters.map(FlowsFilterUtils.createFilterObject);
+    return filters.reduce((acc, filter) => {
+      const ff = FlowsFilterEntry.parse(filter);
+      if (!ff) return acc;
+
+      acc.push(ff);
+      return acc;
+    }, [] as FlowsFilterEntry[]);
   }
 
   @action.bound
@@ -119,7 +125,7 @@ export default class RouteStore {
 
   @action.bound
   setFlowFilters(ff: string[]) {
-    this.setParam(RouteParam.FlowsFilter, ff);
+    this.setParam(RouteParam.FlowsFilter, ff.length > 0 ? ff : null);
   }
 
   @action.bound
@@ -147,28 +153,22 @@ export default class RouteStore {
     const query = qs.length > 0 ? '?' + qs : '';
     const hash = transformed.hash.length > 0 ? '#' + this.hash : '';
 
-    this.history.navigate(`/${path}${qs}${hash}`);
+    console.log(`gotoFn: `, path, query, hash);
+    this.history.navigate(`/${path}${query}${hash}`);
   }
 
   @action.bound
   setParam(key: RouteParam, value?: string | string[] | number | null) {
-    const nextParamsObj = { ...this.params };
+    this.gotoFn((parts, params, hash) => {
+      const hasLength = typeof value != 'number';
+      if (value == null || (hasLength && !(value as string).length)) {
+        delete params[key];
+      } else {
+        params[key] = String(value!);
+      }
 
-    if (value == null || (Array.isArray(value) && value.length === 0)) {
-      delete nextParamsObj[key];
-    } else {
-      nextParamsObj[key] = typeof value === 'number' ? String(value) : value;
-    }
-
-    const nextSearch = RouteStore.stringifyParams(nextParamsObj);
-    if (this.location.search === nextSearch) return;
-
-    if (!nextSearch) {
-      return this.goto(this.location.pathname, { resetParams: true });
-    }
-
-    const nextUrl = `${this.location.pathname}?${nextSearch}`;
-    return this.goto(nextUrl, { resetParams: true });
+      return { parts, params, hash };
+    });
   }
 
   private listen() {

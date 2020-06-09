@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
+import _ from 'lodash';
 import { RouteComponentProps, Router } from '@reach/router';
 import { observer } from 'mobx-react';
 
@@ -11,10 +12,11 @@ import { TopBar } from '~/components/TopBar';
 import { DetailsPanel } from '~/components/DetailsPanel';
 import { Map } from '~/components/Map';
 
-import { FlowsFilterEntry, FlowsFilterUtils } from '~/domain/flows';
+import { FlowsFilterEntry } from '~/domain/flows';
 import { HubbleFlow, Verdict } from '~/domain/hubble';
 import { ServiceCard } from '~/domain/service-card';
 import { Vec2 } from '~/domain/geometry';
+import { setupDebugProp } from '~/domain/misc';
 
 import * as mockData from '~/api/__mocks__/data';
 import { useStore } from '~/store';
@@ -44,6 +46,16 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   const store = useStore();
   const notifier = useNotifier();
 
+  useEffect(() => {
+    setupDebugProp({
+      stopFlows: () => {
+        if (eventStream == null) return;
+
+        eventStream.stop();
+      },
+    });
+  }, [eventStream]);
+
   // prettier-ignore
   const setupNamespaceEventHandlers = useCallback((stream: IEventStream) => {
     stream.on(EventStreamEventKind.Namespace, (nsChange: NamespaceChange) => {
@@ -67,6 +79,16 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     });
   }, [store]);
 
+  const setupGeneralEventHandlers = useCallback((stream: IEventStream) => {
+    stream.on('error', e => {
+      notifier.showError(`
+        Failed to received data from backend.
+        Please make sure that ui containers in your cluster are up and try
+        again.
+      `);
+    });
+  }, []);
+
   useEffect(() => {
     console.log('store.mocked: ', store.mocked);
 
@@ -81,9 +103,12 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       return;
     }
 
+    if (store.controls.currentNamespace != null) return;
+
     const stream = api.v1.getEventStream(EventParamsSet.Namespaces);
 
     setupNamespaceEventHandlers(stream);
+    setupGeneralEventHandlers(stream);
     setEventStream(stream);
   }, []);
 
@@ -109,15 +134,15 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
 
       setupNamespaceEventHandlers(newStream);
       setupServicesEventHandlers(newStream);
+      setupGeneralEventHandlers(newStream);
 
       setEventStream(newStream);
     });
   }, [
     store.controls.currentNamespace,
-    // TODO: hide it behind abstraction, like: store.filters.verdict
-    store.route.verdict,
-    store.route.httpStatus,
-    store.route.flowFilters,
+    store.controls.verdict,
+    store.controls.httpStatus,
+    store.controls.flowFilters,
   ]);
 
   const onNsChange = useCallback((ns: string) => {
@@ -129,15 +154,15 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   }, []);
 
   const onSelectVerdict = useCallback((verdict: Verdict | null) => {
-    store.route.setVerdict(verdict);
+    store.controls.setVerdict(verdict);
   }, []);
 
   const onSelectHttpStatus = useCallback((httpStatus: string | null) => {
-    store.route.setHttpStatus(httpStatus);
+    store.controls.setHttpStatus(httpStatus);
   }, []);
 
-  const onChangeFlowFilters = useCallback((values: FlowsFilterEntry[]) => {
-    store.route.setFlowFilters(values.map(FlowsFilterUtils.createFilterString));
+  const onChangeFlowFilters = useCallback((ffs: FlowsFilterEntry[]) => {
+    store.controls.setFlowFilters(ffs);
   }, []);
 
   const onCloseFlowsTableSidebar = useCallback(() => {
@@ -162,11 +187,11 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
         namespaces={store.controls.namespaces}
         currentNamespace={store.controls.currentNamespace}
         onNsChange={onNsChange}
-        selectedVerdict={store.route.verdict}
+        selectedVerdict={store.controls.verdict}
         onSelectVerdict={onSelectVerdict}
-        selectedHttpStatus={store.route.httpStatus}
+        selectedHttpStatus={store.controls.httpStatus}
         onSelectHttpStatus={onSelectHttpStatus}
-        flowFilters={store.route.flowFilters}
+        flowFilters={store.controls.flowFilters}
         onChangeFlowFilters={onChangeFlowFilters}
       />
 

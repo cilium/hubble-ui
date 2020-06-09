@@ -1,7 +1,7 @@
 export type ChunksForEachCallback<D> = (
   chunk: D[],
   i: number,
-  last: boolean,
+  ntotal: number,
 ) => void;
 
 export class Chunks<D> {
@@ -35,15 +35,11 @@ export class Chunks<D> {
 
     for (let [start, idx] = [0, 0]; start + size <= n; start += step) {
       const chunk = arr.slice(start, start + size);
-      const isLast = start + step + size > n;
+      const ntotal = ((n - overlap) / (size - overlap)) | 0;
 
-      if (chunk.length < size) {
-        const pad = Array(size - chunk.length).fill(undefined);
-        chunk.splice(chunk.length, 0, ...pad);
-      }
+      if (chunk.length < size) break;
 
-      cb(chunk, idx, isLast);
-
+      cb(chunk, idx, ntotal);
       idx += 1;
     }
   }

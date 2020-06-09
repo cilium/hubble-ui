@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { ClientReadableStream } from 'grpc-web';
+import { ClientReadableStream, Status, Error as GRPCError } from 'grpc-web';
 
 import {
   GetEventsRequest,
@@ -226,6 +226,20 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
         case EventCase.K8S_NAMESPACE_STATE:
           return this.onNamespaceReceived(res.getK8sNamespaceState()!);
       }
+    });
+
+    // TODO: it just emits raw grpc error; wrapper ?
+    this.stream.on('error', (e: GRPCError) => {
+      this.emit('error', e);
+    });
+
+    this.stream.on('end', () => {
+      this.emit('end');
+    });
+
+    // TODO: it just emits raw grpc status; wrapper ?
+    this.stream.on('status', (st: Status) => {
+      this.emit('status', st);
     });
   }
 
