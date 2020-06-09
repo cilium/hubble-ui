@@ -10,11 +10,12 @@
   background-color: #f2f4f6;
 
   .dragPanel {
-    @include exact-size(default, 50px);
+    @include exact-size(default, 29px);
   }
 
   .tableWrapper {
     flex-grow: 0;
+    margin: 0 10px 10px 10px;
     overflow: hidden;
   }
 }

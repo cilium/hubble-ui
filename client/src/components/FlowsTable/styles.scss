@@ -14,8 +14,8 @@ $border-color: #c6cace;
   position: relative;
   overflow: auto;
   height: 100%;
-  border-top: 1px solid $border-color;
-  background-color: #fff;
+  border-radius: 3px;
+  border: 1px solid $border-color;
 }
 
 .table {
@@ -73,12 +73,6 @@ $border-color: #c6cace;
         cursor: pointer;
       }
 
-      &:last-child {
-        td {
-          border-bottom: 1px solid $border-color;
-        }
-      }
-
       &.selected {
         background-color: #7b7b7b;
 
@@ -92,6 +86,20 @@ $border-color: #c6cace;
   .emptyValue {
     color: #999;
     font-weight: 400;
+  }
+
+  .forwardedVerdict {
+    color: #54a82d;
+  }
+
+  .droppedVerdict {
+    color: #d46363;
+  }
+
+  .namespace {
+    color: #7b7b7b;
+    font-style: italic;
+    font-weight: 500;
   }
 }
 

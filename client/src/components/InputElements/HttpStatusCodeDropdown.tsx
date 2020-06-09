@@ -61,7 +61,7 @@ export const HttpStatusCodeDropdown = memo<Props>(props => {
         </div>
       }
     >
-      <ButtonGroup className={css.button}>
+      <ButtonGroup>
         <Button
           minimal
           text="HTTP Status"

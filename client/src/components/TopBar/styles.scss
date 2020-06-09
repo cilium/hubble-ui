@@ -2,7 +2,7 @@
 @import "~/styles/common/vars.scss";
 
 .topbar {
-  @include row(space-between, center);
+  @include row(flex-start, center);
   padding: 0 8px;
 
   border-bottom: 1px solid #c6cace;
@@ -11,4 +11,20 @@
   min-height: 50px;
   max-height: 50px;
   height: 100%;
+
+  .border {
+    flex-shrink: 0;
+    width: 1px;
+    height: 26px;
+    margin: 0 10px;
+    border: none;
+    background-color: #dce0e3;
+  }
+
+  .spacer {
+    flex-shrink: 0;
+    width: 10px;
+    height: 26px;
+    border: none;
+  }
 }
