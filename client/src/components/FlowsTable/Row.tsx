@@ -25,12 +25,12 @@ export const Row = memo<RowProps>(function FlowsTableRow(props) {
   const destinationAppName = flow.destinationAppName ?? 'No app name';
 
   const sourceNamespace = flow.sourceNamespace ? (
-    <i>{flow.sourceNamespace}</i>
+    <span className={css.namespace}>{flow.sourceNamespace}</span>
   ) : (
     ''
   );
   const destinationNamespace = flow.destinationNamespace ? (
-    <i>{flow.destinationNamespace}</i>
+    <span className={css.namespace}>{flow.destinationNamespace}</span>
   ) : (
     ''
   );
@@ -41,6 +41,11 @@ export const Row = memo<RowProps>(function FlowsTableRow(props) {
   const destinationTitle = <>{destinationAppName} {destinationNamespace}</>;
 
   const className = classnames({ [css.selected]: props.selected });
+
+  const verdictClassName = classnames({
+    [css.forwardedVerdict]: props.flow.verdictLabel === 'forwarded',
+    [css.droppedVerdict]: props.flow.verdictLabel === 'dropped',
+  });
 
   return (
     <tr className={className} onClick={onClick}>
@@ -63,7 +68,9 @@ export const Row = memo<RowProps>(function FlowsTableRow(props) {
       {isVisibleColumn('DstIp') && <td>{props.flow.destinationIp}</td>}
       {isVisibleColumn('DstService') && <td>{destinationTitle}</td>}
       {isVisibleColumn('DstPort') && <td>{flow.destinationPort}</td>}
-      {isVisibleColumn('Verdict') && <td>{flow.verdictLabel}</td>}
+      {isVisibleColumn('Verdict') && (
+        <td className={verdictClassName}>{flow.verdictLabel}</td>
+      )}
       {isVisibleColumn('Timestamp') && (
         <td title={flow.isoTimestamp || undefined}>{timestamp}</td>
       )}

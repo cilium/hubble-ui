@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import React, { FunctionComponent, useMemo, useRef, useCallback } from 'react';
 
-import { DragPanel, DragPanelBaseProps } from '~/components/DragPanel';
+import { DragPanel } from '~/components/DragPanel';
 import { FlowsTable } from '~/components/FlowsTable';
 import { FlowsTableSidebar } from '~/components/FlowsTable/Sidebar';
 import { useFlowsTableColumns } from '~/components/FlowsTable/hooks/useColumns';
@@ -29,7 +29,7 @@ interface PanelProps {
   resizable: boolean;
 }
 
-export type Props = SidebarProps & TableProps & PanelProps & DragPanelBaseProps;
+export type Props = SidebarProps & TableProps & PanelProps;
 
 export const DetailsPanelComponent = function (props: Props) {
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -52,12 +52,6 @@ export const DetailsPanelComponent = function (props: Props) {
     <div className={css.panel} ref={rootRef} style={resizeStyles}>
       <div className={css.dragPanel}>
         <DragPanel
-          selectedVerdict={props.selectedVerdict}
-          onSelectVerdict={props.onSelectVerdict}
-          selectedHttpStatus={props.selectedHttpStatus}
-          onSelectHttpStatus={props.onSelectHttpStatus}
-          flowFilters={props.flowFilters}
-          onChangeFlowFilters={props.onChangeFlowFilters}
           isVisibleFlowsTableColumn={flowsTableColumns.isVisibleColumn}
           toggleFlowsTableColumn={flowsTableColumns.toggleColumn}
           onResize={onResize}

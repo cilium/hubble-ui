@@ -162,6 +162,12 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
         namespaces={store.controls.namespaces}
         currentNamespace={store.controls.currentNamespace}
         onNsChange={onNsChange}
+        selectedVerdict={store.route.verdict}
+        onSelectVerdict={onSelectVerdict}
+        selectedHttpStatus={store.route.httpStatus}
+        onSelectHttpStatus={onSelectHttpStatus}
+        flowFilters={store.route.flowFilters}
+        onChangeFlowFilters={onChangeFlowFilters}
       />
 
       <div className={css.map}>
@@ -181,13 +187,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
         flowsDiffCount={flowsDiffCount}
         selectedFlow={store.controls.selectedTableFlow}
         onSelectFlow={store.controls.selectTableFlow}
-        selectedVerdict={store.route.verdict}
-        onSelectVerdict={onSelectVerdict}
-        selectedHttpStatus={store.route.httpStatus}
-        onSelectHttpStatus={onSelectHttpStatus}
         onCloseSidebar={onCloseFlowsTableSidebar}
-        flowFilters={store.route.flowFilters}
-        onChangeFlowFilters={onChangeFlowFilters}
         tsUpdateDelay={eventStream?.flowsDelay}
         onStreamStop={onStreamStop}
       />

@@ -99,7 +99,7 @@ export class Flow {
     return this.ref.ip.destination;
   }
 
-  public get verdictLabel(): string {
+  public get verdictLabel(): 'forwarded' | 'dropped' | 'unknown' | 'unhandled' {
     switch (this.ref.verdict) {
       case Verdict.Forwarded:
         return 'forwarded';
