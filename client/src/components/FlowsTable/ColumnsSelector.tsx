@@ -29,6 +29,7 @@ export const FlowsTableColumnsSelector = memo<Props>(
     return (
       <Popover content={<Menu>{menuItems}</Menu>}>
         <Button
+          small
           minimal
           onClick={onClick}
           rightIcon="chevron-down"
