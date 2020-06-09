@@ -6,7 +6,6 @@ const webpack = require('webpack');
 const Dotenv = require('dotenv-webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 /* eslint-enable @typescript-eslint/no-var-requires */
@@ -90,8 +89,7 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js', '.jsx', '.json', '.mjs'],
     alias: {
       '~': path.resolve(__dirname, './src/'),
-      '~common': path.resolve(__dirname, './../common/src/'),
-    }
+    },
   },
   module: {
     rules: [

@@ -19,7 +19,7 @@ import {
   L7FlowType as PBL7FlowType,
   CiliumEventType as PBCiliumEventType,
   Service as PBService,
-} from '~common/proto/flow/flow_pb';
+} from '~/proto/flow/flow_pb';
 
 import {
   HubbleFlow,
@@ -47,7 +47,7 @@ import {
   ServiceLink as PBRelayServiceLink,
   IPProtocol as PBIPProtocol,
   StateChange as PBStateChange,
-} from '~common/proto/relay/relay_pb';
+} from '~/proto/relay/relay_pb';
 
 import { Service, Link, IPProtocol } from '~/domain/service-map';
 import { StateChange } from '~/domain/misc';
