@@ -53,9 +53,7 @@ export const useZoom = (ref: SVGRef, initials?: Initials) => {
 
     return () => {
       if (ref.current) {
-        d3.select(ref.current)
-          .selectAll('*')
-          .remove();
+        d3.select(ref.current).selectAll('*').remove();
       }
     };
   }, []);

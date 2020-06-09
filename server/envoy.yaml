@@ -7,7 +7,7 @@ static_resources:
   listeners:
     - name: listener_relay_api
       address:
-        socket_address: { address: 0.0.0.0, port_value: 8080 }
+        socket_address: { address: 0.0.0.0, port_value: 12345 }
       filter_chains:
         - filters:
             - name: envoy.http_connection_manager
