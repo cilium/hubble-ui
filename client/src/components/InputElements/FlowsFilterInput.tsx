@@ -69,9 +69,7 @@ export const FlowsFilterInput = (props: Props) => {
 
   const rightElement = props.filters.length ? (
     <Button minimal icon="cross" onClick={onClear} />
-  ) : (
-    undefined
-  );
+  ) : undefined;
 
   return (
     <FilterMultiSelect

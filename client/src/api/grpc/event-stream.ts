@@ -9,9 +9,9 @@ import {
   ServiceState,
   ServiceLinkState,
   K8sNamespaceState,
-} from '~common/proto/relay/relay_pb';
+} from '~/proto/relay/relay_pb';
 
-import { Flow, FlowFilter, EventTypeFilter } from '~common/proto/flow/flow_pb';
+import { Flow, FlowFilter, EventTypeFilter } from '~/proto/flow/flow_pb';
 
 import { HubbleFlow } from '~/domain/hubble';
 import { FlowsFilterDirection, FlowsFilterKind } from '~/domain/flows';

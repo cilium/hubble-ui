@@ -1,4 +1,4 @@
-import { HubbleRelayClient } from '~common/proto/relay/relay_grpc_web_pb';
+import { HubbleRelayClient } from '~/proto/relay/relay_grpc_web_pb';
 
 import { API, CoreAPIv1, EventParams } from '~/api/general';
 import {
@@ -14,7 +14,10 @@ export class APIv1 implements CoreAPIv1 {
   public static readonly defaultEventStreamParams = EventParamsSet.Namespaces;
 
   public constructor() {
-    this.client = new HubbleRelayClient('http://localhost:12345');
+    const schema = process.env.GRPC_PROXY_SCHEMA;
+    const host = process.env.GRPC_PROXY_HOST;
+    const port = process.env.GRPC_PROXY_PORT;
+    this.client = new HubbleRelayClient(`${schema}://${host}:${port}`);
   }
 
   public getEventStream(
