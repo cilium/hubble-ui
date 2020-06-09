@@ -1,4 +1,12 @@
-import { action, configure, observable, computed, reaction } from 'mobx';
+import _ from 'lodash';
+import {
+  action,
+  configure,
+  observable,
+  computed,
+  reaction,
+  autorun,
+} from 'mobx';
 import { Flow } from '~/domain/flows';
 import {
   InteractionKind,
@@ -145,14 +153,89 @@ export class Store {
     return this.route.hash === 'mock';
   }
 
+  private clearMap() {
+    this.interactions.clear();
+    this.services.clear();
+    this.layout.clear();
+  }
+
   private setupReactions() {
     // prettier-ignore
     reaction(() => this.controls.currentNamespace, namespace => {
       if (!namespace) return;
-
       storage.saveLastNamespace(namespace);
+
+      this.clearMap();
       this.route.setNamespace(namespace);
     });
+
+    reaction(
+      () => this.controls.verdict,
+      () => {
+        this.clearMap();
+      },
+    );
+
+    reaction(
+      () => this.controls.httpStatus,
+      () => {
+        this.clearMap();
+      },
+    );
+
+    reaction(
+      () => this.controls.flowFilters,
+      () => {
+        this.clearMap();
+      },
+    );
+
+    // Initialization from route to store
+    // prettier-ignore
+    autorun(r => {
+      this.restoreNamespace();
+      r.dispose();
+    });
+
+    // prettier-ignore
+    autorun(r => {
+      this.controls.setVerdict(this.route.verdict);
+      r.dispose();
+    });
+
+    // prettier-ignore
+    autorun(r => {
+      this.controls.setHttpStatus(this.route.httpStatus);
+      r.dispose();
+    });
+
+    autorun(r => {
+      this.controls.setFlowFilters(this.route.flowFilters);
+      r.dispose();
+    });
+
+    // Normal reactions, from store to route
+    reaction(
+      () => this.controls.verdict,
+      v => {
+        this.route.setVerdict(v);
+      },
+    );
+
+    reaction(
+      () => this.controls.httpStatus,
+      st => {
+        this.route.setHttpStatus(st);
+      },
+    );
+
+    reaction(
+      () => this.controls.flowFilters,
+      st => {
+        const ffs = _.invokeMap(this.controls.flowFilters, 'toString');
+        this.route.setFlowFilters(ffs);
+      },
+    );
   }
 
   private restoreNamespace() {
@@ -182,7 +265,7 @@ export class Store {
 
   public printMapData() {
     const data = {
-      cards: this.services.cards,
+      services: this.services.cards.map(c => c.service),
       links: this.interactions.links,
     };
 

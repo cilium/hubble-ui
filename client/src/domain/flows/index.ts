@@ -5,7 +5,7 @@ import { Labels } from '~/domain/labels';
 import { KV } from '~/domain/misc';
 import { CiliumEventSubTypesCodes } from '~/domain/cilium';
 
-export * from './filter-utils';
+export * from './flows-filter-entry';
 export { HubbleFlow };
 
 export class Flow {

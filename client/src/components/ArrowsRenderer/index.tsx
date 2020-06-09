@@ -43,9 +43,15 @@ const arrowLine = (points: Vec2[]): string => {
 
   let line = `M ${first.x} ${first.y}`;
 
-  chunks(points, 3, 2).forEach((chunk: Vec2[]) => {
+  chunks(points, 3, 2).forEach((chunk: Vec2[], idx: number, ntotal: number) => {
     const [a, b, c] = chunk;
-    const [d, e] = gutils.roundCorner(r, [a, b, c]);
+    let [d, e, angle] = gutils.roundCorner(r, [a, b, c]);
+
+    // This case occurs much more rarely than others, so using roundCorner
+    // one more time is ok since angle computaion is part of entire function
+    if (angle < Math.PI / 4) {
+      [d, e, angle] = gutils.roundCorner(r * Math.sin(angle), [a, b, c]);
+    }
 
     const ab = Vec2.from(b.x - a.x, b.y - a.y);
     const bc = Vec2.from(c.x - b.x, c.y - b.y);
@@ -78,6 +84,10 @@ const startPlatePath = (d: any) => {
     h -${w - r}
     z
   `;
+};
+
+const generalExit = (exit: any) => {
+  exit.remove();
 };
 
 const startPlatesEnter = (enter: any) => {
@@ -131,9 +141,10 @@ const arrowHandle = (handle: [Vec2, Vec2] | null): string => {
 
 const arrowHandleId = (handle: [Vec2, Vec2]): string => {
   const [from, to] = handle;
-  const mid = from.mid(to);
+  const mid = gutils.linterp2(from, to, 0.5);
 
-  return `${mid.x},${mid.y}`;
+  // WARN: precision lose here
+  return `${mid.x | 0},${mid.y | 0}`;
 };
 
 const arrowHandleEnter = (enter: any) => {
@@ -163,7 +174,7 @@ const arrowsEnter = (enter: any) => {
   arrowGroup
     .selectAll('path.handle')
     .data((d: Arrow) => d[1].handles, arrowHandleId)
-    .join(arrowHandleEnter);
+    .join(arrowHandleEnter, _.identity, generalExit);
 
   return arrowGroup;
 };
@@ -173,31 +184,53 @@ const arrowsUpdate = (update: any) => {
   update
     .selectAll('path.handle')
     .data((d: Arrow) => d[1].handles, arrowHandleId)
-    .join(arrowHandleEnter, arrowHandleUpdate);
+    .join(arrowHandleEnter, arrowHandleUpdate, generalExit);
 
   return update;
 };
 
 const feetsEnter = (enter: any) => {
-  return enter
-    .append('g')
-    .attr('class', (d: any) => d[0])
+  const feetGroup = enter.append('g').attr('class', (d: any) => d[0]);
+
+  feetGroup
     .append('line')
+    .attr('class', 'outer')
     .attr('x1', (d: any) => d[1][0].x)
     .attr('y1', (d: any) => d[1][0].y)
     .attr('x2', (d: any) => d[1][1].x)
     .attr('y2', (d: any) => d[1][1].y)
-    .attr('stroke', colors.feetStroke)
-    .attr('stroke-width', sizes.feetWidth);
+    .attr('stroke', colors.feetOuterStroke)
+    .attr('stroke-width', sizes.feetOuterWidth);
+
+  feetGroup
+    .append('line')
+    .attr('class', 'inner')
+    .attr('x1', (d: any) => d[1][0].x)
+    .attr('y1', (d: any) => d[1][0].y)
+    .attr('x2', (d: any) => d[1][1].x)
+    .attr('y2', (d: any) => d[1][1].y)
+    .attr('stroke', colors.feetInnerStroke)
+    .attr('stroke-width', sizes.feetInnerWidth);
+
+  return feetGroup;
 };
 
 const feetsUpdate = (update: any) => {
-  return update
-    .select('line')
+  update
+    .selectAll('line.outer')
     .attr('x1', (d: any) => d[1][0].x)
     .attr('y1', (d: any) => d[1][0].y)
     .attr('x2', (d: any) => d[1][1].x)
     .attr('y2', (d: any) => d[1][1].y);
+
+  update
+    .select('line.inner')
+    .attr('x1', (d: any) => d[1][0].x)
+    .attr('y1', (d: any) => d[1][0].y)
+    .attr('x2', (d: any) => d[1][1].x)
+    .attr('y2', (d: any) => d[1][1].y);
+
+  return update;
 };
 
 const connectorsEnter = (enter: any) => {
@@ -307,29 +340,29 @@ const manageArrows = (props: Props, g: SVGGElement) => {
       update: feetsUpdate,
     },
     common: {
-      exit: (exit: any) => exit.remove(),
+      exit: generalExit,
     },
   };
 
   startPlatesGroup
     .selectAll('g')
     .data(startPlates, (d: any) => d[0])
-    .join(fns.startPlates.enter, fns.startPlates.update);
+    .join(fns.startPlates.enter, fns.startPlates.update, fns.common.exit);
 
   arrowsGroup
     .selectAll('g')
     .data(arrows, (d: any) => d[0])
-    .join(fns.arrows.enter, fns.arrows.update);
+    .join(fns.arrows.enter, fns.arrows.update, fns.common.exit);
 
   connectorsGroup
     .selectAll('g')
     .data(connectors, (d: any) => d[0])
-    .join(fns.connectors.enter, fns.connectors.update);
+    .join(fns.connectors.enter, fns.connectors.update, fns.common.exit);
 
   feetsGroup
     .selectAll('g')
     .data(feets, (d: any) => d[0])
-    .join(fns.feets.enter, fns.feets.update);
+    .join(fns.feets.enter, fns.feets.update, fns.common.exit);
 };
 
 // This component manages multiple arrows to be able to draw them

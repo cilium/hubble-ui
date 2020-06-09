@@ -57,7 +57,9 @@ export const MapElementsComponent = observer((props: MapElementsProps) => {
 
   return (
     <>
-      <NamespaceBackplate namespace={namespace} xywh={nsXYWH} />
+      {placement.length > 0 && (
+        <NamespaceBackplate namespace={namespace} xywh={nsXYWH} />
+      )}
 
       {placement.map(plc => (
         <EndpointCardBackplate
