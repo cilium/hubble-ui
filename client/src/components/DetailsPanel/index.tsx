@@ -31,7 +31,7 @@ interface PanelProps {
 
 export type Props = SidebarProps & TableProps & PanelProps & DragPanelBaseProps;
 
-export const DetailsPanelComponent = function(props: Props) {
+export const DetailsPanelComponent = function (props: Props) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [resizeStyles, onResize] = usePanelResize(rootRef);
   const flowsTableColumns = useFlowsTableColumns();

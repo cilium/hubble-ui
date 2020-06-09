@@ -2,39 +2,27 @@
   "private": true,
   "scripts": {
     "test": "cd client && npm test",
-    "start": "cd server && npm start",
-    "install:common": "cd common && npm install",
     "install:client": "cd client && npm install",
-    "install:all": "npm install && npm run install:common && npm run install:client",
-    "postinstall": "cd client && npm install && cd ../server && npm install",
+    "install:all": "npm install && npm run install:client",
+    "postinstall": "npm run install:client",
     "lint:ts": "eslint --ignore-path .gitignore \"./{client,server}/src/**/*.{ts,tsx,js,jsx,mjs}\"",
     "lint:ts:fix": "npm run lint:ts -- --fix",
     "lint:scss": "stylelint --ignore-path .gitignore \"./**/*.scss\" --syntax scss",
     "lint:scss:fix": "npm run lint:scss -- --fix",
-    "watch:server": "cd server && npm run watch",
+    "watch:server": "servor ./server/public",
     "watch:client": "cd client && npm run watch",
     "watch": "npm run generate-proto && run-p watch:*",
-    "build:server": "cd server && npm run build",
-    "build:client": "cd client && npm run build",
-    "build": "npm run generate-proto && run-s build:*",
-    "upgrade-deps:server": "cd server && npm run upgrade-deps",
+    "build": "cd client && npm run build",
     "upgrade-deps:client": "cd client && npm run upgrade-deps",
-    "upgrade-deps:common": "cd common && npm run upgrade-deps",
     "upgrade-deps:root": "npm-check --update --save-exact",
     "upgrade-deps": "run-s upgrade-deps:*",
-    "generate-proto": "cd common && npm run generate-proto"
+    "generate-proto": "cd client && npm run generate-proto"
   },
   "lint-staged": {
-    "./client/src/**/*.{ts,tsx,js,jsx,mjs}": [
+    "./client/src/!(proto)/**/*.{ts,tsx,js,jsx,mjs}": [
       "npm run --silent lint:ts:fix"
     ],
-    "./server/src/**/*.{ts,tsx,js,jsx,mjs}": [
-      "npm run --silent lint:ts:fix"
-    ],
-    "./common/src/!(proto)/**/*.{ts,tsx,js,jsx,mjs}": [
-      "npm run --silent lint:ts:fix"
-    ],
-    "./**/*.scss": [
+    "./client/src/**/*.scss": [
       "npm run --silent lint:scss:fix"
     ]
   },
@@ -44,24 +32,26 @@
     }
   },
   "dependencies": {
-    "@typescript-eslint/eslint-plugin": "2.22.0",
-    "@typescript-eslint/parser": "2.22.0",
-    "eslint": "6.8.0",
-    "eslint-config-prettier": "6.10.0",
-    "eslint-plugin-prettier": "3.1.2",
-    "eslint-plugin-react": "7.18.3",
-    "husky": "4.2.3",
-    "lint-staged": "10.0.8",
+    "@typescript-eslint/eslint-plugin": "3.2.0",
+    "@typescript-eslint/parser": "3.2.0",
+    "eslint": "7.2.0",
+    "eslint-config-prettier": "6.11.0",
+    "eslint-plugin-prettier": "3.1.3",
+    "eslint-plugin-react": "7.20.0",
+    "husky": "4.2.5",
+    "lint-staged": "10.2.9",
     "npm-check": "5.9.2",
     "npm-run-all": "4.1.5",
-    "prettier": "1.19.1",
-    "source-map-explorer": "2.3.1",
-    "style-loader": "1.2.0",
-    "stylelint": "13.2.0",
+    "prettier": "2.0.5",
+    "servor": "4.0.2",
+    "source-map-explorer": "2.4.2",
+    "style-loader": "1.2.1",
+    "stylelint": "13.6.0",
     "stylelint-config-css-modules": "2.2.0",
     "stylelint-config-standard": "20.0.0",
-    "stylelint-scss": "3.14.2",
-    "typescript": "3.8.3"
+    "stylelint-scss": "3.17.2",
+    "tsconfig-paths-webpack-plugin": "3.2.0",
+    "typescript": "3.9.5"
   },
   "prettier": {
     "printWidth": 80,
@@ -75,8 +65,7 @@
   },
   "eslintConfig": {
     "ignorePatterns": [
-      "common/src/types/hubble/",
-      "common/src/types/graphql.ts",
+      "client/src/proto",
       "server/public"
     ],
     "parser": "@typescript-eslint/parser",
@@ -102,13 +91,8 @@
       "@typescript-eslint/explicit-function-return-type": "off",
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-namespace": "off",
-      "@typescript-eslint/camelcase": [
-        "error",
-        {
-          "properties": "never",
-          "ignoreDestructuring": true
-        }
-      ],
+      "@typescript-eslint/explicit-module-boundary-types": "off",
+      "@typescript-eslint/ban-types": "off",
       "@typescript-eslint/no-use-before-define": [
         "error",
         {
@@ -139,8 +123,5 @@
       "at-rule-empty-line-before": null,
       "no-descending-specificity": null
     }
-  },
-  "devDependencies": {
-    "tsconfig-paths-webpack-plugin": "^3.2.0"
   }
 }
