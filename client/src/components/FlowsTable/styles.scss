@@ -14,8 +14,7 @@ $border-color: #c6cace;
   position: relative;
   overflow: auto;
   height: 100%;
-  border-radius: 3px;
-  border: 1px solid $border-color;
+  border-top: 1px solid $border-color;
 }
 
 .table {
@@ -73,6 +72,12 @@ $border-color: #c6cace;
         cursor: pointer;
       }
 
+      &:last-child {
+        td {
+          border-bottom: 1px solid $border-color;
+        }
+      }
+
       &.selected {
         background-color: #7b7b7b;
 
@@ -109,11 +114,10 @@ $border-color: #c6cace;
   position: absolute;
   top: 0;
   right: 0;
-  width: 280px;
+  width: 320px;
   height: 100%;
   overflow: auto;
   background: #fff;
-  border-top: 1px solid #c6cace;
   border-left: 1px solid #c6cace;
   box-shadow: 0 22px 22px rgba(0, 0, 0, 0.25);
 
@@ -134,9 +138,8 @@ $border-color: #c6cace;
       align-items: center;
       justify-content: center;
       position: fixed;
-      right: $padding;
+      right: $padding * 3;
       margin-top: -1px;
-      margin-right: -3px;
       padding: 3px;
       border-radius: 3px;
       background-color: rgba(255, 255, 255, 0.5);
@@ -176,7 +179,7 @@ $border-color: #c6cace;
 
   .block + hr {
     display: block;
-    width: calc(#{$padding} + 100% + #{$padding} + #{$padding});
+    width: calc(#{$padding} + 100%);
     height: 1px;
     margin-bottom: 10px;
     margin-left: -$padding;
