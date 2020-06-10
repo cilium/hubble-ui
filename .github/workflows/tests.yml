@@ -1,0 +1,19 @@
+name: Run tests
+on: push
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          submodules: true
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '13.x'
+      - name: Install dependencies
+        run: npm run install:all
+      - name: Generate types
+        run: npm run generate-proto
+      - name: Run tests
+        run: npm test

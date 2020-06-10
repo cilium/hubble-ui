@@ -11,7 +11,7 @@
     "lint:scss:fix": "npm run lint:scss -- --fix",
     "watch:server": "servor ./server/public",
     "watch:client": "cd client && npm run watch",
-    "watch": "npm run generate-proto && run-p watch:*",
+    "watch": "run-p watch:*",
     "build": "cd client && npm run build",
     "upgrade-deps:client": "cd client && npm run upgrade-deps",
     "upgrade-deps:root": "npm-check --update --save-exact",
