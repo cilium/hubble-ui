@@ -7,7 +7,7 @@
     "cleanup": "rm -rf ./build",
     "upgrade-deps": "../node_modules/.bin/npm-check --update --save-exact",
     "watch": "npm run build-blueprint && NODE_ENV=development webpack --progress",
-    "build": "npm run build-blueprint && NODE_ENV=production webpack",
+    "build": "npm run generate-proto && npm run build-blueprint && NODE_ENV=production webpack",
     "build-blueprint": "node-sass-chokidar src/blueprint.scss -o src --importer=./node_modules/node-sass-package-importer/dist/cli.js --functions=scripts/sass-inline-svg.js",
     "generate-proto": "./generate-proto.sh",
     "install-grpc-deps": "node ./scripts/install-grpc-deps"
