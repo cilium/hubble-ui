@@ -82,9 +82,8 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   const setupGeneralEventHandlers = useCallback((stream: IEventStream) => {
     stream.on('error', e => {
       notifier.showError(`
-        Failed to received data from backend.
-        Please make sure that ui containers in your cluster are up and try
-        again.
+        Failed to receive data from backend.
+        Please make sure that your deployment is up and try again.
       `);
     });
   }, []);
@@ -126,7 +125,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
 
     let previousStopped = Promise.resolve();
     if (eventStream != null) {
-      previousStopped = eventStream.stop();
+      previousStopped = eventStream.stop(true);
     }
 
     previousStopped.then(() => {

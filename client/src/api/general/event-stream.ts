@@ -67,5 +67,5 @@ export type EventStreamHandlers = GeneralStreamEvents & {
 export interface IEventStream extends EventEmitter<EventStreamHandlers> {
   flowsDelay: number;
 
-  stop: () => Promise<void>;
+  stop: (dropEventHandlers?: boolean) => Promise<void>;
 }
