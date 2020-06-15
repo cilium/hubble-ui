@@ -217,7 +217,7 @@ const feetsEnter = (enter: any) => {
 
 const feetsUpdate = (update: any) => {
   update
-    .selectAll('line.outer')
+    .select('line.outer')
     .attr('x1', (d: any) => d[1][0].x)
     .attr('y1', (d: any) => d[1][0].y)
     .attr('x2', (d: any) => d[1][1].x)

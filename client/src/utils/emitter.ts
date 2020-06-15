@@ -67,13 +67,18 @@ export class EventEmitter<T extends HandlerTypes = {}> {
     }
 
     const onceHandlers = this.onceHandlers[event];
-    if (onceHandlers) {
-      while (onceHandlers.length > 0) {
-        const handler = onceHandlers.pop();
-        if (handler) {
-          handler(...args);
-        }
-      }
+    if (!onceHandlers) return;
+
+    while (onceHandlers.length > 0) {
+      const handler = onceHandlers.pop();
+      if (!handler) return;
+
+      handler(...args);
     }
+  }
+
+  offAllEvents() {
+    this.onHandlers = {};
+    this.onceHandlers = {};
   }
 }
