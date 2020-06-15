@@ -286,7 +286,12 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
     });
   }
 
-  public async stop() {
+  public async stop(dropEventHandlers?: boolean) {
+    dropEventHandlers = dropEventHandlers ?? false;
+    if (dropEventHandlers) {
+      this.offAllEvents();
+    }
+
     this.stream.cancel();
   }
 

@@ -54,7 +54,7 @@ func (srv *RelayServer) GetEvents(
 		nsSource = watcherChan
 	}
 
-	flowDrain, handleFlows := handleFlowStream(
+	flowDrain, flowErr, handleFlows := handleFlowStream(
 		flowSource,
 		flowEvent,
 		sStateEvent,
@@ -73,17 +73,21 @@ func (srv *RelayServer) GetEvents(
 F:
 	for {
 		select {
+		case err := <-flowErr:
+			return err
 		case flowEvent := <-flowDrain:
 			if flowEvent == nil {
 				break F
 			}
 
 			if err := stream.Send(flowEvent); err != nil {
-				break F
+				log.Infof("send failed: %v\n", err)
+				return err
 			}
 		case nsEvent := <-nsDrain:
 			if err := stream.Send(nsEvent); err != nil {
-				break F
+				log.Infof("send failed: %v\n", err)
+				return err
 			}
 		}
 	}
@@ -104,30 +108,35 @@ func handleFlowStream(
 	flowEvent bool,
 	sStateEvent bool,
 	sLinkEvent bool,
-) (chan *relay.GetEventsResponse, func()) {
+) (chan *relay.GetEventsResponse, chan error, func()) {
 	if src == nil {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	drain := make(chan *relay.GetEventsResponse)
+	errch := make(chan error)
 	svcCache := newServiceCache()
 
 	// TODO: do recovery when src.Recv() returns error
 	thread := func() {
 		for {
 			flowResponse, err := src.Recv()
-			if err == io.EOF || err == context.Canceled {
-				log.Infof("flow stream is closed\n")
+			if err == io.EOF {
+				log.Infof("flow stream is exhausted (EOF)\n")
+				errch <- err
 				break
 			}
 
 			if err != nil {
-				if status.Code(err) == codes.Canceled {
-					log.Infof("flow stream is closed\n")
-					break
+				codeIsCanceled := status.Code(err) == codes.Canceled
+				if codeIsCanceled || err == context.Canceled {
+					log.Infof("flow stream is canceled\n")
+				} else {
+					log.Warnf("flow stream error: %v\n", err)
 				}
 
-				log.Warnf("flow stream error: %v\n", err)
+				errch <- err
+				break
 			}
 
 			flow := flowResponse.GetFlow()
@@ -135,7 +144,7 @@ func handleFlowStream(
 				continue
 			}
 
-			log.Infof("flow: %v\n", flow)
+			// log.Infof("flow: %v\n", flow)
 
 			if flowEvent {
 				// Raw flow event sending
@@ -171,9 +180,10 @@ func handleFlowStream(
 
 		log.Infof("sending flows stopped\n")
 		close(drain)
+		close(errch)
 	}
 
-	return drain, thread
+	return drain, errch, thread
 }
 
 func eventRequested(events []relay.RelayEventType, et ...relay.RelayEventType) bool {
