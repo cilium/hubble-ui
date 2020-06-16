@@ -1,25 +1,16 @@
-import React, {
-  FunctionComponent,
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-} from 'react';
-import { trace } from 'mobx';
-import { observer } from 'mobx-react';
-
 import * as d3 from 'd3';
 import _ from 'lodash';
+import { observer } from 'mobx-react';
+import React, { FunctionComponent, useEffect, useRef } from 'react';
 
-import { sizes, colors } from '~/ui/vars';
-
+import { Line2, utils as gutils, Vec2 } from '~/domain/geometry';
+import { SenderArrows } from '~/domain/layout';
+import { colors, sizes } from '~/ui/vars';
 import { chunks } from '~/utils/iter-tools';
-import { XYWH, Vec2, Line2, utils as gutils } from '~/domain/geometry';
-import { ConnectorArrow, SenderArrows } from '~/domain/layout';
 
 export interface Props {
   arrows: Map<string, SenderArrows>;
-  apPositions: Map<string, Vec2>;
+  accessPointsCoords: Map<string, Vec2>;
 }
 
 interface ArrowData {
@@ -43,7 +34,7 @@ const arrowLine = (points: Vec2[]): string => {
 
   let line = `M ${first.x} ${first.y}`;
 
-  chunks(points, 3, 2).forEach((chunk: Vec2[], idx: number, ntotal: number) => {
+  chunks(points, 3, 2).forEach((chunk: Vec2[]) => {
     const [a, b, c] = chunk;
     let [d, e, angle] = gutils.roundCorner(r, [a, b, c]);
 
@@ -107,11 +98,9 @@ const startPlatesUpdate = (update: any) => {
 
 const arrowHandle = (handle: [Vec2, Vec2] | null): string => {
   if (handle == null) return '';
-  const hwFactor = sizes.arrowHandleHWRatio;
 
   const [start, end] = handle;
   const width = start.distance(end);
-  const height = width * hwFactor;
 
   const line = Line2.throughPoints(start, end);
   const side = line.normal.mul(width / 2);
@@ -278,7 +267,7 @@ const arrowHandlesFromPoints = (points: Vec2[]): [Vec2, Vec2][] => {
 
 const manageArrows = (props: Props, g: SVGGElement) => {
   const arrowsMap = props.arrows;
-  const apPositions = props.apPositions;
+  const accessPointsCoords = props.accessPointsCoords;
 
   const rootGroup = d3.select(g);
   const startPlatesGroup = rootGroup.select('.start-plates');
@@ -289,7 +278,6 @@ const manageArrows = (props: Props, g: SVGGElement) => {
   const startPlates: Array<[string, Vec2]> = [];
   const arrows: Array<Arrow> = [];
   const connectors: Array<[string, Vec2]> = [];
-  const arrowHandles: Array<[string, [Vec2, Vec2]]> = [];
   const feets: Array<[string, [Vec2, Vec2]]> = [];
 
   // Just split data to simple arrays so that it will be easier to work
@@ -313,11 +301,11 @@ const manageArrows = (props: Props, g: SVGGElement) => {
 
       connectorArrow.connector.apIds.forEach(apId => {
         const feetId = `${fromToId} -> ${apId}`;
-        const apPosition = apPositions.get(apId);
+        const accessPointCoord = accessPointsCoords.get(apId);
 
-        if (apPosition == null) return;
+        if (accessPointCoord == null) return;
 
-        feets.push([feetId, [connectorPosition, apPosition]]);
+        feets.push([feetId, [connectorPosition, accessPointCoord]]);
       });
     });
   });
@@ -375,7 +363,7 @@ export const Component: FunctionComponent<Props> = observer(
       if (rootRef == null || rootRef.current == null) return;
 
       manageArrows(props, rootRef.current);
-    }, [props.arrows, props.apPositions, rootRef]);
+    }, [props.arrows, props.accessPointsCoords, rootRef]);
 
     return (
       <g ref={rootRef} className="arrows">

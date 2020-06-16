@@ -4,7 +4,6 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import _ from 'lodash';
 import { RouteComponentProps, Router } from '@reach/router';
 import { observer } from 'mobx-react';
 
@@ -80,7 +79,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   }, [store]);
 
   const setupGeneralEventHandlers = useCallback((stream: IEventStream) => {
-    stream.on('error', e => {
+    stream.on('error', () => {
       notifier.showError(`
         Failed to receive data from backend.
         Please make sure that your deployment is up and try again.
@@ -148,7 +147,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     store.controls.setCurrentNamespace(ns);
   }, []);
 
-  const onServiceSelect = useCallback((srvc: ServiceCard) => {
+  const onCardSelect = useCallback((srvc: ServiceCard) => {
     store.services.toggleActive(srvc.id);
   }, []);
 
@@ -168,7 +167,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     store.controls.selectTableFlow(null);
   }, []);
 
-  const onEmitAPConnectorCoords = useCallback((apId: string, coords: Vec2) => {
+  const onEmitAccessPointCoords = useCallback((apId: string, coords: Vec2) => {
     store.layout.setAPCoords(apId, coords);
   }, []);
 
@@ -196,12 +195,16 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
 
       <div className={css.map}>
         <Map
-          services={store.services.data}
           namespace={store.controls.currentNamespace}
+          namespaceBBox={store.layout.namespaceBBox}
+          placement={store.layout.placement}
           accessPoints={store.accessPoints}
+          accessPointsCoords={store.layout.accessPointsCoords}
+          arrows={store.layout.arrows}
           activeServices={store.services.activeSet}
-          onServiceSelect={onServiceSelect}
-          onEmitAPConnectorCoords={onEmitAPConnectorCoords}
+          onCardSelect={onCardSelect}
+          onEmitAccessPointCoords={onEmitAccessPointCoords}
+          onCardHeightChange={store.layout.setCardHeight}
         />
       </div>
 

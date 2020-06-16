@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
+import React, { FunctionComponent } from 'react';
 import { KV } from '~/domain/misc';
 
 import css from './styles.scss';
