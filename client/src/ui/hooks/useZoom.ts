@@ -40,15 +40,15 @@ export const useZoom = (ref: SVGRef, initials?: Initials) => {
         setZoomTransform(d3.event.transform);
       });
 
-    const zooming = d3
+    const zoomable = d3
       .select(ref.current)
-      .attr('cursor', 'grab')
-      .call(zoom as any);
+      .call(zoom as any)
+      .on('dblclick.zoom', null);
 
     // Dirty hack for tests: jsdom doesn't have full svg support
     // https://github.com/jsdom/jsdom/issues/2531
     if (process.env.NODE_ENV !== 'test') {
-      zooming.call(zoom.transform as any, initialTransform);
+      zoomable.call(zoom.transform as any, initialTransform);
     }
 
     return () => {

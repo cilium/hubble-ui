@@ -7,6 +7,9 @@ import {
   Popover,
 } from '@blueprintjs/core';
 import React, { memo, useCallback, useEffect, useState } from 'react';
+
+import { usePopover } from '~/ui/hooks/usePopover';
+
 import css from './HttpStatusCodeDropdown.scss';
 
 interface Props {
@@ -15,6 +18,7 @@ interface Props {
 }
 
 export const HttpStatusCodeDropdown = memo<Props>(props => {
+  const popover = usePopover();
   const [value, setValue] = useState(props.httpStatus);
 
   useEffect(() => setValue(props.httpStatus), [props.httpStatus]);
@@ -33,40 +37,41 @@ export const HttpStatusCodeDropdown = memo<Props>(props => {
 
   const enabled = Boolean(props.httpStatus && props.httpStatus.length > 0);
 
+  const content = (
+    <div className={css.outer}>
+      <form onSubmit={onSubmit} className={css.wrapper}>
+        <InputGroup
+          autoFocus
+          type="text"
+          value={value || ''}
+          onChange={onChange}
+          placeholder="HTTP Status Code"
+        />
+        {props.httpStatus !== value && (
+          <Button type="submit" small onClick={onSubmit}>
+            Filter
+          </Button>
+        )}
+      </form>
+      <small className={css.note}>
+        <Icon icon="info-sign" iconSize={12} /> Show only flows which match
+        <br />
+        this HTTP status code prefix
+        <br />
+        (e.g. 404, 5+)
+      </small>
+    </div>
+  );
+
   return (
-    <Popover
-      content={
-        <div className={css.outer}>
-          <form onSubmit={onSubmit} className={css.wrapper}>
-            <InputGroup
-              autoFocus
-              type="text"
-              value={value || ''}
-              onChange={onChange}
-              placeholder="HTTP Status Code"
-            />
-            {props.httpStatus !== value && (
-              <Button type="submit" small onClick={onSubmit}>
-                Filter
-              </Button>
-            )}
-          </form>
-          <small className={css.note}>
-            <Icon icon="info-sign" iconSize={12} /> Show only flows which match
-            <br />
-            this HTTP status code prefix
-            <br />
-            (e.g. 404, 5+)
-          </small>
-        </div>
-      }
-    >
+    <Popover {...popover.props} content={content}>
       <ButtonGroup>
         <Button
           minimal
           text="HTTP Status"
           intent={enabled ? Intent.PRIMARY : Intent.NONE}
           rightIcon={enabled ? undefined : 'chevron-down'}
+          onClick={popover.toggle}
         />
         {enabled && (
           <Button

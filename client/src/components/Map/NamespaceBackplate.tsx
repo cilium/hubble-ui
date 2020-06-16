@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { memo } from 'react';
+
 import { XYWH } from '~/domain/geometry';
 import { sizes } from '~/ui/vars';
+
 import css from './styles.scss';
 
 const defaults = { w: 800, h: 150 };
@@ -10,7 +12,9 @@ export interface Props {
   xywh: XYWH;
 }
 
-export const Component = (props: Props) => {
+export const NamespaceBackplate = memo(function NamespaceBackplate(
+  props: Props,
+) {
   if (props.namespace == null) return null;
   const xywh =
     props.xywh.h > 0
@@ -31,6 +35,4 @@ export const Component = (props: Props) => {
       </text>
     </g>
   );
-};
-
-export const NamespaceBackplate = React.memo(Component);
+});

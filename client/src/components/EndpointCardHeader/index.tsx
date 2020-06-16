@@ -1,46 +1,31 @@
-import React, {
-  FunctionComponent,
-  useEffect,
-  useCallback,
-  useState,
-} from 'react';
-import { observer } from 'mobx-react';
 import classnames from 'classnames';
+import React, { memo } from 'react';
 
 import { EndpointLogo } from '~/components/EndpointLogo';
-import { useStore } from '~/store/hooks';
-import { sizes } from '~/ui';
 import { ServiceCard } from '~/domain/service-card';
-import { XY } from '~/domain/geometry';
 
 import css from './styles.scss';
 
 export interface LayerProps {
   card: ServiceCard;
-  onClick?: (card: ServiceCard) => void;
 }
 
-export const EndpointCardHeader: FunctionComponent<LayerProps> = props => {
-  const cls = classnames(css.wrapper);
+export const EndpointCardHeader = memo(function EndpointCardHeader(
+  props: LayerProps,
+) {
   const card = props.card;
-
-  const onClick = useCallback(() => {
-    if (props.onClick == null) return;
-
-    props.onClick(card);
-  }, [props.onClick]);
 
   return (
     <div className={css.wrapper}>
-      <div className={css.headline} onClick={onClick}>
+      <div className={css.headline}>
         <div className={css.icon}>
           <EndpointLogo card={card} />
         </div>
         <div className={css.headings}>
           <div className={css.title}>{card.caption}</div>
-          {card.isWorld && card.domain && (
+          {/* {card.isWorld && card.domain && (
             <div className={css.subtitle}>{card.domain}</div>
-          )}
+          )} */}
         </div>
         {false && (
           <div className={css.settingsIcon}>
@@ -55,14 +40,14 @@ export const EndpointCardHeader: FunctionComponent<LayerProps> = props => {
       />
     </div>
   );
-};
+});
 
 interface PolicyProps {
   ingress: boolean;
   egress: boolean;
 }
 
-const PolicyInfo: FunctionComponent<PolicyProps> = props => {
+const PolicyInfo = memo(function PolicyProps(props: PolicyProps) {
   const inLocked = props.ingress ? 'locked' : 'unlocked';
   const eLocked = props.egress ? 'locked' : 'unlocked';
 
@@ -92,4 +77,4 @@ const PolicyInfo: FunctionComponent<PolicyProps> = props => {
       </div>
     </div>
   );
-};
+});

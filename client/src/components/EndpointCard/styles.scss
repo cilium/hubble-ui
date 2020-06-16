@@ -5,6 +5,16 @@
   background-color: #fff;
   border-radius: 10px;
   border: 1px solid #b4b4b4;
+  user-select: none;
+
+  &:hover {
+    cursor: pointer;
+    border-color: #6e6e6e;
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
 
   &.active {
     border-color: #3177ff;
