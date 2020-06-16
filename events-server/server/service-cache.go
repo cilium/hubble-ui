@@ -51,8 +51,8 @@ func (c *serviceCache) LinkFromFlow(f *flow.Flow) *relay.GetEventsResponse {
 		return nil
 	}
 
-	srcId := f.Source.Identity
-	destId := f.Destination.Identity
+	srcId := getServiceId(f.Source, f.SourceNames)
+	destId := getServiceId(f.Destination, f.DestinationNames)
 	destPort := uint32(0)
 	ipProtocol := relay.IPProtocol_UNKNOWN_IP_PROTOCOL
 
@@ -122,9 +122,11 @@ func eventResponseFromService(
 }
 
 func serviceFromEndpoint(ep *flow.Endpoint, dnsNames []string) *relay.RelayService {
+	serviceId := getServiceId(ep, dnsNames)
+
 	return &relay.RelayService{
-		Id:                     fmt.Sprintf("%v", ep.Identity),
-		Name:                   appNameFromLabels(ep.Labels, ep.Identity),
+		Id:                     serviceId,
+		Name:                   appNameFromLabels(ep.Labels, serviceId),
 		Namespace:              ep.Namespace,
 		Labels:                 ep.Labels,
 		DnsNames:               dnsNames,
@@ -135,7 +137,7 @@ func serviceFromEndpoint(ep *flow.Endpoint, dnsNames []string) *relay.RelayServi
 	}
 }
 
-func appNameFromLabels(labels []string, identity uint32) string {
+func appNameFromLabels(labels []string, identity string) string {
 	for _, lbl := range labels {
 		one := strings.HasPrefix(lbl, "k8s:k8s-app")
 		two := strings.HasPrefix(lbl, "k8s-app")
@@ -154,4 +156,22 @@ func appNameFromLabels(labels []string, identity uint32) string {
 
 	// Fallback app name based on identity
 	return fmt.Sprintf("identity-%v", identity)
+}
+
+func getServiceId(ep *flow.Endpoint, dnsNames []string) string {
+	if isWorld(ep.Labels) && len(dnsNames) > 0 {
+		return dnsNames[0]
+	}
+
+	return fmt.Sprintf("%v", ep.Identity)
+}
+
+func isWorld(labels []string) bool {
+	for _, lbl := range labels {
+		if strings.Contains(lbl, "reserved:world") {
+			return true
+		}
+	}
+
+	return false
 }
