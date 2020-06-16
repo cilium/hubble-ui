@@ -59,12 +59,19 @@ export class ServiceCard<InteractionsExt = {}> {
     });
   }
 
-  public get id() {
+  public get id(): string {
     return this.service.id;
   }
 
   public get caption(): string {
     return this.appLabel || 'Unknown App';
+  }
+
+  public get domain(): string | null {
+    if (this.service.dnsNames.length === 0) return null;
+
+    // TODO: better algorithm for getting domain name?
+    return this.service.dnsNames[0];
   }
 
   public get labels(): Array<KV> {
@@ -99,6 +106,7 @@ export class ServiceCard<InteractionsExt = {}> {
     // );
   }
 
+  // TODO: this is wrong determination of isDNS, isnt it?
   public get isDNS(): boolean {
     return this.service.dnsNames.length > 0;
   }

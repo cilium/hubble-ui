@@ -38,7 +38,9 @@ export const EndpointCardHeader: FunctionComponent<LayerProps> = props => {
         </div>
         <div className={css.headings}>
           <div className={css.title}>{card.caption}</div>
-          <div className={css.subtitle}>{card.id}</div>
+          {card.isWorld && card.domain && (
+            <div className={css.subtitle}>{card.domain}</div>
+          )}
         </div>
         {false && (
           <div className={css.settingsIcon}>
