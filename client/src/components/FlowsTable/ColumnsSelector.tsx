@@ -1,5 +1,7 @@
-import React, { memo, useCallback, useState } from 'react';
 import { Button, Checkbox, Menu, MenuItem, Popover } from '@blueprintjs/core';
+import React, { memo, useCallback } from 'react';
+
+import { usePopover } from '~/ui/hooks/usePopover';
 
 import {
   CommonProps,
@@ -14,8 +16,7 @@ export interface Props extends CommonProps {
 
 export const FlowsTableColumnsSelector = memo<Props>(
   function FlowsTableColumnsSelector(props) {
-    const [opened, setOpened] = useState<boolean>(false);
-    const onClick = useCallback(() => setOpened(!opened), []);
+    const popover = usePopover();
 
     const menuItems = FLOWS_TABLE_COLUMNS.map(column => (
       <Item
@@ -27,13 +28,13 @@ export const FlowsTableColumnsSelector = memo<Props>(
     ));
 
     return (
-      <Popover content={<Menu>{menuItems}</Menu>}>
+      <Popover {...popover.props} content={<Menu>{menuItems}</Menu>}>
         <Button
           small
           minimal
-          onClick={onClick}
           rightIcon="chevron-down"
           text="Columns"
+          onClick={popover.toggle}
         />
       </Popover>
     );

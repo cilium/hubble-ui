@@ -2,25 +2,20 @@ import React, { FunctionComponent } from 'react';
 import { ItemRenderer, ItemPredicate, Select } from '@blueprintjs/select';
 import { Button, ButtonGroup, MenuItem } from '@blueprintjs/core';
 
-const NamespaceSelect = Select.ofType<string>();
+import { usePopover } from '~/ui/hooks/usePopover';
 
 import css from './styles.scss';
 
+const NamespaceSelect = Select.ofType<string>();
+
 const renderItem: ItemRenderer<string> = (namespace, itemProps) => {
-  const { handleClick, modifiers, query } = itemProps;
+  const { handleClick, modifiers } = itemProps;
 
   if (!modifiers.matchesPredicate) {
     return null;
   }
 
-  return (
-    <MenuItem
-      key={namespace}
-      onClick={handleClick}
-      // text={highlightText(namespace, query)}
-      text={namespace}
-    />
-  );
+  return <MenuItem key={namespace} onClick={handleClick} text={namespace} />;
 };
 
 const filterItem: ItemPredicate<string> = (query, value, idx, exactMatch) => {
@@ -41,6 +36,8 @@ export interface Props {
 }
 
 export const NamespaceDropdown: FunctionComponent<Props> = props => {
+  const popover = usePopover();
+
   const onChange = (ns: string) => {
     if (props.onChange) {
       props.onChange(ns);
@@ -67,13 +64,16 @@ export const NamespaceDropdown: FunctionComponent<Props> = props => {
         items={props.namespaces || []}
         noResults={<MenuItem disabled={true} text="No matches" />}
         onItemSelect={onChange}
+        popoverProps={popover.props}
         inputProps={{ placeholder: 'Filter namespaces…' }}
       >
         <ButtonGroup>
-          <Button rightIcon="caret-down" icon={btnIcon} text={currentValue} />
-          {/*{props.clearable && props.namespaceFromParams && (
-            <Button small icon="cross" onClick={onReset} />
-          )}*/}
+          <Button
+            rightIcon="caret-down"
+            icon={btnIcon}
+            text={currentValue}
+            onClick={popover.toggle}
+          />
         </ButtonGroup>
       </NamespaceSelect>
     </div>

@@ -1,67 +1,58 @@
-import { observer } from 'mobx-react';
-import React, { useCallback, useState, useMemo } from 'react';
-
-import { dummy as geom, Vec2 } from '~/domain/geometry';
-import { ServiceCard } from '~/domain/service-card';
-import { Interactions, Link, AccessPoints } from '~/domain/service-map';
-import { useStore } from '~/store/hooks';
-import { useZoom } from '~/ui/hooks/useZoom';
-import { sizes } from '~/ui/vars';
+import React, { memo, useCallback } from 'react';
 
 import { ArrowsRenderer } from '~/components/ArrowsRenderer';
-import { NamespaceBackplate } from './NamespaceBackplate';
 import {
   EndpointCardBackplate,
   EndpointCardContent,
 } from '~/components/EndpointCard';
 
+import { Vec2, XYWH } from '~/domain/geometry';
+import { Placement, SenderArrows } from '~/domain/layout';
+import { ServiceCard } from '~/domain/service-card';
+import { AccessPoints } from '~/domain/service-map';
+
+import { useZoom } from '~/ui/hooks/useZoom';
+import { sizes } from '~/ui/vars';
+
+import { NamespaceBackplate } from './NamespaceBackplate';
+
 import css from './styles.scss';
 
 export interface Props {
-  services: Array<ServiceCard>;
-  activeServices?: Set<string>;
-  links?: Array<Link>;
   namespace: string | null;
-  interactions?: Interactions;
+  namespaceBBox: XYWH;
+  placement: Placement;
+  arrows: Map<string, SenderArrows>;
+  activeServices: Set<string>;
   accessPoints: AccessPoints;
-  onServiceSelect?: (srvc: ServiceCard) => void;
-  onEmitAPConnectorCoords?: (apId: string, coords: Vec2) => void;
+  accessPointsCoords: Map<string, Vec2>;
+  onCardSelect: (srvc: ServiceCard) => void;
+  onEmitAccessPointCoords: (apId: string, coords: Vec2) => void;
+  onCardHeightChange: (id: string, height: number) => void;
 }
 
-export type MapElementsProps = Omit<Props, 'services'>;
-
-export const MapElementsComponent = observer((props: MapElementsProps) => {
-  const { layout } = useStore();
-  const { namespace } = props;
-  const [nsXYWH, setNsXYWH] = useState(geom.xywh());
-
-  const updateNamespaceLayer = useCallback(() => {
-    const nsBBox = layout.nsCardsBBox.addMargin(sizes.endpointHPadding / 2);
-    setNsXYWH(nsBBox);
-  }, []);
-
+export const MapElements = memo(function MapElements(props: Props) {
+  // prettier-ignore
   const onCardHeightChange = useCallback((card: ServiceCard, h: number) => {
-    layout.setCardHeight(card.id, h);
-    updateNamespaceLayer();
-  }, []);
+    props.onCardHeightChange(card.id, h);
+  }, [props.onCardHeightChange]);
 
   // prettier-ignore
   const isCardActive = useCallback((srvc: ServiceCard) => {
     const set = props.activeServices;
-    const r = set == null ? false : set.has(srvc.id);
-
-    return r;
+    return set == null ? false : set.has(srvc.id);
   }, [props.activeServices]);
-
-  const placement = layout.placement;
 
   return (
     <>
-      {placement.length > 0 && (
-        <NamespaceBackplate namespace={namespace} xywh={nsXYWH} />
+      {props.placement.length > 0 && (
+        <NamespaceBackplate
+          namespace={props.namespace}
+          xywh={props.namespaceBBox.addMargin(sizes.endpointHPadding / 2)}
+        />
       )}
 
-      {placement.map(plc => (
+      {props.placement.map(plc => (
         <EndpointCardBackplate
           key={plc.card.id}
           coords={plc.geometry}
@@ -71,11 +62,11 @@ export const MapElementsComponent = observer((props: MapElementsProps) => {
       ))}
 
       <ArrowsRenderer
-        arrows={layout.connectionArrows}
-        apPositions={layout.apCoords}
+        arrows={props.arrows}
+        accessPointsCoords={props.accessPointsCoords}
       />
 
-      {placement.map(plc => {
+      {props.placement.map(plc => {
         const accessPoints = props.accessPoints.get(plc.card.id);
 
         return (
@@ -86,8 +77,8 @@ export const MapElementsComponent = observer((props: MapElementsProps) => {
             card={plc.card}
             accessPoints={accessPoints}
             onHeightChange={onCardHeightChange}
-            onHeaderClick={props.onServiceSelect}
-            onEmitAPConnectorCoords={props.onEmitAPConnectorCoords}
+            onClick={props.onCardSelect}
+            onEmitAccessPointCoords={props.onEmitAccessPointCoords}
           />
         );
       })}
@@ -95,26 +86,15 @@ export const MapElementsComponent = observer((props: MapElementsProps) => {
   );
 });
 
-export const MapElements = React.memo(MapElementsComponent);
-
-const MapComponent = (props: Props) => {
+export const Map = memo(function Map(props: Props) {
   const ref = React.useRef<SVGSVGElement>(null);
   const zoomProps = useZoom(ref, { tx: sizes.endpointHPadding });
 
   return (
     <svg ref={ref} className={css.wrapper}>
       <g transform={zoomProps ? zoomProps.toString() : ''}>
-        <MapElements
-          interactions={props.interactions}
-          accessPoints={props.accessPoints}
-          namespace={props.namespace}
-          onServiceSelect={props.onServiceSelect}
-          activeServices={props.activeServices}
-          onEmitAPConnectorCoords={props.onEmitAPConnectorCoords}
-        />
+        <MapElements {...props} />
       </g>
     </svg>
   );
-};
-
-export const Map = React.memo(MapComponent);
+});

@@ -1,34 +1,25 @@
-import React, {
-  FunctionComponent,
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-  useMemo,
-  RefObject,
-} from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { CardProps, DivRef } from './general';
-import { EndpointCardLayer } from './EndpointCardBase';
-import { EndpointCardLabels } from './EndpointCardLabels';
-import { EndpointCardHeader } from '~/components/EndpointCardHeader';
 import { AccessPoint, CenterGetter } from '~/components/AccessPoint';
+import { EndpointCardHeader } from '~/components/EndpointCardHeader';
 
 import { Vec2 } from '~/domain/geometry';
 import { ServiceCard } from '~/domain/service-card';
-import { Link, AccessPoint as AccessPointDatum } from '~/domain/service-map';
-import { ids } from '~/domain/ids';
-import { Dictionary } from '~/domain/misc';
-import { sizes } from '~/ui';
+import { AccessPoint as AccessPointDatum } from '~/domain/service-map';
 
+import { EndpointCardBase } from './EndpointCardBase';
+import { EndpointCardLabels } from './EndpointCardLabels';
+import { CardProps, DivRef } from './general';
 import css from './styles.scss';
 
 export type Props = CardProps & {
-  onHeaderClick?: (card: ServiceCard) => void;
-  onEmitAPConnectorCoords?: (apId: string, coords: Vec2) => void;
+  onClick?: (card: ServiceCard) => void;
+  onEmitAccessPointCoords?: (apId: string, coords: Vec2) => void;
 };
 
-export const Component: FunctionComponent<Props> = props => {
+export const EndpointCardContent = memo(function EndpointCardContent(
+  props: Props,
+) {
   const [divRef, setContentRef] = useState<DivRef>(null as any);
   const centerGetters = useMemo((): Map<string, CenterGetter> => {
     return new Map();
@@ -45,9 +36,9 @@ export const Component: FunctionComponent<Props> = props => {
 
   const emitConnectorCoords = useCallback(() => {
     // prettier-ignore
-    if (props.onEmitAPConnectorCoords == null || divRef == null) return;
+    if (props.onEmitAccessPointCoords == null || divRef == null || divRef.current == null) return;
 
-    const bbox = divRef.current!.getBoundingClientRect();
+    const bbox = divRef.current.getBoundingClientRect();
     if (bbox.width === 0 || bbox.height === 0) {
       return;
     }
@@ -68,9 +59,9 @@ export const Component: FunctionComponent<Props> = props => {
         factorCoords.y * props.coords.h,
       ).add(Vec2.fromXY(props.coords));
 
-      props.onEmitAPConnectorCoords!(apId, svgCoords);
+      props.onEmitAccessPointCoords!(apId, svgCoords);
     });
-  }, [props.onEmitAPConnectorCoords, divRef, centerGetters, props.coords]);
+  }, [props.onEmitAccessPointCoords, divRef, centerGetters, props.coords]);
 
   // react to placement change
   useEffect(emitConnectorCoords, [
@@ -107,21 +98,17 @@ export const Component: FunctionComponent<Props> = props => {
   }, [emitConnectorCoords, props.onHeightChange]);
 
   return (
-    <EndpointCardLayer
+    <EndpointCardBase
       {...props}
       onHeightChange={onHeightChange}
       onEmitContentRef={onEmitContentRef}
+      onClick={props.onClick}
     >
-      <EndpointCardHeader card={props.card} onClick={props.onHeaderClick} />
-
+      <EndpointCardHeader card={props.card} />
       {accessPoints.length > 0 && (
         <div className={css.accessPoints}>{accessPoints}</div>
       )}
-
       {props.active && <EndpointCardLabels labels={props.card.labels} />}
-    </EndpointCardLayer>
+    </EndpointCardBase>
   );
-};
-
-Component.displayName = 'EndpointCardContent';
-export const EndpointCardContent = React.memo(Component);
+});

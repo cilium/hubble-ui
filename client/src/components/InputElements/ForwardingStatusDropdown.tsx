@@ -7,6 +7,8 @@ import {
 } from '@blueprintjs/core';
 import { find } from 'lodash';
 import React, { memo, useCallback } from 'react';
+
+import { usePopover } from '~/ui/hooks/usePopover';
 import { Verdict } from '~/domain/hubble';
 
 export interface Props {
@@ -35,26 +37,28 @@ const filters: FilterOption[] = [
 ];
 
 export const ForwardingStatusDropdown = memo<Props>(props => {
+  const popover = usePopover();
+
   const getLabel = useCallback(() => {
     const found = find(filters, f => f.verdict === props.verdict);
     return found ? found.title : '';
   }, [props.verdict]);
 
+  const content = (
+    <Menu>
+      {filters.map(filter => (
+        <MenuItem
+          key={String(filter.verdict)}
+          active={props.verdict == filter.verdict}
+          text={filter.title}
+          onClick={() => props.onSelect(filter.verdict)}
+        />
+      ))}
+    </Menu>
+  );
+
   return (
-    <Popover
-      content={
-        <Menu>
-          {filters.map(filter => (
-            <MenuItem
-              key={String(filter.verdict)}
-              active={props.verdict == filter.verdict}
-              text={filter.title}
-              onClick={() => props.onSelect(filter.verdict)}
-            />
-          ))}
-        </Menu>
-      }
-    >
+    <Popover {...popover.props} content={content}>
       <ButtonGroup>
         <Button
           minimal
@@ -67,6 +71,7 @@ export const ForwardingStatusDropdown = memo<Props>(props => {
           }
           rightIcon="chevron-down"
           text={getLabel()}
+          onClick={popover.toggle}
         />
       </ButtonGroup>
     </Popover>
