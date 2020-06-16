@@ -30,7 +30,7 @@ export type CardsColumns = Map<string, PlacementMeta[][]>;
 type PlacementFilter = (e: PlacementEntry) => boolean;
 
 export default class LayoutStore {
-  @observable apCoords: Map<string, Vec2>; // { apId -> Vec2 }
+  @observable accessPointsCoords: Map<string, Vec2>; // { apId -> Vec2 }
 
   @observable private services: ServiceStore;
   @observable private interactions: InteractionStore;
@@ -47,7 +47,7 @@ export default class LayoutStore {
     this.controls = controls;
 
     this.cardDimensions = new Map();
-    this.apCoords = new Map();
+    this.accessPointsCoords = new Map();
 
     reaction(
       () => this.services.data,
@@ -63,7 +63,7 @@ export default class LayoutStore {
 
   @action.bound
   clear() {
-    this.apCoords.clear();
+    this.accessPointsCoords.clear();
     this.cardDimensions.clear();
   }
 
@@ -79,7 +79,7 @@ export default class LayoutStore {
 
   @action.bound
   setAPCoords(id: string, coords: Vec2) {
-    this.apCoords.set(id, coords);
+    this.accessPointsCoords.set(id, coords);
   }
 
   @action.bound
@@ -443,7 +443,7 @@ export default class LayoutStore {
   // { senderId -> SenderArrows }
   // SenderArrows: { senderId, startPoint, arrows: { receiverId -> Connector }}
   @computed
-  get connectionArrows(): Map<string, SenderArrows> {
+  get arrows(): Map<string, SenderArrows> {
     const arrows: Map<string, SenderArrows> = new Map();
     const curveGap = Vec2.from(sizes.connectorCardGap, 0);
 
@@ -617,7 +617,7 @@ export default class LayoutStore {
   }
 
   @computed
-  get nsCardsBBox(): XYWH {
+  get namespaceBBox(): XYWH {
     return this.placementBBox(e => {
       const one = e.kind === PlacementKind.InsideWithConnections;
       const two = e.kind === PlacementKind.InsideWithoutConnections;
@@ -647,7 +647,7 @@ export default class LayoutStore {
       });
 
       receiverAPs.forEach((apId: string) => {
-        const apPos = this.apCoords.get(apId);
+        const apPos = this.accessPointsCoords.get(apId);
         if (apPos == null) return;
 
         midPoint = midPoint.add(apPos);
@@ -666,7 +666,7 @@ export default class LayoutStore {
   get debugData() {
     return {
       dimensions: this.cardDimensions,
-      apCoords: this.apCoords,
+      apCoords: this.accessPointsCoords,
       placement: this.placement,
     };
   }

@@ -64,6 +64,9 @@ export class ServiceCard<InteractionsExt = {}> {
   }
 
   public get caption(): string {
+    if (this.isWorld && this.domain) {
+      return this.domain;
+    }
     return this.appLabel || 'Unknown App';
   }
 
