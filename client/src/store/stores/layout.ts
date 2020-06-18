@@ -1,7 +1,16 @@
-import { action, computed, observable, reaction } from 'mobx';
+import { action, computed, observable, reaction, autorun } from 'mobx';
 import _ from 'lodash';
 
-import { dummy as geom, Vec2, XY, WH, XYWH, rounding } from '~/domain/geometry';
+import { ids } from '~/domain/ids';
+import {
+  dummy as geom,
+  Vec2,
+  XY,
+  WH,
+  XYWH,
+  rounding,
+  utils as gutils,
+} from '~/domain/geometry';
 import { ServiceCard } from '~/domain/service-card';
 import {
   ConnectorArrow,
@@ -18,6 +27,7 @@ import InteractionStore from './interaction';
 import ServiceStore from './service';
 import ControlStore from './controls';
 
+import { Advancer } from '~/utils/advancer';
 import { sizes } from '~/ui/vars';
 // { senderId -> { receiverId -> ServiceConnector } }
 export type Connectors = Map<string, Map<string, ServiceConnector>>;
@@ -26,6 +36,11 @@ export type CardsPlacement = Map<string, PlacementEntry>;
 export type CardsColumns = Map<string, PlacementMeta[][]>;
 
 type PlacementFilter = (e: PlacementEntry) => boolean;
+interface CardOffsets {
+  top: Advancer<string, number>;
+  bottom: Advancer<string, number>;
+  around: Advancer<string, number>;
+}
 
 export default class LayoutStore {
   @observable accessPointsCoords: Map<string, Vec2>; // { apId -> Vec2 }
@@ -67,6 +82,7 @@ export default class LayoutStore {
 
   @action.bound
   initUnitializedCards() {
+    console.log('in initUnitializedCards');
     this.services.cardsList.forEach(card => {
       if (this.cardDimensions.has(card.id)) return;
 
@@ -447,8 +463,12 @@ export default class LayoutStore {
     // Offsets is used for arrows going around card not to overlap with another
     // arrows that go around the same card. They vary depending on direction:
     // whether it goes from bottom to connector of from top to connector.
-    const topOffsets: Map<string, number> = new Map();
-    const bottomOffsets: Map<string, number> = new Map();
+    const overlapGap = sizes.arrowOverlapGap;
+    const offsets: CardOffsets = {
+      top: Advancer.new<string, number>(overlapGap, overlapGap),
+      bottom: Advancer.new<string, number>(overlapGap, overlapGap),
+      around: Advancer.new<string, number>(overlapGap, sizes.aroundCardPadX),
+    };
 
     this.connectors.forEach((senderIndex, senderId) => {
       const senderPlacement = this.cardsPlacement.get(senderId)?.geometry;
@@ -467,70 +487,112 @@ export default class LayoutStore {
       };
 
       senderIndex.forEach((connector, receiverId) => {
-        const receiverPlacement = this.cardsPlacement.get(receiverId)?.geometry;
+        const receiverPlacement = this.cardsPlacement.get(receiverId);
         if (receiverPlacement == null) return;
 
         const shiftedConnector = connector.position.sub(curveGap);
-        let firstPoints = [shiftedStart, shiftedConnector];
+        const initialPoints = [shiftedStart, shiftedConnector] as [Vec2, Vec2];
+        const points = this.makeArrowPath(
+          arrowStart,
+          connector.position,
+          initialPoints,
+          senderPlacement,
+          receiverPlacement,
+          offsets,
+        );
 
-        const startIsTooBend = arrowStart.x > connector.position.x;
-        if (startIsTooBend) {
-          // prettier-ignore
-
-          firstPoints = rounding.goAroundTheBox(
-            senderPlacement,
-            shiftedStart,
-            shiftedConnector,
-            sizes.aroundCardPadX,
-            sizes.aroundCardPadY,
-          ).map(Vec2.fromXY);
-        }
-
-        // prettier-ignore
-        const offsets = arrowStart.y > connector.position.y ?
-          bottomOffsets :
-          topOffsets;
-
-        const npoints = firstPoints.length;
-        const senderPoint = firstPoints[npoints - 2]; // Always not undefined
-
-        // prettier-ignore
-        const lastPoints = rounding
-          .goAroundTheBox(
-            receiverPlacement,
-            senderPoint,
-            shiftedConnector,
-            sizes.aroundCardPadX,
-            sizes.aroundCardPadY,
-          )
-          .map(Vec2.fromXY);
-
-        if (lastPoints.length > 2) {
-          const offsetNum = offsets.get(receiverId) ?? 1;
-          const offset = offsetNum * sizes.arrowOverlapGap;
-          offsets.set(receiverId, offsetNum + 1);
-
-          const atConnector = connector.position.clone();
-          atConnector.x -= offset;
-
-          // TODO: this is not fair offset, vector prolongation should be used
-          const beforeConnector = lastPoints[lastPoints.length - 2];
-          beforeConnector.x = connector.position.x - offset;
-
-          lastPoints.splice(lastPoints.length - 1, 1, atConnector);
-          firstPoints.splice(npoints - 1, 1, ...lastPoints.slice(1));
-        }
-
-        const points = firstPoints.concat([connector.position]);
-        const connArrow: ConnectorArrow = { connector, points };
-
-        arrow.arrows.set(receiverId, connArrow);
+        arrow.arrows.set(receiverId, { connector, points });
       });
 
       arrows.set(senderId, arrow);
     });
 
     return arrows;
+  }
+
+  private makeArrowPath(
+    arrowStart: Vec2,
+    connector: Vec2,
+    initialPoints: [Vec2, Vec2],
+    senderPlacement: XYWH,
+    receiverPlacement: PlacementEntry,
+    offsets: CardOffsets,
+  ): Vec2[] {
+    const [shiftedStart, shiftedConnector] = initialPoints;
+    const destinationIsBehind = arrowStart.x > connector.x;
+    const receiverId = receiverPlacement.card.id;
+    const receiverBBox = receiverPlacement.geometry;
+    let points = initialPoints.slice();
+
+    // receiver card is in front of sender card, so no workaround required
+    if (!destinationIsBehind) return points.concat([connector]);
+
+    points = rounding
+      .goAroundTheBox(
+        senderPlacement,
+        shiftedStart,
+        shiftedConnector,
+        sizes.aroundCardPadX,
+        sizes.aroundCardPadY,
+      )
+      .map(Vec2.fromXY);
+
+    const npoints = points.length;
+    const senderPoint = points[npoints - 2]; // Always not undefined
+    const aroundOffset = offsets.around.advance(receiverId);
+
+    const lastPoints = rounding
+      .goAroundTheBox(
+        receiverBBox,
+        senderPoint,
+        shiftedConnector,
+        sizes.aroundCardPadX + aroundOffset,
+        sizes.aroundCardPadY + aroundOffset,
+      )
+      .map(Vec2.fromXY);
+
+    if (lastPoints.length > 2 || senderPlacement == receiverBBox) {
+      const [a, b] = lastPoints.slice(lastPoints.length - 2);
+      const offsetAdvancer = a.y > b.y ? offsets.bottom : offsets.top;
+      const offset = offsetAdvancer.advance(receiverId);
+      const newShiftedConnector = connector.clone(-offset);
+
+      // TODO: this is not fair offset, vector prolongation should be used
+      const beforeConnector = lastPoints[lastPoints.length - 2];
+      beforeConnector.x = newShiftedConnector.x;
+
+      this.replaceEnding(lastPoints, [newShiftedConnector]);
+    }
+
+    if (lastPoints.length === 2) {
+      offsets.around.rewind(receiverId);
+    }
+
+    // replace that segment where we apply goAround
+    points.splice(npoints - 2, 2, ...lastPoints);
+    points = this.removeSharpAngleAtConnector(points.concat([connector]));
+
+    return points;
+  }
+
+  // Helper for replacing end of points chain
+  // Replacement is an array points, where first point is the same as as last
+  // point in src array
+  private replaceEnding(src: any[], replacement: any[]) {
+    src.splice(src.length - 1, 1, ...replacement);
+  }
+
+  private removeSharpAngleAtConnector(points: Vec2[]) {
+    // Check angle between last two segments of arrow to avoid sharp angle
+    // on connector
+    const [a, b, c] = points.slice(points.length - 3);
+    const angleThreshold = Math.PI / 9;
+    const angle = gutils.angleBetweenSegments(a, b, c);
+
+    if (angle > angleThreshold) return points;
+
+    points.splice(points.length - 2, 1);
+    return points;
   }
 
   @computed

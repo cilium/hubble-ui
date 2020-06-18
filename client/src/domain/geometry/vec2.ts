@@ -78,8 +78,8 @@ export class Vec2 implements XY {
     return new Vec2(-this.x, -this.y);
   }
 
-  public clone(): Vec2 {
-    return new Vec2(this.x, this.y);
+  public clone(dx = 0, dy = 0): Vec2 {
+    return new Vec2(this.x + dx, this.y + dy);
   }
 
   public isZero(): boolean {
