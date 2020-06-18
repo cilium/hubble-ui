@@ -1,7 +1,7 @@
 import _ from 'lodash';
-import { action, observable } from 'mobx';
+import { action, observable, computed } from 'mobx';
 
-import { Flow, FlowsFilterEntry } from '~/domain/flows';
+import { Flow, FlowsFilterEntry, FlowsFilterKind } from '~/domain/flows';
 import { Verdict } from '~/domain/hubble';
 
 // This store maintains data that is configured by control interfaces
@@ -58,5 +58,12 @@ export default class ControlStore {
   @action.bound
   setFlowFilters(ffs: FlowsFilterEntry[]) {
     this.flowFilters = ffs;
+  }
+
+  @computed
+  get activeCardFilter() {
+    return this.flowFilters.find(f => {
+      return [FlowsFilterKind.Dns, FlowsFilterKind.Identity].includes(f.kind);
+    });
   }
 }

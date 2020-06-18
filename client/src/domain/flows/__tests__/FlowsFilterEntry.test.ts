@@ -141,4 +141,13 @@ describe('correct strings parsing', () => {
     FlowsFilterKind.Label,
     '127.0.0.1',
   );
+
+  parse(
+    'correct 14',
+    'identity=12345',
+    true,
+    FlowsFilterDirection.Both,
+    FlowsFilterKind.Identity,
+    '12345',
+  );
 });

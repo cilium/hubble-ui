@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import {
   action,
   configure,
@@ -7,7 +6,12 @@ import {
   reaction,
   autorun,
 } from 'mobx';
-import { Flow } from '~/domain/flows';
+
+import {
+  FlowsFilterEntry,
+  FlowsFilterKind,
+  FlowsFilterDirection,
+} from '~/domain/flows';
 import {
   InteractionKind,
   Interactions,
@@ -15,18 +19,16 @@ import {
   Service,
   AccessPoints,
 } from '~/domain/service-map';
-
 import { StateChange } from '~/domain/misc';
+import { ids } from '~/domain/ids';
+import { setupDebugProp } from '~/domain/misc';
+import * as storage from '~/storage/local';
 
 import InteractionStore from './interaction';
 import LayoutStore from './layout';
 import RouteStore, { RouteHistorySourceKind } from './route';
 import ServiceStore from './service';
 import ControlStore from './controls';
-
-import { ids } from '~/domain/ids';
-import { setupDebugProp } from '~/domain/misc';
-import * as storage from '~/storage/local';
 
 configure({ enforceActions: 'observed' });
 
@@ -153,91 +155,149 @@ export class Store {
     return this.route.hash === 'mock';
   }
 
+  @action.bound
   private clearMap() {
     this.interactions.clear();
     this.services.clear();
     this.layout.clear();
   }
 
+  @action.bound
   private setupReactions() {
-    // prettier-ignore
-    reaction(() => this.controls.currentNamespace, namespace => {
-      if (!namespace) return;
-      storage.saveLastNamespace(namespace);
-
-      this.clearMap();
-      this.route.setNamespace(namespace);
-    });
-
-    reaction(
-      () => this.controls.verdict,
-      () => {
-        this.clearMap();
-      },
-    );
-
-    reaction(
-      () => this.controls.httpStatus,
-      () => {
-        this.clearMap();
-      },
-    );
-
-    reaction(
-      () => this.controls.flowFilters,
-      () => {
-        this.clearMap();
-      },
-    );
-
-    // Initialization from route to store
-    // prettier-ignore
-    autorun(r => {
+    // initial autoruns fires only once
+    autorun(reaction => {
       this.restoreNamespace();
-      r.dispose();
+      reaction.dispose();
     });
 
-    // prettier-ignore
-    autorun(r => {
+    autorun(reaction => {
       this.controls.setVerdict(this.route.verdict);
-      r.dispose();
+      reaction.dispose();
     });
 
-    // prettier-ignore
-    autorun(r => {
+    autorun(reaction => {
       this.controls.setHttpStatus(this.route.httpStatus);
-      r.dispose();
+      reaction.dispose();
     });
 
-    autorun(r => {
-      this.controls.setFlowFilters(this.route.flowFilters);
-      r.dispose();
+    autorun(reaction => {
+      this.setFlowFilters(this.route.flowFilters);
+      reaction.dispose();
     });
 
-    // Normal reactions, from store to route
+    // syncing with url
+    reaction(
+      () => this.controls.currentNamespace,
+      namespace => {
+        if (!namespace) return;
+        storage.saveLastNamespace(namespace);
+        this.clearMap();
+        this.route.setNamespace(namespace);
+      },
+    );
+
     reaction(
       () => this.controls.verdict,
-      v => {
-        this.route.setVerdict(v);
+      verdict => {
+        this.clearMap();
+        this.route.setVerdict(verdict);
       },
     );
 
     reaction(
       () => this.controls.httpStatus,
-      st => {
-        this.route.setHttpStatus(st);
+      httpStatus => {
+        this.clearMap();
+        this.route.setHttpStatus(httpStatus);
       },
     );
 
     reaction(
       () => this.controls.flowFilters,
-      st => {
-        const ffs = _.invokeMap(this.controls.flowFilters, 'toString');
-        this.route.setFlowFilters(ffs);
-      },
+      filters => this.route.setFlowFilters(filters.map(f => f.toString())),
     );
+
+    // try to update active card flows filter with card caption
+    autorun(reaction => {
+      const activeFilter = this.controls.activeCardFilter;
+      if (activeFilter == null) return;
+      if (!activeFilter.isDNS && !activeFilter.isIdentity) return;
+
+      // meta is set already
+      if (activeFilter.meta) return;
+
+      // TODO: ensure that query always contains serviceId
+      const serviceId = activeFilter.query;
+      const card = this.services.byId(serviceId);
+      if (card == null) return; // card is not loaded yet
+
+      this.setFlowFilters(this.controls.flowFilters);
+      this.services.setActive(serviceId);
+    });
   }
 
+  @action.bound
+  public toggleActiveService(id: string) {
+    return this.services.toggleActive(id);
+  }
+
+  @action.bound
+  public setFlowFiltersForActiveCard(serviceId: string, isActive: boolean) {
+    if (!isActive) {
+      return this.setFlowFilters([]);
+    }
+
+    // pick first active card
+    const card = this.services.byId(serviceId);
+    if (card == null) return;
+
+    const filter = new FlowsFilterEntry({
+      kind: card.isDNS ? FlowsFilterKind.Dns : FlowsFilterKind.Identity,
+      direction: FlowsFilterDirection.Both,
+      query: card.id,
+      meta: card.isDNS ? undefined : card.caption,
+    });
+
+    this.setFlowFilters([filter]);
+  }
+
+  @action.bound
+  public setFlowFilters(filters: FlowsFilterEntry[]) {
+    const nextFilters = filters.map(filter => {
+      // prettier-ignore
+      const requiresMeta = [
+        FlowsFilterKind.Identity,
+        FlowsFilterKind.Dns,
+      ].includes(filter.kind);
+
+      if (!requiresMeta) return filter;
+
+      // TODO: change search by card `id` to explicit `identity`
+      // when `identity` field is available in grpc schema.
+      // For now we use identity for `id` - so it works
+      const card = this.services.byId(filter.query);
+      if (card == null) return filter;
+
+      return filter.clone().setMeta(card.caption);
+    });
+
+    this.controls.setFlowFilters(nextFilters);
+  }
+
+  // D E B U G
+  @action.bound
+  public setupDebugTools() {
+    setupDebugProp({
+      printMapData: () => {
+        this.printMapData();
+      },
+      printLayoutData: () => {
+        this.printLayoutData();
+      },
+    });
+  }
+
+  @action.bound
   private restoreNamespace() {
     if (this.route.namespace) {
       this.controls.setCurrentNamespace(this.route.namespace);
@@ -251,28 +311,18 @@ export class Store {
     this.route.setNamespace(lastNamespace);
   }
 
-  // D E B U G
-  public setupDebugTools() {
-    setupDebugProp({
-      printMapData: () => {
-        this.printMapData();
-      },
-      printLayoutData: () => {
-        this.printLayoutData();
-      },
-    });
-  }
-
-  public printMapData() {
+  @action.bound
+  private printMapData() {
     const data = {
-      services: this.services.cards.map(c => c.service),
+      services: this.services.cardsList.map(c => c.service),
       links: this.interactions.links,
     };
 
     console.log(JSON.stringify(data, null, 2));
   }
 
-  public printLayoutData() {
+  @action.bound
+  private printLayoutData() {
     const data = this.layout.debugData;
 
     console.log(JSON.stringify(data, null, 2));

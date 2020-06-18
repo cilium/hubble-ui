@@ -109,9 +109,12 @@ export class ServiceCard<InteractionsExt = {}> {
     // );
   }
 
-  // TODO: this is wrong determination of isDNS, isnt it?
-  public get isDNS(): boolean {
+  public get hasDNS(): boolean {
     return this.service.dnsNames.length > 0;
+  }
+
+  public get isDNS(): boolean {
+    return this.isWorld && this.hasDNS;
   }
 
   public get isAWS(): boolean {

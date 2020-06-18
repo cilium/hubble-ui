@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { throttle } from 'lodash';
 import { ClientReadableStream, Status, Error as GRPCError } from 'grpc-web';
 
 import {
@@ -136,6 +136,11 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
               wlDstFilter.addDestinationFqdn(filter.query);
               break;
             }
+            case FlowsFilterKind.Identity: {
+              wlSrcFilter.addSourceIdentity(+filter.query);
+              wlDstFilter.addDestinationIdentity(+filter.query);
+              break;
+            }
           }
           break;
         }
@@ -156,6 +161,11 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
               wlDstFilter.addSourceFqdn(filter.query);
               break;
             }
+            case FlowsFilterKind.Identity: {
+              wlSrcFilter.addSourceIdentity(+filter.query);
+              wlDstFilter.addSourceIdentity(+filter.query);
+              break;
+            }
           }
           break;
         }
@@ -174,6 +184,11 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
             case FlowsFilterKind.Dns: {
               wlSrcFilter.addDestinationFqdn(filter.query);
               wlDstFilter.addDestinationFqdn(filter.query);
+              break;
+            }
+            case FlowsFilterKind.Identity: {
+              wlSrcFilter.addDestinationIdentity(+filter.query);
+              wlDstFilter.addDestinationIdentity(+filter.query);
               break;
             }
           }
@@ -204,7 +219,7 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
   }
 
   private setupThrottledHandlers() {
-    this.throttledFlowReceived = _.throttle(() => {
+    this.throttledFlowReceived = throttle(() => {
       this.emit(EventKind.Flows, this.flowBuffer);
       this.flowBuffer = [];
     }, this.flowsDelay);
@@ -218,13 +233,13 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
         case EventCase.EVENT_NOT_SET:
           return;
         case EventCase.FLOW:
-          return this.onFlowReceived(res.getFlow()!);
+          return this.onFlowReceived(res.getFlow());
         case EventCase.SERVICE_STATE:
-          return this.onServiceReceived(res.getServiceState()!);
+          return this.onServiceReceived(res.getServiceState());
         case EventCase.SERVICE_LINK_STATE:
-          return this.onLinkReceived(res.getServiceLinkState()!);
+          return this.onLinkReceived(res.getServiceLinkState());
         case EventCase.K8S_NAMESPACE_STATE:
-          return this.onNamespaceReceived(res.getK8sNamespaceState()!);
+          return this.onNamespaceReceived(res.getK8sNamespaceState());
       }
     });
 
@@ -243,14 +258,18 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
     });
   }
 
-  private onFlowReceived(flow: Flow) {
+  private onFlowReceived(flow: Flow | undefined) {
+    if (flow == null) return;
+
     const hubbleFlow = dataHelpers.hubbleFlowFromPb(flow);
 
     this.flowBuffer.push(hubbleFlow);
     this.throttledFlowReceived();
   }
 
-  private onServiceReceived(sstate: ServiceState) {
+  private onServiceReceived(sstate: ServiceState | undefined) {
+    if (sstate == null) return;
+
     const svc = sstate.getService();
     const ch = sstate.getType();
 
@@ -262,7 +281,9 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
     this.emit(EventKind.Service, { service, change });
   }
 
-  private onLinkReceived(link: ServiceLinkState) {
+  private onLinkReceived(link: ServiceLinkState | undefined) {
+    if (link == null) return;
+
     const linkObj = link.getServiceLink();
     const ch = link.getType();
 
@@ -274,7 +295,9 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
     });
   }
 
-  private onNamespaceReceived(ns: K8sNamespaceState) {
+  private onNamespaceReceived(ns: K8sNamespaceState | undefined) {
+    if (ns == null) return;
+
     const nsObj = ns.getNamespace();
     const change = ns.getType();
 
