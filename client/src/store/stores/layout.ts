@@ -1,10 +1,8 @@
-import { action, computed, observable, reaction, autorun } from 'mobx';
+import { action, computed, observable, reaction } from 'mobx';
 import _ from 'lodash';
 
-import { ids } from '~/domain/ids';
 import { dummy as geom, Vec2, XY, WH, XYWH, rounding } from '~/domain/geometry';
 import { ServiceCard } from '~/domain/service-card';
-import { Link } from '~/domain/service-map';
 import {
   ConnectorArrow,
   Placement,
@@ -50,7 +48,7 @@ export default class LayoutStore {
     this.accessPointsCoords = new Map();
 
     reaction(
-      () => this.services.data,
+      () => this.services.cardsList,
       () => {
         this.initUnitializedCards();
       },
@@ -69,8 +67,7 @@ export default class LayoutStore {
 
   @action.bound
   initUnitializedCards() {
-    console.log('in initUnitializedCards');
-    this.services.cards.forEach(card => {
+    this.services.cardsList.forEach(card => {
       if (this.cardDimensions.has(card.id)) return;
 
       this.cardDimensions.set(card.id, LayoutStore.defaultCardDims());
@@ -122,7 +119,7 @@ export default class LayoutStore {
     const index: Map<PlacementKind, Set<PlacementMeta>> = new Map();
     const currentNs = this.controls.currentNamespace;
 
-    this.services.cards.forEach((card: ServiceCard) => {
+    this.services.cardsList.forEach((card: ServiceCard) => {
       const meta = this.getCardPlacementMeta(card, currentNs || undefined);
       const kindSet = index.get(meta.kind) ?? new Set();
       const cards = kindSet.add(meta);

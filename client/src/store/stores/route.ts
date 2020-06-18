@@ -5,12 +5,11 @@ import {
   History,
   NavigateOptions,
 } from '@reach/router';
-import { action, computed, observable, reaction, runInAction } from 'mobx';
+import { action, computed, observable, runInAction } from 'mobx';
 import * as qs from 'query-string';
 
 import { FlowsFilterEntry } from '~/domain/flows';
 import { Verdict } from '~/domain/hubble';
-
 import { Dictionary } from '~/domain/misc';
 
 export enum RouteHistorySourceKind {
@@ -139,8 +138,6 @@ export default class RouteStore {
 
   @action.bound
   gotoFn(cb: ReplacementFunction) {
-    const parts = this.parts;
-
     const transformed = cb(
       this.parts.slice(),
       this.params as Dictionary<string | string[]>,

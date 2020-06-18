@@ -2,6 +2,7 @@ export enum FlowsFilterKind {
   Label = 'label',
   Ip = 'ip',
   Dns = 'dns',
+  Identity = 'identity',
 }
 
 export enum FlowsFilterDirection {
@@ -10,20 +11,28 @@ export enum FlowsFilterDirection {
   Both = 'both',
 }
 
+export interface Params {
+  kind: FlowsFilterKind;
+  direction: FlowsFilterDirection;
+  query: string;
+  meta?: string;
+}
+
 // TODO: write tests for parsing / serializing
 export class FlowsFilterEntry {
   public kind: FlowsFilterKind;
-  public query: string;
   public direction: FlowsFilterDirection;
+  public query: string;
+  public meta?: string;
 
-  public static parseFull(filter: string): FlowsFilterEntry | null {
-    let [rawDirection] = filter.split(':');
+  public static parseFull(userInput: string): FlowsFilterEntry | null {
+    let [rawDirection] = userInput.split(':');
     rawDirection = rawDirection || '';
 
-    const [rawKind] = filter.slice(rawDirection.length + 1).split('=');
+    const [rawKind] = userInput.slice(rawDirection.length + 1).split('=');
     if (!rawKind) return null;
 
-    const rawQuery = filter.slice(rawDirection.length + rawKind.length + 2);
+    const rawQuery = userInput.slice(rawDirection.length + rawKind.length + 2);
 
     const direction = FlowsFilterEntry.parseDirection(rawDirection);
     if (!direction) return null;
@@ -34,16 +43,16 @@ export class FlowsFilterEntry {
     const query = FlowsFilterEntry.parseQuery(rawQuery);
     if (!query) return null;
 
-    return new FlowsFilterEntry(kind, query, direction);
+    return new FlowsFilterEntry({ kind, direction, query });
   }
 
-  public static parse(filter: string): FlowsFilterEntry | null {
-    if (filter.length === 0) return null;
+  public static parse(userInput: string): FlowsFilterEntry | null {
+    if (userInput.length === 0) return null;
 
     let kind: FlowsFilterKind = FlowsFilterKind.Label;
     let direction: FlowsFilterDirection = FlowsFilterDirection.Both;
-    let query: string = filter;
-    let parts = filter.split(':');
+    let query: string = userInput;
+    let parts = userInput.split(':');
     let rest: string[] = [];
 
     const [rawDirection, ...firstRest] = parts;
@@ -59,7 +68,7 @@ export class FlowsFilterEntry {
     parts = kindWithQuery.split('=');
     if (parts.length < 2) {
       query = parts[0] || '';
-      return new FlowsFilterEntry(kind, query, direction);
+      return new FlowsFilterEntry({ kind, direction, query });
     }
 
     const [rawKind, ...secondRest] = parts;
@@ -72,7 +81,7 @@ export class FlowsFilterEntry {
     }
 
     query = rest.join('=');
-    return new FlowsFilterEntry(kind, query, direction);
+    return new FlowsFilterEntry({ kind, direction, query });
   }
 
   public static parseDirection(s: string): FlowsFilterDirection | null {
@@ -91,6 +100,7 @@ export class FlowsFilterEntry {
       case FlowsFilterKind.Label:
       case FlowsFilterKind.Ip:
       case FlowsFilterKind.Dns:
+      case FlowsFilterKind.Identity:
         return s;
     }
 
@@ -100,17 +110,41 @@ export class FlowsFilterEntry {
   public static parseQuery(s: string): string {
     return s
       .replace(/^(from:|to:|both:)/g, '')
-      .replace(/^(label=|ip=|dns=)/g, '')
+      .replace(/^(label=|ip=|dns=|identity=)/g, '')
       .trim();
   }
 
-  constructor(kind: FlowsFilterKind, query: string, dir: FlowsFilterDirection) {
+  constructor({ kind, direction, query, meta }: Params) {
     this.kind = kind;
     this.query = query;
-    this.direction = dir;
+    this.direction = direction;
+    this.meta = meta;
+  }
+
+  public setMeta(meta: string): FlowsFilterEntry {
+    this.meta = meta;
+
+    return this;
   }
 
   public toString(): string {
     return `${this.direction}:${this.kind}=${this.query}`;
+  }
+
+  public clone(): FlowsFilterEntry {
+    return new FlowsFilterEntry({
+      kind: this.kind,
+      direction: this.direction,
+      query: this.query,
+      meta: this.meta,
+    });
+  }
+
+  public get isDNS(): boolean {
+    return this.kind === FlowsFilterKind.Dns;
+  }
+
+  public get isIdentity(): boolean {
+    return this.kind === FlowsFilterKind.Identity;
   }
 }

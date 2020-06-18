@@ -37,24 +37,5 @@
 
   .tagTitle {
     position: relative;
-
-    &::before {
-      content: attr(data-popover);
-      position: absolute;
-      z-index: 2;
-      display: none;
-      left: 0;
-      top: -2px;
-      bottom: 0;
-      background-color: #e8ebed;
-      height: 20px;
-      line-height: 20px;
-      padding-right: 4px;
-      border-radius: 2px;
-    }
-
-    &:hover::before {
-      display: block;
-    }
   }
 }

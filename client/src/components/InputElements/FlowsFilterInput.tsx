@@ -2,7 +2,9 @@ import { Button, Classes, Icon, MenuItem } from '@blueprintjs/core';
 import { ItemRenderer, MultiSelect } from '@blueprintjs/select';
 import { trim } from 'lodash';
 import React, { useCallback, useState } from 'react';
+
 import { FlowsFilterDirection, FlowsFilterEntry } from '~/domain/flows';
+
 import css from './FlowsFilterInput.scss';
 
 interface Props {
@@ -88,7 +90,8 @@ export const FlowsFilterInput = (props: Props) => {
         tagProps: { minimal: true },
         rightElement: rightElement,
         className: Classes.INPUT,
-        placeholder: 'Filter labels key=val, ip=0.0.0.0, dns=google.com',
+        placeholder:
+          'Filter labels key=val, ip=0.0.0.0, dns=google.com, identity=42',
       }}
     />
   );
@@ -101,6 +104,15 @@ const renderItem: ItemRenderer<FlowsFilterEntry | null> = () => {
 const renderTag = (item: FlowsFilterEntry | null) => {
   if (!item) return null;
 
+  const label = item.meta ? (
+    <>
+      {item.kind}={item.query} <i>{item.meta}</i>
+    </>
+  ) : (
+    <>
+      {item.kind}={item.query}
+    </>
+  );
   let color: string;
   let directionLabel: 'from:' | 'to:' | 'from|to:';
   let icon: 'arrow-left' | 'arrow-right' | 'arrows-horizontal';
@@ -127,8 +139,8 @@ const renderTag = (item: FlowsFilterEntry | null) => {
     <div className={css.tagContent}>
       <b style={{ color }}>{directionLabel}</b>
       <Icon icon={icon} iconSize={9} color={color} style={{ color }} />
-      <div className={css.tagTitle} data-popover={item.query}>
-        <span>{item.query}</span>
+      <div className={css.tagTitle}>
+        <span>{label}</span>
       </div>
     </div>
   );
