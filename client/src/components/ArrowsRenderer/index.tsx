@@ -108,8 +108,8 @@ const arrowHandle = (handle: [Vec2, Vec2] | null): string => {
   const baseA = start.add(side);
   const baseB = start.sub(side);
 
-  const lookingRight = end.x - start.x > 0;
-  const sweep = lookingRight ? 0 : 1;
+  const criteria = (baseA.x - baseB.x) * (end.y - start.y);
+  const sweep = criteria < 0 ? 0 : 1;
 
   const r = 2;
   const [ar1, ar2] = gutils.roundCorner(r, [start, baseA, end]);
@@ -247,7 +247,8 @@ const arrowHandlesFromPoints = (points: Vec2[]): [Vec2, Vec2][] => {
   if (points.length < 2) return [];
 
   const handles: [Vec2, Vec2][] = [];
-  chunks(points, 2, 1).forEach(([start, end]) => {
+  chunks(points, 2, 1).forEach(([start, end], i: number, n: number) => {
+    if (i === n - 1) return;
     if (start.distance(end) < sizes.minArrowLength) return;
 
     const mid = start.linterp(end, 0.5);
