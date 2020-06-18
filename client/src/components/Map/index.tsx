@@ -23,7 +23,7 @@ export interface Props {
   namespaceBBox: XYWH;
   placement: Placement;
   arrows: Map<string, SenderArrows>;
-  activeServices: Set<string>;
+  isCardActive: (id: string) => boolean;
   accessPoints: AccessPoints;
   accessPointsCoords: Map<string, Vec2>;
   onCardSelect: (srvc: ServiceCard) => void;
@@ -36,12 +36,6 @@ export const MapElements = memo(function MapElements(props: Props) {
   const onCardHeightChange = useCallback((card: ServiceCard, h: number) => {
     props.onCardHeightChange(card.id, h);
   }, [props.onCardHeightChange]);
-
-  // prettier-ignore
-  const isCardActive = useCallback((srvc: ServiceCard) => {
-    const set = props.activeServices;
-    return set == null ? false : set.has(srvc.id);
-  }, [props.activeServices]);
 
   return (
     <>
@@ -71,7 +65,7 @@ export const MapElements = memo(function MapElements(props: Props) {
 
         return (
           <EndpointCardContent
-            active={isCardActive(plc.card)}
+            active={props.isCardActive(plc.card.id)}
             key={plc.card.id}
             coords={plc.geometry}
             card={plc.card}

@@ -1,36 +1,34 @@
-import { action, observable, reaction, computed } from 'mobx';
+import { action, observable, computed } from 'mobx';
 
 import { ServiceCard } from '~/domain/service-card';
 import { Link, Service } from '~/domain/service-map';
 import { StateChange } from '~/domain/misc';
 
 export default class ServiceStore {
-  @observable cards: Array<ServiceCard>;
-  @observable active: Map<string, boolean>;
-  @observable cardsMap: Map<string, ServiceCard>;
+  @observable private cards: ServiceCard[];
+  @observable private activeCardsSet: Set<string>;
 
   constructor() {
     this.cards = [];
-    this.cardsMap = new Map();
-    this.active = new Map();
-
-    reaction(
-      () => this.cards,
-      () => {
-        this.rebuildIndex();
-      },
-    );
+    this.activeCardsSet = new Set();
   }
 
-  @action.bound
-  clear() {
-    this.cards = [];
-    this.cardsMap.clear();
-    this.active.clear();
-  }
-
-  @computed get data() {
+  @computed get cardsList() {
     return this.cards.slice();
+  }
+
+  @computed get cardsMap() {
+    const map = new Map<string, ServiceCard>();
+    this.cardsList.forEach(card => map.set(card.service.id, card));
+    return map;
+  }
+
+  @computed get activeCards() {
+    return this.activeCardsSet;
+  }
+
+  @computed get activeCardsList(): string[] {
+    return Array.from(this.activeCardsSet);
   }
 
   @computed get byId() {
@@ -39,17 +37,36 @@ export default class ServiceStore {
     };
   }
 
-  @computed get activeSet(): Set<string> {
-    const k = [...this.active.keys()].filter(key =>
-      Boolean(this.active.get(key)),
-    );
-    return new Set(k);
+  @computed get isCardActive() {
+    return (id: string) => {
+      return this.activeCardsSet.has(id);
+    };
   }
 
   @action.bound
-  toggleActive(id: string) {
-    const current = !!this.active.get(id);
-    this.active.set(id, !current);
+  clear() {
+    this.cards = [];
+    this.activeCardsSet.clear();
+  }
+
+  @action.bound
+  toggleActive(id: string, single = true): boolean {
+    const current = this.activeCardsSet.has(id);
+    if (single) this.activeCardsSet.clear();
+
+    current ? this.activeCardsSet.delete(id) : this.activeCardsSet.add(id);
+    return !current;
+  }
+
+  @action.bound
+  setActive(id: string): boolean {
+    const svc = this.cardsMap.get(id);
+    if (!svc) return false;
+
+    this.activeCardsSet.clear();
+    this.activeCardsSet.add(id);
+
+    return true;
   }
 
   @action.bound
@@ -64,13 +81,6 @@ export default class ServiceStore {
       if (card == null) return;
 
       card.updateLinkEndpoint(l);
-    });
-  }
-
-  @action.bound
-  rebuildIndex() {
-    this.cards.forEach(c => {
-      this.cardsMap.set(c.service.id, c);
     });
   }
 
@@ -95,6 +105,6 @@ export default class ServiceStore {
     if (idx === -1) return;
 
     this.cards.splice(idx, 1);
-    this.active.delete(svc.id);
+    this.activeCardsSet.delete(svc.id);
   }
 }

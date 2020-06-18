@@ -148,7 +148,8 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   }, []);
 
   const onCardSelect = useCallback((srvc: ServiceCard) => {
-    store.services.toggleActive(srvc.id);
+    const isActive = store.toggleActiveService(srvc.id);
+    store.setFlowFiltersForActiveCard(srvc.id, isActive);
   }, []);
 
   const onSelectVerdict = useCallback((verdict: Verdict | null) => {
@@ -160,7 +161,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   }, []);
 
   const onChangeFlowFilters = useCallback((ffs: FlowsFilterEntry[]) => {
-    store.controls.setFlowFilters(ffs);
+    store.setFlowFilters(ffs);
   }, []);
 
   const onCloseFlowsTableSidebar = useCallback(() => {
@@ -178,6 +179,11 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       setEventStream(null);
     });
   }, [eventStream]);
+
+  const isCardActive = useCallback(
+    (id: string) => store.services.isCardActive(id),
+    [store.services.activeCardsList],
+  );
 
   return (
     <div className={css.app}>
@@ -201,7 +207,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
           accessPoints={store.accessPoints}
           accessPointsCoords={store.layout.accessPointsCoords}
           arrows={store.layout.arrows}
-          activeServices={store.services.activeSet}
+          isCardActive={isCardActive}
           onCardSelect={onCardSelect}
           onEmitAccessPointCoords={onEmitAccessPointCoords}
           onCardHeightChange={store.layout.setCardHeight}
