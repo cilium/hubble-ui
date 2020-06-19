@@ -46,8 +46,7 @@ const provider = provide({
 const css = require("./DraggablePanel.scss");
 
 export const { Container: DraggablePanel } = provider(Props => {
-  type Props = typeof Props;
-  return class DraggablePanelClass extends React.Component<Props> {
+  return class DraggablePanelClass extends React.Component<typeof Props> {
     onCreatePolicyButtonClick = () => {
       this.setState({ isCreatePolicyDialogOpen: true });
     };

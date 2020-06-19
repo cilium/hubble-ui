@@ -37,8 +37,8 @@ interface State {
 }
 
 export const { Container: ColumnsIcon } = provider(Props => {
-  type Props = typeof Props;
-  return class ColumnsIconClass extends React.Component<Props, State> {
+  type PropsType = typeof Props;
+  return class ColumnsIconClass extends React.Component<PropsType, State> {
     state: State = {
       opened: false
     };

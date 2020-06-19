@@ -23,8 +23,7 @@ const provider = provide({
 });
 
 export const { Container: ErrorView } = provider(Props => {
-  type Props = typeof Props;
-  return class ErrorViewClass extends React.Component<Props> {
+  return class ErrorViewClass extends React.Component<typeof Props> {
     reload = (event: React.MouseEvent<HTMLAnchorElement>) => {
       event.preventDefault();
       window.location.reload();

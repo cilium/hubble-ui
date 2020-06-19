@@ -30,15 +30,15 @@ const provider = provideWithRouter({
 });
 
 export const { Container: AppLayoutWithRouter } = provider(Props => {
-  type Props = typeof Props;
+  type PropsType = typeof Props;
   interface State {
     menuBarHovered: boolean;
   }
-  return class AppLayoutClass extends React.Component<Props, State> {
+  return class AppLayoutClass extends React.Component<PropsType, State> {
     hoverTimeout: any;
     refetchClustersTimer: any;
 
-    constructor(props: Props) {
+    constructor(props: PropsType) {
       super(props);
 
       this.state = {
@@ -55,7 +55,7 @@ export const { Container: AppLayoutWithRouter } = provider(Props => {
       window.addEventListener("beforeunload", this.beforeUnloadHandler);
     }
 
-    fetchClusters = (props: Props) => {
+    fetchClusters = (props: PropsType) => {
       props.fetchClusters({});
     };
 

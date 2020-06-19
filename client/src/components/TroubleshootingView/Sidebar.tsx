@@ -54,7 +54,7 @@ const provider = provide({
 });
 
 export const { Container: Sidebar } = provider(Props => {
-  type Props = typeof Props;
+  type PropsType = typeof Props;
   interface State {
     readonly flow: Flow | null;
     readonly loading: boolean;
@@ -63,7 +63,7 @@ export const { Container: Sidebar } = provider(Props => {
     readonly specsFilter: PolicySpecsFilterInput | null;
     readonly specsType: SpecsTypes;
   }
-  return class SidebarClass extends React.Component<Props, State> {
+  return class SidebarClass extends React.Component<PropsType, State> {
     state: State = {
       flow: null,
       loading: false,
@@ -76,7 +76,7 @@ export const { Container: Sidebar } = provider(Props => {
       this.fetch(this.props);
     }
 
-    componentWillReceiveProps(nextProps: Props) {
+    componentWillReceiveProps(nextProps: typeof Props) {
       if (nextProps.flowQuery !== this.props.flowQuery) {
         this.fetch(nextProps);
       }
@@ -88,7 +88,7 @@ export const { Container: Sidebar } = provider(Props => {
       });
     };
 
-    fetch = (props: Props) => {
+    fetch = (props: typeof Props) => {
       const { memoryFlow } = props;
       this.setState(
         {

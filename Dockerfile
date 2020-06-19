@@ -3,7 +3,7 @@ FROM node:13.7-slim
 ENV CI true
 
 RUN apt-get update \
- && apt-get install -y patch python
+ && apt-get install -y make patch python
 
 COPY package.json package.json
 COPY cilium/ cilium/

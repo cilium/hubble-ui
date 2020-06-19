@@ -47,8 +47,7 @@ export const getPanelPosition = () => {
 };
 
 export const { Container: DraggableView } = provider(Props => {
-  type Props = typeof Props;
-  return class DraggableViewClass extends React.Component<Props> {
+  return class DraggableViewClass extends React.Component<typeof Props> {
     ref: React.RefObject<HTMLDivElement>;
 
     onResize = (size: number) => {

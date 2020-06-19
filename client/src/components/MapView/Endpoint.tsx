@@ -48,8 +48,7 @@ const ingressBlueLockedIcon = require("../assets/icons/ingress-blue-locked-icon.
 const egressBlueLockedIcon = require("../assets/icons/egress-blue-locked-icon.svg");
 
 export const { Container: Endpoint1Layer } = endpoint1LayerProvider(Props => {
-  type Props = typeof Props;
-  return class Endpoint1LayerClass extends React.Component<Props> {
+  return class Endpoint1LayerClass extends React.Component<typeof Props> {
     render() {
       const { node, visibleMode } = this.props;
       const { width, height, x, y } = node;
@@ -71,8 +70,8 @@ export const { Container: Endpoint1Layer } = endpoint1LayerProvider(Props => {
 });
 
 export const { Container: Endpoint2Layer } = endpoint2LayerProvider(Props => {
-  type Props = typeof Props;
-  return class Endpoint2LayerClass extends React.Component<Props> {
+  type PropsType = typeof Props;
+  return class Endpoint2LayerClass extends React.Component<typeof Props> {
     render() {
       const {
         graph,
@@ -167,8 +166,8 @@ export const { Container: Endpoint2Layer } = endpoint2LayerProvider(Props => {
 });
 
 export const { Container: Endpoint3Layer } = endpoint3LayerProvider(Props => {
-  type Props = typeof Props;
-  return class Endpoint3LayerClass extends React.Component<Props> {
+  type PropsType = typeof Props;
+  return class Endpoint3LayerClass extends React.Component<typeof Props> {
     onClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
       event.preventDefault();
       if (this.props.currentEndpoint !== this.props.node.endpoint) {
@@ -332,8 +331,8 @@ export const { Container: Endpoint3Layer } = endpoint3LayerProvider(Props => {
 });
 
 const { Container: NodeProtocol } = nodeProtocolProvider(Props => {
-  type Props = typeof Props;
-  return class NodeProtocolClass extends React.Component<Props> {
+  type PropsType = typeof Props;
+  return class NodeProtocolClass extends React.Component<typeof Props> {
     onClick = (event: React.MouseEvent<any>) => {
       event.preventDefault();
       this.props.pushAppUrl(
@@ -469,8 +468,8 @@ const FunctionsGroup = ({
 };
 
 const { Container: NodeFunction } = nodeFunctionProvider(Props => {
-  type Props = typeof Props;
-  return class NodeFunctionClass extends React.Component<Props> {
+  type PropsType = typeof Props;
+  return class NodeFunctionClass extends React.Component<typeof Props> {
     onClick = (event: React.MouseEvent<HTMLLIElement>) => {
       event.preventDefault();
       this.props.pushAppUrl(

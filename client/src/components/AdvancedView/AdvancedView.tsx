@@ -31,8 +31,8 @@ const provider = provideWithRouter({
 });
 
 export const { Container: AdvancedView } = provider(Props => {
-  type Props = typeof Props;
-  return class AdvancedViewClass extends React.Component<Props> {
+  type PropsType = typeof Props;
+  return class AdvancedViewClass extends React.Component<PropsType> {
     render() {
       return (
         <DraggableView>
@@ -61,8 +61,8 @@ const flowsTableProvider = provideWithRouter({
   }
 });
 const { Container: FlowsTableWithSidebar } = flowsTableProvider(Props => {
-  type Props = typeof Props;
-  return class FlowsTableWithSidebarClass extends React.Component<Props> {
+  type PropsType = typeof Props;
+  return class FlowsTableWithSidebarClass extends React.Component<PropsType> {
     render() {
       return (
         <div className={css.flowsTableOuterWrapper}>

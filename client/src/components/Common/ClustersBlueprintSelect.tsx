@@ -35,9 +35,8 @@ const provider = provide({
 });
 
 export const { Container: ClustersBlueprintSelect } = provider(Props => {
-  type Props = typeof Props;
-  return class ClustersSelectlass extends React.Component<Props> {
-    componentWillReceiveProps(nextProps: Props) {
+  return class ClustersSelectlass extends React.Component<typeof Props> {
+    componentWillReceiveProps(nextProps: typeof Props) {
       if (nextProps.autoSelectCluster) {
         if (!nextProps.clusterId) {
           if (nextProps.clusters && nextProps.clusters.length > 0) {

@@ -128,7 +128,7 @@ const provider = provide({
 });
 
 const { Container: Map } = provider(Props => {
-  type Props = typeof Props;
+  type PropsType = typeof Props;
   interface State {
     readonly scaled: boolean;
     readonly transform: ZoomTransform | null;
@@ -146,12 +146,12 @@ const { Container: Map } = provider(Props => {
     readonly connectors: JSX.Element[];
     readonly selectedConnectors: JSX.Element[];
   }
-  return class MapClass extends React.Component<Props, State> {
+  return class MapClass extends React.Component<PropsType, State> {
     canvas: SVGGElement | null;
     zoom: ZoomBehavior<any, any>;
     selection: Selection<SVGGElement, any, any, any>;
 
-    constructor(props: Props) {
+    constructor(props: PropsType) {
       super(props);
 
       this.state = {
@@ -181,7 +181,7 @@ const { Container: Map } = provider(Props => {
       this.componentWillReceiveProps(this.props, this.state);
     }
 
-    shouldComponentUpdate(nextProps: Props, nextState: State) {
+    shouldComponentUpdate(nextProps: PropsType, nextState: State) {
       const { needRerender, needRebuildMapComponents } = this.detectChanges(
         nextProps,
         nextState
@@ -189,7 +189,7 @@ const { Container: Map } = provider(Props => {
       return needRerender || needRebuildMapComponents;
     }
 
-    detectChanges = (nextProps: Props, nextState: State) => {
+    detectChanges = (nextProps: PropsType, nextState: State) => {
       const { scaled, transform } = nextState;
 
       const transformChanged = nextState.transform !== this.state.transform;
@@ -255,7 +255,7 @@ const { Container: Map } = provider(Props => {
       };
     };
 
-    componentWillReceiveProps(nextProps: Props, nextState: State) {
+    componentWillReceiveProps(nextProps: PropsType, nextState: State) {
       const {
         needRerender,
         needRebuildMapComponents,
@@ -324,7 +324,7 @@ const { Container: Map } = provider(Props => {
       this.selection.call(this.zoom);
     };
 
-    rescale = throttle((state: State, props: Props) => {
+    rescale = throttle((state: State, props: PropsType) => {
       const height = this.calculateActualMapHeight(state, props);
       const scale = this.calculateTransformScale(state, props, height);
       const { x, y } = this.calculateTransformXY(state, props, height, scale);
@@ -334,7 +334,7 @@ const { Container: Map } = provider(Props => {
       );
     }, 200);
 
-    recenter = (state: State, props: Props) => {
+    recenter = (state: State, props: PropsType) => {
       const { transform } = state;
       const { graphData } = props;
       const { currentEndpointId } = props;
@@ -367,13 +367,13 @@ const { Container: Map } = provider(Props => {
       }
     };
 
-    calculateActualMapWidth = (state: State, props: Props) => {
+    calculateActualMapWidth = (state: State, props: PropsType) => {
       const { screenDimensions } = props;
       const { width: screenWidth } = screenDimensions;
       return screenWidth - H_THRESHOLD;
     };
 
-    calculateActualMapHeight = (state: State, props: Props) => {
+    calculateActualMapHeight = (state: State, props: PropsType) => {
       const { screenDimensions } = props;
       const { height: screenHeight } = screenDimensions;
       const heightMultiplier = Math.max(props.mapPanelPosition, 0.25);
@@ -382,7 +382,11 @@ const { Container: Map } = provider(Props => {
       return viewHeight * heightMultiplier - thresholdDivider;
     };
 
-    calculateTransformScale = (state: State, props: Props, height: number) => {
+    calculateTransformScale = (
+      state: State,
+      props: PropsType,
+      height: number
+    ) => {
       const { graphData } = props;
       if (!graphData) {
         return 1;
@@ -398,7 +402,7 @@ const { Container: Map } = provider(Props => {
 
     calculateTransformXY = (
       state: State,
-      props: Props,
+      props: PropsType,
       height: number,
       scale: number
     ) => {
@@ -418,7 +422,7 @@ const { Container: Map } = provider(Props => {
 
     onZoom = () => this.setState({ transform: d3event.transform });
 
-    buildMapComponents = (props: Props) => {
+    buildMapComponents = (props: PropsType) => {
       const {
         graphData,
         currentProtocolId,

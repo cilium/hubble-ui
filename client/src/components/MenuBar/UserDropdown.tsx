@@ -23,7 +23,6 @@ const userDropdownProvider = provide({
 });
 
 export const { Container: UserDropdown } = userDropdownProvider(Props => {
-  type Props = typeof Props;
   interface State {
     isAddOrgDialogOpen: boolean;
     isMembersDialogOpen: boolean;
@@ -31,7 +30,10 @@ export const { Container: UserDropdown } = userDropdownProvider(Props => {
     isListIntegrationsDialogOpen: boolean;
     isAddIntegrationDialogOpen: boolean;
   }
-  return class UserDropdownClass extends React.PureComponent<Props, State> {
+  return class UserDropdownClass extends React.PureComponent<
+    typeof Props,
+    State
+  > {
     state: State = {
       isAddOrgDialogOpen: false,
       isMembersDialogOpen: false,

@@ -31,8 +31,7 @@ const css = require("./MapView.scss");
 export const {
   Container: FlowBetweenNodeAndConnector
 } = flowNodeConnectorProvider(Props => {
-  type Props = typeof Props;
-  return class FlowBetweenNodesClass extends React.Component<Props> {
+  return class FlowBetweenNodesClass extends React.Component<typeof Props> {
     render() {
       const {
         fromNode,

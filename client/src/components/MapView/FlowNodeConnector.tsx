@@ -18,8 +18,7 @@ const protocolors = require("../App/protocolors.scss");
 
 export const { Container: FlowNodeConnector } = flowNodeConnectorProvider(
   Props => {
-    type Props = typeof Props;
-    return class ConnectorClass extends React.Component<Props> {
+    return class ConnectorClass extends React.Component<typeof Props> {
       render() {
         const {
           fromNode,

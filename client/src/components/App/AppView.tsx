@@ -37,8 +37,7 @@ const provider = provideWithRouter({
 });
 
 export const { Container: AppViewWithRouter } = provider(Props => {
-  type Props = typeof Props;
-  return class AppViewClass extends React.Component<Props> {
+  return class AppViewClass extends React.Component<typeof Props> {
     render() {
       const { hasClusters, clustersFetchedOkAtLeastOnce } = this.props;
       if (!clustersFetchedOkAtLeastOnce) {

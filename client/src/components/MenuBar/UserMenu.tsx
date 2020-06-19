@@ -26,7 +26,7 @@ const provider = provide({
 });
 
 export const { Container: UserMenu } = provider(Props => {
-  type Props = typeof Props;
+  type PropsType = typeof Props;
   return class UserMenuComponent extends React.Component<Props> {
     render() {
       return this.renderAccount();

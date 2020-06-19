@@ -32,8 +32,9 @@ const swap = (x: any, y: any) => [y, x];
 export const {
   Container: FlowBetweenNodeAndBounds
 } = flowNodeBoundariesProvider(Props => {
-  type Props = typeof Props;
-  return class FlowBetweenNodeAndBoundsClass extends React.Component<Props> {
+  return class FlowBetweenNodeAndBoundsClass extends React.Component<
+    typeof Props
+  > {
     renderBoundary = (boundary: BoundaryWithCoords) => {
       const { node } = this.props;
       const isLeft = isLeftNode(node);

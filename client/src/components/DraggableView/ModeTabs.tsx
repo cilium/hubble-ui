@@ -28,8 +28,7 @@ const provider = provide({
 });
 
 export const { Container: ModeTabs } = provider(Props => {
-  type Props = typeof Props;
-  return class ModeTabsClass extends React.Component<Props> {
+  return class ModeTabsClass extends React.Component<typeof Props> {
     onFlowsTabClick = (event: React.MouseEvent<HTMLButtonElement>) => {
       event.preventDefault();
       this.props.pushAppUrl({

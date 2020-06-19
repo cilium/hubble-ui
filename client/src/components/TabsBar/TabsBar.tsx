@@ -27,9 +27,7 @@ const provider = provide({
 });
 
 export const { Container: TabsBar } = provider(Props => {
-  type Props = typeof Props;
-
-  return class TabsBarClass extends React.Component<Props> {
+  return class TabsBarClass extends React.Component<typeof Props> {
     render() {
       return (
         <div

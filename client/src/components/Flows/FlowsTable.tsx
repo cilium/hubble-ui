@@ -96,20 +96,20 @@ const WIDTHS_LS_KEY_PREFIX = "v8-flows-table-colums-widths";
 const FETCH_DELAY = 120000;
 
 export const { Container: FlowsTable } = provider(Props => {
-  type Props = typeof Props;
+  type PropsType = typeof Props;
   interface State {
     readonly widths: { [key: string]: number };
     readonly showNewFlowsPopup: boolean;
     readonly timeIndicator: null | string;
     readonly columns: ReturnType<typeof createColumns>;
   }
-  return class FlowsTableClass extends React.Component<Props, State> {
+  return class FlowsTableClass extends React.Component<PropsType, State> {
     private width: number = 0;
     private height: number = 0;
     private refreshInterval: any;
     private tableRef: null | Table;
 
-    constructor(props: Props) {
+    constructor(props: typeof Props) {
       super(props);
       this.state = {
         widths: tableUtils.loadWidths(
@@ -122,7 +122,7 @@ export const { Container: FlowsTable } = provider(Props => {
       };
     }
 
-    static getTableKey = (props: Props) => {
+    static getTableKey = (props: typeof Props) => {
       return `${WIDTHS_LS_KEY_PREFIX}-service-map`;
     };
 
@@ -135,7 +135,7 @@ export const { Container: FlowsTable } = provider(Props => {
       clearInterval(this.refreshInterval);
     }
 
-    componentWillReceiveProps(nextProps: Props) {
+    componentWillReceiveProps(nextProps: typeof Props) {
       const autoRefreshChanged =
         this.props.autoRefresh !== nextProps.autoRefresh;
       const filterByIdChanged =
@@ -183,7 +183,7 @@ export const { Container: FlowsTable } = provider(Props => {
 
     getFlows = (
       mode: "append" | "prepend" | "replace",
-      props: Props,
+      props: typeof Props,
       resetChartData: boolean,
       updateChart: boolean
     ) => {
@@ -254,7 +254,7 @@ export const { Container: FlowsTable } = provider(Props => {
     };
 
     getLabels = (
-      props: Props,
+      props: typeof Props,
       endpointQueryField: "from" | "to" | "self",
       filterByField: "labels" | "destinationLabels" | "sourceLabels"
     ) => {
@@ -268,7 +268,7 @@ export const { Container: FlowsTable } = provider(Props => {
       return null;
     };
 
-    getDestinationDnsName = (props: Props) => {
+    getDestinationDnsName = (props: typeof Props) => {
       if (props.currentEndpoint) {
         if (isFQDNSEndpoint(props.currentEndpoint)) {
           return props.currentEndpoint.dnsName;
@@ -308,7 +308,7 @@ export const { Container: FlowsTable } = provider(Props => {
       }, FETCH_DELAY);
     };
 
-    fetchMap = (props: Props, callback: () => void) => {
+    fetchMap = (props: typeof Props, callback: () => void) => {
       if (props.clusterId && props.namespaceFromParams) {
         if (props.currentEndpoint) {
           callback();

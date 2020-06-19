@@ -27,8 +27,7 @@ const provider = provide({
 });
 
 export const { Container: LoadingView } = provider(Props => {
-  type Props = typeof Props;
-  return class LoadingViewClass extends React.Component<Props> {
+  return class LoadingViewClass extends React.Component<typeof Props> {
     render() {
       const { isDataUnavailableAndLoading } = this.props;
       if (!isDataUnavailableAndLoading) {

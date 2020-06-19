@@ -35,8 +35,7 @@ const provider = provide({
 });
 
 export const { Container: MapFiltersPopover } = provider(Props => {
-  type Props = typeof Props;
-  return class MapFiltersPopoverClass extends React.Component<Props> {
+  return class MapFiltersPopoverClass extends React.Component<typeof Props> {
     onToggleHostEndpoint = () => {
       this.props.toggleTrafficFilter({
         filter: "showHostEndpoint"

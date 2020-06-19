@@ -77,6 +77,6 @@ const ComponentWrapper = React.memo<{ component: JSX.Element; show: boolean }>(
       css.component,
       props.show ? css.visible : css.hidden
     ].join(" ");
-    return <div className={className}>{props.component}></div>;
+    return <div className={className}>{props.component}</div>;
   }
 );

@@ -32,11 +32,11 @@ const provider = provide({
 });
 
 export const { Container: DiscoveryInfo } = provider(Props => {
-  type Props = typeof Props;
+  type PropsType = typeof Props;
   interface State {
     readonly discoveryAfter: number;
   }
-  return class DiscoveryInfoClass extends React.Component<Props, State> {
+  return class DiscoveryInfoClass extends React.Component<PropsType, State> {
     state: State = {
       discoveryAfter: 0
     };
@@ -47,7 +47,7 @@ export const { Container: DiscoveryInfo } = provider(Props => {
       this.startTimer(this.props);
     }
 
-    componentWillReceiveProps(nextProps: Props) {
+    componentWillReceiveProps(nextProps: typeof Props) {
       if (nextProps.nextDiscoveryTime !== this.props.nextDiscoveryTime) {
         clearInterval(this.timer);
         this.startTimer(nextProps);
@@ -58,7 +58,7 @@ export const { Container: DiscoveryInfo } = provider(Props => {
       clearInterval(this.timer);
     }
 
-    startTimer = (props: Props) => {
+    startTimer = (props: typeof Props) => {
       const { nextDiscoveryTime } = props;
       this.setState(
         {
