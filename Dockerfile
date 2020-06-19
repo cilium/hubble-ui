@@ -1,4 +1,4 @@
-FROM node:14.4-slim
+FROM quay.io/cilium/hubble-ui-base:2020-06-19-7b4c868d6b7d
 
 ENV CI true
 
@@ -45,7 +45,7 @@ RUN npm run test:client \
  && npm run build:client \
  && npm run install:server
 
-FROM node:14.4-slim
+FROM quay.io/cilium/hubble-ui-base:2020-06-19-7b4c868d6b7d
 WORKDIR /workspace
 COPY --from=0 /server/node_modules server/node_modules
 COPY --from=0 /server/package.json server/package.json
