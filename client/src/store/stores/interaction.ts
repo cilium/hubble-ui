@@ -2,9 +2,9 @@ import _ from 'lodash';
 import { action, observable, computed } from 'mobx';
 
 import { Flow, HubbleFlow } from '~/domain/flows';
+import { Link, AccessPoints, AccessPointMeta } from '~/domain/service-map';
 import { ids } from '~/domain/ids';
 import { HubbleLink } from '~/domain/hubble';
-import { Link, AccessPointMeta } from '~/domain/service-map';
 import { StateChange } from '~/domain/misc';
 import { flowFromRelay, linkFromRelay } from '~/domain/helpers';
 
@@ -19,6 +19,11 @@ export interface Connections {
   readonly incomings: ConnectionsMap;
 }
 
+interface CopyResult {
+  newFlows: number;
+  newLinks: number;
+}
+
 // This store maintains ANY interactions that may present on the map
 export default class InteractionStore {
   public static readonly FLOWS_MAX_COUNT = 500;
@@ -29,6 +34,16 @@ export default class InteractionStore {
   constructor() {
     this.flows = [];
     this.links = [];
+  }
+
+  // TODO: be careful with shallow cloning
+  clone(deep = false): InteractionStore {
+    const store = new InteractionStore();
+
+    store.flows = deep ? _.cloneDeep(this.flows) : this.flows.slice();
+    store.links = deep ? _.cloneDeep(this.links) : this.links.slice();
+
+    return store;
   }
 
   @action.bound
@@ -48,13 +63,23 @@ export default class InteractionStore {
   }
 
   @action.bound
-  setLinks(links: HubbleLink[]) {
+  setHubbleLinks(links: HubbleLink[]) {
     links.forEach(this.addLink);
   }
 
   @action.bound
-  setFlows(flows: HubbleFlow[]) {
+  setLinks(links: Link[]) {
+    this.links = links;
+  }
+
+  @action.bound
+  setHubbleFlows(flows: HubbleFlow[]) {
     this.flows = flows.map(flowFromRelay);
+  }
+
+  @action.bound
+  setFlows(flows: Flow[]) {
+    this.flows = flows;
   }
 
   @action.bound
@@ -86,6 +111,33 @@ export default class InteractionStore {
         return this.addLink(hubbleLink);
       }
     }
+  }
+
+  @action.bound
+  moveTo(rhs: InteractionStore): CopyResult {
+    const wasNFlows = rhs.flows.length;
+    const hubbleFlows = this.flows.map(f => f.hubbleFlow);
+    const { flowsTotalCount } = rhs.addFlows(hubbleFlows);
+
+    let newLinks = 0;
+    this.links.forEach((link: Link) => {
+      const added = rhs.addNewLink(link);
+      newLinks += Number(added);
+    });
+
+    return {
+      newFlows: wasNFlows - flowsTotalCount,
+      newLinks,
+    };
+  }
+
+  @action.bound
+  addNewLink(link: Link): boolean {
+    const existing = this.linksMap.get(link.id);
+    if (existing != null) return false;
+
+    this.links.push(link);
+    return true;
   }
 
   @action.bound
@@ -172,6 +224,28 @@ export default class InteractionStore {
     });
 
     return { outgoings, incomings };
+  }
+
+  @computed
+  get accessPoints(): AccessPoints {
+    const index: AccessPoints = new Map();
+
+    this.links.forEach((l: Link) => {
+      const id = ids.accessPoint(l.destinationId, l.destinationPort);
+      if (!index.has(l.destinationId)) {
+        index.set(l.destinationId, new Map());
+      }
+
+      const serviceAPs = index.get(l.destinationId)!;
+      serviceAPs.set(l.destinationPort, {
+        id,
+        port: l.destinationPort,
+        protocol: l.ipProtocol,
+        serviceId: l.destinationId,
+      });
+    });
+
+    return index;
   }
 
   @computed get all() {

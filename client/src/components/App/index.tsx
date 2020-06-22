@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useEffect,
   useState,
+  useMemo,
 } from 'react';
 import { RouteComponentProps, Router } from '@reach/router';
 import { observer } from 'mobx-react';
@@ -14,9 +15,8 @@ import { LoadingOverlay } from '~/components/Misc/LoadingOverlay';
 
 import { HubbleFlow } from '~/domain/hubble';
 import { ServiceCard } from '~/domain/service-card';
-import { setupDebugProp } from '~/domain/misc';
+import { Vec2 } from '~/domain/geometry';
 
-import * as mockData from '~/api/__mocks__/data';
 import { useStore } from '~/store';
 import { useNotifier } from '~/notifier';
 
@@ -34,6 +34,7 @@ import {
 import css from './styles.scss';
 import { GeneralStreamEventKind } from '~/api/general/stream';
 import { WelcomeScreen } from './WelcomeScreen';
+import { DataManager, EventKind as DataManagerEvents } from './DataManager';
 
 export interface AppProps extends RouteComponentProps {
   api: API;
@@ -42,51 +43,17 @@ export interface AppProps extends RouteComponentProps {
 export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   const { api } = props;
   const [flowsDiffCount, setFlowsDiffCount] = useState({ value: 0 });
-  const [eventStream, setEventStream] = useState<IEventStream | null>(null);
   const [isStreaming, setIsStreaming] = useState<boolean>(true);
 
   const store = useStore();
+  const frame = store.currentFrame;
   const notifier = useNotifier();
+  const dataManager = useMemo(() => {
+    return new DataManager(api, store);
+  }, []);
 
   useEffect(() => {
-    setIsStreaming(Boolean(eventStream));
-  }, [eventStream]);
-
-  useEffect(() => {
-    setupDebugProp({
-      stopFlows: () => {
-        if (eventStream == null) return;
-
-        eventStream.stop();
-      },
-    });
-  }, [eventStream]);
-
-  // prettier-ignore
-  const setupNamespaceEventHandlers = useCallback((stream: IEventStream) => {
-    stream.on(EventStreamEventKind.Namespace, (nsChange: NamespaceChange) => {
-      store.applyNamespaceChange(nsChange.name, nsChange.change);
-    });
-  }, [store]);
-
-  // prettier-ignore
-  const setupServicesEventHandlers = useCallback((stream: IEventStream) => {
-    stream.on(EventStreamEventKind.Service, (svcChange: ServiceChange) => {
-      store.applyServiceChange(svcChange.service, svcChange.change);
-    });
-
-    stream.on(EventStreamEventKind.Flows, (flows: HubbleFlow[]) => {
-      const { flowsDiffCount } = store.interactions.addFlows(flows);
-      setFlowsDiffCount({ value: flowsDiffCount });
-    });
-
-    stream.on(EventStreamEventKind.ServiceLink, (link: ServiceLinkChange) => {
-      store.applyServiceLinkChange(link.serviceLink, link.change);
-    });
-  }, [store]);
-
-  const setupGeneralEventHandlers = useCallback((stream: IEventStream) => {
-    stream.on(GeneralStreamEventKind.Error, () => {
+    dataManager.on(DataManagerEvents.StreamError, () => {
       setIsStreaming(false);
       notifier.showError(`
         Failed to receive data from backend.
@@ -94,70 +61,48 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       `);
     });
 
-    stream.on(GeneralStreamEventKind.End, () => {
+    dataManager.on(DataManagerEvents.StreamEnd, () => {
       setIsStreaming(false);
     });
-  }, []);
 
-  useEffect(() => {
-    console.log('store.mocked: ', store.mocked);
+    dataManager.on(DataManagerEvents.StoreMocked, () => {
+      setIsStreaming(true);
+    });
+
+    dataManager.on(DataManagerEvents.FlowsDiff, (value: number) => {
+      setFlowsDiffCount({ value });
+    });
 
     if (store.mocked) {
-      store.setup({
-        services: mockData.services,
-        flows: mockData.flows,
-        links: mockData.links,
-      });
-      store.controls.setCurrentNamespace(mockData.selectedNamespace);
-      setIsStreaming(true);
-      return;
+      dataManager.setupMock();
+    } else if (store.controls.currentNamespace == null) {
+      dataManager.setupInitialStream();
     }
-
-    if (store.controls.currentNamespace != null) return;
-
-    const stream = api.v1.getEventStream(EventParamsSet.Namespaces);
-
-    setupNamespaceEventHandlers(stream);
-    setupGeneralEventHandlers(stream);
-    setEventStream(stream);
-  }, []);
+  }, [dataManager]);
 
   useEffect(() => {
-    if (!store.controls.currentNamespace || store.mocked) {
-      return;
+    if (!store.controls.currentNamespace || store.mocked) return;
+    const newNamespace = store.controls.currentNamespace;
+
+    if (dataManager.currentNamespace !== newNamespace) {
+      dataManager.resetNamespace(newNamespace);
     }
 
-    const streamParams: DataFilters = {
-      namespace: store.controls.currentNamespace,
-      verdict: store.route.verdict,
-      httpStatus: store.route.httpStatus,
-      filters: store.route.flowFilters,
-      skipHost: !store.controls.showHost,
-      skipKubeDns: !store.controls.showKubeDns,
-    };
-
-    let previousStopped = Promise.resolve();
-    if (eventStream != null) {
-      previousStopped = eventStream.stop(true);
+    if (dataManager.hasFilteringStream) {
+      dataManager.dropFilteringFrame();
     }
 
-    previousStopped.then(() => {
-      const newStream = api.v1.getEventStream(EventParamsSet.All, streamParams);
+    const filtersNonNull = !store.controls.isDefault;
 
-      setupNamespaceEventHandlers(newStream);
-      setupServicesEventHandlers(newStream);
-      setupGeneralEventHandlers(newStream);
+    if (filtersNonNull) {
+      dataManager.setupFilteringFrame(store.controls.currentNamespace!);
+    }
+  }, [store.controls.dataFilters]);
 
-      setEventStream(newStream);
-    });
-  }, [
-    store.controls.currentNamespace,
-    store.controls.verdict,
-    store.controls.httpStatus,
-    store.controls.flowFilters,
-    store.controls.showHost,
-    store.controls.showKubeDns,
-  ]);
+  const onNamespaceChange = useCallback((ns: string) => {
+    store.flush();
+    store.controls.setCurrentNamespace(ns);
+  }, []);
 
   const onCardSelect = useCallback((srvc: ServiceCard) => {
     const isActive = store.toggleActiveService(srvc.id);
@@ -168,27 +113,23 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     store.controls.selectTableFlow(null);
   }, []);
 
-  const onStreamStop = useCallback(() => {
-    if (!eventStream) return;
+  const onEmitAccessPointCoords = useCallback((apId: string, coords: Vec2) => {
+    store.setAccessPointCoords(apId, coords);
+  }, []);
 
-    eventStream.stop().then(() => {
-      setEventStream(null);
-    });
-  }, [eventStream]);
+  // prettier-ignore
+  const isCardActive = useCallback((id: string) => {
+    return frame.isCardActive(id);
+  },[frame.services.activeCardsList]);
 
-  const isCardActive = useCallback(
-    (id: string) => store.services.isCardActive(id),
-    [store.services.activeCardsList],
-  );
-
-  const mapLoaded = store.layout.placement.length > 0 && isStreaming;
+  const mapLoaded = frame.layout.placement.length > 0 && isStreaming;
 
   const RenderedTopBar = (
     <TopBar
       isStreaming={isStreaming}
       namespaces={store.controls.namespaces}
       currentNamespace={store.controls.currentNamespace}
-      onNamespaceChange={store.controls.setCurrentNamespace}
+      onNamespaceChange={onNamespaceChange}
       selectedVerdict={store.controls.verdict}
       onVerdictChange={store.controls.setVerdict}
       selectedHttpStatus={store.controls.httpStatus}
@@ -208,7 +149,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
         {RenderedTopBar}
         <WelcomeScreen
           namespaces={store.controls.namespaces}
-          onNamespaceChange={store.controls.setCurrentNamespace}
+          onNamespaceChange={onNamespaceChange}
         />
       </div>
     );
@@ -221,16 +162,16 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       <div className={css.map}>
         {mapLoaded ? (
           <Map
-            namespace={store.controls.currentNamespace}
-            namespaceBBox={store.layout.namespaceBBox}
-            placement={store.layout.placement}
-            accessPoints={store.accessPoints}
-            accessPointsCoords={store.layout.accessPointsCoords}
-            arrows={store.layout.arrows}
+            namespace={frame.controls.currentNamespace}
+            namespaceBBox={frame.layout.namespaceBBox}
+            placement={frame.layout.placement}
+            accessPoints={frame.interactions.accessPoints}
+            accessPointsCoords={frame.layout.accessPointsCoords}
+            arrows={frame.layout.arrows}
             isCardActive={isCardActive}
             onCardSelect={onCardSelect}
-            onEmitAccessPointCoords={store.layout.setAccessPointCoords}
-            onCardHeightChange={store.layout.setCardHeight}
+            onEmitAccessPointCoords={onEmitAccessPointCoords}
+            onCardHeightChange={frame.layout.setCardHeight}
           />
         ) : (
           <LoadingOverlay height="50%" text="Waiting for service map data…" />
@@ -240,13 +181,12 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       <DetailsPanel
         resizable={true}
         isStreaming={isStreaming}
-        flows={store.interactions.flows}
+        flows={frame.interactions.flows}
         flowsDiffCount={flowsDiffCount}
-        selectedFlow={store.controls.selectedTableFlow}
-        onSelectFlow={store.controls.selectTableFlow}
+        selectedFlow={frame.controls.selectedTableFlow}
+        onSelectFlow={frame.controls.selectTableFlow}
         onCloseSidebar={onCloseFlowsTableSidebar}
-        tsUpdateDelay={eventStream?.flowsDelay}
-        onStreamStop={onStreamStop}
+        tsUpdateDelay={dataManager.flowsDelay}
       />
     </div>
   );

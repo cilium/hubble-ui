@@ -1,6 +1,9 @@
-import { Labels } from './labels';
+import _ from 'lodash';
+
+import { Service, Link, ApplicationKind, Interactions } from './service-map';
 import { KV } from './misc';
-import { ApplicationKind, Service } from './service-map';
+import { reserved } from './cilium';
+import { Labels } from './labels';
 
 // This entity maintains ONLY THE DATA of service card
 export class ServiceCard {
@@ -16,6 +19,27 @@ export class ServiceCard {
     return new ServiceCard(srvc);
   }
 
+  public clone(): ServiceCard {
+    return new ServiceCard(_.cloneDeep(this.service));
+  }
+  
+// <<<<<<< HEAD
+// =======
+
+//   public updateLinkEndpoint(link: Link) {
+//     const links = this.incidentInteractions.links || [];
+
+//     // TODO: do real actions
+//     links.push(link);
+
+//     this.incidentInteractions.links = links;
+//   }
+
+//   public get links(): Array<Link> {
+//     return this.incidentInteractions.links || [];
+//   }
+
+// >>>>>>> a1fd4c2... feat: do local data (flows / services / layout) filtering not to drop entire store
   public get appProtocol(): ApplicationKind | undefined {
     const appLbl = this.appLabel;
     if (appLbl == null) return undefined;
