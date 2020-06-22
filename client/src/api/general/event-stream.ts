@@ -53,7 +53,7 @@ export interface DataFilters {
   namespace: string;
   verdict?: Verdict | null;
   httpStatus?: string | null;
-  filters: FlowsFilterEntry[];
+  filters?: FlowsFilterEntry[];
   skipHost?: boolean;
   skipKubeDns?: boolean;
 }

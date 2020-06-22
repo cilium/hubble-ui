@@ -1,4 +1,4 @@
-import hash from 'object-hash';
+import _ from 'lodash';
 
 import { HubbleFlow, Verdict } from '~/domain/hubble';
 import { Labels } from '~/domain/labels';
@@ -6,7 +6,7 @@ import { KV } from '~/domain/misc';
 import { CiliumEventSubTypesCodes } from '~/domain/cilium';
 
 export * from './flows-filter-entry';
-export { HubbleFlow };
+export { HubbleFlow, Verdict };
 
 export class Flow {
   private ref: HubbleFlow;
@@ -14,6 +14,10 @@ export class Flow {
   private _id: string;
   private _sourceLabels: KV[];
   private _destinationLabels: KV[];
+
+  // Cached
+  private _sourceNamespace: string | null = null;
+  private _destNamespace: string | null = null;
 
   constructor(flow: HubbleFlow) {
     this.ref = flow;
@@ -25,8 +29,20 @@ export class Flow {
     this._id = this.buildId();
   }
 
+  public clone(): Flow {
+    return new Flow(_.cloneDeep(this.ref));
+  }
+
   public get id() {
     return this._id;
+  }
+
+  public get hubbleFlow(): HubbleFlow {
+    return this.ref;
+  }
+
+  public get httpStatus(): number | undefined {
+    return this.ref.l7?.http?.code;
   }
 
   public get hasSource() {
@@ -45,12 +61,34 @@ export class Flow {
     return this._destinationLabels;
   }
 
+  public get sourceNamesList() {
+    return this.ref.sourceNamesList;
+  }
+
+  public get destinationNamesList() {
+    return this.ref.destinationNamesList;
+  }
+
+  public get sourceIdentity() {
+    return this.ref.source?.identity;
+  }
+
+  public get destinationIdentity() {
+    return this.ref.destination?.identity;
+  }
+
   public get sourceNamespace() {
-    return Labels.findNamespaceInLabels(this.sourceLabels);
+    if (this._sourceNamespace != null) return this._sourceNamespace;
+
+    this._sourceNamespace = Labels.findNamespaceInLabels(this.sourceLabels);
+    return this._sourceNamespace;
   }
 
   public get destinationNamespace() {
-    return Labels.findNamespaceInLabels(this.destinationLabels);
+    if (this._destNamespace != null) return this._destNamespace;
+
+    this._destNamespace = Labels.findNamespaceInLabels(this.destinationLabels);
+    return this._destNamespace;
   }
 
   public get sourceAppName() {
@@ -65,6 +103,7 @@ export class Flow {
     if (!this.ref.source) {
       return null;
     }
+
     return this.ref.source.podName;
   }
 
@@ -72,6 +111,7 @@ export class Flow {
     if (!this.ref.destination) {
       return null;
     }
+
     return this.ref.destination.podName;
   }
 
@@ -79,9 +119,11 @@ export class Flow {
     if (this.ref.l4?.tcp) {
       return this.ref.l4.tcp.destinationPort;
     }
+
     if (this.ref.l4?.udp) {
       return this.ref.l4.udp.destinationPort;
     }
+
     return null;
   }
 
@@ -89,6 +131,7 @@ export class Flow {
     if (!this.ref.ip?.source) {
       return null;
     }
+
     return this.ref.ip.source;
   }
 
@@ -96,7 +139,12 @@ export class Flow {
     if (!this.ref.ip?.destination) {
       return null;
     }
+
     return this.ref.ip.destination;
+  }
+
+  public get verdict(): Verdict {
+    return this.ref.verdict;
   }
 
   public get verdictLabel(): 'forwarded' | 'dropped' | 'unknown' | 'unhandled' {
@@ -120,6 +168,7 @@ export class Flow {
     if (!this.ref.eventType) {
       return null;
     }
+
     return CiliumEventSubTypesCodes[
       this.ref.eventType.subType as keyof typeof CiliumEventSubTypesCodes
     ];
@@ -129,6 +178,7 @@ export class Flow {
     if (this.ref.destinationNamesList.length === 0) {
       return null;
     }
+
     return this.ref.destinationNamesList[0];
   }
 
@@ -136,6 +186,7 @@ export class Flow {
     if (!this.ref.time) {
       return null;
     }
+
     return new Date(this.ref.time.seconds * 1000).valueOf();
   }
 
@@ -143,26 +194,29 @@ export class Flow {
     if (!this.millisecondsTimestamp) {
       return null;
     }
+
     return new Date(this.millisecondsTimestamp).toISOString();
   }
 
   private buildId() {
-    return hash([
-      [...(this.ref.source?.labelsList || [])].sort(),
-      [...(this.ref.destination?.labelsList || [])].sort(),
-      this.ref.l4?.tcp?.destinationPort,
-      this.ref.verdict,
-      this.ref.time,
-    ]);
+    let timeStr = '';
+    if (this.ref.time) {
+      const { seconds: s, nanos: n } = this.ref.time;
+      timeStr = `${s}.${n}`;
+    } else {
+      // WAT ?
+      timeStr = `${Date.now()}`;
+    }
+
+    return `${timeStr}-${this.ref.nodeName}`;
   }
 
   private mapLabelsToKv(labels: string[]) {
     return labels.map(label => {
-      const [key, value] = label.split('=', 2);
-      return {
-        key,
-        value: value ? value : '',
-      };
+      const [key, ...rest] = label.split('=');
+      const value = rest.join('=');
+
+      return { key, value };
     });
   }
 }

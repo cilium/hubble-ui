@@ -147,4 +147,10 @@ export class FlowsFilterEntry {
   public get isIdentity(): boolean {
     return this.kind === FlowsFilterKind.Identity;
   }
+
+  public get labelKeyValue(): [string, string] {
+    const [key, ...rest] = this.query.split('=');
+
+    return [key, rest.join('=')];
+  }
 }

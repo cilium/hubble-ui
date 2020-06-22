@@ -11,26 +11,27 @@ import {
   FlowsFilterEntry,
   FlowsFilterKind,
   FlowsFilterDirection,
-  Flow,
 } from '~/domain/flows';
+
 import {
   InteractionKind,
   Link,
   Service,
-  AccessPoints,
-  Interactions,
 } from '~/domain/service-map';
 import { StateChange } from '~/domain/misc';
 import { ids } from '~/domain/ids';
 import { setupDebugProp } from '~/domain/misc';
-import * as storage from '~/storage/local';
+import { Vec2 } from '~/domain/geometry';
+import { HubbleService, HubbleLink, HubbleFlow } from '~/domain/hubble';
 
 import InteractionStore from './interaction';
 import LayoutStore from './layout';
 import RouteStore, { RouteHistorySourceKind } from './route';
 import ServiceStore from './service';
 import ControlStore from './controls';
-import { HubbleService, HubbleLink, HubbleFlow } from '~/domain/hubble';
+
+import { StoreFrame } from '~/store/frame';
+import * as storage from '~/storage/local';
 
 configure({ enforceActions: 'observed' });
 
@@ -39,31 +40,17 @@ export interface Props {
 }
 
 export class Store {
-  @observable interactions: InteractionStore;
-
-  @observable services: ServiceStore;
-
-  @observable route: RouteStore;
-
-  @observable layout: LayoutStore;
-
   @observable controls: ControlStore;
+  @observable route: RouteStore;
+  @observable frames: StoreFrame[];
 
   constructor({ historySource }: Props) {
-    this.interactions = new InteractionStore();
-    this.services = new ServiceStore();
     this.controls = new ControlStore();
     this.route = new RouteStore(historySource);
 
-    // LayoutStore is a store which knows geometry props of service map
-    // It will be depending on flows / links as these are used to determine
-    // positions of cards
-    this.layout = new LayoutStore(
-      this.services,
-      this.interactions,
-      this.controls,
-    );
+    this.frames = [];
 
+    this.createMainFrame();
     this.restoreNamespace();
     this.restoreVisualFilters();
     this.setupReactions();
@@ -80,9 +67,23 @@ export class Store {
     flows: HubbleFlow[];
     links: HubbleLink[];
   }) {
-    this.services.set(services);
-    this.interactions.setLinks(links);
-    this.interactions.setFlows(flows);
+    this.currentFrame.services.set(services);
+    this.currentFrame.interactions.setHubbleLinks(links);
+    this.currentFrame.interactions.setHubbleFlows(flows);
+  }
+
+  @action.bound
+  createMainFrame() {
+    const frame = this.createFrame();
+
+    // Ensure frame to be the first in frames array
+    if (this.frames.length === 0) {
+      this.frames.push(frame);
+    } else {
+      this.frames.unshift(frame);
+    }
+
+    return frame;
   }
 
   @action.bound
@@ -95,17 +96,55 @@ export class Store {
   }
 
   @action.bound
-  applyServiceChange(hubbleService: HubbleService, change: StateChange) {
+  setAccessPointCoords(apId: string, coords: Vec2) {
+    this.currentFrame.setAccessPointCoords(apId, coords);
+  }
+
+  createFrame(): StoreFrame {
+    const interactions = new InteractionStore();
+    const services = new ServiceStore();
+
+    const frame = new StoreFrame(interactions, services, this.controls);
+    return frame;
+  }
+
+  deriveFrame(): StoreFrame {
+    return this.mainFrame.clone();
+  }
+
+  @action.bound
+  squashFrames() {
+    if (this.frames.length <= 1) return;
+
+    const target = this.mainFrame;
+    this.frames.forEach((frame: StoreFrame, i: number) => {
+      if (i === 0) return; // Skip main frame
+
+      // NOTE: this methods implements move semantics, thus doesnt .clone()
+      frame.moveServices(target);
+      frame.moveServiceLinks(target);
+    });
+
+    this.frames.splice(1, this.frames.length);
+  }
+
+  @action.bound
+  pushFrame(frame: StoreFrame): number {
+    return this.frames.push(frame);
+  }
+
+  @action.bound
+  applyServiceChange(svc: Service, change: StateChange) {
     // console.log('service change: ', svc, change);
 
-    this.services.applyServiceChange(hubbleService, change);
+    this.currentFrame.applyServiceChange(svc, change);
   }
 
   @action.bound
   applyServiceLinkChange(hubbleLink: HubbleLink, change: StateChange) {
     // console.log('service link change: ', link, change);
 
-    this.interactions.applyLinkChange(hubbleLink, change);
+    this.currentFrame.applyServiceLinkChange(hubbleLink, change);
   }
 
   @action.bound
@@ -118,26 +157,14 @@ export class Store {
     this.controls.addNamespace(ns);
   }
 
-  @computed
-  get accessPoints(): AccessPoints {
-    const index: AccessPoints = new Map();
+  @action.bound
+  addFlows(flows: HubbleFlow[]) {
+    const res = this.mainFrame.addFlows(flows);
+    if (this.currentFrame == this.mainFrame) {
+      return res;
+    }
 
-    this.interactions.links.forEach((l: Link) => {
-      const id = ids.accessPoint(l.destinationId, l.destinationPort);
-      if (!index.has(l.destinationId)) {
-        index.set(l.destinationId, new Map());
-      }
-
-      const serviceAPs = index.get(l.destinationId)!;
-      serviceAPs.set(l.destinationPort, {
-        id,
-        port: l.destinationPort,
-        protocol: l.ipProtocol,
-        serviceId: l.destinationId,
-      });
-    });
-
-    return index;
+    return this.currentFrame.addFlows(flows);
   }
 
   @computed
@@ -146,11 +173,12 @@ export class Store {
   }
 
   @action.bound
-  public clearMap() {
-    this.interactions.clear();
-    this.services.clear();
-    this.layout.clear();
+  public flush() {
+    console.log('flushing store data...');
+
+    this.frames = [];
     this.controls.selectTableFlow(null);
+    this.createMainFrame();
   }
 
   @action.bound
@@ -177,7 +205,6 @@ export class Store {
       namespace => {
         if (!namespace) return;
         storage.saveLastNamespace(namespace);
-        this.clearMap();
         this.route.setNamespace(namespace);
       },
     );
@@ -185,7 +212,6 @@ export class Store {
     reaction(
       () => this.controls.verdict,
       verdict => {
-        this.clearMap();
         this.route.setVerdict(verdict);
       },
     );
@@ -193,7 +219,6 @@ export class Store {
     reaction(
       () => this.controls.httpStatus,
       httpStatus => {
-        this.clearMap();
         this.route.setHttpStatus(httpStatus);
       },
     );
@@ -207,7 +232,7 @@ export class Store {
     autorun(() => {
       const activeFilter = this.controls.activeCardFilter;
       if (activeFilter == null) {
-        this.services.clearActive();
+        this.currentFrame.services.clearActive();
         return;
       }
 
@@ -218,17 +243,17 @@ export class Store {
 
       // TODO: ensure that query always contains serviceId
       const serviceId = activeFilter.query;
-      const card = this.services.byId(serviceId);
+      const card = this.currentFrame.getServiceById(serviceId);
       if (card == null) return; // card is not loaded yet
 
       this.setFlowFilters(this.controls.flowFilters);
-      this.services.setActive(serviceId);
+      this.currentFrame.setActiveService(serviceId);
     });
   }
 
   @action.bound
   public toggleActiveService(id: string) {
-    return this.services.toggleActive(id);
+    return this.currentFrame.toggleActiveService(id);
   }
 
   @action.bound
@@ -236,9 +261,8 @@ export class Store {
     if (!isActive) {
       return this.setFlowFilters([]);
     }
-
     // pick first active card
-    const card = this.services.byId(serviceId);
+    const card = this.currentFrame.services.byId(serviceId);
     if (card == null) return;
 
     const filter = new FlowsFilterEntry({
@@ -265,7 +289,7 @@ export class Store {
       // TODO: change search by card `id` to explicit `identity`
       // when `identity` field is available in grpc schema.
       // For now we use identity for `id` - so it works
-      const card = this.services.byId(filter.query);
+      const card = this.currentFrame.services.byId(filter.query);
       if (card == null) return filter;
 
       return filter.clone().setMeta(card.caption);
@@ -278,7 +302,7 @@ export class Store {
   public toggleShowKubeDns(flush = true): boolean {
     const isActive = this.controls.toggleShowKubeDns();
     if (flush) {
-      this.clearMap();
+      this.flush();
     }
 
     storage.saveShowKubeDns(isActive);
@@ -289,7 +313,7 @@ export class Store {
   public toggleShowHost(flush = true): boolean {
     const isActive = this.controls.toggleShowHost();
     if (flush) {
-      this.clearMap();
+      this.flush();
     }
 
     storage.saveShowHost(isActive);
@@ -332,8 +356,8 @@ export class Store {
   @action.bound
   private printMapData() {
     const data = {
-      services: this.services.cardsList.map(c => c.service),
-      links: this.interactions.links,
+      services: this.currentFrame.services.cardsList.map(c => c.service),
+      links: this.currentFrame.interactions.links,
     };
 
     console.log(JSON.stringify(data, null, 2));
@@ -341,8 +365,20 @@ export class Store {
 
   @action.bound
   private printLayoutData() {
-    const data = this.layout.debugData;
+    const data = this.currentFrame.layout.debugData;
 
     console.log(JSON.stringify(data, null, 2));
+  }
+
+  @computed
+  get mainFrame(): StoreFrame {
+    if (this.frames.length === 0) throw new Error('main frame is undefined');
+
+    return this.frames[0]!;
+  }
+
+  @computed
+  get currentFrame(): StoreFrame {
+    return this.frames[this.frames.length - 1]!;
   }
 }
