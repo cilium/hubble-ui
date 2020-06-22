@@ -118,7 +118,7 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
       wlDstFilter.addVerdict(dataHelpers.verdictToPb(filters.verdict));
     }
 
-    filters?.filters.forEach(filter => {
+    filters?.filters?.forEach(filter => {
       switch (filter.direction) {
         case FlowsFilterDirection.Both: {
           switch (filter.kind) {

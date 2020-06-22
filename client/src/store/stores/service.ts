@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { action, observable, computed } from 'mobx';
 
 import { ServiceCard } from '~/domain/service-card';
@@ -11,6 +12,15 @@ export default class ServiceStore {
   constructor() {
     this.cards = [];
     this.activeCardsSet = new Set();
+  }
+
+  clone(deep = false): ServiceStore {
+    const store = new ServiceStore();
+
+    store.cards = deep ? _.cloneDeep(this.cards) : this.cards.slice();
+    store.activeCardsSet = new Set(this.activeCardsSet);
+
+    return store;
   }
 
   @computed get cardsList() {
@@ -86,8 +96,8 @@ export default class ServiceStore {
     }
 
     // TODO: handle all cases properly (patch current service)
-    const idx = this.cards.findIndex(s => s.id === svc.id);
-    if (idx !== -1) return;
+    const existing = this.cardsMap.get(svc.id);
+    if (existing != null) return;
 
     this.cards.push(ServiceCard.fromService(svc));
   }
@@ -101,5 +111,32 @@ export default class ServiceStore {
 
     this.cards.splice(idx, 1);
     this.activeCardsSet.delete(svc.id);
+  }
+
+  @action.bound
+  addNewCard(card: ServiceCard): boolean {
+    const existing = this.cardsMap.get(card.id);
+    if (existing != null) return false;
+
+    this.cards.push(card);
+
+    return true;
+  }
+
+  @action.bound
+  moveTo(rhs: ServiceStore): number {
+    let numAdded = 0;
+
+    this.cardsList.forEach(card => {
+      const added = rhs.addNewCard(card);
+      numAdded += Number(added);
+    });
+
+    if (this.activeCardsSet.size !== 0) {
+      const activeId = [...this.activeCardsSet][0];
+      rhs.setActive(activeId);
+    }
+
+    return numAdded;
   }
 }
