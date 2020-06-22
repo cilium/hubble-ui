@@ -22,6 +22,7 @@ export interface Props extends CommonProps {
 export const FlowsTable = memo<Props>(function FlowsTable(props: Props) {
   const scroll = useScroll<HTMLDivElement>(props.flowsDiffCount);
   const tsUpdateDelay = props.tsUpdateDelay ?? DEFAULT_TS_UPDATE_DELAY;
+
   return (
     <div {...scroll} className={css.wrapper}>
       <table className={css.table}>

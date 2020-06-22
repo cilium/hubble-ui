@@ -39,12 +39,10 @@ export const MapElements = memo(function MapElements(props: Props) {
 
   return (
     <>
-      {props.placement.length > 0 && (
-        <NamespaceBackplate
-          namespace={props.namespace}
-          xywh={props.namespaceBBox.addMargin(sizes.endpointHPadding / 2)}
-        />
-      )}
+      <NamespaceBackplate
+        namespace={props.namespace}
+        xywh={props.namespaceBBox.addMargin(sizes.endpointHPadding / 2)}
+      />
 
       {props.placement.map(plc => (
         <EndpointCardBackplate

@@ -6,13 +6,22 @@ import { Verdict } from '~/domain/hubble';
 
 // This store maintains data that is configured by control interfaces
 export default class ControlStore {
-  @observable namespaces: Array<string> = [];
+  @observable private _namespaces: Array<string> = [];
+
   @observable currentNamespace: string | null = null;
   @observable selectedTableFlow: Flow | null = null;
   @observable showCrossNamespaceActivity = false;
   @observable verdict: Verdict | null = null;
   @observable httpStatus: string | null = null;
   @observable flowFilters: FlowsFilterEntry[] = [];
+
+  @computed get namespaces() {
+    return this._namespaces.slice();
+  }
+
+  set namespaces(namespaces: string[]) {
+    this._namespaces = namespaces;
+  }
 
   @action.bound
   setCurrentNamespace(ns: string | null) {
@@ -21,18 +30,18 @@ export default class ControlStore {
 
   @action.bound
   addNamespace(ns: string) {
-    const nsIdx = this.namespaces.findIndex((nss: string) => nss === ns);
+    const nsIdx = this._namespaces.findIndex((nss: string) => nss === ns);
     if (nsIdx !== -1) return;
 
-    this.namespaces.push(ns);
+    this._namespaces.push(ns);
   }
 
   @action.bound
   removeNamespace(ns: string) {
-    const nsIdx = this.namespaces.findIndex((nss: string) => nss === ns);
+    const nsIdx = this._namespaces.findIndex((nss: string) => nss === ns);
     if (nsIdx === -1) return;
 
-    this.namespaces.splice(nsIdx, 1);
+    this._namespaces.splice(nsIdx, 1);
   }
 
   @action.bound
