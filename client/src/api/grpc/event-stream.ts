@@ -29,6 +29,7 @@ import {
 } from '~/api/general/event-stream';
 
 import EventCase = GetEventsResponse.EventCase;
+import { GeneralStreamEventKind } from '../general/stream';
 
 type GRPCEventStream = ClientReadableStream<GetEventsResponse>;
 type FlowFilters = [FlowFilter[], FlowFilter[]];
@@ -226,7 +227,7 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
   }
 
   private setupEventHandlers() {
-    this.stream.on('data', (res: GetEventsResponse) => {
+    this.stream.on(GeneralStreamEventKind.Data, (res: GetEventsResponse) => {
       const eventKind = res.getEventCase();
 
       switch (eventKind) {
@@ -243,18 +244,16 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
       }
     });
 
-    // TODO: it just emits raw grpc error; wrapper ?
-    this.stream.on('error', (e: GRPCError) => {
-      this.emit('error', e);
+    this.stream.on(GeneralStreamEventKind.Status, (st: Status) => {
+      this.emit(GeneralStreamEventKind.Status, st);
     });
 
-    this.stream.on('end', () => {
-      this.emit('end');
+    this.stream.on(GeneralStreamEventKind.Error, (e: GRPCError) => {
+      this.emit(GeneralStreamEventKind.Error, e);
     });
 
-    // TODO: it just emits raw grpc status; wrapper ?
-    this.stream.on('status', (st: Status) => {
-      this.emit('status', st);
+    this.stream.on(GeneralStreamEventKind.End, () => {
+      this.emit(GeneralStreamEventKind.End);
     });
   }
 

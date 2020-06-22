@@ -10,6 +10,7 @@ import { observer } from 'mobx-react';
 import { TopBar } from '~/components/TopBar';
 import { DetailsPanel } from '~/components/DetailsPanel';
 import { Map } from '~/components/Map';
+import { LoadingOverlay } from '~/components/Misc/LoadingOverlay';
 
 import { FlowsFilterEntry } from '~/domain/flows';
 import { HubbleFlow, Verdict } from '~/domain/hubble';
@@ -32,6 +33,8 @@ import {
 } from '~/api/general/event-stream';
 
 import css from './styles.scss';
+import { GeneralStreamEventKind } from '~/api/general/stream';
+import { WelcomeScreen } from './WelcomeScreen';
 
 export interface AppProps extends RouteComponentProps {
   api: API;
@@ -41,9 +44,14 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   const { api } = props;
   const [flowsDiffCount, setFlowsDiffCount] = useState({ value: 0 });
   const [eventStream, setEventStream] = useState<IEventStream | null>(null);
+  const [isStreaming, setIsStreaming] = useState<boolean>(true);
 
   const store = useStore();
   const notifier = useNotifier();
+
+  useEffect(() => {
+    setIsStreaming(Boolean(eventStream));
+  }, [eventStream]);
 
   useEffect(() => {
     setupDebugProp({
@@ -79,11 +87,16 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   }, [store]);
 
   const setupGeneralEventHandlers = useCallback((stream: IEventStream) => {
-    stream.on('error', () => {
+    stream.on(GeneralStreamEventKind.Error, () => {
+      setIsStreaming(false);
       notifier.showError(`
         Failed to receive data from backend.
         Please make sure that your deployment is up and try again.
       `);
+    });
+
+    stream.on(GeneralStreamEventKind.End, () => {
+      setIsStreaming(false);
     });
   }, []);
 
@@ -143,7 +156,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     store.controls.flowFilters,
   ]);
 
-  const onNsChange = useCallback((ns: string) => {
+  const onNamespaceChange = useCallback((ns: string) => {
     store.controls.setCurrentNamespace(ns);
   }, []);
 
@@ -185,37 +198,61 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     [store.services.activeCardsList],
   );
 
+  const mapLoaded = store.layout.placement.length > 0 && isStreaming;
+
+  const RenderedTopBar = (
+    <TopBar
+      isStreaming={isStreaming}
+      namespaces={store.controls.namespaces}
+      currentNamespace={store.controls.currentNamespace}
+      onNamespaceChange={onNamespaceChange}
+      selectedVerdict={store.controls.verdict}
+      onSelectVerdict={onSelectVerdict}
+      selectedHttpStatus={store.controls.httpStatus}
+      onSelectHttpStatus={onSelectHttpStatus}
+      flowFilters={store.controls.flowFilters}
+      onChangeFlowFilters={onChangeFlowFilters}
+    />
+  );
+
+  if (!store.controls.currentNamespace) {
+    return (
+      <div className={css.app}>
+        {RenderedTopBar}
+        <WelcomeScreen
+          namespaces={store.controls.namespaces}
+          onNamespaceChange={onNamespaceChange}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={css.app}>
-      <TopBar
-        namespaces={store.controls.namespaces}
-        currentNamespace={store.controls.currentNamespace}
-        onNsChange={onNsChange}
-        selectedVerdict={store.controls.verdict}
-        onSelectVerdict={onSelectVerdict}
-        selectedHttpStatus={store.controls.httpStatus}
-        onSelectHttpStatus={onSelectHttpStatus}
-        flowFilters={store.controls.flowFilters}
-        onChangeFlowFilters={onChangeFlowFilters}
-      />
+      {RenderedTopBar}
 
       <div className={css.map}>
-        <Map
-          namespace={store.controls.currentNamespace}
-          namespaceBBox={store.layout.namespaceBBox}
-          placement={store.layout.placement}
-          accessPoints={store.accessPoints}
-          accessPointsCoords={store.layout.accessPointsCoords}
-          arrows={store.layout.arrows}
-          isCardActive={isCardActive}
-          onCardSelect={onCardSelect}
-          onEmitAccessPointCoords={onEmitAccessPointCoords}
-          onCardHeightChange={store.layout.setCardHeight}
-        />
+        {mapLoaded ? (
+          <Map
+            namespace={store.controls.currentNamespace}
+            namespaceBBox={store.layout.namespaceBBox}
+            placement={store.layout.placement}
+            accessPoints={store.accessPoints}
+            accessPointsCoords={store.layout.accessPointsCoords}
+            arrows={store.layout.arrows}
+            isCardActive={isCardActive}
+            onCardSelect={onCardSelect}
+            onEmitAccessPointCoords={onEmitAccessPointCoords}
+            onCardHeightChange={store.layout.setCardHeight}
+          />
+        ) : (
+          <LoadingOverlay height="50%" text="Waiting for service map data…" />
+        )}
       </div>
 
       <DetailsPanel
         resizable={true}
+        isStreaming={isStreaming}
         flows={store.interactions.flows}
         flowsDiffCount={flowsDiffCount}
         selectedFlow={store.controls.selectedTableFlow}
