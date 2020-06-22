@@ -5,6 +5,7 @@
   position: absolute;
   bottom: 0;
   top: 66%;
+  width: calc(100% - 20px);
   margin: 0 10px;
   border-top: 1px solid #c6cace;
   border-left: 1px solid #c6cace;
@@ -21,6 +22,7 @@
 
   .tableWrapper {
     flex-grow: 0;
+    height: 100%;
     overflow: hidden;
   }
 }

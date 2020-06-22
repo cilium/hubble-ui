@@ -27,4 +27,17 @@
     height: 26px;
     border: none;
   }
+
+  .left {
+    @include row(flex-start, center);
+    flex: 1;
+  }
+
+  .right {
+    @include row(flex-end, center);
+  }
+
+  .namespacesDropdownButton {
+    width: 240px;
+  }
 }
