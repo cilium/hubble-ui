@@ -8,11 +8,13 @@ import { NamespaceDropdown } from './NamespaceDropdown';
 import css from './styles.scss';
 import { Verdict } from '~/domain/hubble';
 import { FlowsFilterEntry } from '~/domain/flows';
+import { StreamingIndicator } from './StreamingIndicator';
 
-export interface BarProps {
+export interface Props {
+  isStreaming: boolean;
   namespaces: Array<string>;
   currentNamespace: string | null;
-  onNsChange?: (ns: string) => void;
+  onNamespaceChange?: (ns: string) => void;
   selectedVerdict: Verdict | null;
   onSelectVerdict: (verdict: Verdict | null) => void;
   selectedHttpStatus: string | null;
@@ -21,14 +23,9 @@ export interface BarProps {
   onChangeFlowFilters: (filters: FlowsFilterEntry[]) => void;
 }
 
-export const TopBar = memo<BarProps>(props => {
-  return (
-    <div className={css.topbar}>
-      <NamespaceDropdown
-        namespaces={props.namespaces}
-        currentNamespace={props.currentNamespace}
-        onChange={props.onNsChange}
-      />
+export const TopBar = memo<Props>(function TopBar(props) {
+  const RenderedFilters = (
+    <>
       <div className={css.border} />
       <FlowsFilterInput
         filters={props.flowFilters}
@@ -44,8 +41,23 @@ export const TopBar = memo<BarProps>(props => {
         httpStatus={props.selectedHttpStatus}
         onSelect={props.onSelectHttpStatus}
       />
+    </>
+  );
+
+  return (
+    <div className={css.topbar}>
+      <div className={css.left}>
+        <NamespaceDropdown
+          namespaces={props.namespaces}
+          currentNamespace={props.currentNamespace}
+          onChange={props.onNamespaceChange}
+        />
+        {props.currentNamespace && RenderedFilters}
+      </div>
+      <div className={css.right}>
+        <div className={css.spacer} />
+        <StreamingIndicator isStreaming={props.isStreaming} />
+      </div>
     </div>
   );
 });
-
-TopBar.displayName = 'TopBar';

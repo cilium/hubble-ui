@@ -1,0 +1,81 @@
+// Thanks to Martin Wolf for blinking css dots (https://martinwolf.org/before-2018/blog/2015/01/pure-css-savingloading-dots-animation/)
+
+@mixin setup-animation($name) {
+  animation-name: $name;
+  animation-duration: 1.4s;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+
+.wrapper {
+  display: flex;
+  align-items: center;
+
+  .circle {
+    width: 10px;
+    height: 10px;
+    margin-right: 7px;
+    border-radius: 10px;
+  }
+
+  .label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #7c8389;
+  }
+
+  &.active {
+    .circle {
+      background-color: #71bd25;
+      @include setup-animation(streaming-indicator-circle);
+    }
+
+    .label {
+      span {
+        @include setup-animation(streaming-indicator-dot);
+
+        &:nth-child(2) {
+          animation-delay: 0.2s;
+        }
+
+        &:nth-child(3) {
+          animation-delay: 0.4s;
+        }
+      }
+    }
+  }
+
+  &.inactive {
+    .circle {
+      background-color: #bd6225;
+    }
+  }
+}
+
+@keyframes streaming-indicator-dot {
+  0% {
+    opacity: 0.2;
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes streaming-indicator-circle {
+  0% {
+    opacity: 0.75;
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.75;
+  }
+}

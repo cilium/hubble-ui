@@ -54,28 +54,26 @@ export const NamespaceDropdown: FunctionComponent<Props> = props => {
       : props.currentNamespace;
 
   return (
-    <div className={css.nsDropdown}>
-      <NamespaceSelect
-        resetOnQuery
-        resetOnClose
-        resetOnSelect
-        itemPredicate={filterItem}
-        itemRenderer={renderItem}
-        items={props.namespaces || []}
-        noResults={<MenuItem disabled={true} text="No matches" />}
-        onItemSelect={onChange}
-        popoverProps={popover.props}
-        inputProps={{ placeholder: 'Filter namespaces…' }}
-      >
-        <ButtonGroup>
-          <Button
-            rightIcon="caret-down"
-            icon={btnIcon}
-            text={currentValue}
-            onClick={popover.toggle}
-          />
-        </ButtonGroup>
-      </NamespaceSelect>
-    </div>
+    <NamespaceSelect
+      resetOnQuery
+      resetOnClose
+      resetOnSelect
+      itemPredicate={filterItem}
+      itemRenderer={renderItem}
+      items={props.namespaces || []}
+      noResults={<MenuItem disabled={true} text="No matches" />}
+      onItemSelect={onChange}
+      popoverProps={popover.props}
+      inputProps={{ placeholder: 'Filter namespaces…' }}
+    >
+      <Button
+        rightIcon="caret-down"
+        icon={btnIcon}
+        text={currentValue}
+        onClick={popover.toggle}
+        className={css.namespacesDropdownButton}
+        alignText="left"
+      />
+    </NamespaceSelect>
   );
 };

@@ -2,32 +2,26 @@ import { observer } from 'mobx-react';
 import React, { FunctionComponent, useMemo, useRef, useCallback } from 'react';
 
 import { DragPanel } from '~/components/DragPanel';
-import { FlowsTable } from '~/components/FlowsTable';
+import { FlowsTable, Props as FlowsTableProps } from '~/components/FlowsTable';
 import { FlowsTableSidebar } from '~/components/FlowsTable/Sidebar';
 import { useFlowsTableColumns } from '~/components/FlowsTable/hooks/useColumns';
-
-import { Flow } from '~/domain/flows';
 
 import { usePanelResize } from './hooks';
 
 import css from './styles.scss';
+import { LoadingOverlay } from '../Misc/LoadingOverlay';
 
 interface SidebarProps {
   onCloseSidebar?: () => void;
 }
 
-interface TableProps {
-  flows: Flow[];
-  flowsDiffCount?: { value: number };
-  selectedFlow: Flow | null;
-  tsUpdateDelay?: number;
-  onSelectFlow?: (flow: Flow | null) => void;
+interface PanelProps {
+  resizable: boolean;
+  isStreaming: boolean;
   onStreamStop?: () => void;
 }
 
-interface PanelProps {
-  resizable: boolean;
-}
+type TableProps = Omit<FlowsTableProps, 'isVisibleColumn'>;
 
 export type Props = SidebarProps & TableProps & PanelProps;
 
@@ -48,6 +42,8 @@ export const DetailsPanelComponent = function (props: Props) {
     props.onStreamStop();
   }, [props.onStreamStop]);
 
+  const tableLoaded = props.flows.length > 0 && props.isStreaming;
+
   return (
     <div className={css.panel} ref={rootRef} style={resizeStyles}>
       <div className={css.dragPanel}>
@@ -60,14 +56,18 @@ export const DetailsPanelComponent = function (props: Props) {
       </div>
 
       <div className={css.tableWrapper}>
-        <FlowsTable
-          flows={props.flows}
-          flowsDiffCount={diffCount}
-          isVisibleColumn={flowsTableColumns.isVisibleColumn}
-          selectedFlow={props.selectedFlow}
-          onSelectFlow={props.onSelectFlow}
-          tsUpdateDelay={props.tsUpdateDelay}
-        />
+        {tableLoaded ? (
+          <FlowsTable
+            flows={props.flows}
+            flowsDiffCount={diffCount}
+            isVisibleColumn={flowsTableColumns.isVisibleColumn}
+            selectedFlow={props.selectedFlow}
+            onSelectFlow={props.onSelectFlow}
+            tsUpdateDelay={props.tsUpdateDelay}
+          />
+        ) : (
+          <LoadingOverlay text="Waiting for table data…" />
+        )}
       </div>
 
       {props.selectedFlow && (
