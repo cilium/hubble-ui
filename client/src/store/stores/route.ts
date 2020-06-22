@@ -150,7 +150,6 @@ export default class RouteStore {
     const query = qs.length > 0 ? '?' + qs : '';
     const hash = transformed.hash.length > 0 ? '#' + this.hash : '';
 
-    console.log(`gotoFn: `, path, query, hash);
     this.history.navigate(`/${path}${query}${hash}`);
   }
 

@@ -17,12 +17,21 @@ export default class ControlStore {
   @observable showHost = false;
   @observable showKubeDns = false;
 
-  @computed get namespaces() {
-    return this._namespaces.slice().sort((a, b) => a.localeCompare(b));
-  }
+  clone(deep = false): ControlStore {
+    const store = new ControlStore();
+    const nss = this.namespaces;
+    const selFlow = this.selectedTableFlow;
+    const ffs = this.flowFilters;
 
-  set namespaces(namespaces: string[]) {
-    this._namespaces = namespaces;
+    store.namespaces = deep ? _.cloneDeep(nss) : nss.slice();
+    store.currentNamespace = this.currentNamespace;
+    store.selectedTableFlow = selFlow ? selFlow.clone() : null;
+    store.showCrossNamespaceActivity = this.showCrossNamespaceActivity;
+    store.verdict = deep ? _.cloneDeep(this.verdict) : this.verdict;
+    store.httpStatus = this.httpStatus;
+    store.flowFilters = deep ? ffs.map(f => f.clone()) : ffs.slice();
+
+    return store;
   }
 
   @action.bound
@@ -100,5 +109,51 @@ export default class ControlStore {
     return this.flowFilters.find(f => {
       return [FlowsFilterKind.Dns, FlowsFilterKind.Identity].includes(f.kind);
     });
+  }
+
+  @computed
+  get namespaces() {
+    return this._namespaces.slice().sort((a, b) => a.localeCompare(b));
+  }
+
+  set namespaces(namespaces: string[]) {
+    this._namespaces = namespaces;
+  }
+
+  @computed
+  get fastFlowFilters() {
+    return this.flowFilters.slice();
+  }
+
+  @computed
+  get dataFilters() {
+    return {
+      namespace: this.currentNamespace,
+      verdict: this.verdict,
+      httpStatus: this.httpStatus,
+      filters: this.flowFilters,
+      skipHost: !this.showHost,
+      skipKubeDns: !this.showKubeDns,
+    }
+  }
+
+  @computed
+  get mainFilters() {
+    return {
+      namespace: this.currentNamespace,
+      skipHost: !this.showHost,
+      skipKubeDns: !this.showKubeDns,
+    }
+  }
+
+  @computed
+  get isDefault(): boolean {
+    return (
+      this.verdict == null &&
+      this.httpStatus == null &&
+      this.flowFilters.length === 0 &&
+      !this.showHost &&
+      !this.showKubeDns
+    );
   }
 }

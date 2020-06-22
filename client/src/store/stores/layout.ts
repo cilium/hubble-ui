@@ -60,13 +60,6 @@ export default class LayoutStore {
 
     this.cardDimensions = new Map();
     this.accessPointsCoords = new Map();
-
-    reaction(
-      () => this.services.cardsList,
-      () => {
-        this.initUnitializedCards();
-      },
-    );
   }
 
   static defaultCardDims(): WH {
@@ -82,6 +75,7 @@ export default class LayoutStore {
   @action.bound
   initUnitializedCards() {
     this.services.cardsList.forEach(card => {
+      console.log(`card: ${card.id}: `, this.cardDimensions.get(card.id));
       if (this.cardDimensions.has(card.id)) return;
 
       this.cardDimensions.set(card.id, LayoutStore.defaultCardDims());
@@ -100,7 +94,7 @@ export default class LayoutStore {
 
   @action.bound
   setCardHeight(id: string, height: number) {
-    const dim = this.cardDimensions.get(id) || LayoutStore.defaultCardDims();
+    const dim = this.getCardDimensions(id);
     const updated = Object.assign({}, dim, { h: height });
 
     this.cardDimensions.set(id, updated);
@@ -357,6 +351,10 @@ export default class LayoutStore {
     return placement;
   }
 
+  public getCardDimensions(id: string): WH {
+    return this.cardDimensions.get(id) ?? LayoutStore.defaultCardDims();
+  }
+
   private alignColumns(
     cardsColumns: CardsColumns,
     kinds: PlacementKind[],
@@ -382,7 +380,7 @@ export default class LayoutStore {
         offset.y = 0;
 
         column.forEach((meta: PlacementMeta, ri: number) => {
-          const cardWH = this.cardDimensions.get(meta.card.id);
+          const cardWH = this.getCardDimensions(meta.card.id);
           if (cardWH == null) return;
 
           const geomtry = XYWH.fromArgs(offset.x, offset.y, cardWH.w, cardWH.h);
