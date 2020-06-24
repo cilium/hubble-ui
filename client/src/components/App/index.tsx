@@ -111,6 +111,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       store.updateInteractions({ links });
       store.controls.setCurrentNamespace(mockData.selectedNamespace);
       store.controls.setCrossNamespaceActivity(true);
+      setIsStreaming(true);
       return;
     }
 
