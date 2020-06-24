@@ -16,7 +16,7 @@ export default class ControlStore {
   @observable flowFilters: FlowsFilterEntry[] = [];
 
   @computed get namespaces() {
-    return this._namespaces.slice();
+    return this._namespaces.slice().sort((a, b) => a.localeCompare(b));
   }
 
   set namespaces(namespaces: string[]) {
