@@ -220,7 +220,11 @@ export class Store {
     // try to update active card flows filter with card caption
     autorun(reaction => {
       const activeFilter = this.controls.activeCardFilter;
-      if (activeFilter == null) return;
+      if (activeFilter == null) {
+        this.services.clearActive();
+        return;
+      }
+
       if (!activeFilter.isDNS && !activeFilter.isIdentity) return;
 
       // meta is set already
