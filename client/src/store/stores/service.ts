@@ -70,6 +70,11 @@ export default class ServiceStore {
   }
 
   @action.bound
+  clearActive() {
+    this.activeCardsSet.clear();
+  }
+
+  @action.bound
   set(services: Array<Service>) {
     this.cards = services.map(ServiceCard.fromService);
   }
