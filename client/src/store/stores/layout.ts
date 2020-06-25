@@ -1,7 +1,6 @@
-import { action, computed, observable, reaction, autorun } from 'mobx';
+import { action, computed, observable, reaction } from 'mobx';
 import _ from 'lodash';
 
-import { ids } from '~/domain/ids';
 import {
   dummy as geom,
   Vec2,
@@ -13,7 +12,6 @@ import {
 } from '~/domain/geometry';
 import { ServiceCard } from '~/domain/service-card';
 import {
-  ConnectorArrow,
   Placement,
   PlacementEntry,
   PlacementMeta,
@@ -22,6 +20,7 @@ import {
   SenderArrows,
   ServiceConnector,
 } from '~/domain/layout';
+import { ids } from '~/domain/ids';
 
 import InteractionStore from './interaction';
 import ServiceStore from './service';
@@ -600,21 +599,24 @@ export default class LayoutStore {
     // Connectors gives geometry information about where connector is located.
     // It also gives secondary information about which APs are accessed
 
-    const index = new Map();
+    const index = new Map<string, Map<string, ServiceConnector>>();
     const connectorIndices: Map<string, number> = new Map();
     const connectorGap = sizes.distanceBetweenConnectors;
+    const connectors = new Map<string, ServiceConnector>();
 
     this.connections.outgoings.forEach((senderIndex, senderId) => {
       if (!index.has(senderId)) {
         index.set(senderId, new Map());
       }
 
-      senderIndex.forEach((apIds, receiverId) => {
-        const receivers = this.connections.incomings.get(receiverId);
-        if (receivers == null) return;
+      const senderConnectors = index.get(senderId)!;
 
-        const nReceivers = receivers.size;
-        const gutHeight = (nReceivers - 1) * connectorGap;
+      senderIndex.forEach((accessPointsIds, receiverId) => {
+        const senders = this.connections.incomings.get(receiverId);
+        if (senders == null) return;
+
+        const nSenders = senders.size;
+        const gutHeight = (nSenders - 1) * connectorGap;
         const idx = connectorIndices.get(receiverId) || 0;
 
         const midPoint = this.connectorMidPoints.get(receiverId);
@@ -623,18 +625,29 @@ export default class LayoutStore {
         const cardBBox = this.cardsPlacement.get(receiverId)?.geometry;
         if (cardBBox == null) return;
 
+        const connectorId = ids.cardConnector(receiverId, accessPointsIds);
+
+        const existedConnector = connectors.get(connectorId);
+        if (existedConnector) {
+          existedConnector.sendersIds.add(senderId);
+          senderConnectors.set(receiverId, existedConnector);
+          return;
+        }
+
         const position = midPoint.clone();
         position.y = midPoint.y - gutHeight / 2 + idx * connectorGap;
         position.x = cardBBox.x - sizes.connectorCardGap;
 
-        const connector: ServiceConnector = {
-          senderId,
+        const newConnector: ServiceConnector = {
+          id: connectorId,
+          sendersIds: new Set([senderId]),
           receiverId,
-          apIds,
           position,
+          accessPointsIds,
         };
 
-        index.get(senderId)!.set(receiverId, connector);
+        connectors.set(connectorId, newConnector);
+        senderConnectors.set(receiverId, newConnector);
         connectorIndices.set(receiverId, idx + 1);
       });
     });
@@ -689,7 +702,7 @@ export default class LayoutStore {
   // { cardId -> Vec2 }
   @computed
   get connectorMidPoints(): Map<string, Vec2> {
-    const index = new Map();
+    const index = new Map<string, Vec2>();
 
     this.connections.incomings.forEach((receiverIndex, receiverId) => {
       let midPoint = Vec2.from(0, 0);
@@ -697,19 +710,19 @@ export default class LayoutStore {
 
       // TODO: would be cool to be able to fetch it from service card
       // WARN: it could be a strange architecture
-      let receiverAPs: Set<string> = new Set();
+      const receiverAccessPoints: Set<string> = new Set();
 
-      receiverIndex.forEach((apIds: Set<string>) => {
-        apIds.forEach((apId: string) => {
-          receiverAPs = new Set([...receiverAPs, ...apIds]);
+      receiverIndex.forEach(accessPoints => {
+        accessPoints.forEach(accessPointId => {
+          receiverAccessPoints.add(accessPointId);
         });
       });
 
-      receiverAPs.forEach((apId: string) => {
-        const apPos = this.accessPointsCoords.get(apId);
-        if (apPos == null) return;
+      receiverAccessPoints.forEach(accessPointId => {
+        const position = this.accessPointsCoords.get(accessPointId);
+        if (position == null) return;
 
-        midPoint = midPoint.add(apPos);
+        midPoint = midPoint.add(position);
         npoints += 1;
       });
 
