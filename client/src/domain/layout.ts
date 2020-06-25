@@ -34,9 +34,10 @@ export interface Arrow {
 export type Placement = Array<PlacementEntry>;
 
 export interface ServiceConnector {
-  senderId: string;
+  id: string;
+  sendersIds: Set<string>;
   receiverId: string;
-  apIds: Set<string>;
+  accessPointsIds: Set<string>;
   position: Vec2;
 }
 

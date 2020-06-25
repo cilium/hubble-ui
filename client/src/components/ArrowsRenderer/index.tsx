@@ -300,9 +300,9 @@ const manageArrows = (props: Props, g: SVGGElement) => {
       const connectorPosition = connectorArrow.connector.position;
       connectors.push([fromToId, connectorPosition]);
 
-      connectorArrow.connector.apIds.forEach(apId => {
-        const feetId = `${fromToId} -> ${apId}`;
-        const accessPointCoord = accessPointsCoords.get(apId);
+      connectorArrow.connector.accessPointsIds.forEach(accessPointId => {
+        const feetId = `${fromToId} -> ${accessPointId}`;
+        const accessPointCoord = accessPointsCoords.get(accessPointId);
 
         if (accessPointCoord == null) return;
 
