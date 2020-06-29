@@ -89,12 +89,13 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
 
   // Taken from previous FlowStream class
   public static buildFlowFilters(filters?: DataFilters): FlowFilters {
+    // *** whitelist filters section ***
     const [wlSrcFilter, wlDstFilter] = [new FlowFilter(), new FlowFilter()];
-    const [blSrcFilter, blDstFilter] = [new FlowFilter(), new FlowFilter()];
 
-    const eventTypes = [CiliumEventTypes.L7];
+    const eventTypes: CiliumEventTypes[] = [];
     if (filters?.httpStatus) {
       // Filter by http status code allows only l7 event type
+      eventTypes.push(CiliumEventTypes.L7);
       wlSrcFilter.addHttpStatusCode(filters.httpStatus);
       wlDstFilter.addHttpStatusCode(filters.httpStatus);
     } else {
@@ -113,7 +114,6 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
     wlDstFilter.addDestinationPod(`${filters?.namespace}/`);
 
     if (filters?.verdict) {
-      // TODO: replace "as any" with `verdictToPb`
       wlSrcFilter.addVerdict(dataHelpers.verdictToPb(filters.verdict));
       wlDstFilter.addVerdict(dataHelpers.verdictToPb(filters.verdict));
     }
@@ -200,12 +200,47 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
 
     wlSrcFilter.addReply(false);
     wlDstFilter.addReply(false);
-
-    blSrcFilter.addSourceLabel(ReservedLabel.Unknown);
-    blDstFilter.addDestinationLabel(ReservedLabel.Unknown);
-
     const wlFilters: FlowFilter[] = [wlSrcFilter, wlDstFilter];
-    const blFilters: FlowFilter[] = [blSrcFilter, blDstFilter];
+
+    // *** blacklist filters section ***
+    const blFilters: FlowFilter[] = [];
+
+    // filter out reserved:unknown
+    const [blSrcUnknownLabelFilter, blDstUnknownLabelFilter] = [
+      new FlowFilter(),
+      new FlowFilter(),
+    ];
+    blSrcUnknownLabelFilter.addSourceLabel(`${ReservedLabel.Unknown}=`);
+    blDstUnknownLabelFilter.addDestinationLabel(`${ReservedLabel.Unknown}=`);
+    blFilters.push(blSrcUnknownLabelFilter, blDstUnknownLabelFilter);
+
+    if (filters?.skipHost) {
+      // filter out reserved:host
+      const [blSrcHostLabelFilter, blDstHostLabelFilter] = [
+        new FlowFilter(),
+        new FlowFilter(),
+      ];
+      blSrcHostLabelFilter.addSourceLabel(`${ReservedLabel.Host}=`);
+      blDstHostLabelFilter.addDestinationLabel(`${ReservedLabel.Host}=`);
+      blFilters.push(blSrcHostLabelFilter, blDstHostLabelFilter);
+    }
+
+    if (filters?.skipKubeDns) {
+      // filter out kube-dns
+      const [blSrcKubeDnsFilter, blDstKubeDnsFilter] = [
+        new FlowFilter(),
+        new FlowFilter(),
+      ];
+      blSrcKubeDnsFilter.addSourceLabel('k8s:k8s-app=kube-dns');
+      blDstKubeDnsFilter.addDestinationLabel('k8s:k8s-app=kube-dns');
+      blDstKubeDnsFilter.addDestinationPort('53');
+      blFilters.push(blSrcKubeDnsFilter, blDstKubeDnsFilter);
+    }
+
+    // filter out intermediate dns requests
+    const blDstLocalDnsFilter = new FlowFilter();
+    blDstLocalDnsFilter.addDestinationFqdn('*.cluster.local');
+    blFilters.push(blDstLocalDnsFilter);
 
     return [wlFilters, blFilters];
   }

@@ -1,7 +1,7 @@
 import React, { Ref } from 'react';
 
 import { ServiceCard } from '~/domain/service-card';
-import { XY, XYWH } from '~/domain/geometry';
+import { XYWH } from '~/domain/geometry';
 import { AccessPoint } from '~/domain/service-map';
 
 export type RootRef = React.MutableRefObject<SVGGElement | null>;

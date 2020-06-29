@@ -13,6 +13,7 @@ import { CardProps, DivRef } from './general';
 import css from './styles.scss';
 
 export type Props = CardProps & {
+  currentNamespace: string | null;
   onClick?: (card: ServiceCard) => void;
   onEmitAccessPointCoords?: (apId: string, coords: Vec2) => void;
 };
@@ -104,7 +105,10 @@ export const EndpointCardContent = memo(function EndpointCardContent(
       onEmitContentRef={onEmitContentRef}
       onClick={props.onClick}
     >
-      <EndpointCardHeader card={props.card} />
+      <EndpointCardHeader
+        card={props.card}
+        currentNamespace={props.currentNamespace}
+      />
       {accessPoints.length > 0 && (
         <div className={css.accessPoints}>{accessPoints}</div>
       )}

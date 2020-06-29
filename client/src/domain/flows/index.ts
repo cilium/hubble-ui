@@ -116,10 +116,6 @@ export class Flow {
     return this.ref.reply;
   }
 
-  public get direction() {
-    return this.isReply ? 'response' : 'request';
-  }
-
   public get ciliumEventSubTypeLabel() {
     if (!this.ref.eventType) {
       return null;
@@ -130,10 +126,10 @@ export class Flow {
   }
 
   public get destinationDns() {
-    if (!this.ref.destination || !this.ref.l7?.dns) {
+    if (this.ref.destinationNamesList.length === 0) {
       return null;
     }
-    return this.ref.l7.dns;
+    return this.ref.destinationNamesList[0];
   }
 
   public get millisecondsTimestamp() {

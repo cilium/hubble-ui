@@ -81,7 +81,6 @@ export default class LayoutStore {
 
   @action.bound
   initUnitializedCards() {
-    console.log('in initUnitializedCards');
     this.services.cardsList.forEach(card => {
       if (this.cardDimensions.has(card.id)) return;
 
@@ -90,7 +89,7 @@ export default class LayoutStore {
   }
 
   @action.bound
-  setAPCoords(id: string, coords: Vec2) {
+  setAccessPointCoords(id: string, coords: Vec2) {
     this.accessPointsCoords.set(id, coords);
   }
 
@@ -169,7 +168,7 @@ export default class LayoutStore {
 
     // Weight determines how many connections the card has.
     // If card has special interactions, it gains more weight.
-    let weight = incomingsCount + outgoingsCount;
+    let weight = -incomingsCount + outgoingsCount;
 
     weight += props.hasWorldAsSender || props.hasHostAsSender ? 1000 : 0;
     weight += props.hasWorldAsReceiver ? 500 : 0;

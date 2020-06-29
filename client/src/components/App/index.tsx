@@ -12,10 +12,8 @@ import { DetailsPanel } from '~/components/DetailsPanel';
 import { Map } from '~/components/Map';
 import { LoadingOverlay } from '~/components/Misc/LoadingOverlay';
 
-import { FlowsFilterEntry } from '~/domain/flows';
-import { HubbleFlow, Verdict } from '~/domain/hubble';
+import { HubbleFlow } from '~/domain/hubble';
 import { ServiceCard } from '~/domain/service-card';
-import { Vec2 } from '~/domain/geometry';
 import { setupDebugProp } from '~/domain/misc';
 
 import * as mockData from '~/api/__mocks__/data';
@@ -30,6 +28,7 @@ import {
   ServiceChange,
   ServiceLinkChange,
   IEventStream,
+  DataFilters,
 } from '~/api/general/event-stream';
 
 import css from './styles.scss';
@@ -129,11 +128,13 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       return;
     }
 
-    const streamParams = {
+    const streamParams: DataFilters = {
       namespace: store.controls.currentNamespace,
       verdict: store.route.verdict,
       httpStatus: store.route.httpStatus,
       filters: store.route.flowFilters,
+      skipHost: !store.controls.showHost,
+      skipKubeDns: !store.controls.showKubeDns,
     };
 
     let previousStopped = Promise.resolve();
@@ -155,35 +156,17 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     store.controls.verdict,
     store.controls.httpStatus,
     store.controls.flowFilters,
+    store.controls.showHost,
+    store.controls.showKubeDns,
   ]);
-
-  const onNamespaceChange = useCallback((ns: string) => {
-    store.controls.setCurrentNamespace(ns);
-  }, []);
 
   const onCardSelect = useCallback((srvc: ServiceCard) => {
     const isActive = store.toggleActiveService(srvc.id);
     store.setFlowFiltersForActiveCard(srvc.id, isActive);
   }, []);
 
-  const onSelectVerdict = useCallback((verdict: Verdict | null) => {
-    store.controls.setVerdict(verdict);
-  }, []);
-
-  const onSelectHttpStatus = useCallback((httpStatus: string | null) => {
-    store.controls.setHttpStatus(httpStatus);
-  }, []);
-
-  const onChangeFlowFilters = useCallback((ffs: FlowsFilterEntry[]) => {
-    store.setFlowFilters(ffs);
-  }, []);
-
   const onCloseFlowsTableSidebar = useCallback(() => {
     store.controls.selectTableFlow(null);
-  }, []);
-
-  const onEmitAccessPointCoords = useCallback((apId: string, coords: Vec2) => {
-    store.layout.setAPCoords(apId, coords);
   }, []);
 
   const onStreamStop = useCallback(() => {
@@ -206,13 +189,17 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       isStreaming={isStreaming}
       namespaces={store.controls.namespaces}
       currentNamespace={store.controls.currentNamespace}
-      onNamespaceChange={onNamespaceChange}
+      onNamespaceChange={store.controls.setCurrentNamespace}
       selectedVerdict={store.controls.verdict}
-      onSelectVerdict={onSelectVerdict}
+      onVerdictChange={store.controls.setVerdict}
       selectedHttpStatus={store.controls.httpStatus}
-      onSelectHttpStatus={onSelectHttpStatus}
+      onHttpStatusChange={store.controls.setHttpStatus}
       flowFilters={store.controls.flowFilters}
-      onChangeFlowFilters={onChangeFlowFilters}
+      onChangeFlowFilters={store.setFlowFilters}
+      showHost={store.controls.showHost}
+      onShowHostToggle={store.toggleShowHost}
+      showKubeDns={store.controls.showKubeDns}
+      onShowKubeDnsToggle={store.toggleShowKubeDns}
     />
   );
 
@@ -222,7 +209,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
         {RenderedTopBar}
         <WelcomeScreen
           namespaces={store.controls.namespaces}
-          onNamespaceChange={onNamespaceChange}
+          onNamespaceChange={store.controls.setCurrentNamespace}
         />
       </div>
     );
@@ -243,7 +230,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
             arrows={store.layout.arrows}
             isCardActive={isCardActive}
             onCardSelect={onCardSelect}
-            onEmitAccessPointCoords={onEmitAccessPointCoords}
+            onEmitAccessPointCoords={store.layout.setAccessPointCoords}
             onCardHeightChange={store.layout.setCardHeight}
           />
         ) : (

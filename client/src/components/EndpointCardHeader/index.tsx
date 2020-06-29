@@ -1,43 +1,40 @@
 import classnames from 'classnames';
 import React, { memo } from 'react';
 
-import { EndpointLogo } from '~/components/EndpointLogo';
 import { ServiceCard } from '~/domain/service-card';
+
+import { EndpointLogo } from './EndpointLogo';
 
 import css from './styles.scss';
 
-export interface LayerProps {
+export interface Props {
   card: ServiceCard;
+  currentNamespace: string | null;
 }
 
-export const EndpointCardHeader = memo(function EndpointCardHeader(
-  props: LayerProps,
-) {
-  const card = props.card;
+export const EndpointCardHeader = memo(function EndpointCardHeader({
+  card,
+  currentNamespace,
+}: Props) {
+  const showSubtitle = !!card.namespace && card.namespace !== currentNamespace;
+
+  const titleClassName = classnames(css.title, {
+    [css.single]: !showSubtitle,
+  });
 
   return (
     <div className={css.wrapper}>
       <div className={css.headline}>
-        <div className={css.icon}>
-          <EndpointLogo card={card} />
-        </div>
+        <EndpointLogo card={card} />
         <div className={css.headings}>
-          <div className={css.title}>{card.caption}</div>
-          {/* {card.isWorld && card.domain && (
-            <div className={css.subtitle}>{card.domain}</div>
-          )} */}
+          <div className={titleClassName}>{card.caption}</div>
+          {showSubtitle && <div className={css.subtitle}>{card.namespace}</div>}
         </div>
-        {false && (
-          <div className={css.settingsIcon}>
-            <img src="/icons/misc/settings-gear.svg" />
-          </div>
-        )}
       </div>
-
-      <PolicyInfo
+      {/* <PolicyInfo
         ingress={card.service.ingressPolicyEnforced}
         egress={card.service.egressPolicyEnforced}
-      />
+      /> */}
     </div>
   );
 });

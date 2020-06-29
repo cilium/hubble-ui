@@ -63,6 +63,7 @@ export class Store {
     );
 
     this.restoreNamespace();
+    this.restoreVisualFilters();
     this.setupReactions();
     this.setupDebugTools();
   }
@@ -156,20 +157,16 @@ export class Store {
   }
 
   @action.bound
-  private clearMap() {
+  public clearMap() {
     this.interactions.clear();
     this.services.clear();
     this.layout.clear();
+    this.controls.selectTableFlow(null);
   }
 
   @action.bound
   private setupReactions() {
     // initial autoruns fires only once
-    autorun(reaction => {
-      this.restoreNamespace();
-      reaction.dispose();
-    });
-
     autorun(reaction => {
       this.controls.setVerdict(this.route.verdict);
       reaction.dispose();
@@ -218,7 +215,7 @@ export class Store {
     );
 
     // try to update active card flows filter with card caption
-    autorun(reaction => {
+    autorun(() => {
       const activeFilter = this.controls.activeCardFilter;
       if (activeFilter == null) {
         this.services.clearActive();
@@ -288,6 +285,28 @@ export class Store {
     this.controls.setFlowFilters(nextFilters);
   }
 
+  @action.bound
+  public toggleShowKubeDns(flush = true): boolean {
+    const isActive = this.controls.toggleShowKubeDns();
+    if (flush) {
+      this.clearMap();
+    }
+
+    storage.saveShowKubeDns(isActive);
+    return isActive;
+  }
+
+  @action.bound
+  public toggleShowHost(flush = true): boolean {
+    const isActive = this.controls.toggleShowHost();
+    if (flush) {
+      this.clearMap();
+    }
+
+    storage.saveShowHost(isActive);
+    return isActive;
+  }
+
   // D E B U G
   @action.bound
   public setupDebugTools() {
@@ -313,6 +332,12 @@ export class Store {
 
     // this.route.goto(`/${lastNamespace}`);
     this.route.setNamespace(lastNamespace);
+  }
+
+  @action.bound
+  private restoreVisualFilters() {
+    this.controls.setShowHost(storage.getShowHost());
+    this.controls.setShowKubeDns(storage.getShowKubeDns());
   }
 
   @action.bound
