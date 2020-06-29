@@ -3,12 +3,14 @@ import React, { memo } from 'react';
 import { FlowsFilterInput } from '~/components/InputElements/FlowsFilterInput';
 import { ForwardingStatusDropdown } from '~/components/InputElements/ForwardingStatusDropdown';
 import { HttpStatusCodeDropdown } from '~/components/InputElements/HttpStatusCodeDropdown';
+import { VisualFiltersDropdown } from '~/components/InputElements/VisualFiltersDropdown';
 import { NamespaceDropdown } from './NamespaceDropdown';
+import { StreamingIndicator } from './StreamingIndicator';
 
-import css from './styles.scss';
 import { Verdict } from '~/domain/hubble';
 import { FlowsFilterEntry } from '~/domain/flows';
-import { StreamingIndicator } from './StreamingIndicator';
+
+import css from './styles.scss';
 
 export interface Props {
   isStreaming: boolean;
@@ -16,11 +18,15 @@ export interface Props {
   currentNamespace: string | null;
   onNamespaceChange?: (ns: string) => void;
   selectedVerdict: Verdict | null;
-  onSelectVerdict: (verdict: Verdict | null) => void;
+  onVerdictChange?: (verdict: Verdict | null) => void;
   selectedHttpStatus: string | null;
-  onSelectHttpStatus: (httpStatus: string | null) => void;
+  onHttpStatusChange?: (httpStatus: string | null) => void;
   flowFilters: FlowsFilterEntry[];
-  onChangeFlowFilters: (filters: FlowsFilterEntry[]) => void;
+  onChangeFlowFilters?: (filters: FlowsFilterEntry[]) => void;
+  showHost: boolean;
+  onShowHostToggle?: () => void;
+  showKubeDns: boolean;
+  onShowKubeDnsToggle?: () => void;
 }
 
 export const TopBar = memo<Props>(function TopBar(props) {
@@ -34,12 +40,19 @@ export const TopBar = memo<Props>(function TopBar(props) {
       <div className={css.spacer} />
       <ForwardingStatusDropdown
         verdict={props.selectedVerdict}
-        onSelect={props.onSelectVerdict}
+        onSelect={props.onVerdictChange}
       />
       <div className={css.spacer} />
       <HttpStatusCodeDropdown
         httpStatus={props.selectedHttpStatus}
-        onSelect={props.onSelectHttpStatus}
+        onSelect={props.onHttpStatusChange}
+      />
+      <div className={css.spacer} />
+      <VisualFiltersDropdown
+        showHost={props.showHost}
+        onShowHostToggle={props.onShowHostToggle}
+        showKubeDns={props.showKubeDns}
+        onShowKubeDnsToggle={props.onShowKubeDnsToggle}
       />
     </>
   );

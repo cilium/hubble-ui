@@ -27,10 +27,7 @@ export const NamespaceBackplate = memo(function NamespaceBackplate(
       transform={`translate(${props.xywh.x}, ${props.xywh.y})`}
     >
       <rect width={xywh.w} height={xywh.h} rx={10} ry={10} />
-      <text
-        x={sizes.endpointHPadding / 2 + sizes.endpointShadowSize}
-        y={sizes.endpointHPadding / 3}
-      >
+      <text x={64} y={64}>
         {props.namespace}
       </text>
     </g>

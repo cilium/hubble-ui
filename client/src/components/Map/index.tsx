@@ -66,6 +66,7 @@ export const MapElements = memo(function MapElements(props: Props) {
             active={props.isCardActive(plc.card.id)}
             key={plc.card.id}
             coords={plc.geometry}
+            currentNamespace={props.namespace}
             card={plc.card}
             accessPoints={accessPoints}
             onHeightChange={onCardHeightChange}

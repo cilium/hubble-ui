@@ -19,9 +19,7 @@ export const WelcomeScreen = memo<Props>(function WelcomeScreen(props) {
         <img src={hubbleLogo} className={css.logo} />
         <h1 className={css.title}>Welcome!</h1>
         <p className={css.description}>
-          Welcome to Hubble networking and security observability platform for
-          cloud native workloads. Before beginning to use the software, select
-          one of the namespaces that are available in your application:
+          To begin select one of the namespaces:
         </p>
         {someNamespacesLoaded ? (
           <ul className={css.namespacesList}>
