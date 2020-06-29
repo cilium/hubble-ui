@@ -1,16 +1,17 @@
 import React, { memo, FunctionComponent } from 'react';
-import { Flow } from '~/domain/flows';
-import css from './styles.scss';
 import { Icon } from '@blueprintjs/core';
-import { DNS } from '~/domain/hubble';
+
+import { Flow } from '~/domain/flows';
 import { KV } from '~/domain/misc';
+
+import css from './styles.scss';
 
 export interface Props {
   flow: Flow;
   onClose?: () => void;
 }
 
-export const FlowsTableSidebar = memo<Props>(props => {
+export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
   const { flow } = props;
 
   const {
@@ -18,7 +19,6 @@ export const FlowsTableSidebar = memo<Props>(props => {
     hasDestination,
     isoTimestamp,
     verdictLabel,
-    direction,
     ciliumEventSubTypeLabel,
     sourcePodName,
     sourceLabels,
@@ -44,78 +44,58 @@ export const FlowsTableSidebar = memo<Props>(props => {
         <span className={css.title}>Verdict</span>
         <div className={css.body}>{verdictLabel}</div>
       </section>
-      <section className={css.block}>
-        <span className={css.title}>Direction</span>
-        <div className={css.body}>{direction}</div>
-      </section>
-      <section className={css.block}>
-        <span className={css.title}>Cilium event type</span>
-        <div className={css.body}>
-          {ciliumEventSubTypeLabel ? ciliumEventSubTypeLabel : 'unknown'}
-        </div>
-      </section>
-      <hr />
-      {hasSource && (
+      {ciliumEventSubTypeLabel && (
         <section className={css.block}>
-          <span className={css.title}>Source pod</span>
-          <div className={css.body}>
-            {sourcePodName ? sourcePodName : 'unknown'}
-          </div>
+          <span className={css.title}>Cilium event type</span>
+          <div className={css.body}>{ciliumEventSubTypeLabel}</div>
         </section>
       )}
-      {hasSource && (
+      <hr />
+      {hasSource && sourcePodName && (
+        <section className={css.block}>
+          <span className={css.title}>Source pod</span>
+          <div className={css.body}>{sourcePodName}</div>
+        </section>
+      )}
+      {hasSource && sourceLabels.length > 0 && (
         <section className={css.block}>
           <span className={css.title}>Source labels</span>
           <div className={css.body}>
-            {sourceLabels.length > 0 ? (
-              <Labels labels={sourceLabels} />
-            ) : (
-              'No labels'
-            )}
+            <Labels labels={sourceLabels} />
           </div>
         </section>
       )}
-      {hasSource && (
+      {hasSource && sourceIp && (
         <section className={css.block}>
           <span className={css.title}>Source IP</span>
-          <div className={css.body}>{sourceIp ? sourceIp : 'unknown'}</div>
+          <div className={css.body}>{sourceIp}</div>
         </section>
       )}
       <hr />
-      {hasDestination && (
+      {hasDestination && destinationPodName && (
         <section className={css.block}>
           <span className={css.title}>Destination pod</span>
-          <div className={css.body}>
-            {destinationPodName ? destinationPodName : 'unknown'}
-          </div>
+          <div className={css.body}>{destinationPodName}</div>
         </section>
       )}
-      {hasDestination && (
+      {hasDestination && destinationLabels.length > 0 && (
         <section className={css.block}>
           <span className={css.title}>Destination labels</span>
           <div className={css.body}>
-            {destinationLabels.length > 0 ? (
-              <Labels labels={destinationLabels} />
-            ) : (
-              'No labels'
-            )}
+            <Labels labels={destinationLabels} />
           </div>
         </section>
       )}
       {hasDestination && destinationIp && (
         <section className={css.block}>
           <span className={css.title}>Destination IP</span>
-          <div className={css.body}>
-            {destinationIp ? destinationIp : 'unknown'}
-          </div>
+          <div className={css.body}>{destinationIp}</div>
         </section>
       )}
       {hasDestination && destinationDns && (
         <section className={css.block}>
           <span className={css.title}>Destination DNS</span>
-          <div className={css.body}>
-            <DNSInfo dns={destinationDns} />
-          </div>
+          <div className={css.body}>{destinationDns}</div>
         </section>
       )}
       {hasDestination && typeof destinationPort === 'number' && (
@@ -127,24 +107,6 @@ export const FlowsTableSidebar = memo<Props>(props => {
     </div>
   );
 });
-
-FlowsTableSidebar.displayName = 'FlowsTableSidebar';
-
-const DNSInfo: FunctionComponent<{ dns: DNS }> = props => {
-  return (
-    <>
-      <div>
-        <b>Query:</b> {props.dns.query}
-      </div>
-      <div>
-        <b>RCODE:</b> {props.dns.rcode}
-      </div>
-      <div>
-        <b>IPs:</b> {props.dns.ipsList.join(', ')}
-      </div>
-    </>
-  );
-};
 
 const Labels: FunctionComponent<{ labels: KV[] }> = props => {
   const cnt = props.labels.length;

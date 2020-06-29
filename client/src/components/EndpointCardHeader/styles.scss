@@ -19,20 +19,17 @@ $headingMaxWidth: calc(
   @include row(flex-start, center);
 }
 
-.icon {
+.logo {
   @include centered();
   flex-shrink: 0;
 
   $size: var(--endpoint-icon-width);
   @include exact-size($size, $size);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
 
-  padding-right: $icon-side-padding;
-
-  img {
-    max-height: 100%;
-    max-width: 100%;
-    width: 100%;
-  }
+  margin: $icon-side-padding;
 }
 
 .headings {
@@ -52,6 +49,10 @@ $headingMaxWidth: calc(
   font-size: 28px;
   font-weight: bold;
   color: #303030;
+
+  &.single {
+    font-size: 32px;
+  }
 }
 
 .subtitle {
