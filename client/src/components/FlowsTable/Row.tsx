@@ -24,21 +24,23 @@ export const Row = memo<RowProps>(function FlowsTableRow(props) {
   const sourceAppName = flow.sourceAppName ?? 'No app name';
   const destinationAppName = flow.destinationAppName ?? 'No app name';
 
-  const sourceNamespace = flow.sourceNamespace ? (
-    <span className={css.namespace}>{flow.sourceNamespace}</span>
+  const sourceSubtitle = flow.sourceNamespace ? (
+    <span className={css.subtitle}>{flow.sourceNamespace}</span>
   ) : (
     ''
   );
-  const destinationNamespace = flow.destinationNamespace ? (
-    <span className={css.namespace}>{flow.destinationNamespace}</span>
+  const destinationSubtitle = flow.destinationDns ? (
+    <span className={css.subtitle}>{flow.destinationDns}</span>
+  ) : flow.destinationNamespace ? (
+    <span className={css.subtitle}>{flow.destinationNamespace}</span>
   ) : (
     ''
   );
 
   // prettier-ignore
-  const sourceTitle = <>{sourceAppName} {sourceNamespace}</>;
+  const sourceTitle = <>{sourceAppName} {sourceSubtitle}</>;
   // prettier-ignore
-  const destinationTitle = <>{destinationAppName} {destinationNamespace}</>;
+  const destinationTitle = <>{destinationAppName} {destinationSubtitle}</>;
 
   const className = classnames({ [css.selected]: props.selected });
 

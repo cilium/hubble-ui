@@ -13,7 +13,7 @@ import { Verdict } from '~/domain/hubble';
 
 export interface Props {
   verdict: Verdict | null;
-  onSelect: (verdict: Verdict | null) => void;
+  onSelect?: (verdict: Verdict | null) => void;
 }
 
 interface FilterOption {
@@ -51,7 +51,7 @@ export const ForwardingStatusDropdown = memo<Props>(props => {
           key={String(filter.verdict)}
           active={props.verdict == filter.verdict}
           text={filter.title}
-          onClick={() => props.onSelect(filter.verdict)}
+          onClick={() => props.onSelect?.(filter.verdict)}
         />
       ))}
     </Menu>

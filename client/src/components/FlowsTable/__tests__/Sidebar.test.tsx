@@ -79,54 +79,48 @@ const runTest = (ntest: number, hf: HubbleFlow, exps: Expectations) => {
   });
 };
 
-// `Direction` info renders
-runTest(1, data.flows.hubbleOne, {
-  title: 'Direction',
-  body: 'request',
-});
-
 // `Verdict` info renders
-runTest(2, data.flows.hubbleOne, {
+runTest(1, data.flows.hubbleOne, {
   title: 'Verdict',
   body: 'forwarded',
 });
 
 // `Source pod` info renders
-runTest(3, data.flows.hubbleOne, {
+runTest(2, data.flows.hubbleOne, {
   title: 'Source pod',
   body: 'sender-a1b2c3',
 });
 
 // `Destination pod` info renders
-runTest(4, data.flows.hubbleOne, {
+runTest(3, data.flows.hubbleOne, {
   title: 'Destination pod',
   body: 'receiver-d4e5f6',
 });
 
 // `Source labels` info renders
-runTest(5, data.flows.hubbleOne, {
+runTest(4, data.flows.hubbleOne, {
   title: 'Source labels',
   body: 'app=Sender namespace=SenderNs',
 });
 
 // `Destination labels` info renders
-runTest(6, data.flows.hubbleOne, {
+runTest(5, data.flows.hubbleOne, {
   title: 'Destination labels',
   body: 'app=Receiver namespace=ReceiverNs',
 });
 
 // `Destination labels` info renders
-runTest(7, data.flows.hubbleOne, {
+runTest(6, data.flows.hubbleOne, {
   title: 'Destination port',
   body: '80',
 });
 
 // `Destination DNS` info doesn't render when unavailable
-runTest(8, data.flows.hubbleOne, {
+runTest(7, data.flows.hubbleOne, {
   title: 'Destination DNS',
 });
 
 // `Destination IP` info doesn't render when unavailable
-runTest(9, data.flows.hubbleOne, {
+runTest(8, data.flows.hubbleOne, {
   title: 'Destination IP',
 });

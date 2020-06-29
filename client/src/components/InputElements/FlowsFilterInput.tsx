@@ -9,7 +9,7 @@ import css from './FlowsFilterInput.scss';
 
 interface Props {
   filters: FlowsFilterEntry[];
-  onChange: (filters: FlowsFilterEntry[]) => void;
+  onChange?: (filters: FlowsFilterEntry[]) => void;
 }
 
 const FilterMultiSelect = MultiSelect.ofType<FlowsFilterEntry | null>();
@@ -17,7 +17,9 @@ const FilterMultiSelect = MultiSelect.ofType<FlowsFilterEntry | null>();
 export const FlowsFilterInput = (props: Props) => {
   const [userInput, setUserInput] = useState<string>('');
 
-  const onClear = useCallback(() => props.onChange([]), []);
+  const onClear = useCallback(() => {
+    props.onChange?.([]);
+  }, [props.onChange]);
 
   const renderCreateNewItem = useCallback(
     (
@@ -49,13 +51,13 @@ export const FlowsFilterInput = (props: Props) => {
   const handleItemSelect = useCallback((item: FlowsFilterEntry | null) => {
     if (!item || trim(item.query).length === 0) return;
 
-    props.onChange([...props.filters, item]);
+    props.onChange?.([...props.filters, item]);
     setUserInput('');
   }, [props.filters, props.onChange, userInput]);
 
   // prettier-ignore
   const handleTagDelete = useCallback((val: string, idx: number) => {
-    props.onChange(
+    props.onChange?.(
       props.filters.filter((_: FlowsFilterEntry, i: number) => i !== idx),
     );
   }, [props.filters, props.onChange]);

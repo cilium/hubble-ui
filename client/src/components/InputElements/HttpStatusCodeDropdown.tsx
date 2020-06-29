@@ -14,7 +14,7 @@ import css from './HttpStatusCodeDropdown.scss';
 
 interface Props {
   httpStatus: string | null;
-  onSelect: (httpStatus: string | null) => void;
+  onSelect?: (httpStatus: string | null) => void;
 }
 
 export const HttpStatusCodeDropdown = memo<Props>(props => {
@@ -30,10 +30,10 @@ export const HttpStatusCodeDropdown = memo<Props>(props => {
 
   const onSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    props.onSelect(value);
+    props.onSelect?.(value);
   };
 
-  const onClear = useCallback(() => props.onSelect(null), []);
+  const onClear = useCallback(() => props.onSelect?.(null), []);
 
   const enabled = Boolean(props.httpStatus && props.httpStatus.length > 0);
 

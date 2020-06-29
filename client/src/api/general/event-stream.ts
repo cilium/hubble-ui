@@ -55,6 +55,8 @@ export interface DataFilters {
   verdict?: Verdict | null;
   httpStatus?: string | null;
   filters: FlowsFilterEntry[];
+  skipHost?: boolean;
+  skipKubeDns?: boolean;
 }
 
 export type EventStreamHandlers = GeneralStreamEvents & {
