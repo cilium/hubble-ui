@@ -80,16 +80,6 @@ export default class ServiceStore {
   }
 
   @action.bound
-  updateLinkEndpoints(links: Array<Link>) {
-    links.forEach((l: Link) => {
-      const card = this.cardsMap.get(l.destinationId);
-      if (card == null) return;
-
-      card.updateLinkEndpoint(l);
-    });
-  }
-
-  @action.bound
   applyServiceChange(svc: Service, change: StateChange) {
     if (change === StateChange.Deleted) {
       return this.deleteService(svc);
