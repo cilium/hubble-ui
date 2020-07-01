@@ -4,7 +4,7 @@ export const ids = {
   },
   cardConnector: (
     cardId: string,
-    accessPointIds: Set<string> | string[],
+    accessPointIds: IterableIterator<string> | string[],
   ): string => {
     const accessPointsId = Array.from(accessPointIds).sort().join('/');
 

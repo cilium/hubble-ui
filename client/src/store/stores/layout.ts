@@ -610,7 +610,7 @@ export default class LayoutStore {
 
       const senderConnectors = index.get(senderId)!;
 
-      senderIndex.forEach((accessPointsIds, receiverId) => {
+      senderIndex.forEach((accessPointsMap, receiverId) => {
         const senders = this.connections.incomings.get(receiverId);
         if (senders == null) return;
 
@@ -624,7 +624,10 @@ export default class LayoutStore {
         const cardBBox = this.cardsPlacement.get(receiverId)?.geometry;
         if (cardBBox == null) return;
 
-        const connectorId = ids.cardConnector(receiverId, accessPointsIds);
+        const connectorId = ids.cardConnector(
+          receiverId,
+          accessPointsMap.keys(),
+        );
 
         const existedConnector = connectors.get(connectorId);
         if (existedConnector) {
@@ -642,7 +645,7 @@ export default class LayoutStore {
           sendersIds: new Set([senderId]),
           receiverId,
           position,
-          accessPointsIds,
+          accessPointsMap,
         };
 
         connectors.set(connectorId, newConnector);
@@ -712,7 +715,7 @@ export default class LayoutStore {
       const receiverAccessPoints: Set<string> = new Set();
 
       receiverIndex.forEach(accessPoints => {
-        accessPoints.forEach(accessPointId => {
+        accessPoints.forEach((accessPointMeta, accessPointId) => {
           receiverAccessPoints.add(accessPointId);
         });
       });

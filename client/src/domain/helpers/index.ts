@@ -2,8 +2,7 @@
 // consider moving it outside of domain types
 
 import {
-  Flow,
-  Verdict as PBVerdict,
+  Flow as PBFlow,
   IPVersion as PBIPVersion,
   Ethernet as PBEthernet,
   IP as PBIP,
@@ -23,7 +22,6 @@ import {
 
 import {
   HubbleFlow,
-  Verdict,
   IPVersion,
   IP,
   Ethernet,
@@ -40,6 +38,9 @@ import {
   CiliumEventType,
   Service as FlowService,
   Time,
+  HubbleService,
+  HubbleLink,
+  IPProtocol,
 } from '~/domain/hubble';
 
 import {
@@ -49,14 +50,15 @@ import {
   StateChange as PBStateChange,
 } from '~/proto/relay/relay_pb';
 
-import { Service, Link, IPProtocol } from '~/domain/service-map';
 import { StateChange } from '~/domain/misc';
 import { KV } from '~/domain/misc';
+import { Flow } from '~/domain/flows';
+import { Link } from '~/domain/service-map';
 
 import * as verdictHelpers from './verdict';
 export * from './verdict';
 
-export const hubbleFlowFromPb = (flow: Flow): HubbleFlow => {
+export const hubbleFlowFromPb = (flow: PBFlow): HubbleFlow => {
   let time: any = void 0;
 
   if (flow.hasTime()) {
@@ -249,7 +251,7 @@ export const stateChangeFromPb = (change: PBStateChange): StateChange => {
   return StateChange.Unknown;
 };
 
-export const relayServiceFromPb = (svc: PBRelayService): Service => {
+export const relayServiceFromPb = (svc: PBRelayService): HubbleService => {
   const obj = svc.toObject();
   const labels: Array<KV> = [];
 
@@ -275,7 +277,9 @@ export const relayServiceFromPb = (svc: PBRelayService): Service => {
   };
 };
 
-export const relayServiceLinkFromPb = (link: PBRelayServiceLink): Link => {
+export const relayServiceLinkFromPb = (
+  link: PBRelayServiceLink,
+): HubbleLink => {
   const obj = link.toObject();
 
   return {
@@ -308,4 +312,13 @@ export const msToPbTimestamp = (ms: number): Time => {
   const nanos = (ms - seconds * 1000) * 1e6;
 
   return { seconds, nanos };
+};
+
+export const flowFromRelay = (hubbleFlow: HubbleFlow): Flow => {
+  return new Flow(hubbleFlow);
+};
+
+export const linkFromRelay = (hubbleLink: HubbleLink): Link => {
+  const { verdict, ...props } = hubbleLink;
+  return { ...props, verdicts: new Set([verdict]) };
 };

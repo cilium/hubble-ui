@@ -2,13 +2,17 @@ import _ from 'lodash';
 import { action, observable, computed } from 'mobx';
 
 import { Flow, HubbleFlow } from '~/domain/flows';
-import { Link } from '~/domain/service-map';
-import { StateChange } from '~/domain/misc';
-
 import { ids } from '~/domain/ids';
+import { HubbleLink } from '~/domain/hubble';
+import { Link, AccessPointMeta } from '~/domain/service-map';
+import { StateChange } from '~/domain/misc';
+import { flowFromRelay, linkFromRelay } from '~/domain/helpers';
 
-// { cardId -> { cardId -> Set(apIds) } }
-export type ConnectionsMap = Map<string, Map<string, Set<string>>>;
+// { cardId -> { cardId -> { acessPointId : AccessPointMeta }  }
+export type ConnectionsMap = Map<
+  string,
+  Map<string, Map<string, AccessPointMeta>>
+>;
 
 export interface Connections {
   readonly outgoings: ConnectionsMap;
@@ -29,13 +33,8 @@ export default class InteractionStore {
 
   @action.bound
   clear() {
-    this.flows = [];
-    this.links = [];
-  }
-
-  @action.bound
-  setLinks(links: Array<Link>) {
-    this.links = links;
+    this.clearFlows();
+    this.clearLinks();
   }
 
   @action.bound
@@ -44,10 +43,25 @@ export default class InteractionStore {
   }
 
   @action.bound
-  addFlows(flows: Array<HubbleFlow>) {
+  clearLinks() {
+    this.links = [];
+  }
+
+  @action.bound
+  setLinks(links: HubbleLink[]) {
+    links.forEach(this.addLink);
+  }
+
+  @action.bound
+  setFlows(flows: HubbleFlow[]) {
+    this.flows = flows.map(flowFromRelay);
+  }
+
+  @action.bound
+  addFlows(flows: HubbleFlow[]) {
     this.flows = _(flows)
       .reverse()
-      .map(f => new Flow(f))
+      .map(flowFromRelay)
       .concat(this.flows)
       .uniqBy(f => f.id)
       .value()
@@ -60,26 +74,57 @@ export default class InteractionStore {
   }
 
   @action.bound
-  applyLinkChange(link: Link, change: StateChange) {
-    if (change === StateChange.Deleted) {
-      return this.deleteLink(link);
+  applyLinkChange(hubbleLink: HubbleLink, change: StateChange) {
+    switch (change) {
+      case StateChange.Deleted: {
+        return this.deleteLink(hubbleLink);
+      }
+      // TODO: handle all cases properly
+      case StateChange.Added:
+      case StateChange.Modified:
+      case StateChange.Exists: {
+        return this.addLink(hubbleLink);
+      }
     }
-
-    // TODO: handle all cases properly
-    const idx = this.links.findIndex(l => l.id === link.id);
-    if (idx !== -1) return;
-
-    this.links.push(link);
   }
 
   @action.bound
-  deleteLink(link: Link) {
-    if (!this.linksMap.has(link.id)) return;
+  private addLink(hubbleLink: HubbleLink) {
+    if (this.linksMap.has(hubbleLink.id)) return this.updateLink(hubbleLink);
 
-    const idx = this.links.findIndex(l => l.id === link.id);
+    this.links.push(linkFromRelay(hubbleLink));
+  }
+
+  @action.bound
+  private deleteLink(hubbleLink: HubbleLink) {
+    if (!this.linksMap.has(hubbleLink.id)) return;
+
+    const idx = this.links.findIndex(l => l.id === hubbleLink.id);
     if (idx === -1) return;
 
+    const currentHubbleLink = this.links[idx];
+    if (currentHubbleLink.verdicts.size > 1) {
+      currentHubbleLink.verdicts.delete(hubbleLink.verdict);
+      return;
+    }
+
     this.links.splice(idx, 1);
+  }
+
+  @action.bound
+  private updateLink(hubbleLink: HubbleLink) {
+    if (!this.linksMap.has(hubbleLink.id)) return;
+
+    const idx = this.links.findIndex(l => l.id === hubbleLink.id);
+    if (idx === -1) return;
+
+    const currentLink = this.links[idx];
+    const updatedLink: Link = {
+      ...currentLink,
+      verdicts: new Set([...currentLink.verdicts, hubbleLink.verdict]),
+    };
+
+    this.links.splice(idx, 1, updatedLink);
   }
 
   @computed
@@ -94,10 +139,10 @@ export default class InteractionStore {
     const outgoings: ConnectionsMap = new Map();
     const incomings: ConnectionsMap = new Map();
 
-    this.links.forEach((l: Link) => {
-      const senderId = l.sourceId;
-      const receiverId = l.destinationId;
-      const apId = ids.accessPoint(receiverId, l.destinationPort);
+    this.links.forEach((link: Link) => {
+      const senderId = link.sourceId;
+      const receiverId = link.destinationId;
+      const acessPointId = ids.accessPoint(receiverId, link.destinationPort);
 
       // Outgoing connection setup
       if (!outgoings.has(senderId)) {
@@ -106,11 +151,11 @@ export default class InteractionStore {
 
       const sentTo = outgoings.get(senderId)!;
       if (!sentTo.has(receiverId)) {
-        sentTo.set(receiverId, new Set());
+        sentTo.set(receiverId, new Map());
       }
 
       const sentToApIds = sentTo.get(receiverId)!;
-      sentToApIds.add(apId);
+      sentToApIds.set(acessPointId, { verdicts: link.verdicts });
 
       // Incoming connection setup
       if (!incomings.has(receiverId)) {
@@ -119,11 +164,11 @@ export default class InteractionStore {
 
       const receivedFrom = incomings.get(receiverId)!;
       if (!receivedFrom.has(senderId)) {
-        receivedFrom.set(senderId, new Set());
+        receivedFrom.set(senderId, new Map());
       }
 
       const receivedToApIds = receivedFrom.get(senderId)!;
-      receivedToApIds.add(apId);
+      receivedToApIds.set(acessPointId, { verdicts: link.verdicts });
     });
 
     return { outgoings, incomings };

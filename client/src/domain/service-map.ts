@@ -1,26 +1,16 @@
-import { Verdict, Time } from './hubble';
-import { KV } from './misc';
+import {
+  HubbleService,
+  HubbleFlow,
+  IPProtocol,
+  Verdict,
+  HubbleLink,
+} from './hubble';
 
-export interface Service {
-  id: string;
-  name: string;
-  namespace: string;
-  labels: Array<KV>;
-  dnsNames: Array<string>;
-  egressPolicyEnforced: boolean;
-  ingressPolicyEnforced: boolean;
-  visibilityPolicyStatus: string;
-  creationTimestamp: Time;
-}
+export type Service = HubbleService;
 
-export interface Link {
-  id: string;
-  sourceId: string;
-  destinationId: string;
-  destinationPort: number;
-  ipProtocol: IPProtocol;
-  verdict: Verdict;
-}
+export type Link = Omit<HubbleLink, 'verdict'> & {
+  verdicts: Set<Verdict>;
+};
 
 export interface AccessPoint {
   id: string;
@@ -29,27 +19,26 @@ export interface AccessPoint {
   serviceId: string;
 }
 
-export type AccessPoints = Map<string, Map<number, AccessPoint>>;
-
-export enum IPProtocol {
-  Unknown,
-  TCP,
-  UDP,
-  ICMPv4,
-  ICMPv6,
+export interface AccessPointMeta {
+  verdicts: Set<Verdict>;
 }
+
+export type AccessPoints = Map<string, Map<number, AccessPoint>>;
 
 export enum InteractionKind {
   Links = 'links',
   Flows = 'flows',
 }
 
-export type InteractionKindMap = {
-  [InteractionKind.Links]?: Array<Link>;
-  [InteractionKind.Flows]?: Array<any>; // should be Array<Flow>
-};
-
-export type Interactions<O = {}> = O & InteractionKindMap;
+export type Interactions =
+  | {
+      kind: InteractionKind.Flows;
+      flows: HubbleFlow[];
+    }
+  | {
+      kind: InteractionKind.Links;
+      links: HubbleLink[];
+    };
 
 export enum ApplicationKind {
   HTTP = 'http',

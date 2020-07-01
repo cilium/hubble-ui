@@ -10,7 +10,7 @@ export default class ControlStore {
 
   @observable currentNamespace: string | null = null;
   @observable selectedTableFlow: Flow | null = null;
-  @observable showCrossNamespaceActivity = false;
+  @observable showCrossNamespaceActivity = true;
   @observable verdict: Verdict | null = null;
   @observable httpStatus: string | null = null;
   @observable flowFilters: FlowsFilterEntry[] = [];
