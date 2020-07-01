@@ -27,8 +27,8 @@ export const sizes = {
   linkWidth: 4,
   linkCurveRadius: 8,
   flowsTableRowHeight: 20,
-  feetOuterWidth: 4,
-  feetInnerWidth: 2,
+  feetInnerWidth: 3,
+  feetOuterWidth: 5,
   topBarHeight: 50,
   arrowHandleHWRatio: 10.87 / 11.61,
 };
@@ -39,5 +39,6 @@ export const colors = {
   connectorFill: '#C6C4C4',
   arrowHandle: '#7B7A7A',
   feetOuterStroke: '#EBEEF0',
-  feetInnerStroke: '#AFAFAF',
+  feetForwardedStroke: '#AFAFAF',
+  feetDroppedStroke: '#FF5E5E',
 };

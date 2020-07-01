@@ -11,13 +11,14 @@ import {
   FlowsFilterEntry,
   FlowsFilterKind,
   FlowsFilterDirection,
+  Flow,
 } from '~/domain/flows';
 import {
   InteractionKind,
-  Interactions,
   Link,
   Service,
   AccessPoints,
+  Interactions,
 } from '~/domain/service-map';
 import { StateChange } from '~/domain/misc';
 import { ids } from '~/domain/ids';
@@ -29,6 +30,7 @@ import LayoutStore from './layout';
 import RouteStore, { RouteHistorySourceKind } from './route';
 import ServiceStore from './service';
 import ControlStore from './controls';
+import { HubbleService, HubbleLink, HubbleFlow } from '~/domain/hubble';
 
 configure({ enforceActions: 'observed' });
 
@@ -69,8 +71,18 @@ export class Store {
   }
 
   @action.bound
-  setup({ services }: { services: Array<Service> }) {
+  setup({
+    services,
+    flows,
+    links,
+  }: {
+    services: HubbleService[];
+    flows: HubbleFlow[];
+    links: HubbleLink[];
+  }) {
     this.services.set(services);
+    this.interactions.setLinks(links);
+    this.interactions.setFlows(flows);
   }
 
   @action.bound
@@ -83,40 +95,17 @@ export class Store {
   }
 
   @action.bound
-  updateInteractions<T = {}>(
-    interactions: Interactions<T>,
-    handleInteractions?: (kind: string, interactions: any) => void,
-  ) {
-    // TODO: in fact it should accurately apply a diff with current interactions
-
-    Object.keys(interactions).forEach((k: string) => {
-      const key = k as keyof Interactions<T>;
-
-      if (key === InteractionKind.Links) {
-        const links = (interactions.links || []) as Array<Link>;
-
-        this.services.updateLinkEndpoints(links);
-        this.interactions.setLinks(links);
-      } else if (key === InteractionKind.Flows) {
-        return;
-      } else if (handleInteractions != null) {
-        handleInteractions(k, interactions[key]);
-      }
-    });
-  }
-
-  @action.bound
-  applyServiceChange(svc: Service, change: StateChange) {
+  applyServiceChange(hubbleService: HubbleService, change: StateChange) {
     // console.log('service change: ', svc, change);
 
-    this.services.applyServiceChange(svc, change);
+    this.services.applyServiceChange(hubbleService, change);
   }
 
   @action.bound
-  applyServiceLinkChange(link: Link, change: StateChange) {
+  applyServiceLinkChange(hubbleLink: HubbleLink, change: StateChange) {
     // console.log('service link change: ', link, change);
 
-    this.interactions.applyLinkChange(link, change);
+    this.interactions.applyLinkChange(hubbleLink, change);
   }
 
   @action.bound

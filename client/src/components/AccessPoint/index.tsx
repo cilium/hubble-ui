@@ -1,15 +1,13 @@
 import React, {
   FunctionComponent,
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
   useCallback,
+  useEffect,
+  useMemo,
+  useRef,
 } from 'react';
 
-import { ServiceCard } from '~/domain/service-card';
-import { Link, IPProtocol } from '~/domain/service-map';
-import { XY, Vec2 } from '~/domain/geometry';
+import { Vec2 } from '~/domain/geometry';
+import { IPProtocol } from '~/domain/hubble';
 
 import css from './styles.scss';
 

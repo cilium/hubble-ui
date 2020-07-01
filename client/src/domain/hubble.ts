@@ -21,6 +21,35 @@ export interface HubbleFlow {
   readonly summary: string;
 }
 
+export interface HubbleService {
+  id: string;
+  name: string;
+  namespace: string;
+  labels: Array<KV>;
+  dnsNames: Array<string>;
+  egressPolicyEnforced: boolean;
+  ingressPolicyEnforced: boolean;
+  visibilityPolicyStatus: string;
+  creationTimestamp: Time;
+}
+
+export interface HubbleLink {
+  id: string;
+  sourceId: string;
+  destinationId: string;
+  destinationPort: number;
+  ipProtocol: IPProtocol;
+  verdict: Verdict;
+}
+
+export enum IPProtocol {
+  Unknown = 0,
+  TCP = 1,
+  UDP = 2,
+  ICMPv4 = 3,
+  ICMPv6 = 4,
+}
+
 export interface Time {
   seconds: number;
   nanos: number;
