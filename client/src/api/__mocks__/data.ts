@@ -1,12 +1,18 @@
 import range from 'lodash/range';
 
-import { FlowType, HubbleFlow, Verdict } from '~/domain/hubble';
-import { IPProtocol, Link, Service } from '~/domain/service-map';
 import * as dataHelpers from '~/domain/helpers';
+import {
+  FlowType,
+  HubbleFlow,
+  HubbleLink,
+  HubbleService,
+  IPProtocol,
+  Verdict,
+} from '~/domain/hubble';
 
 export const selectedNamespace = 'jobs-demo';
 
-export const links: Array<Link> = [
+export const links: HubbleLink[] = [
   {
     id: 'reserved:world:outgoing',
     sourceId: 'reserved:world:outgoing',
@@ -16,10 +22,34 @@ export const links: Array<Link> = [
     verdict: Verdict.Forwarded,
   },
   {
-    id: 'reserved:world:incoming',
+    id: 'reserved:world:incoming:8080',
     sourceId: 'a8de92d55119c9a6bb6a6dd66bcf012fabefb32d',
     destinationId: 'reserved:world:incoming',
     destinationPort: 8080,
+    ipProtocol: IPProtocol.TCP,
+    verdict: Verdict.Forwarded,
+  },
+  {
+    id: 'reserved:world:incoming:8080',
+    sourceId: 'a8de92d55119c9a6bb6a6dd66bcf012fabefb32d',
+    destinationId: 'reserved:world:incoming',
+    destinationPort: 8080,
+    ipProtocol: IPProtocol.TCP,
+    verdict: Verdict.Dropped,
+  },
+  {
+    id: 'reserved:world:incoming:443',
+    sourceId: 'a8de92d55119c9a6bb6a6dd66bcf012fabefb32d',
+    destinationId: 'reserved:world:incoming',
+    destinationPort: 443,
+    ipProtocol: IPProtocol.TCP,
+    verdict: Verdict.Dropped,
+  },
+  {
+    id: 'reserved:world:incoming:80',
+    sourceId: 'a8de92d55119c9a6bb6a6dd66bcf012fabefb32d',
+    destinationId: 'reserved:world:incoming',
+    destinationPort: 80,
     ipProtocol: IPProtocol.TCP,
     verdict: Verdict.Forwarded,
   },
@@ -81,7 +111,7 @@ export const links: Array<Link> = [
   },
 ];
 
-export const endpoints: Array<Service> = [
+export const services: HubbleService[] = [
   {
     id: 'reserved:world:outgoing',
     name: 'World',
@@ -263,35 +293,41 @@ export const endpoints: Array<Service> = [
   },
 ];
 
-export const flows: Array<HubbleFlow> = range(100).map(() => {
-  return {
-    source: {
-      id: 0,
-      identity: 0,
-      labelsList: ['app=kafka'],
-      namespace: 'kube-system',
-      podName: `kafka-${Math.random() * 10}`,
-    },
-    destination: {
-      id: 1,
-      identity: 1,
-      labelsList: ['app=loader'],
-      namespace: 'kube-system',
-      podName: `loader-${Math.random() * 10}`,
-    },
-    destinationNamesList: [],
-    dropReason: 0,
-    nodeName: '',
-    reply: false,
-    sourceNamesList: [],
-    summary: '',
-    type: FlowType.L34,
-    l4: {
-      tcp: {
-        destinationPort: Math.random() <= 0.5 ? 80 : 443,
-        sourcePort: Math.random() * 5000,
+export const flows: HubbleFlow[] = range(100).map(
+  (): HubbleFlow => {
+    return {
+      source: {
+        id: 0,
+        identity: 0,
+        labelsList: ['app=kafka'],
+        namespace: 'kube-system',
+        podName: `kafka-${Math.random() * 10}`,
       },
-    },
-    verdict: Math.random() <= 0.5 ? Verdict.Forwarded : Verdict.Dropped,
-  };
-});
+      time: {
+        seconds: Date.now() + Math.random(),
+        nanos: Date.now() + Math.random(),
+      },
+      destination: {
+        id: 1,
+        identity: 1,
+        labelsList: ['app=loader'],
+        namespace: 'kube-system',
+        podName: `loader-${Math.random() * 10}`,
+      },
+      destinationNamesList: [],
+      dropReason: 0,
+      nodeName: '',
+      reply: false,
+      sourceNamesList: [],
+      summary: '',
+      type: FlowType.L34,
+      l4: {
+        tcp: {
+          destinationPort: Math.random() <= 0.5 ? 80 : 443,
+          sourcePort: Math.random() * 5000,
+        },
+      },
+      verdict: Math.random() <= 0.5 ? Verdict.Forwarded : Verdict.Dropped,
+    };
+  },
+);

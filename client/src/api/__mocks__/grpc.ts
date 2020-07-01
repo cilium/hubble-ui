@@ -1,5 +1,4 @@
 import { API, CoreAPIv1, IEventStream } from '~/api/general';
-import { endpoints, links } from './data';
 import { EventStream } from './event-stream';
 
 export { EventStream };

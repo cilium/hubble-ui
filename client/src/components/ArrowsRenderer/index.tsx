@@ -7,6 +7,8 @@ import { Line2, utils as gutils, Vec2 } from '~/domain/geometry';
 import { SenderArrows } from '~/domain/layout';
 import { colors, sizes } from '~/ui/vars';
 import { chunks } from '~/utils/iter-tools';
+import { AccessPointMeta } from '~/domain/service-map';
+import { Verdict } from '~/domain/hubble';
 
 export interface Props {
   arrows: Map<string, SenderArrows>;
@@ -16,6 +18,12 @@ export interface Props {
 interface ArrowData {
   points: Array<Vec2>;
   handles: [Vec2, Vec2][];
+}
+
+interface FeetData {
+  connectorPosition: Vec2;
+  accessPointCoord: Vec2;
+  accessPointMeta: AccessPointMeta;
 }
 
 type Arrow = [string, ArrowData];
@@ -178,46 +186,83 @@ const arrowsUpdate = (update: any) => {
   return update;
 };
 
+const feetHelpers = {
+  setPositions(group: any) {
+    return group
+      .attr('x1', (d: [string, FeetData]) => d[1].connectorPosition.x)
+      .attr('y1', (d: [string, FeetData]) => d[1].connectorPosition.y)
+      .attr('x2', (d: [string, FeetData]) => d[1].accessPointCoord.x)
+      .attr('y2', (d: [string, FeetData]) => d[1].accessPointCoord.y);
+  },
+  innerFirstVerdictStroke(d: [string, FeetData]) {
+    const { verdicts } = d[1].accessPointMeta;
+    if (verdicts.has(Verdict.Forwarded) && verdicts.has(Verdict.Dropped)) {
+      return undefined;
+    } else if (verdicts.has(Verdict.Dropped)) {
+      return colors.feetDroppedStroke;
+    }
+    return colors.feetForwardedStroke;
+  },
+  innerSecondVerdictStroke(d: [string, FeetData]) {
+    const { verdicts } = d[1].accessPointMeta;
+    if (verdicts.has(Verdict.Forwarded) && verdicts.has(Verdict.Dropped)) {
+      return colors.feetDroppedStroke;
+    }
+    return undefined;
+  },
+  innerSecondVerdictStrokeDasharray(d: [string, FeetData]) {
+    return d[1].accessPointMeta.verdicts.size > 1 ? '5 4' : undefined;
+  },
+};
+
 const feetsEnter = (enter: any) => {
-  const feetGroup = enter.append('g').attr('class', (d: any) => d[0]);
+  const feetGroup = enter
+    .append('g')
+    .attr('class', (d: [string, FeetData]) => d[0]);
 
-  feetGroup
-    .append('line')
-    .attr('class', 'outer')
-    .attr('x1', (d: any) => d[1][0].x)
-    .attr('y1', (d: any) => d[1][0].y)
-    .attr('x2', (d: any) => d[1][1].x)
-    .attr('y2', (d: any) => d[1][1].y)
-    .attr('stroke', colors.feetOuterStroke)
-    .attr('stroke-width', sizes.feetOuterWidth);
+  feetHelpers.setPositions(
+    feetGroup
+      .append('line')
+      .attr('class', 'outer')
+      .attr('stroke-width', sizes.feetOuterWidth)
+      .attr('stroke', colors.feetOuterStroke),
+  );
 
-  feetGroup
-    .append('line')
-    .attr('class', 'inner')
-    .attr('x1', (d: any) => d[1][0].x)
-    .attr('y1', (d: any) => d[1][0].y)
-    .attr('x2', (d: any) => d[1][1].x)
-    .attr('y2', (d: any) => d[1][1].y)
-    .attr('stroke', colors.feetInnerStroke)
-    .attr('stroke-width', sizes.feetInnerWidth);
+  feetHelpers.setPositions(
+    feetGroup
+      .append('line')
+      .attr('class', 'inner-first-verdict')
+      .attr('stroke-width', sizes.feetInnerWidth)
+      .attr('stroke', feetHelpers.innerFirstVerdictStroke),
+  );
+
+  feetHelpers.setPositions(
+    feetGroup
+      .append('line')
+      .attr('class', 'inner-second-verdict')
+      .attr('stroke-width', sizes.feetInnerWidth)
+      .attr('stroke', feetHelpers.innerSecondVerdictStroke)
+      .attr('stroke-dasharray', feetHelpers.innerSecondVerdictStrokeDasharray),
+  );
 
   return feetGroup;
 };
 
 const feetsUpdate = (update: any) => {
-  update
-    .select('line.outer')
-    .attr('x1', (d: any) => d[1][0].x)
-    .attr('y1', (d: any) => d[1][0].y)
-    .attr('x2', (d: any) => d[1][1].x)
-    .attr('y2', (d: any) => d[1][1].y);
+  feetHelpers.setPositions(update.select('line.outer'));
 
-  update
-    .select('line.inner')
-    .attr('x1', (d: any) => d[1][0].x)
-    .attr('y1', (d: any) => d[1][0].y)
-    .attr('x2', (d: any) => d[1][1].x)
-    .attr('y2', (d: any) => d[1][1].y);
+  feetHelpers.setPositions(
+    update
+      .select('line.inner-first-verdict')
+      .attr('stroke', feetHelpers.innerFirstVerdictStroke),
+  );
+
+  feetHelpers.setPositions(
+    update
+      .select('line.inner-second-verdict')
+      .attr('stroke', feetHelpers.innerSecondVerdictStroke)
+      .attr('stroke-dasharray', feetHelpers.innerSecondVerdictStrokeDasharray),
+  );
 
   return update;
 };
@@ -279,7 +324,7 @@ const manageArrows = (props: Props, g: SVGGElement) => {
   const startPlates: Array<[string, Vec2]> = [];
   const arrows: Array<Arrow> = [];
   const connectors: Array<[string, Vec2]> = [];
-  const feets: Array<[string, [Vec2, Vec2]]> = [];
+  const feets: Array<[string, FeetData]> = [];
 
   // Just split data to simple arrays so that it will be easier to work
   // with them in d3
@@ -300,14 +345,22 @@ const manageArrows = (props: Props, g: SVGGElement) => {
       const connectorPosition = connectorArrow.connector.position;
       connectors.push([fromToId, connectorPosition]);
 
-      connectorArrow.connector.accessPointsIds.forEach(accessPointId => {
-        const feetId = `${fromToId} -> ${accessPointId}`;
-        const accessPointCoord = accessPointsCoords.get(accessPointId);
+      connectorArrow.connector.accessPointsMap.forEach(
+        (accessPointMeta, accessPointId) => {
+          const feetId = `${fromToId} -> ${accessPointId}`;
+          const accessPointCoord = accessPointsCoords.get(accessPointId);
 
-        if (accessPointCoord == null) return;
+          if (accessPointCoord == null) return;
 
-        feets.push([feetId, [connectorPosition, accessPointCoord]]);
-      });
+          const feetData: FeetData = {
+            connectorPosition,
+            accessPointCoord,
+            accessPointMeta,
+          };
+
+          feets.push([feetId, feetData]);
+        },
+      );
     });
   });
 

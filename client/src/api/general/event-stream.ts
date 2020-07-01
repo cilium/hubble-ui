@@ -1,9 +1,8 @@
 import { EventEmitter } from '~/utils/emitter';
 import { GeneralStreamEvents } from './stream';
 
-import { Verdict } from '~/domain/hubble';
+import { Verdict, HubbleService, HubbleLink } from '~/domain/hubble';
 import { HubbleFlow, FlowsFilterEntry } from '~/domain/flows';
-import { Service, Link } from '~/domain/service-map';
 import { StateChange } from '~/domain/misc';
 
 export interface EventParams {
@@ -41,12 +40,12 @@ export interface NamespaceChange {
 }
 
 export interface ServiceChange {
-  service: Service;
+  service: HubbleService;
   change: StateChange;
 }
 
 export interface ServiceLinkChange {
-  serviceLink: Link;
+  serviceLink: HubbleLink;
   change: StateChange;
 }
 

@@ -103,13 +103,12 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     console.log('store.mocked: ', store.mocked);
 
     if (store.mocked) {
-      const links = mockData.links;
-      const services = mockData.endpoints;
-
-      store.setup({ services });
-      store.updateInteractions({ links });
+      store.setup({
+        services: mockData.services,
+        flows: mockData.flows,
+        links: mockData.links,
+      });
       store.controls.setCurrentNamespace(mockData.selectedNamespace);
-      store.controls.setCrossNamespaceActivity(true);
       setIsStreaming(true);
       return;
     }

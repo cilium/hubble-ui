@@ -18,11 +18,11 @@ export class Flow {
   constructor(flow: HubbleFlow) {
     this.ref = flow;
 
-    this._id = this.buildId();
     this._sourceLabels = this.mapLabelsToKv(flow.source?.labelsList || []);
     this._destinationLabels = this.mapLabelsToKv(
       flow.destination?.labelsList || [],
     );
+    this._id = this.buildId();
   }
 
   public get id() {
