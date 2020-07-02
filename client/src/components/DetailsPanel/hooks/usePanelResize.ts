@@ -1,20 +1,16 @@
-import {
-  MutableRefObject,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { sizes } from '~/ui/vars';
 
-type HookData = [{ top: string }, (dy: number) => void];
+import * as storage from '~/storage/local';
 
-const LS_POS_KEY = '@hubble-ui/panel-position';
+export interface ResizeProps {
+  panelTop: number;
+  panelTopInPixels: number;
+}
 
-export const usePanelResize = (
-  rootRef: MutableRefObject<HTMLDivElement | null>,
-): HookData => {
-  const lsPosition = localStorage.getItem(LS_POS_KEY);
+export const usePanelResize = () => {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const lsPosition = storage.getDetailsPanelTop();
   const initialPosition = lsPosition ? +lsPosition : 0.66;
   const [panelTop, setPanelTop] = useState(initialPosition);
 
@@ -23,19 +19,27 @@ export const usePanelResize = (
   }, []);
 
   useEffect(() => {
-    if (rootRef.current == null) return;
-    const bbox = rootRef.current.getBoundingClientRect();
+    if (ref.current == null) return;
+    const bbox = ref.current.getBoundingClientRect();
+    const top = 1 - bbox.y / window.innerHeight;
 
-    setPanelTop(1 - bbox.y / window.innerHeight);
-  }, [rootRef.current]);
+    setPanelTop(top);
+  }, [ref.current]);
 
   useEffect(() => {
-    localStorage.setItem(LS_POS_KEY, String(panelTop));
+    storage.setDetailsPanelTop(panelTop);
+  }, [panelTop]);
+
+  const props = useMemo(() => {
+    return {
+      panelTop,
+      panelTopInPixels: panelTop * window.innerHeight,
+    } as ResizeProps;
   }, [panelTop]);
 
   const onResize = useCallback((dy: number) => {
-    if (rootRef.current == null) return;
-    const bbox = rootRef.current.getBoundingClientRect();
+    if (ref.current == null) return;
+    const bbox = ref.current.getBoundingClientRect();
 
     const panelTop = bbox.y / window.innerHeight;
     const change = dy / window.innerHeight;
@@ -47,6 +51,11 @@ export const usePanelResize = (
     setPanelTop(top);
   }, []);
 
-  const styles = { top: `${panelTop * 100}%` };
-  return [styles, onResize];
+  const style = useMemo(() => {
+    return {
+      top: `${panelTop * 100}%`,
+    };
+  }, [panelTop]);
+
+  return { ref, style, onResize, props };
 };

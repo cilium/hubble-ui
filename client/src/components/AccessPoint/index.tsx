@@ -23,25 +23,26 @@ export interface Props {
 export const Component: FunctionComponent<Props> = props => {
   const imgContainer = useRef<HTMLDivElement>(null);
 
-  const apId = useMemo(() => {
+  const accessPointId = useMemo(() => {
     return String(props.id ?? Date.now() + Math.random());
   }, [props.id]);
 
-  const centerGetter = useCallback((): Vec2 => {
-    const imgBox = imgContainer.current!.getBoundingClientRect();
-
-    const x = imgBox.x + imgBox.width / 2;
-    const y = imgBox.y + imgBox.height / 2;
-
-    return Vec2.from(x, y);
-  }, [imgContainer]);
-
   useEffect(() => {
-    props.onConnectorReady!(apId, centerGetter);
-  }, [props.onConnectorReady, apId, centerGetter]);
+    const container = imgContainer.current;
+    if (!container) return;
+
+    props.onConnectorReady?.(accessPointId, () => {
+      const box = container.getBoundingClientRect();
+
+      const x = box.x + box.width / 2;
+      const y = box.y + box.height / 2;
+
+      return Vec2.from(x, y);
+    });
+  }, [props.onConnectorReady, accessPointId, imgContainer.current]);
 
   return (
-    <div className={css.accessPoint} id={String(apId)}>
+    <div className={css.accessPoint} id={String(accessPointId)}>
       <div className={css.icons}>
         <div className={css.circle} ref={imgContainer}>
           <img src="/icons/misc/access-point.svg" />

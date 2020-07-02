@@ -4,6 +4,7 @@ const LAST_NAMESPACE_KEY = '@hubble-ui/namespace';
 const FLOWS_TABLE_VISIBLE_COLUMNS_KEY = '@hubble-ui/flowstable-visible-columns';
 const SHOW_HOST_KEY = '@hubble-ui/show-host';
 const SHOW_KUBEDNS_KEY = '@hubble-ui/show-kube-dns';
+const DETAILS_PANEL_POS = '@hubble-ui/panel-position';
 
 export function getLastNamespace(): string | null {
   return localStorage.getItem(LAST_NAMESPACE_KEY);
@@ -44,4 +45,15 @@ export function getShowKubeDns(): boolean {
 
 export function saveShowKubeDns(val: boolean) {
   localStorage.setItem(SHOW_KUBEDNS_KEY, val ? 'true' : 'false');
+}
+
+export function getDetailsPanelTop(): number | null {
+  const num = localStorage.getItem(DETAILS_PANEL_POS);
+  if (!num) return null;
+
+  return parseFloat(num);
+}
+
+export function setDetailsPanelTop(top: number) {
+  localStorage.setItem(DETAILS_PANEL_POS, `${top}`);
 }
