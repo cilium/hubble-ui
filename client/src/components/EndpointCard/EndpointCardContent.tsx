@@ -15,7 +15,7 @@ import css from './styles.scss';
 export type Props = CardProps & {
   currentNamespace: string | null;
   onClick?: (card: ServiceCard) => void;
-  onEmitAccessPointCoords?: (apId: string, coords: Vec2) => void;
+  onAccessPointCoords?: (apId: string, coords: Vec2) => void;
 };
 
 export const EndpointCardContent = memo(function EndpointCardContent(
@@ -37,7 +37,7 @@ export const EndpointCardContent = memo(function EndpointCardContent(
 
   const emitConnectorCoords = useCallback(() => {
     // prettier-ignore
-    if (props.onEmitAccessPointCoords == null || divRef == null || divRef.current == null) return;
+    if (props.onAccessPointCoords == null || divRef == null || divRef.current == null) return;
 
     const bbox = divRef.current.getBoundingClientRect();
     if (bbox.width === 0 || bbox.height === 0) {
@@ -60,9 +60,9 @@ export const EndpointCardContent = memo(function EndpointCardContent(
         factorCoords.y * props.coords.h,
       ).add(Vec2.fromXY(props.coords));
 
-      props.onEmitAccessPointCoords!(apId, svgCoords);
+      props.onAccessPointCoords!(apId, svgCoords);
     });
-  }, [props.onEmitAccessPointCoords, divRef, centerGetters, props.coords]);
+  }, [props.onAccessPointCoords, divRef, centerGetters, props.coords]);
 
   // react to placement change
   useEffect(emitConnectorCoords, [
