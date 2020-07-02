@@ -11,9 +11,13 @@ import { RouteComponentProps, Router } from '@reach/router';
 import { observer } from 'mobx-react';
 
 import { TopBar } from '~/components/TopBar';
-import { DetailsPanel } from '~/components/DetailsPanel';
+import {
+  DetailsPanel,
+  ResizeProps as DetailsResizeProps,
+} from '~/components/DetailsPanel';
 import { Map } from '~/components/Map';
 import { LoadingOverlay } from '~/components/Misc/LoadingOverlay';
+import { WelcomeScreen } from './WelcomeScreen';
 
 import { ServiceCard } from '~/domain/service-card';
 import { Vec2 } from '~/domain/geometry';
@@ -25,23 +29,25 @@ import { API } from '~/api/general';
 import * as storage from '~/storage/local';
 import { DataManager, EventKind as DataManagerEvents } from './DataManager';
 
+import { sizes } from '~/ui/vars';
 import css from './styles.scss';
-import { WelcomeScreen } from './WelcomeScreen';
 
 export interface AppProps extends RouteComponentProps {
   api: API;
 }
 
 export const AppComponent: FunctionComponent<AppProps> = observer(props => {
-  const { api } = props;
+  const store = useStore();
+
   const [flowsDiffCount, setFlowsDiffCount] = useState({ value: 0 });
   const [isStreaming, setIsStreaming] = useState<boolean>(true);
+  const [mapVisibleHeight, setMapVisibleHeight] = useState<number | null>(null);
+  const [mapWasDragged, setMapWasDragged] = useState<boolean>(false);
 
-  const store = useStore();
   const frame = store.currentFrame;
   const notifier = useNotifier();
   const dataManager = useMemo(() => {
-    return new DataManager(api, store);
+    return new DataManager(props.api, store);
   }, []);
 
   useEffect(() => {
@@ -103,6 +109,8 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     if (filtersNonNull) {
       dataManager.setupFilteringFrame(store.controls.currentNamespace);
     }
+
+    setMapWasDragged(false);
   }, [store.controls.dataFilters]);
 
   const onNamespaceChange = useCallback((ns: string) => {
@@ -119,8 +127,17 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     store.controls.selectTableFlow(null);
   }, []);
 
-  const onEmitAccessPointCoords = useCallback((apId: string, coords: Vec2) => {
+  const onAccessPointCoords = useCallback((apId: string, coords: Vec2) => {
     store.setAccessPointCoords(apId, coords);
+  }, []);
+
+  const onPanelResize = useCallback((resizeProps: DetailsResizeProps) => {
+    const vh = resizeProps.panelTopInPixels - sizes.topBarHeight;
+    setMapVisibleHeight(vh);
+  }, []);
+
+  const onMapDrag = useCallback((val: boolean) => {
+    setMapWasDragged(val);
   }, []);
 
   // prettier-ignore
@@ -171,13 +188,16 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
             namespace={frame.controls.currentNamespace}
             namespaceBBox={frame.layout.namespaceBBox}
             placement={frame.layout.placement}
+            visibleHeight={mapVisibleHeight ?? 0}
             accessPoints={frame.interactions.accessPoints}
             accessPointsCoords={frame.layout.accessPointsCoords}
             arrows={frame.layout.arrows}
             isCardActive={isCardActive}
+            wasDragged={mapWasDragged}
             onCardSelect={onCardSelect}
-            onEmitAccessPointCoords={onEmitAccessPointCoords}
+            onAccessPointCoords={onAccessPointCoords}
             onCardHeightChange={frame.layout.setCardHeight}
+            onMapDrag={onMapDrag}
           />
         ) : (
           <LoadingOverlay height="50%" text="Waiting for service map data…" />
@@ -185,7 +205,6 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       </div>
 
       <DetailsPanel
-        resizable={true}
         isStreaming={isStreaming}
         flows={frame.interactions.flows}
         flowsDiffCount={flowsDiffCount}
@@ -193,6 +212,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
         onSelectFlow={frame.controls.selectTableFlow}
         onCloseSidebar={onCloseFlowsTableSidebar}
         tsUpdateDelay={dataManager.flowsDelay}
+        onPanelResize={onPanelResize}
       />
     </div>
   );

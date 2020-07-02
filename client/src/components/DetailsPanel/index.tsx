@@ -1,23 +1,27 @@
 import { observer } from 'mobx-react';
-import React, { FunctionComponent, useMemo, useRef, useCallback } from 'react';
+import React, {
+  FunctionComponent,
+  useMemo,
+  useCallback,
+  useEffect,
+} from 'react';
 
 import { DragPanel } from '~/components/DragPanel';
 import { FlowsTable, Props as FlowsTableProps } from '~/components/FlowsTable';
 import { FlowsTableSidebar } from '~/components/FlowsTable/Sidebar';
 import { useFlowsTableColumns } from '~/components/FlowsTable/hooks/useColumns';
 
-import { usePanelResize } from './hooks';
-
 import css from './styles.scss';
 import { LoadingOverlay } from '../Misc/LoadingOverlay';
+import { usePanelResize, ResizeProps } from './hooks/usePanelResize';
 
 interface SidebarProps {
   onCloseSidebar?: () => void;
 }
 
 interface PanelProps {
-  resizable: boolean;
   isStreaming: boolean;
+  onPanelResize?: (resizeProps: ResizeProps) => void;
   onStreamStop?: () => void;
 }
 
@@ -26,8 +30,7 @@ type TableProps = Omit<FlowsTableProps, 'isVisibleColumn'>;
 export type Props = SidebarProps & TableProps & PanelProps;
 
 export const DetailsPanelComponent = function (props: Props) {
-  const rootRef = useRef<HTMLDivElement | null>(null);
-  const [resizeStyles, onResize] = usePanelResize(rootRef);
+  const panelResize = usePanelResize();
   const flowsTableColumns = useFlowsTableColumns();
 
   const diffCount = useMemo(() => {
@@ -42,15 +45,19 @@ export const DetailsPanelComponent = function (props: Props) {
     props.onStreamStop();
   }, [props.onStreamStop]);
 
+  useEffect(() => {
+    props.onPanelResize?.(panelResize.props);
+  }, [panelResize.props]);
+
   const tableLoaded = props.flows.length > 0 && props.isStreaming;
 
   return (
-    <div className={css.panel} ref={rootRef} style={resizeStyles}>
+    <div className={css.panel} ref={panelResize.ref} style={panelResize.style}>
       <div className={css.dragPanel}>
         <DragPanel
           isVisibleFlowsTableColumn={flowsTableColumns.isVisibleColumn}
           toggleFlowsTableColumn={flowsTableColumns.toggleColumn}
-          onResize={onResize}
+          onResize={panelResize.onResize}
           onStreamStop={onStreamStop}
         />
       </div>
@@ -83,3 +90,5 @@ export const DetailsPanelComponent = function (props: Props) {
 export const DetailsPanel: FunctionComponent<Props> = observer(
   DetailsPanelComponent,
 );
+
+export { ResizeProps };
