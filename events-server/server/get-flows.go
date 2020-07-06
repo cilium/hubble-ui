@@ -29,6 +29,9 @@ func extractFlowsRequest(req *relay.GetEventsRequest) *observer.GetFlowsRequest 
 		wl = append(wl, flowFilter)
 	}
 
+	log.Infof("bl: %v\n", bl)
+	log.Infof("wl: %v\n", wl)
+
 	return &observer.GetFlowsRequest{
 		Blacklist: bl,
 		Whitelist: wl,
