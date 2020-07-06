@@ -148,6 +148,14 @@ export class FlowsFilterEntry {
     return this.kind === FlowsFilterKind.Identity;
   }
 
+  public get isLabel(): boolean {
+    return this.kind === FlowsFilterKind.Label;
+  }
+
+  public get isIp(): boolean {
+    return this.kind === FlowsFilterKind.Ip;
+  }
+
   public get labelKeyValue(): [string, string] {
     const [key, ...rest] = this.query.split('=');
 

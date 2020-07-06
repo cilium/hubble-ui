@@ -19,10 +19,6 @@ export interface AccessPoint {
   serviceId: string;
 }
 
-export interface AccessPointMeta {
-  verdicts: Set<Verdict>;
-}
-
 export type AccessPoints = Map<string, Map<number, AccessPoint>>;
 
 export enum InteractionKind {

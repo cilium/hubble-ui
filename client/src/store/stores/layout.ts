@@ -712,8 +712,8 @@ export default class LayoutStore {
       // WARN: it could be a strange architecture
       const receiverAccessPoints: Set<string> = new Set();
 
-      receiverIndex.forEach(accessPoints => {
-        accessPoints.forEach((accessPointMeta, accessPointId) => {
+      receiverIndex.forEach(accessPointsMap => {
+        accessPointsMap.forEach((_, accessPointId) => {
           receiverAccessPoints.add(accessPointId);
         });
       });

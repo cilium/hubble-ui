@@ -86,10 +86,10 @@ export class DataManager extends EventEmitter<Events> {
     const store = this.store;
     const streamParams = { ...store.controls.dataFilters, namespace };
 
-    const stream = this.api.v1.getEventStream(EventParamsSet.All, streamParams);
     const secondaryFrame = store.currentFrame.filter(streamParams as Filters);
     store.pushFrame(secondaryFrame);
 
+    const stream = this.api.v1.getEventStream(EventParamsSet.All, streamParams);
     this.setupGeneralEventHandlers(stream);
     this.setupNamespaceEventHandlers(stream);
     this.setupServicesEventHandlers(stream, secondaryFrame);
