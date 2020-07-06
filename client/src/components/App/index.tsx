@@ -85,19 +85,16 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     const newNamespace = store.controls.currentNamespace;
 
     if (dataManager.currentNamespace !== newNamespace) {
-      console.log('resetNamespace');
       dataManager.resetNamespace(newNamespace);
     }
 
     if (dataManager.hasFilteringStream) {
-      console.log('dropFilteringFrame');
       dataManager.dropFilteringFrame();
     }
 
     const filtersNonNull = !store.controls.isDefault;
 
     if (filtersNonNull) {
-      console.log('setupFilteringFrame');
       dataManager.setupFilteringFrame(store.controls.currentNamespace!);
     }
   }, [store.controls.dataFilters]);
