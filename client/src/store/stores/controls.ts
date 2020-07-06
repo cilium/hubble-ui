@@ -134,7 +134,7 @@ export default class ControlStore {
       filters: this.flowFilters,
       skipHost: !this.showHost,
       skipKubeDns: !this.showKubeDns,
-    }
+    };
   }
 
   @computed
@@ -143,7 +143,7 @@ export default class ControlStore {
       namespace: this.currentNamespace,
       skipHost: !this.showHost,
       skipKubeDns: !this.showKubeDns,
-    }
+    };
   }
 
   @computed
