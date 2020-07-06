@@ -13,11 +13,7 @@ import {
   FlowsFilterDirection,
 } from '~/domain/flows';
 
-import {
-  InteractionKind,
-  Link,
-  Service,
-} from '~/domain/service-map';
+import { InteractionKind, Link, Service } from '~/domain/service-map';
 import { StateChange } from '~/domain/misc';
 import { ids } from '~/domain/ids';
 import { setupDebugProp } from '~/domain/misc';

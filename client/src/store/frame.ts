@@ -140,6 +140,7 @@ export class StoreFrame {
 
     const connections = this.interactions.connections;
     this.services.cardsList.forEach((card: ServiceCard) => {
+      // if (card.id === '2') debugger;
       // debugger;
       if (!filterService(card.service, filters)) return;
 
