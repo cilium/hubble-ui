@@ -140,8 +140,6 @@ export class StoreFrame {
 
     const connections = this.interactions.connections;
     this.services.cardsList.forEach((card: ServiceCard) => {
-      // if (card.id === '2') debugger;
-      // debugger;
       if (!filterService(card.service, filters)) return;
 
       // NOTE: card.id might be not simple identity (number)
@@ -167,11 +165,6 @@ export class StoreFrame {
 
     interactions.setFlows(flows);
     interactions.setLinks(links);
-
-    console.log(`after frame.filter: allowedLinkIds: `, allowedLinkIds);
-    console.log(`after frame.filter: flows: `, flows.slice());
-    console.log(`after frame.filter: links: `, links.slice());
-    console.log(`after frame.filter: services: `, services.cardsList.slice());
 
     return new StoreFrame(interactions, services, this.controls);
   }
