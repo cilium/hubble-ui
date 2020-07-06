@@ -59,10 +59,6 @@ export const filterLink = (link: Link, filters: Filters): boolean => {
 };
 
 export const filterService = (service: Service, filters: Filters): boolean => {
-  if (filters.namespace != null && service.namespace !== filters.namespace) {
-    return false;
-  }
-
   let ok = true;
   filters.filters?.forEach((ff: FlowsFilterEntry) => {
     const passed = filterServiceUsingBasicEntry(service, ff);
