@@ -5,10 +5,11 @@ import React, { FunctionComponent, useEffect, useRef } from 'react';
 
 import { Line2, utils as gutils, Vec2 } from '~/domain/geometry';
 import { SenderArrows } from '~/domain/layout';
+import { Verdict } from '~/domain/hubble';
+import { Link } from '~/domain/service-map';
+
 import { colors, sizes } from '~/ui/vars';
 import { chunks } from '~/utils/iter-tools';
-import { AccessPointMeta } from '~/domain/service-map';
-import { Verdict } from '~/domain/hubble';
 
 export interface Props {
   arrows: Map<string, SenderArrows>;
@@ -23,7 +24,7 @@ interface ArrowData {
 interface FeetData {
   connectorPosition: Vec2;
   accessPointCoord: Vec2;
-  accessPointMeta: AccessPointMeta;
+  link: Link;
 }
 
 type Arrow = [string, ArrowData];
@@ -195,23 +196,27 @@ const feetHelpers = {
       .attr('y2', (d: [string, FeetData]) => d[1].accessPointCoord.y);
   },
   innerFirstVerdictStroke(d: [string, FeetData]) {
-    const { verdicts } = d[1].accessPointMeta;
+    const { verdicts } = d[1].link;
+
     if (verdicts.has(Verdict.Forwarded) && verdicts.has(Verdict.Dropped)) {
       return undefined;
     } else if (verdicts.has(Verdict.Dropped)) {
       return colors.feetDroppedStroke;
     }
+
     return colors.feetForwardedStroke;
   },
   innerSecondVerdictStroke(d: [string, FeetData]) {
-    const { verdicts } = d[1].accessPointMeta;
+    const { verdicts } = d[1].link;
+
     if (verdicts.has(Verdict.Forwarded) && verdicts.has(Verdict.Dropped)) {
       return colors.feetDroppedStroke;
     }
+
     return undefined;
   },
   innerSecondVerdictStrokeDasharray(d: [string, FeetData]) {
-    return d[1].accessPointMeta.verdicts.size > 1 ? '5 4' : undefined;
+    return d[1].link.verdicts.size > 1 ? '5 4' : undefined;
   },
 };
 
@@ -346,7 +351,7 @@ const manageArrows = (props: Props, g: SVGGElement) => {
       connectors.push([fromToId, connectorPosition]);
 
       connectorArrow.connector.accessPointsMap.forEach(
-        (accessPointMeta, accessPointId) => {
+        (link, accessPointId) => {
           const feetId = `${fromToId} -> ${accessPointId}`;
           const accessPointCoord = accessPointsCoords.get(accessPointId);
 
@@ -355,7 +360,7 @@ const manageArrows = (props: Props, g: SVGGElement) => {
           const feetData: FeetData = {
             connectorPosition,
             accessPointCoord,
-            accessPointMeta,
+            link,
           };
 
           feets.push([feetId, feetData]);
