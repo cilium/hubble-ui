@@ -7,7 +7,7 @@ import {
   Verdict,
 } from '~/domain/flows';
 
-import { Link } from '~/domain/service-map';
+import { Link, Service } from '~/domain/service-map';
 
 export interface Filters {
   namespace?: string | null;
@@ -56,6 +56,39 @@ export const filterLink = (link: Link, filters: Filters): boolean => {
   });
 
   return ok;
+};
+
+export const filterService = (service: Service, filters: Filters): boolean => {
+  if (filters.namespace != null && service.namespace !== filters.namespace) {
+    return false;
+  }
+
+  let ok = true;
+  filters.filters?.forEach((ff: FlowsFilterEntry) => {
+    const passed = filterServiceUsingBasicEntry(service, ff);
+
+    ok = ok && passed;
+  });
+
+  return ok;
+};
+
+export const filterServiceUsingBasicEntry = (
+  service: Service,
+  e: FlowsFilterEntry,
+): boolean => {
+  if (e.isIdentity) return service.id === e.query;
+
+  if (e.isLabel) {
+    const labels = service.labels.map(kv => `${kv.key}=${kv.value}`);
+    return labels.includes(e.query);
+  }
+
+  if (e.isDNS) {
+    return service.dnsNames.includes(e.query) || service.id === e.query;
+  }
+
+  return true;
 };
 
 export const filterLinkUsingBasicEntry = (

@@ -1,6 +1,6 @@
 import { XYWH, Vec2 } from './geometry';
 import { ServiceCard } from './service-card';
-import { AccessPointMeta } from './service-map';
+import { Link } from './service-map';
 
 export enum PlacementKind {
   FromWorld = 'FromWorld',
@@ -38,7 +38,7 @@ export interface ServiceConnector {
   id: string;
   sendersIds: Set<string>;
   receiverId: string;
-  accessPointsMap: Map<string, AccessPointMeta>;
+  accessPointsMap: Map<string, Link>;
   position: Vec2;
 }
 
