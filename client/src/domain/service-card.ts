@@ -22,24 +22,7 @@ export class ServiceCard {
   public clone(): ServiceCard {
     return new ServiceCard(_.cloneDeep(this.service));
   }
-  
-// <<<<<<< HEAD
-// =======
 
-//   public updateLinkEndpoint(link: Link) {
-//     const links = this.incidentInteractions.links || [];
-
-//     // TODO: do real actions
-//     links.push(link);
-
-//     this.incidentInteractions.links = links;
-//   }
-
-//   public get links(): Array<Link> {
-//     return this.incidentInteractions.links || [];
-//   }
-
-// >>>>>>> a1fd4c2... feat: do local data (flows / services / layout) filtering not to drop entire store
   public get appProtocol(): ApplicationKind | undefined {
     const appLbl = this.appLabel;
     if (appLbl == null) return undefined;

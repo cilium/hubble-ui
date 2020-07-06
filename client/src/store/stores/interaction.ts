@@ -2,17 +2,14 @@ import _ from 'lodash';
 import { action, observable, computed } from 'mobx';
 
 import { Flow, HubbleFlow } from '~/domain/flows';
-import { Link, AccessPoints, AccessPointMeta } from '~/domain/service-map';
+import { Link, AccessPoints } from '~/domain/service-map';
 import { ids } from '~/domain/ids';
 import { HubbleLink } from '~/domain/hubble';
 import { StateChange } from '~/domain/misc';
 import { flowFromRelay, linkFromRelay } from '~/domain/helpers';
 
-// { cardId -> { cardId -> { acessPointId : AccessPointMeta }  }
-export type ConnectionsMap = Map<
-  string,
-  Map<string, Map<string, AccessPointMeta>>
->;
+// { cardId -> { cardId -> { acessPointId : Link }  }
+export type ConnectionsMap = Map<string, Map<string, Map<string, Link>>>;
 
 export interface Connections {
   readonly outgoings: ConnectionsMap;
@@ -184,9 +181,9 @@ export default class InteractionStore {
     // Connections only gives information about what services are connected
     // and by which access point (apId), it doesnt provide geometry information
     //
-    // outgoings: { senderId -> { receiverId -> Set(apIds) } }
+    // outgoings: { senderId -> { receiverId -> Connection } }
     //                   apIds sets are equal --> ||
-    // incomings: { receiverId -> { senderId -> Set(apIds) } }
+    // incomings: { receiverId -> { senderId -> Connection } }
 
     const outgoings: ConnectionsMap = new Map();
     const incomings: ConnectionsMap = new Map();
@@ -194,20 +191,20 @@ export default class InteractionStore {
     this.links.forEach((link: Link) => {
       const senderId = link.sourceId;
       const receiverId = link.destinationId;
-      const acessPointId = ids.accessPoint(receiverId, link.destinationPort);
+      const accessPointId = ids.accessPoint(receiverId, link.destinationPort);
 
       // Outgoing connection setup
       if (!outgoings.has(senderId)) {
         outgoings.set(senderId, new Map());
       }
 
+      const connectionProps: Map<string, Link> = new Map();
       const sentTo = outgoings.get(senderId)!;
       if (!sentTo.has(receiverId)) {
-        sentTo.set(receiverId, new Map());
+        sentTo.set(receiverId, connectionProps);
       }
 
-      const sentToApIds = sentTo.get(receiverId)!;
-      sentToApIds.set(acessPointId, { verdicts: link.verdicts });
+      connectionProps.set(accessPointId, link);
 
       // Incoming connection setup
       if (!incomings.has(receiverId)) {
@@ -216,11 +213,8 @@ export default class InteractionStore {
 
       const receivedFrom = incomings.get(receiverId)!;
       if (!receivedFrom.has(senderId)) {
-        receivedFrom.set(senderId, new Map());
+        receivedFrom.set(senderId, connectionProps);
       }
-
-      const receivedToApIds = receivedFrom.get(senderId)!;
-      receivedToApIds.set(acessPointId, { verdicts: link.verdicts });
     });
 
     return { outgoings, incomings };

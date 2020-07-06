@@ -6,7 +6,7 @@ import LayoutStore from '~/store/stores/layout';
 import ServiceStore from '~/store/stores/service';
 import ControlStore from '~/store/stores/controls';
 
-import { Filters, filterFlow, filterLink } from '~/domain/filtering';
+import { Filters, filterFlow, filterService } from '~/domain/filtering';
 import { Link, Service } from '~/domain/service-map';
 import { HubbleService, HubbleLink } from '~/domain/hubble';
 import { StateChange } from '~/domain/misc';
@@ -115,58 +115,62 @@ export class StoreFrame {
     const flows: Flow[] = [];
     const links: Link[] = [];
 
-    const allowedServiceIds: Set<string> = new Set();
+    // const allowedServiceIds: Set<string> = new Set();
+    const allowedLinkIds: Set<string> = new Set();
 
-    // We can easily filter flows by filters as we have enough data for it in
-    // one place
-    const wasFlows = this.interactions.flows.length;
+    const extractServiceAndLinks = (obj: Map<string, Map<string, Link>>) => {
+      obj?.forEach((accessPointsMap, serviceId: string) => {
+        const svc = this.services.cardsMap.get(serviceId);
+        if (!svc) return;
+
+        services.addNewCard(svc);
+
+        accessPointsMap.forEach((link: Link, accessPointId: string) => {
+          allowedLinkIds.add(link.id);
+        });
+      });
+    };
+
+    // const wasFlows = this.interactions.flows.length;
     this.interactions.flows.forEach((f: Flow) => {
       if (!filterFlow(f, filters)) return;
-
-      if (f.destinationIdentity != null) {
-        allowedServiceIds.add(`${f.destinationIdentity}`);
-      }
-
-      if (f.sourceIdentity != null) {
-        allowedServiceIds.add(`${f.sourceIdentity}`);
-      }
 
       flows.push(f.clone());
     });
 
-    const afterFilter = flows.length;
-    console.log(`filtering result: ${wasFlows}, afterFilter: ${afterFilter}`);
-    console.log(`allowedServiceIds: `, allowedServiceIds);
+    const connections = this.interactions.connections;
+    this.services.cardsList.forEach((card: ServiceCard) => {
+      // debugger;
+      if (!filterService(card.service, filters)) return;
 
-    // Link doesnt have `namespace`, `httpStatus` and protcol information
-    // We have to filter it using non-direct criteria
-    this.interactions.links.forEach((l: Link) => {
-      if (!filterLink(l, filters)) return;
+      // NOTE: card.id might be not simple identity (number)
+      services.addNewCard(card.clone());
 
-      // TODO: check if such filtering is correct
-      const isLinkForPresentService =
-        allowedServiceIds.has(l.sourceId) ||
-        allowedServiceIds.has(l.destinationId);
-
-      if (!isLinkForPresentService) return;
-
-      links.push(_.cloneDeep(l));
-    });
-
-    this.services.cardsList.forEach((c: ServiceCard) => {
-      // TODO: is it required to additionaly check namespace / labels?
-      const isOk = allowedServiceIds.has(c.id);
-      if (!isOk) return;
-
-      if (this.services.isCardActive(c.id)) {
-        services.setActive(c.id);
+      if (this.services.isCardActive(card.id)) {
+        services.setActive(card.id);
       }
 
-      services.addNewCard(c.clone());
+      const outgoings = connections.outgoings.get(card.id);
+      const incomings = connections.incomings.get(card.id);
+
+      outgoings && extractServiceAndLinks(outgoings);
+      incomings && extractServiceAndLinks(incomings);
+    });
+
+    allowedLinkIds.forEach((linkId: string) => {
+      const link = this.interactions.linksMap.get(linkId);
+      if (!link) return;
+
+      links.push(_.cloneDeep(link));
     });
 
     interactions.setFlows(flows);
     interactions.setLinks(links);
+
+    console.log(`after frame.filter: allowedLinkIds: `, allowedLinkIds);
+    console.log(`after frame.filter: flows: `, flows.slice());
+    console.log(`after frame.filter: links: `, links.slice());
+    console.log(`after frame.filter: services: `, services.cardsList.slice());
 
     return new StoreFrame(interactions, services, this.controls);
   }
