@@ -102,7 +102,10 @@ const startPlatesEnter = (enter: any) => {
 };
 
 const startPlatesUpdate = (update: any) => {
-  return update.select('g path').attr('d', startPlatePath);
+  // XXX: why d3.select('g path').attr(...) is not working?
+  return update.each((d: any, i: any, e: any) => {
+    d3.select(e[i]).select('path').attr('d', startPlatePath);
+  });
 };
 
 const arrowHandle = (handle: [Vec2, Vec2] | null): string => {
@@ -329,6 +332,7 @@ const manageArrows = (props: Props, g: SVGGElement) => {
   const startPlates: Array<[string, Vec2]> = [];
   const arrows: Array<Arrow> = [];
   const connectors: Array<[string, Vec2]> = [];
+  const knownConnectors: Set<string> = new Set();
   const feets: Array<[string, FeetData]> = [];
 
   // Just split data to simple arrays so that it will be easier to work
@@ -347,25 +351,26 @@ const manageArrows = (props: Props, g: SVGGElement) => {
           handles: arrowHandles,
       }]);
 
-      const connectorPosition = connectorArrow.connector.position;
-      connectors.push([fromToId, connectorPosition]);
+      const connector = connectorArrow.connector;
+      if (!knownConnectors.has(connector.id)) {
+        connectors.push([connector.id, connector.position]);
+        knownConnectors.add(connector.id);
+      }
 
-      connectorArrow.connector.accessPointsMap.forEach(
-        (link, accessPointId) => {
-          const feetId = `${fromToId} -> ${accessPointId}`;
-          const accessPointCoord = accessPointsCoords.get(accessPointId);
+      connector.accessPointsMap.forEach((link, accessPointId) => {
+        const feetId = `${fromToId} -> ${accessPointId}`;
+        const accessPointCoord = accessPointsCoords.get(accessPointId);
 
-          if (accessPointCoord == null) return;
+        if (accessPointCoord == null) return;
 
-          const feetData: FeetData = {
-            connectorPosition,
-            accessPointCoord,
-            link,
-          };
+        const feetData: FeetData = {
+          connectorPosition: connector.position,
+          accessPointCoord,
+          link,
+        };
 
-          feets.push([feetId, feetData]);
-        },
-      );
+        feets.push([feetId, feetData]);
+      });
     });
   });
 

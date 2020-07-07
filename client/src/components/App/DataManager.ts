@@ -3,7 +3,7 @@ import * as mockData from '~/api/__mocks__/data';
 import { GeneralStreamEventKind } from '~/api/general/stream';
 
 import { HubbleFlow } from '~/domain/hubble';
-import { Filters } from '~/domain/filtering';
+import { Filters, areFiltersEqual } from '~/domain/filtering';
 import { EventEmitter } from '~/utils/emitter';
 import {
   EventParamsSet,
@@ -184,5 +184,24 @@ export class DataManager extends EventEmitter<Events> {
 
   public get hasFilteringStream(): boolean {
     return this.filteringStream != null;
+  }
+
+  public get filtersChanged(): boolean {
+    if (this.filteringStream != null && this.filteringStream.dataFilters) {
+      return !areFiltersEqual(
+        this.store.controls.dataFilters,
+        this.filteringStream.dataFilters,
+      );
+    }
+
+    if (this.mainStream != null && this.mainStream.dataFilters) {
+      // debugger;
+      return !areFiltersEqual(
+        this.store.controls.dataFilters,
+        this.mainStream.dataFilters,
+      );
+    }
+
+    return false;
   }
 }

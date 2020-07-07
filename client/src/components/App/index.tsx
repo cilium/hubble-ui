@@ -77,10 +77,12 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
         const { namespaces, currentNamespace } = store.controls;
         if (currentNamespace && namespaces.includes(currentNamespace)) return;
 
-        const message = `Namespace "${currentNamespace}" is still not observed. Keep waiting for the data`;
+        const message = `
+        Namespace "${currentNamespace}" is still not observed.
+        Keep waiting for the data.
+      `;
 
         notifier.showWarning(message, 5000, IconNames.SEARCH_AROUND);
-
         storage.deleteLastNamespace();
       }, 2000),
     );
@@ -100,13 +102,12 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       dataManager.resetNamespace(newNamespace);
     }
 
+    const filtersChanged = dataManager.filtersChanged;
     if (dataManager.hasFilteringStream) {
       dataManager.dropFilteringFrame();
     }
 
-    const filtersNonNull = !store.controls.isDefault;
-
-    if (filtersNonNull) {
+    if (filtersChanged) {
       dataManager.setupFilteringFrame(store.controls.currentNamespace);
     }
 
