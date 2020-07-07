@@ -38,6 +38,18 @@
   }
 
   .namespacesDropdownButton {
+    display: flex;
+    flex-wrap: nowrap;
     width: 240px;
+
+    :global(.bp3-button-text) {
+      white-space: pre;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .namespacesDropdownButtonIcon {
+    width: 14px;
   }
 }
