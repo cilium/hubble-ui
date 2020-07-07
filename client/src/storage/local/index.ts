@@ -13,6 +13,10 @@ export function saveLastNamespace(ns: string) {
   localStorage.setItem(LAST_NAMESPACE_KEY, ns);
 }
 
+export function deleteLastNamespace() {
+  localStorage.removeItem(LAST_NAMESPACE_KEY);
+}
+
 export function getFlowsTableVisibleColumns(): Set<FlowsTableColumnKey> | null {
   const val = localStorage.getItem(FLOWS_TABLE_VISIBLE_COLUMNS_KEY);
   if (!val) return null;

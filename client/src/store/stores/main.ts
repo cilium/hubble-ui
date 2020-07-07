@@ -13,15 +13,13 @@ import {
   FlowsFilterDirection,
 } from '~/domain/flows';
 
-import { InteractionKind, Link, Service } from '~/domain/service-map';
+import { Service } from '~/domain/service-map';
 import { StateChange } from '~/domain/misc';
-import { ids } from '~/domain/ids';
 import { setupDebugProp } from '~/domain/misc';
 import { Vec2 } from '~/domain/geometry';
 import { HubbleService, HubbleLink, HubbleFlow } from '~/domain/hubble';
 
 import InteractionStore from './interaction';
-import LayoutStore from './layout';
 import RouteStore, { RouteHistorySourceKind } from './route';
 import ServiceStore from './service';
 import ControlStore from './controls';
@@ -47,9 +45,9 @@ export class Store {
     this.frames = [];
 
     this.createMainFrame();
+    this.setupReactions();
     this.restoreNamespace();
     this.restoreVisualFilters();
-    this.setupReactions();
     this.setupDebugTools();
   }
 
@@ -195,7 +193,6 @@ export class Store {
       reaction.dispose();
     });
 
-    // syncing with url
     reaction(
       () => this.controls.currentNamespace,
       namespace => {
@@ -339,8 +336,7 @@ export class Store {
     const lastNamespace = storage.getLastNamespace();
     if (!lastNamespace) return;
 
-    // this.route.goto(`/${lastNamespace}`);
-    this.route.setNamespace(lastNamespace);
+    this.controls.setCurrentNamespace(lastNamespace);
   }
 
   @action.bound
@@ -370,11 +366,11 @@ export class Store {
   get mainFrame(): StoreFrame {
     if (this.frames.length === 0) throw new Error('main frame is undefined');
 
-    return this.frames[0]!;
+    return this.frames[0];
   }
 
   @computed
   get currentFrame(): StoreFrame {
-    return this.frames[this.frames.length - 1]!;
+    return this.frames[this.frames.length - 1];
   }
 }
