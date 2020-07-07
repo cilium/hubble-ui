@@ -2,11 +2,13 @@ import _ from 'lodash';
 
 import { Service, ApplicationKind } from './service-map';
 import { KV } from './misc';
-import { Labels } from './labels';
+import { Labels, LabelsProps } from './labels';
 
 // This entity maintains ONLY THE DATA of service card
 export class ServiceCard {
   public static readonly AppLabel = 'k8s:app';
+
+  private _labelsProps: LabelsProps | null = null;
 
   public service: Service;
 
@@ -35,8 +37,16 @@ export class ServiceCard {
     return undefined;
   }
 
+  private get labelsProps(): LabelsProps {
+    if (this._labelsProps === null) {
+      this._labelsProps = Labels.detect(this.service.labels);
+    }
+
+    return this._labelsProps;
+  }
+
   public get appLabel(): string | null {
-    return Labels.findAppNameInLabels(this.service.labels);
+    return this.labelsProps.appName || null;
   }
 
   public get isCovalentRelated(): boolean {
@@ -75,19 +85,23 @@ export class ServiceCard {
   }
 
   public get isWorld(): boolean {
-    return Labels.isWorld(this.service.labels);
+    return this.labelsProps.isWorld;
   }
 
   public get isHost(): boolean {
-    return Labels.isHost(this.service.labels);
+    return this.labelsProps.isHost;
   }
 
   public get isInit(): boolean {
-    return Labels.isInit(this.service.labels);
+    return this.labelsProps.isInit;
   }
 
   public get isRemoteNode(): boolean {
-    return Labels.isRemoteNode(this.service.labels);
+    return this.labelsProps.isRemoteNode;
+  }
+
+  public get isKubeDNS(): boolean {
+    return this.labelsProps.isKubeDNS;
   }
 
   public get isCIDR(): boolean {

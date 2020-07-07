@@ -44,8 +44,6 @@ export const EndpointCardContent = memo(function EndpointCardContent(
       return;
     }
 
-    // console.log(`emitting connector coords from card: ${props.card.appLabel || props.card.id}`);
-    // console.log(`center getters: `, centerGetters);
     centerGetters.forEach((cg: CenterGetter, apId: string) => {
       const connectorCenter = centerGetters.get(apId)!();
       const relCoords = connectorCenter.sub(Vec2.fromXY(bbox));

@@ -612,10 +612,6 @@ export default class LayoutStore {
         const senders = this.connections.incomings.get(receiverId);
         if (senders == null) return;
 
-        const nSenders = senders.size;
-        const gutHeight = (nSenders - 1) * connectorGap;
-        const idx = connectorIndices.get(receiverId) || 0;
-
         const midPoint = this.connectorMidPoints.get(receiverId);
         if (midPoint == null) return;
 
@@ -627,15 +623,18 @@ export default class LayoutStore {
           accessPointsMap.keys(),
         );
 
+        const idx = connectorIndices.get(receiverId) || 0;
         const existedConnector = connectors.get(connectorId);
         if (existedConnector) {
           existedConnector.sendersIds.add(senderId);
           senderConnectors.set(receiverId, existedConnector);
           return;
+        } else {
+          connectorIndices.set(receiverId, idx + 1);
         }
 
         const position = midPoint.clone();
-        position.y = midPoint.y - gutHeight / 2 + idx * connectorGap;
+        position.y = midPoint.y + idx * connectorGap;
         position.x = cardBBox.x - sizes.connectorCardGap;
 
         const newConnector: ServiceConnector = {
@@ -648,8 +647,14 @@ export default class LayoutStore {
 
         connectors.set(connectorId, newConnector);
         senderConnectors.set(receiverId, newConnector);
-        connectorIndices.set(receiverId, idx + 1);
       });
+    });
+
+    connectors.forEach((connector: ServiceConnector, connectorId: string) => {
+      const nConnectors = connectorIndices.get(connector.receiverId)!;
+      const gutHeight = (nConnectors - 1) * connectorGap;
+
+      connector.position.y -= gutHeight / 2;
     });
 
     return index;
@@ -704,30 +709,17 @@ export default class LayoutStore {
   get connectorMidPoints(): Map<string, Vec2> {
     const index = new Map<string, Vec2>();
 
-    this.connections.incomings.forEach((receiverIndex, receiverId) => {
-      let midPoint = Vec2.from(0, 0);
-      let npoints = 0;
+    this.interactions.accessPoints.forEach((accessPoints, cardId) => {
+      const position = Vec2.zero();
 
-      // TODO: would be cool to be able to fetch it from service card
-      // WARN: it could be a strange architecture
-      const receiverAccessPoints: Set<string> = new Set();
+      accessPoints.forEach(accessPoint => {
+        const coords = this.accessPointsCoords.get(accessPoint.id);
+        if (!coords) return;
 
-      receiverIndex.forEach(accessPointsMap => {
-        accessPointsMap.forEach((_, accessPointId) => {
-          receiverAccessPoints.add(accessPointId);
-        });
+        position.addInPlace(coords);
       });
 
-      receiverAccessPoints.forEach(accessPointId => {
-        const position = this.accessPointsCoords.get(accessPointId);
-        if (position == null) return;
-
-        midPoint = midPoint.add(position);
-        npoints += 1;
-      });
-
-      if (npoints === 0) return;
-      index.set(receiverId, midPoint.mul(1 / npoints));
+      index.set(cardId, position.mul(1 / accessPoints.size));
     });
 
     return index;

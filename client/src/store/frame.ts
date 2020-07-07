@@ -73,11 +73,6 @@ export class StoreFrame {
     this.interactions.setHubbleLinks(links);
   }
 
-  // @action.bound
-  // updateLinkEndpoints(links: HubbleLink[]) {
-  //   this.services.updateLinkEndpoints(links);
-  // }
-
   @action.bound
   setAccessPointCoords(apId: string, coords: Vec2) {
     this.layout.setAccessPointCoords(apId, coords);
@@ -115,11 +110,13 @@ export class StoreFrame {
     const flows: Flow[] = [];
     const links: Link[] = [];
 
-    // const allowedServiceIds: Set<string> = new Set();
+    const allowedServiceIds: Set<string> = new Set();
     const allowedLinkIds: Set<string> = new Set();
 
     const extractServiceAndLinks = (obj: Map<string, Map<string, Link>>) => {
       obj?.forEach((accessPointsMap, serviceId: string) => {
+        if (!allowedServiceIds.has(serviceId)) return;
+
         const svc = this.services.cardsMap.get(serviceId);
         if (!svc) return;
 
@@ -131,7 +128,6 @@ export class StoreFrame {
       });
     };
 
-    // const wasFlows = this.interactions.flows.length;
     this.interactions.flows.forEach((f: Flow) => {
       if (!filterFlow(f, filters)) return;
 
@@ -140,17 +136,22 @@ export class StoreFrame {
 
     const connections = this.interactions.connections;
     this.services.cardsList.forEach((card: ServiceCard) => {
-      if (!filterService(card.service, filters)) return;
+      if (!filterService(card, filters)) return;
 
       // NOTE: card.id might be not simple identity (number)
       services.addNewCard(card.clone());
+      allowedServiceIds.add(card.id);
 
       if (this.services.isCardActive(card.id)) {
         services.setActive(card.id);
       }
+    });
 
-      const outgoings = connections.outgoings.get(card.id);
-      const incomings = connections.incomings.get(card.id);
+    // NOTE: tricky point here: if this loop is placed inside previous loop
+    // services and links that were skipped by filters can be saved :(
+    allowedServiceIds.forEach((svcId: string) => {
+      const outgoings = connections.outgoings.get(svcId);
+      const incomings = connections.incomings.get(svcId);
 
       outgoings && extractServiceAndLinks(outgoings);
       incomings && extractServiceAndLinks(incomings);
