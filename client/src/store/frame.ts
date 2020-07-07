@@ -73,11 +73,6 @@ export class StoreFrame {
     this.interactions.setHubbleLinks(links);
   }
 
-  // @action.bound
-  // updateLinkEndpoints(links: HubbleLink[]) {
-  //   this.services.updateLinkEndpoints(links);
-  // }
-
   @action.bound
   setAccessPointCoords(apId: string, coords: Vec2) {
     this.layout.setAccessPointCoords(apId, coords);

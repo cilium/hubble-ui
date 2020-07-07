@@ -349,7 +349,7 @@ export class Store {
   private printMapData() {
     const data = {
       services: this.currentFrame.services.cardsList.map(c => c.service),
-      links: this.currentFrame.interactions.links,
+      links: this.currentFrame.interactions.links.map(l => l.hubbleLink),
     };
 
     console.log(JSON.stringify(data, null, 2));

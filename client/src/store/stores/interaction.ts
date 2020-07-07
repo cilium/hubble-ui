@@ -6,7 +6,7 @@ import { Link, AccessPoints } from '~/domain/service-map';
 import { ids } from '~/domain/ids';
 import { HubbleLink } from '~/domain/hubble';
 import { StateChange } from '~/domain/misc';
-import { flowFromRelay, linkFromRelay } from '~/domain/helpers';
+import { flowFromRelay } from '~/domain/helpers';
 
 // { cardId -> { cardId -> { acessPointId : Link }  }
 export type ConnectionsMap = Map<string, Map<string, Map<string, Link>>>;
@@ -60,8 +60,10 @@ export default class InteractionStore {
   }
 
   @action.bound
-  setHubbleLinks(links: HubbleLink[]) {
-    links.forEach(this.addLink);
+  setHubbleLinks(hubbleLinks: HubbleLink[]) {
+    const links = hubbleLinks.map(Link.fromHubbleLink);
+
+    this.setLinks(links);
   }
 
   @action.bound
@@ -141,7 +143,7 @@ export default class InteractionStore {
   private addLink(hubbleLink: HubbleLink) {
     if (this.linksMap.has(hubbleLink.id)) return this.updateLink(hubbleLink);
 
-    this.links.push(linkFromRelay(hubbleLink));
+    this.links.push(Link.fromHubbleLink(hubbleLink));
   }
 
   @action.bound
@@ -168,10 +170,7 @@ export default class InteractionStore {
     if (idx === -1) return;
 
     const currentLink = this.links[idx];
-    const updatedLink: Link = {
-      ...currentLink,
-      verdicts: new Set([...currentLink.verdicts, hubbleLink.verdict]),
-    };
+    const updatedLink = currentLink.updateWithHubbleLink(hubbleLink);
 
     this.links.splice(idx, 1, updatedLink);
   }
