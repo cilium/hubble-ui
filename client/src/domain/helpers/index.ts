@@ -317,8 +317,3 @@ export const msToPbTimestamp = (ms: number): Time => {
 export const flowFromRelay = (hubbleFlow: HubbleFlow): Flow => {
   return new Flow(hubbleFlow);
 };
-
-export const linkFromRelay = (hubbleLink: HubbleLink): Link => {
-  const { verdict, ...props } = hubbleLink;
-  return { ...props, verdicts: new Set([verdict]) };
-};

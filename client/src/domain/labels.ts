@@ -1,5 +1,15 @@
 import { KV } from '~/domain/misc';
 
+export interface LabelsProps {
+  isHost: boolean;
+  isWorld: boolean;
+  isRemoteNode: boolean;
+  isKubeDNS: boolean;
+  isInit: boolean;
+  isHealth: boolean;
+  appName?: string;
+}
+
 export enum ReservedLabel {
   Host = 'reserved:host',
   World = 'reserved:world',
@@ -8,6 +18,10 @@ export enum ReservedLabel {
   RemoteNode = 'reserved:remote-node',
   Unmanaged = 'reserved:unmanaged',
   Unknown = 'reserved:unknown',
+}
+
+export enum SpecialLabel {
+  KubeDNS = 'k8s:k8s-app=kube-dns',
 }
 
 export class Labels {
@@ -82,5 +96,36 @@ export class Labels {
 
   public static isRemoteNode(labels: KV[]): boolean {
     return Labels.haveReserved(labels, ReservedLabel.RemoteNode);
+  }
+
+  public static detect(labels: KV[]): LabelsProps {
+    const props: LabelsProps = {
+      isWorld: false,
+      isHost: false,
+      isInit: false,
+      isRemoteNode: false,
+      isKubeDNS: false,
+      isHealth: false,
+    };
+
+    labels.forEach((kv: KV) => {
+      const nkey = Labels.normalizeKey(kv.key);
+
+      props.isWorld = !!props.isWorld || nkey === ReservedLabel.World;
+      props.isHost = !!props.isHost || nkey === ReservedLabel.Host;
+      props.isInit = !!props.isInit || nkey === ReservedLabel.Init;
+      props.isHealth = !!props.isHealth || nkey === ReservedLabel.Health;
+      props.isKubeDNS =
+        !!props.isKubeDNS || `${kv.key}=${kv.value}` === SpecialLabel.KubeDNS;
+      props.isRemoteNode =
+        !!props.isRemoteNode || nkey === ReservedLabel.RemoteNode;
+    });
+
+    const appName = Labels.findAppNameInLabels(labels);
+    if (appName != null) {
+      props.appName = appName;
+    }
+
+    return props;
   }
 }

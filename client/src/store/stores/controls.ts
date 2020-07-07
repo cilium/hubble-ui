@@ -3,6 +3,7 @@ import { action, observable, computed } from 'mobx';
 
 import { Flow, FlowsFilterEntry, FlowsFilterKind } from '~/domain/flows';
 import { Verdict } from '~/domain/hubble';
+import { Filters } from '~/domain/filtering';
 
 // This store maintains data that is configured by control interfaces
 export default class ControlStore {
@@ -126,7 +127,7 @@ export default class ControlStore {
   }
 
   @computed
-  get dataFilters() {
+  get dataFilters(): Filters {
     return {
       namespace: this.currentNamespace,
       verdict: this.verdict,
