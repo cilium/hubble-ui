@@ -1,8 +1,7 @@
 import _ from 'lodash';
 
-import { Service, Link, ApplicationKind, Interactions } from './service-map';
+import { Service, ApplicationKind } from './service-map';
 import { KV } from './misc';
-import { reserved } from './cilium';
 import { Labels } from './labels';
 
 // This entity maintains ONLY THE DATA of service card
@@ -22,7 +21,6 @@ export class ServiceCard {
   public clone(): ServiceCard {
     return new ServiceCard(_.cloneDeep(this.service));
   }
-
   public get appProtocol(): ApplicationKind | undefined {
     const appLbl = this.appLabel;
     if (appLbl == null) return undefined;

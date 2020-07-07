@@ -1,5 +1,3 @@
-import { useState, useCallback } from 'react';
-
 import { API } from '~/api/general';
 import * as mockData from '~/api/__mocks__/data';
 import { GeneralStreamEventKind } from '~/api/general/stream';
@@ -18,12 +16,14 @@ import {
 } from '~/api/general/event-stream';
 
 import { Store, StoreFrame } from '~/store';
+import { StateChange } from '~/domain/misc';
 
 export enum EventKind {
   StreamError = 'stream-error',
   StreamEnd = 'stream-end',
   FlowsDiff = 'flows-diff',
   StoreMocked = 'store-mocked',
+  NamespaceAdded = 'namespace-added',
 }
 
 type Events = {
@@ -31,6 +31,7 @@ type Events = {
   [EventKind.StreamEnd]: () => void;
   [EventKind.FlowsDiff]: (diff: number) => void;
   [EventKind.StoreMocked]: () => void;
+  [EventKind.NamespaceAdded]: (namespace: string) => void;
 };
 
 interface StreamDescriptor {
@@ -136,6 +137,10 @@ export class DataManager extends EventEmitter<Events> {
   private setupNamespaceEventHandlers(stream: IEventStream) {
     stream.on(EventStreamEventKind.Namespace, (nsChange: NamespaceChange) => {
       this.store.applyNamespaceChange(nsChange.name, nsChange.change);
+
+      if (nsChange.change === StateChange.Added) {
+        this.emit(EventKind.NamespaceAdded, nsChange.name);
+      }
     });
   }
 

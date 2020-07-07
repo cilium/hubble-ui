@@ -1,6 +1,6 @@
-import React, { FunctionComponent } from 'react';
+import React, { FunctionComponent, useCallback } from 'react';
 import { ItemRenderer, ItemPredicate, Select } from '@blueprintjs/select';
-import { Button, ButtonGroup, MenuItem } from '@blueprintjs/core';
+import { Button, MenuItem } from '@blueprintjs/core';
 
 import { usePopover } from '~/ui/hooks/usePopover';
 
@@ -36,22 +36,29 @@ export interface Props {
 }
 
 export const NamespaceDropdown: FunctionComponent<Props> = props => {
+  const { namespaces, currentNamespace } = props;
+
   const popover = usePopover();
 
-  const onChange = (ns: string) => {
-    if (props.onChange) {
-      props.onChange(ns);
-    }
-  };
+  // prettier-ignore
+  const onChange = useCallback(
+    (ns: string) => props.onChange?.(ns),
+    [props.onChange]
+  );
 
   const btnIcon = (
-    <img src="/icons/misc/namespace-icon.svg" style={{ width: '14px' }} />
+    <img
+      src="/icons/misc/namespace-icon.svg"
+      className={css.namespacesDropdownButtonIcon}
+    />
   );
 
   const currentValue =
-    props.currentNamespace == null
-      ? 'Choose namespace'
-      : props.currentNamespace;
+    currentNamespace && namespaces.includes(currentNamespace)
+      ? currentNamespace
+      : currentNamespace
+      ? `Waiting ${currentNamespace} namespace…`
+      : 'Choose namespace';
 
   return (
     <NamespaceSelect
@@ -60,7 +67,7 @@ export const NamespaceDropdown: FunctionComponent<Props> = props => {
       resetOnSelect
       itemPredicate={filterItem}
       itemRenderer={renderItem}
-      items={props.namespaces || []}
+      items={namespaces || []}
       noResults={<MenuItem disabled={true} text="No matches" />}
       onItemSelect={onChange}
       popoverProps={popover.props}

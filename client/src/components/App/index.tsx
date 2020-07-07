@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import React, {
   FunctionComponent,
   useCallback,
@@ -5,6 +6,7 @@ import React, {
   useState,
   useMemo,
 } from 'react';
+import { IconNames } from '@blueprintjs/icons';
 import { RouteComponentProps, Router } from '@reach/router';
 import { observer } from 'mobx-react';
 
@@ -13,7 +15,6 @@ import { DetailsPanel } from '~/components/DetailsPanel';
 import { Map } from '~/components/Map';
 import { LoadingOverlay } from '~/components/Misc/LoadingOverlay';
 
-import { HubbleFlow } from '~/domain/hubble';
 import { ServiceCard } from '~/domain/service-card';
 import { Vec2 } from '~/domain/geometry';
 
@@ -21,20 +22,11 @@ import { useStore } from '~/store';
 import { useNotifier } from '~/notifier';
 
 import { API } from '~/api/general';
-import {
-  EventParamsSet,
-  EventKind as EventStreamEventKind,
-  NamespaceChange,
-  ServiceChange,
-  ServiceLinkChange,
-  IEventStream,
-  DataFilters,
-} from '~/api/general/event-stream';
+import * as storage from '~/storage/local';
+import { DataManager, EventKind as DataManagerEvents } from './DataManager';
 
 import css from './styles.scss';
-import { GeneralStreamEventKind } from '~/api/general/stream';
 import { WelcomeScreen } from './WelcomeScreen';
-import { DataManager, EventKind as DataManagerEvents } from './DataManager';
 
 export interface AppProps extends RouteComponentProps {
   api: API;
@@ -73,6 +65,20 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       setFlowsDiffCount({ value });
     });
 
+    dataManager.on(
+      DataManagerEvents.NamespaceAdded,
+      _.debounce(() => {
+        const { namespaces, currentNamespace } = store.controls;
+        if (currentNamespace && namespaces.includes(currentNamespace)) return;
+
+        const message = `Namespace "${currentNamespace}" is still not observed. Keep waiting for the data`;
+
+        notifier.showWarning(message, 5000, IconNames.SEARCH_AROUND);
+
+        storage.deleteLastNamespace();
+      }, 2000),
+    );
+
     if (store.mocked) {
       dataManager.setupMock();
     } else if (store.controls.currentNamespace == null) {
@@ -95,7 +101,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     const filtersNonNull = !store.controls.isDefault;
 
     if (filtersNonNull) {
-      dataManager.setupFilteringFrame(store.controls.currentNamespace!);
+      dataManager.setupFilteringFrame(store.controls.currentNamespace);
     }
   }, [store.controls.dataFilters]);
 
