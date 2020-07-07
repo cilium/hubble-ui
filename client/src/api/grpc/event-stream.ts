@@ -16,7 +16,7 @@ import { Flow, FlowFilter, EventTypeFilter } from '~/proto/flow/flow_pb';
 import { HubbleFlow } from '~/domain/hubble';
 import { FlowsFilterDirection, FlowsFilterKind } from '~/domain/flows';
 import { CiliumEventTypes } from '~/domain/cilium';
-import { ReservedLabel } from '~/domain/labels';
+import { ReservedLabel, SpecialLabel } from '~/domain/labels';
 import * as dataHelpers from '~/domain/helpers';
 
 import { EventEmitter } from '~/utils/emitter';
@@ -231,8 +231,8 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
         new FlowFilter(),
         new FlowFilter(),
       ];
-      blSrcKubeDnsFilter.addSourceLabel('k8s:k8s-app=kube-dns');
-      blDstKubeDnsFilter.addDestinationLabel('k8s:k8s-app=kube-dns');
+      blSrcKubeDnsFilter.addSourceLabel(SpecialLabel.KubeDNS);
+      blDstKubeDnsFilter.addDestinationLabel(SpecialLabel.KubeDNS);
       blDstKubeDnsFilter.addDestinationPort('53');
       blFilters.push(blSrcKubeDnsFilter, blDstKubeDnsFilter);
     }

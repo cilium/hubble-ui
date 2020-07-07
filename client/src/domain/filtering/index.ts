@@ -8,13 +8,45 @@ import {
 } from '~/domain/flows';
 
 import { Link, Service } from '~/domain/service-map';
+import { ServiceCard } from '~/domain/service-card';
 
 export interface Filters {
   namespace?: string | null;
   verdict?: Verdict | null;
   httpStatus?: string | null;
   filters?: FlowsFilterEntry[];
+  skipHost?: boolean;
+  skipKubeDns?: boolean;
 }
+
+export const areFiltersEqual = (a: Filters, b: Filters): boolean => {
+  if (
+    a.namespace != b.namespace ||
+    a.verdict != b.verdict ||
+    a.httpStatus != b.httpStatus ||
+    a.skipHost != b.skipHost ||
+    a.skipKubeDns != b.skipKubeDns
+  )
+    return false;
+
+  const aEntries = (a.filters || []).reduce((acc, f) => {
+    acc.add(f.toString());
+    return acc;
+  }, new Set());
+
+  const bEntries = (b.filters || []).reduce((acc, f) => {
+    acc.add(f.toString());
+    return acc;
+  }, new Set());
+
+  if (aEntries.size !== bEntries.size) return false;
+
+  for (const f of aEntries) {
+    if (!bEntries.has(f)) return false;
+  }
+
+  return true;
+};
 
 export const filterFlow = (flow: Flow, filters: Filters): boolean => {
   if (filters.namespace != null) {
@@ -58,10 +90,13 @@ export const filterLink = (link: Link, filters: Filters): boolean => {
   return ok;
 };
 
-export const filterService = (service: Service, filters: Filters): boolean => {
+export const filterService = (svc: ServiceCard, filters: Filters): boolean => {
+  if (filters.skipHost && svc.isHost) return false;
+  if (filters.skipKubeDns && svc.isKubeDNS) return false;
+
   let ok = true;
   filters.filters?.forEach((ff: FlowsFilterEntry) => {
-    const passed = filterServiceUsingBasicEntry(service, ff);
+    const passed = filterServiceUsingBasicEntry(svc.service, ff);
 
     ok = ok && passed;
   });

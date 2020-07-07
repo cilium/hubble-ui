@@ -6,11 +6,11 @@ import {
   HubbleLink,
 } from './hubble';
 
+import { Link } from './link';
+
 export type Service = HubbleService;
 
-export type Link = Omit<HubbleLink, 'verdict'> & {
-  verdicts: Set<Verdict>;
-};
+export { Link };
 
 export interface AccessPoint {
   id: string;

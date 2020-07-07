@@ -292,22 +292,16 @@ export class Store {
   }
 
   @action.bound
-  public toggleShowKubeDns(flush = true): boolean {
+  public toggleShowKubeDns(): boolean {
     const isActive = this.controls.toggleShowKubeDns();
-    if (flush) {
-      this.flush();
-    }
 
     storage.saveShowKubeDns(isActive);
     return isActive;
   }
 
   @action.bound
-  public toggleShowHost(flush = true): boolean {
+  public toggleShowHost(): boolean {
     const isActive = this.controls.toggleShowHost();
-    if (flush) {
-      this.flush();
-    }
 
     storage.saveShowHost(isActive);
     return isActive;
@@ -349,7 +343,7 @@ export class Store {
   private printMapData() {
     const data = {
       services: this.currentFrame.services.cardsList.map(c => c.service),
-      links: this.currentFrame.interactions.links,
+      links: this.currentFrame.interactions.links.map(l => l.hubbleLink),
     };
 
     console.log(JSON.stringify(data, null, 2));
