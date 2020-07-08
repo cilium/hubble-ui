@@ -75,6 +75,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       DataManagerEvents.NamespaceAdded,
       _.debounce(() => {
         const { namespaces, currentNamespace } = store.controls;
+        if (currentNamespace == null) return;
         if (currentNamespace && namespaces.includes(currentNamespace)) return;
 
         const message = `

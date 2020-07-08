@@ -19,14 +19,6 @@ export const usePanelResize = () => {
   }, []);
 
   useEffect(() => {
-    if (ref.current == null) return;
-    const bbox = ref.current.getBoundingClientRect();
-    const top = 1 - bbox.y / window.innerHeight;
-
-    setPanelTop(top);
-  }, [ref.current]);
-
-  useEffect(() => {
     storage.setDetailsPanelTop(panelTop);
   }, [panelTop]);
 
