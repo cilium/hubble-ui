@@ -40,14 +40,12 @@ export const DetailsPanelComponent = function (props: Props) {
   }, [props.flowsDiffCount]);
 
   const onStreamStop = useCallback(() => {
-    if (!props.onStreamStop) return;
-
-    props.onStreamStop();
+    props.onStreamStop?.();
   }, [props.onStreamStop]);
 
   useEffect(() => {
     props.onPanelResize?.(panelResize.props);
-  }, [panelResize.props]);
+  }, [props.onPanelResize, panelResize.props]);
 
   const tableLoaded = props.flows.length > 0 && props.isStreaming;
 

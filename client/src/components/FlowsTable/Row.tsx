@@ -29,10 +29,12 @@ export const Row = memo<RowProps>(function FlowsTableRow(props) {
   ) : (
     ''
   );
-  const destinationSubtitle = flow.destinationDns ? (
-    <span className={css.subtitle}>{flow.destinationDns}</span>
-  ) : flow.destinationNamespace ? (
+  const destinationSubtitle = flow.destinationNamespace ? (
     <span className={css.subtitle}>{flow.destinationNamespace}</span>
+  ) : flow.destinationDns ? (
+    <span className={css.subtitle}>{flow.destinationDns}</span>
+  ) : flow.destinationIp ? (
+    <span className={css.subtitle}>{flow.destinationIp}</span>
   ) : (
     ''
   );
