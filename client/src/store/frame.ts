@@ -115,10 +115,11 @@ export class StoreFrame {
 
     const extractServiceAndLinks = (obj: Map<string, Map<string, Link>>) => {
       obj?.forEach((accessPointsMap, serviceId: string) => {
-        if (!allowedServiceIds.has(serviceId)) return;
-
         const svc = this.services.cardsMap.get(serviceId);
         if (!svc) return;
+
+        if (filters.skipHost && svc.isHost) return;
+        if (filters.skipKubeDns && svc.isKubeDNS) return;
 
         services.addNewCard(svc);
 
