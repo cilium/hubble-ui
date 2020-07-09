@@ -16,6 +16,7 @@ import {
   Endpoint as PBEndpoint,
   FlowType as PBFlowType,
   L7FlowType as PBL7FlowType,
+  TrafficDirection as PBTrafficDirection,
   CiliumEventType as PBCiliumEventType,
   Service as PBService,
 } from '~/proto/flow/flow_pb';
@@ -41,6 +42,7 @@ import {
   HubbleService,
   HubbleLink,
   IPProtocol,
+  TrafficDirection,
 } from '~/domain/hubble';
 
 import {
@@ -53,7 +55,6 @@ import {
 import { StateChange } from '~/domain/misc';
 import { KV } from '~/domain/misc';
 import { Flow } from '~/domain/flows';
-import { Link } from '~/domain/service-map';
 
 import * as verdictHelpers from './verdict';
 export * from './verdict';
@@ -81,6 +82,7 @@ export const hubbleFlowFromPb = (flow: PBFlow): HubbleFlow => {
   const eventType = ciliumEventTypeFromPb(flow.getEventType());
   const sourceService = flowServiceFromPb(flow.getSourceService());
   const destinationService = flowServiceFromPb(flow.getDestinationService());
+  const trafficDirection = trafficDirectionFromPb(flow.getTrafficDirection());
 
   return {
     time,
@@ -101,7 +103,8 @@ export const hubbleFlowFromPb = (flow: PBFlow): HubbleFlow => {
     sourceService,
     destinationService,
     summary: flow.getSummary(),
-  } as HubbleFlow;
+    trafficDirection,
+  };
 };
 
 export const flowServiceFromPb = (
@@ -131,17 +134,31 @@ export const l7FromPb = (l7: PBLayer7 | undefined): Layer7 | undefined => {
 };
 
 export const l7FlowTypeFromPb = (pb: PBL7FlowType): L7FlowType => {
-  let ft = L7FlowType.UNKNOWN_L7_TYPE;
+  let ft = L7FlowType.Unknown;
 
   if (pb === PBL7FlowType.REQUEST) {
-    ft = L7FlowType.REQUEST;
+    ft = L7FlowType.Request;
   } else if (pb === PBL7FlowType.RESPONSE) {
-    ft = L7FlowType.RESPONSE;
+    ft = L7FlowType.Response;
   } else if (pb === PBL7FlowType.SAMPLE) {
-    ft = L7FlowType.SAMPLE;
+    ft = L7FlowType.Sample;
   }
 
   return ft;
+};
+
+export const trafficDirectionFromPb = (
+  pb: PBTrafficDirection,
+): TrafficDirection => {
+  let dir = TrafficDirection.Unknown;
+
+  if (pb === PBTrafficDirection.INGRESS) {
+    dir = TrafficDirection.Ingress;
+  } else if (pb === PBTrafficDirection.EGRESS) {
+    dir = TrafficDirection.Egress;
+  }
+
+  return dir;
 };
 
 export const flowTypeFromPb = (ft: PBFlowType): FlowType => {

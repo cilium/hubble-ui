@@ -1,5 +1,11 @@
 import { Flow } from '~/domain/flows';
-import { HubbleFlow, Verdict, FlowType, Endpoint } from '~/domain/hubble';
+import {
+  HubbleFlow,
+  Verdict,
+  FlowType,
+  Endpoint,
+  TrafficDirection,
+} from '~/domain/hubble';
 
 const nowMs = Date.now();
 
@@ -36,6 +42,7 @@ export const hubbleOne: HubbleFlow = {
     seconds: nowMs / 1000,
     nanos: nowMs * 1000000,
   },
+  trafficDirection: TrafficDirection.Ingress,
 };
 
 export const hubbleNoSourceName: HubbleFlow = {

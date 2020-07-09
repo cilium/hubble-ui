@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import { HubbleFlow, Verdict } from '~/domain/hubble';
+import { HubbleFlow, Verdict, TrafficDirection } from '~/domain/hubble';
 import { Labels } from '~/domain/labels';
 import { KV } from '~/domain/misc';
 import { CiliumEventSubTypesCodes } from '~/domain/cilium';
@@ -196,6 +196,21 @@ export class Flow {
     }
 
     return new Date(this.millisecondsTimestamp).toISOString();
+  }
+
+  public get trafficDirection() {
+    return this.ref.trafficDirection;
+  }
+
+  public get trafficDirectionLabel() {
+    switch (this.trafficDirection) {
+      case TrafficDirection.Unknown:
+        return 'unknown';
+      case TrafficDirection.Ingress:
+        return 'ingress';
+      case TrafficDirection.Egress:
+        return 'egress';
+    }
   }
 
   private buildId() {

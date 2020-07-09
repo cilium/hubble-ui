@@ -19,6 +19,7 @@ export interface HubbleFlow {
   readonly sourceService?: Service;
   readonly destinationService?: Service;
   readonly summary: string;
+  readonly trafficDirection: TrafficDirection;
 }
 
 export interface HubbleService {
@@ -179,8 +180,14 @@ export enum FlowType {
 }
 
 export enum L7FlowType {
-  UNKNOWN_L7_TYPE,
-  REQUEST,
-  RESPONSE,
-  SAMPLE,
+  Unknown = 0,
+  Request = 1,
+  Response = 2,
+  Sample = 3,
+}
+
+export enum TrafficDirection {
+  Unknown = 0,
+  Ingress = 1,
+  Egress = 2,
 }
