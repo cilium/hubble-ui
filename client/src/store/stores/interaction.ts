@@ -195,12 +195,12 @@ export default class InteractionStore {
         outgoings.set(senderId, new Map());
       }
 
-      const connectionProps: Map<string, Link> = new Map();
       const sentTo = outgoings.get(senderId)!;
       if (!sentTo.has(receiverId)) {
-        sentTo.set(receiverId, connectionProps);
+        sentTo.set(receiverId, new Map());
       }
 
+      const connectionProps: Map<string, Link> = sentTo.get(receiverId)!;
       connectionProps.set(accessPointId, link);
 
       // Incoming connection setup
