@@ -195,7 +195,6 @@ export class DataManager extends EventEmitter<Events> {
     }
 
     if (this.mainStream != null && this.mainStream.dataFilters) {
-      // debugger;
       return !areFiltersEqual(
         this.store.controls.dataFilters,
         this.mainStream.dataFilters,
