@@ -55,9 +55,9 @@ export class DataManager extends EventEmitter<Events> {
   }
 
   public setupMock() {
-    this.store.setup(mockData);
     this.store.controls.setCurrentNamespace(mockData.selectedNamespace);
     this.store.controls.setCrossNamespaceActivity(true);
+    this.store.setup(mockData);
 
     this.emit(EventKind.StoreMocked);
   }
