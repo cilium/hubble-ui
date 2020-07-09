@@ -62,7 +62,7 @@ export class Store {
     links: HubbleLink[];
   }) {
     this.currentFrame.services.set(services);
-    this.currentFrame.interactions.setHubbleLinks(links);
+    this.currentFrame.interactions.addHubbleLinks(links);
     this.currentFrame.interactions.setHubbleFlows(flows);
   }
 

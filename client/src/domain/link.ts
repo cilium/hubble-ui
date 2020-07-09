@@ -1,13 +1,17 @@
 import { HubbleLink, Verdict } from '~/domain/hubble';
 
 export class Link {
-  public verdicts: Set<Verdict> = new Set();
+  private ref: HubbleLink;
+  public verdicts: Set<Verdict>;
 
-  constructor(private ref: HubbleLink) {}
+  constructor(ref: HubbleLink) {
+    this.ref = ref;
+    this.verdicts = new Set([ref.verdict]);
+  }
 
   public clone(): Link {
     const link = Link.fromHubbleLink(this.ref);
-    link.verdicts = new Set([...this.verdicts]);
+    link.verdicts = new Set(this.verdicts);
 
     return link;
   }

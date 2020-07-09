@@ -60,10 +60,8 @@ export default class InteractionStore {
   }
 
   @action.bound
-  setHubbleLinks(hubbleLinks: HubbleLink[]) {
-    const links = hubbleLinks.map(Link.fromHubbleLink);
-
-    this.setLinks(links);
+  addHubbleLinks(hubbleLinks: HubbleLink[]) {
+    hubbleLinks.forEach(this.addLink);
   }
 
   @action.bound

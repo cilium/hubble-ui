@@ -70,7 +70,7 @@ export class StoreFrame {
 
   @action.bound
   setHubbleLinks(links: HubbleLink[]) {
-    this.interactions.setHubbleLinks(links);
+    this.interactions.addHubbleLinks(links);
   }
 
   @action.bound
