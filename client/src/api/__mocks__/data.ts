@@ -8,6 +8,7 @@ import {
   HubbleService,
   IPProtocol,
   Verdict,
+  TrafficDirection,
 } from '~/domain/hubble';
 
 export const selectedNamespace = 'jobs-demo';
@@ -328,6 +329,10 @@ export const flows: HubbleFlow[] = range(100).map(
         },
       },
       verdict: Math.random() <= 0.5 ? Verdict.Forwarded : Verdict.Dropped,
+      trafficDirection:
+        Math.random() <= 0.5
+          ? TrafficDirection.Egress
+          : TrafficDirection.Ingress,
     };
   },
 );
