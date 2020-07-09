@@ -28,6 +28,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
     destinationDns,
     destinationPort,
     destinationIp,
+    trafficDirectionLabel,
   } = flow;
 
   return (
@@ -43,6 +44,10 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
       <section className={css.block}>
         <span className={css.title}>Verdict</span>
         <div className={css.body}>{verdictLabel}</div>
+      </section>
+      <section className={css.block}>
+        <span className={css.title}>Traffic direction</span>
+        <div className={css.body}>{trafficDirectionLabel}</div>
       </section>
       {ciliumEventSubTypeLabel && (
         <section className={css.block}>
