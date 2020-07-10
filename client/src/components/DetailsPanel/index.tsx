@@ -7,13 +7,20 @@ import React, {
 } from 'react';
 
 import { DragPanel } from '~/components/DragPanel';
-import { FlowsTable, Props as FlowsTableProps } from '~/components/FlowsTable';
+import {
+  FlowsTable,
+  Props as FlowsTableProps,
+  TickerEvents,
+  DEFAULT_TS_UPDATE_DELAY,
+} from '~/components/FlowsTable';
 import { FlowsTableSidebar } from '~/components/FlowsTable/Sidebar';
 import { useFlowsTableColumns } from '~/components/FlowsTable/hooks/useColumns';
 
 import css from './styles.scss';
 import { LoadingOverlay } from '../Misc/LoadingOverlay';
 import { usePanelResize, ResizeProps } from './hooks/usePanelResize';
+
+export { DEFAULT_TS_UPDATE_DELAY, TickerEvents };
 
 interface SidebarProps {
   onCloseSidebar?: () => void;
@@ -68,7 +75,7 @@ export const DetailsPanelComponent = function (props: Props) {
             isVisibleColumn={flowsTableColumns.isVisibleColumn}
             selectedFlow={props.selectedFlow}
             onSelectFlow={props.onSelectFlow}
-            tsUpdateDelay={props.tsUpdateDelay}
+            ticker={props.ticker}
           />
         ) : (
           <LoadingOverlay text="Waiting for table data…" />

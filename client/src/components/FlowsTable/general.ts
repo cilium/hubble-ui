@@ -14,6 +14,10 @@ export enum FlowsTableColumn {
   Timestamp = 'Timestamp',
 }
 
+export enum TickerEvents {
+  TimestampUpdate = 'timestamp-update',
+}
+
 export type FlowsTableColumnKey = keyof typeof FlowsTableColumn;
 
 export const FLOWS_TABLE_COLUMNS = Object.keys(

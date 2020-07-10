@@ -1,4 +1,4 @@
-interface HandlerTypes {
+export interface HandlerTypes {
   [event: string]: (...args: any[]) => any;
 }
 

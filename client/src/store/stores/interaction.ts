@@ -16,9 +16,13 @@ export interface Connections {
   readonly incomings: ConnectionsMap;
 }
 
-interface CopyResult {
+export interface CopyResult {
   newFlows: number;
   newLinks: number;
+}
+
+export interface SetOptions {
+  sort?: boolean;
 }
 
 // This store maintains ANY interactions that may present on the map
@@ -70,13 +74,21 @@ export default class InteractionStore {
   }
 
   @action.bound
-  setHubbleFlows(flows: HubbleFlow[]) {
-    this.flows = flows.map(flowFromRelay);
+  setHubbleFlows(hubbleFlows: HubbleFlow[], opts?: SetOptions) {
+    const flows = hubbleFlows.map(flowFromRelay);
+    return this.setFlows(flows, opts);
   }
 
   @action.bound
-  setFlows(flows: Flow[]) {
-    this.flows = flows;
+  setFlows(flows: Flow[], opts?: SetOptions) {
+    if (!opts?.sort) {
+      this.flows = flows;
+      return;
+    }
+
+    this.flows = flows.slice().sort((a, b) => {
+      return b.millisecondsTimestamp! - a.millisecondsTimestamp!;
+    });
   }
 
   @action.bound

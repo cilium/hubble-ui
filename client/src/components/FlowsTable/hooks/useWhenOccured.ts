@@ -1,7 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import { elapsedInWords } from '~/utils/time';
+import { Ticker } from '~/utils/ticker';
 
-export function useWhenOccured(ms?: number | null, delayMs = 2500) {
+import { TickerEvents } from './../general';
+
+export function useWhenOccured(
+  ticker: Ticker<TickerEvents>,
+  ms?: number | null,
+) {
   const [elapsedWords, setWords] = useState('');
 
   const setter = useCallback(() => {
@@ -13,12 +19,12 @@ export function useWhenOccured(ms?: number | null, delayMs = 2500) {
 
   useEffect(() => {
     setter();
-    const interval = setInterval(setter, delayMs);
+    ticker.on(TickerEvents.TimestampUpdate, setter);
 
     return () => {
-      clearInterval(interval);
+      ticker.off(TickerEvents.TimestampUpdate, setter);
     };
-  }, []);
+  }, [ticker]);
 
   return elapsedWords;
 }
