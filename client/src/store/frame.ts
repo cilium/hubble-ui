@@ -160,7 +160,7 @@ export class StoreFrame {
       links.push(_.cloneDeep(link));
     });
 
-    interactions.setFlows(flows);
+    interactions.setFlows(flows, { sort: true });
     interactions.setLinks(links);
 
     return new StoreFrame(interactions, services, this.controls);
