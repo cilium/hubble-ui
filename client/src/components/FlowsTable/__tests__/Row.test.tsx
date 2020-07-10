@@ -2,10 +2,15 @@ import _ from 'lodash';
 
 import { act, React, render, data, fireEvent } from '~/testing';
 import { Row } from '~/components/FlowsTable/Row';
+import {
+  TickerEvents,
+  DEFAULT_TS_UPDATE_DELAY,
+} from '~/components/DetailsPanel';
 
 import { Flow } from '~/domain/flows';
 import { HubbleFlow } from '~/domain/hubble';
 import { elapsedInWords } from '~/utils/time';
+import { Ticker } from '~/utils/ticker';
 
 const tsUpdateDelay = 5000;
 
@@ -96,6 +101,9 @@ const runTemporalTests = (container: HTMLElement, flow: Flow) => {
 const runTest = (ntest: number, hf: HubbleFlow, exps: Expectations) => {
   const flow = new Flow(hf);
   const isSelected = [false, true];
+  const ticker = new Ticker<TickerEvents>();
+
+  ticker.start(TickerEvents.TimestampUpdate, DEFAULT_TS_UPDATE_DELAY);
 
   isSelected.forEach(selected => {
     const onSelect = jest.fn((f: Flow) => void 0);
@@ -111,7 +119,7 @@ const runTest = (ntest: number, hf: HubbleFlow, exps: Expectations) => {
             isVisibleColumn={() => true}
             selected={selected}
             onSelect={onSelect}
-            tsUpdateDelay={tsUpdateDelay}
+            ticker={ticker}
           ></Row>,
         );
       });

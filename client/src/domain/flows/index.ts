@@ -187,7 +187,10 @@ export class Flow {
       return null;
     }
 
-    return new Date(this.ref.time.seconds * 1000).valueOf();
+    const { seconds, nanos } = this.ref.time;
+    const ms = seconds * 1000 + nanos / 1e6;
+
+    return new Date(ms).valueOf();
   }
 
   public get isoTimestamp() {
@@ -217,7 +220,7 @@ export class Flow {
     let timeStr = '';
     if (this.ref.time) {
       const { seconds: s, nanos: n } = this.ref.time;
-      timeStr = `${s}.${n}`;
+      timeStr = `${Math.trunc(s)}.${Math.trunc(n)}`;
     } else {
       // WAT ?
       timeStr = `${Date.now()}`;

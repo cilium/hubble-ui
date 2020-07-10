@@ -14,6 +14,8 @@ import { TopBar } from '~/components/TopBar';
 import {
   DetailsPanel,
   ResizeProps as DetailsResizeProps,
+  TickerEvents as DPTickerEvents,
+  DEFAULT_TS_UPDATE_DELAY,
 } from '~/components/DetailsPanel';
 import { Map } from '~/components/Map';
 import { LoadingOverlay } from '~/components/Misc/LoadingOverlay';
@@ -29,6 +31,7 @@ import { API } from '~/api/general';
 import * as storage from '~/storage/local';
 import { DataManager, EventKind as DataManagerEvents } from './DataManager';
 
+import { Ticker } from '~/utils/ticker';
 import { sizes } from '~/ui/vars';
 import css from './styles.scss';
 
@@ -49,6 +52,13 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   const dataManager = useMemo(() => {
     return new DataManager(props.api, store);
   }, []);
+
+  const ticker = useMemo(() => {
+    const ticker = new Ticker<DPTickerEvents>();
+    ticker.start(DPTickerEvents.TimestampUpdate, DEFAULT_TS_UPDATE_DELAY);
+
+    return ticker;
+  }, [dataManager]);
 
   useEffect(() => {
     dataManager.on(DataManagerEvents.StreamError, () => {
@@ -213,7 +223,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
         selectedFlow={frame.controls.selectedTableFlow}
         onSelectFlow={frame.controls.selectTableFlow}
         onCloseSidebar={onCloseFlowsTableSidebar}
-        tsUpdateDelay={dataManager.flowsDelay}
+        ticker={ticker}
         onPanelResize={onPanelResize}
       />
     </div>
