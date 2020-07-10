@@ -2,13 +2,14 @@ import React, { memo, useCallback } from 'react';
 
 import { Row } from './Row';
 import { Flow } from '~/domain/flows';
-import { CommonProps } from './general';
+import { CommonProps, TickerEvents } from './general';
+import { Ticker } from '~/utils/ticker';
 
 export interface BodyProps extends CommonProps {
   flows: Flow[];
   selectedFlow: Flow | null;
   onSelectFlow?: (flow: Flow | null) => void;
-  tsUpdateDelay: number;
+  ticker: Ticker<TickerEvents>;
 }
 
 export const Body = memo<BodyProps>(function FlowsTableBody(props) {
@@ -28,7 +29,7 @@ export const Body = memo<BodyProps>(function FlowsTableBody(props) {
           isVisibleColumn={props.isVisibleColumn}
           selected={props.selectedFlow?.id === flow.id}
           onSelect={onSelectFlow}
-          tsUpdateDelay={props.tsUpdateDelay}
+          ticker={props.ticker}
         />
       ))}
     </tbody>

@@ -1,9 +1,10 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useEffect } from 'react';
 import classnames from 'classnames';
 
 import { useWhenOccured } from './hooks/useWhenOccured';
 import { Flow } from '~/domain/flows';
-import { CommonProps } from './general';
+import { CommonProps, TickerEvents } from './general';
+import { Ticker } from '~/utils/ticker';
 
 import css from './styles.scss';
 
@@ -11,7 +12,7 @@ export interface RowProps extends CommonProps {
   flow: Flow;
   selected: boolean;
   onSelect: (flow: Flow) => void;
-  tsUpdateDelay: number;
+  ticker: Ticker<TickerEvents>;
 }
 
 export const Row = memo<RowProps>(function FlowsTableRow(props) {
@@ -19,7 +20,7 @@ export const Row = memo<RowProps>(function FlowsTableRow(props) {
   const ts = flow.millisecondsTimestamp;
 
   const onClick = useCallback(() => props.onSelect(flow), []);
-  const timestamp = useWhenOccured(ts, props.tsUpdateDelay);
+  const timestamp = useWhenOccured(props.ticker, ts);
 
   const sourceAppName = flow.sourceAppName ?? 'No app name';
   const destinationAppName = flow.destinationAppName ?? 'No app name';
