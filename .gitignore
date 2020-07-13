@@ -44,8 +44,6 @@ jspm_packages
 /coverage
 
 # production
-/build
-/client/build
 /server/public/bundle.*
 
 # misc
