@@ -1,4 +1,4 @@
-import { chunks } from './../chunks';
+import { chunks } from '../chunks';
 
 const runEmptyTest = (num: number, size: number, overlap: number) => {
   test(`of empty array ${num}`, () => {

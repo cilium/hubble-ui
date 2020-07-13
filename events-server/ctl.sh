@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-PROTOC="./../common/node_modules/.bin/protoc/bin/protoc"
 CILIUM_API="./../hubble/vendor/github.com/cilium/cilium/api/v1"
 PROTOC_PLUGINS="--plugin $GOPATH/bin/protoc-gen-go"
 
@@ -44,8 +43,6 @@ function unknown_command() {
 
 function install_prerequisites() {
     go get -u github.com/golang/protobuf/protoc-gen-go
-
-    cd .. && npm run install:common
 }
 
 function build() {
