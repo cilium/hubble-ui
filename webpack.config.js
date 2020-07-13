@@ -75,7 +75,7 @@ module.exports = {
   watch: isDevelopment,
   devtool: isProduction ? 'source-map' : 'inline-source-map',
   output: {
-    path: path.resolve(__dirname, '../server/public'),
+    path: path.resolve(__dirname, './server/public'),
     filename: 'bundle.js',
     publicPath: '/',
     devtoolModuleFilenameTemplate: isProduction
@@ -146,7 +146,7 @@ module.exports = {
       path: `.env${isProduction ? '.production' : '.development'}`,
     }),
     new HtmlWebpackPlugin({
-      filename: path.resolve(__dirname, `../server/public/index.html`),
+      filename: path.resolve(__dirname, `./server/public/index.html`),
       template: path.resolve(__dirname, `./src/index.html`),
       chunksSortMode: 'auto',
       minify: true,

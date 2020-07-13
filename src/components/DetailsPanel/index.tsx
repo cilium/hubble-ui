@@ -15,10 +15,11 @@ import {
 } from '~/components/FlowsTable';
 import { FlowsTableSidebar } from '~/components/FlowsTable/Sidebar';
 import { useFlowsTableColumns } from '~/components/FlowsTable/hooks/useColumns';
+import { LoadingOverlay } from '~/components/Misc/LoadingOverlay';
+
+import { usePanelResize, ResizeProps } from './hooks/usePanelResize';
 
 import css from './styles.scss';
-import { LoadingOverlay } from '../Misc/LoadingOverlay';
-import { usePanelResize, ResizeProps } from './hooks/usePanelResize';
 
 export { DEFAULT_TS_UPDATE_DELAY, TickerEvents };
 
