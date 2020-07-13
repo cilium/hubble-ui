@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { elapsedInWords } from '~/utils/time';
 import { Ticker } from '~/utils/ticker';
 
-import { TickerEvents } from './../general';
+import { TickerEvents } from '../general';
 
 export function useWhenOccured(
   ticker: Ticker<TickerEvents>,

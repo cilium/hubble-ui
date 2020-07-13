@@ -2,20 +2,14 @@ FROM node
 
 COPY package.json package.json
 COPY package-lock.json package-lock.json
-COPY client/package.json client/package.json
-COPY client/package-lock.json client/package-lock.json
-COPY client/scripts/ client/scripts/
+COPY scripts/ scripts/
 RUN npm set unsafe-perm true 
-RUN npm run install:all
+RUN npm install
 RUN npm set unsafe-perm false
 
-COPY cilium/ cilium/
-COPY server/ server/
-COPY client/ client/
+COPY . .
 ARG NODE_ENV=production
 RUN npm run build
-
-
 
 
 

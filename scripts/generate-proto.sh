@@ -4,10 +4,10 @@ set -e
 CWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PLATFORM=$(echo $(uname) | tr '[:upper:]' '[:lower:]') # darwin or linux
 
-PROTOC_PATH="${CWD}/node_modules/.bin/protoc/bin/protoc"
-PROTOC_GEN_GRPC_WEB_PATH="${CWD}/node_modules/.bin/protoc-gen-grpc-web"
+PROTOC_PATH="${CWD}/../node_modules/.bin/protoc/bin/protoc"
+PROTOC_GEN_GRPC_WEB_PATH="${CWD}/../node_modules/.bin/protoc-gen-grpc-web"
 PROTOS_PATH="${CWD}/../cilium/api/v1/"
-OUT_DIR="${CWD}/src/proto"
+OUT_DIR="${CWD}/../src/proto"
 
 rm -rf $OUT_DIR && mkdir -p $OUT_DIR
 

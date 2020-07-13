@@ -27,9 +27,9 @@ import {
   EventKind,
   DataFilters,
 } from '~/api/general/event-stream';
+import { GeneralStreamEventKind } from '~/api/general/stream';
 
 import EventCase = GetEventsResponse.EventCase;
-import { GeneralStreamEventKind } from '../general/stream';
 
 type GRPCEventStream = ClientReadableStream<GetEventsResponse>;
 type FlowFilters = [FlowFilter[], FlowFilter[]];
