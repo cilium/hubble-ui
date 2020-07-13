@@ -8,17 +8,17 @@
     "watch:client": "./scripts/build-blueprint.sh && NODE_ENV=development webpack --progress",
     "watch": "run-p watch:*",
     "build": "./scripts/generate-proto.sh && ./scripts/build-blueprint.sh && NODE_ENV=production webpack",
-    "lint:ts": "eslint --ignore-path .gitignore \"./{client,server}/src/**/*.{ts,tsx,js,jsx,mjs}\"",
+    "lint:ts": "eslint --ignore-path .gitignore \"./src/**/*.{ts,tsx,js,jsx,mjs}\"",
     "lint:ts:fix": "npm run lint:ts -- --fix",
     "lint:scss": "stylelint --ignore-path .gitignore \"./**/*.scss\" --syntax scss",
     "lint:scss:fix": "npm run lint:scss -- --fix",
     "upgrade-deps": "npx npm-check --update --save-exact"
   },
   "lint-staged": {
-    "./client/src/!(proto)/**/*.{ts,tsx,js,jsx,mjs}": [
+    "./src/!(proto)/**/*.{ts,tsx,js,jsx,mjs}": [
       "npm run --silent lint:ts:fix"
     ],
-    "./client/src/**/*.scss": [
+    "./src/**/*.scss": [
       "npm run --silent lint:scss:fix"
     ]
   },

@@ -1,5 +1,5 @@
 module.exports = {
-  ignorePatterns: ['client/src/proto', 'server/public'],
+  ignorePatterns: ['src/proto', 'server/public'],
   parser: '@typescript-eslint/parser',
   extends: [
     'plugin:react/recommended',
