@@ -12,7 +12,7 @@ npm install
 npm run watch
 ```
 
-Open http://localhost:12000
+Open http://localhost:8080
 
 # Production
 
