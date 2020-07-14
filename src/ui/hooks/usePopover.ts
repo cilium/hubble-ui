@@ -1,5 +1,4 @@
-import { Popover } from '@blueprintjs/core';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 export function usePopover() {
   const [popoverDiv, setPopoverDiv] = useState<HTMLDivElement | null>(null);
