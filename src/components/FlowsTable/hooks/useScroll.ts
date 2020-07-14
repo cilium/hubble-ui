@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { sizes } from '~/ui';
 import { useDetectScroll } from '~/ui/hooks/useDetectScroll';
 
