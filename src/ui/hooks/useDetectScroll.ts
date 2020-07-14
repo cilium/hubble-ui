@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 
 export function useDetectScroll(element?: Element | null) {
   const [timerId, setTimerId] = useState<any>(0);

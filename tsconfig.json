@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "composite": true,
+    "incremental": true,
+    "declaration": true,
     "module": "esnext",
     "target": "esnext",
     "lib": ["dom", "esnext"],
@@ -12,7 +15,6 @@
     },
     "typeRoots": ["./node_modules/@types"],
     "types": ["node", "jest"],
-    "incremental": false,
     "moduleResolution": "node",
     "isolatedModules": false,
     "sourceMap": true,
@@ -21,7 +23,6 @@
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "declaration": false,
     "allowJs": true,
     "checkJs": false,
     "strict": true,
@@ -33,6 +34,6 @@
     "strictPropertyInitialization": true,
     "strictNullChecks": true
   },
-  "exclude": ["node_modules/*"],
+  "exclude": ["node_modules/*", "src/proto"],
   "include": ["src/**/*"]
 }
