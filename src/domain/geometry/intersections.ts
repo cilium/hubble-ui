@@ -38,23 +38,18 @@ export const segmentsIntersection = (
   const dx2 = p4.x - p3.x;
   const dy2 = p4.y - p3.y;
 
-  // Lines are parallel or collinear cases
-  if (!tooSmall(dx1) && !tooSmall(dy1)) {
-    // General case
-    const one = Math.abs(dx2 / dx1);
-    const two = Math.abs(dy2 / dy1);
+  // Vertical case
+  if (tooSmall(dx2) && tooSmall(dx1)) return null;
 
-    if (tooSmall(one - two)) return null;
-  } else if (tooSmall(dx1)) {
-    // Vertical case
-    if (tooSmall(dx2)) return null;
-  } else if (tooSmall(dy1)) {
-    // Horizontal case
-    if (tooSmall(dy2)) return null;
-  }
+  // Horizontal case
+  if (tooSmall(dy1) && tooSmall(dy2)) return null;
 
+  // General case
   const s1 = dy1 / dx1;
   const s2 = dy2 / dx2;
+
+  // Slopes match => the same direction
+  if (tooSmall(s1 - s2)) return null;
 
   // One of the lines is vertical
   if (!tooSmall(dx1) && tooSmall(dx2)) {
