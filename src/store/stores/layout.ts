@@ -8,6 +8,7 @@ import {
   WH,
   XYWH,
   rounding,
+  segmentsIntersection,
   utils as gutils,
 } from '~/domain/geometry';
 import { ServiceCard } from '~/domain/service-card';
@@ -21,6 +22,7 @@ import {
   ServiceConnector,
 } from '~/domain/layout';
 import { ids } from '~/domain/ids';
+import { setupDebugProp } from '~/domain/misc';
 
 import InteractionStore from './interaction';
 import ServiceStore from './service';
@@ -60,6 +62,12 @@ export default class LayoutStore {
 
     this.cardDimensions = new Map();
     this.accessPointsCoords = new Map();
+
+    setupDebugProp({
+      geometry: {
+        segmentsIntersection,
+      },
+    });
   }
 
   static defaultCardDims(): WH {
