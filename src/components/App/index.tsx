@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useState,
   useMemo,
+  useRef,
 } from 'react';
 import { IconNames } from '@blueprintjs/icons';
 import { RouteComponentProps, Router } from '@reach/router';
@@ -42,7 +43,7 @@ export interface AppProps extends RouteComponentProps {
 export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   const store = useStore();
 
-  const [flowsDiffCount, setFlowsDiffCount] = useState({ value: 0 });
+  const onFlowsDiffCount = useRef<(diff: number) => void>();
   const [isStreaming, setIsStreaming] = useState<boolean>(true);
   const [mapVisibleHeight, setMapVisibleHeight] = useState<number | null>(null);
   const [mapWasDragged, setMapWasDragged] = useState<boolean>(false);
@@ -77,8 +78,8 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       setIsStreaming(true);
     });
 
-    dataManager.on(DataManagerEvents.FlowsDiff, (value: number) => {
-      setFlowsDiffCount({ value });
+    dataManager.on(DataManagerEvents.FlowsDiff, (diff: number) => {
+      onFlowsDiffCount.current?.(diff);
     });
 
     dataManager.on(
@@ -212,19 +213,22 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
             onMapDrag={onMapDrag}
           />
         ) : (
-          <LoadingOverlay height="50%" text="Waiting for service map data…" />
+          <LoadingOverlay
+            height={mapVisibleHeight ?? '50%'}
+            text="Waiting for service map data…"
+          />
         )}
       </div>
 
       <DetailsPanel
         isStreaming={isStreaming}
         flows={frame.interactions.flows}
-        flowsDiffCount={flowsDiffCount}
         selectedFlow={frame.controls.selectedTableFlow}
         onSelectFlow={frame.controls.selectTableFlow}
         onCloseSidebar={onCloseFlowsTableSidebar}
         ticker={ticker}
         onPanelResize={onPanelResize}
+        onFlowsDiffCount={onFlowsDiffCount}
       />
     </div>
   );

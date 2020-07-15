@@ -1,54 +1,44 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { sizes } from '~/ui';
-import { useDetectScroll } from '~/ui/hooks/useDetectScroll';
+import React, { useRef, useEffect, MutableRefObject } from 'react';
+import { FixedSizeListProps } from 'react-window';
 
-export function useScroll<E extends HTMLElement>(nextFlowsDiffCount: {
-  value: number;
-}) {
-  const ref = useRef<E>(null);
-  const scrolling = useDetectScroll(ref.current);
-  const [flowsDiffCount, setFlowsDiffCount] = useState(nextFlowsDiffCount);
+import { sizes } from '~/ui';
+
+export type OnFlowsDiffCount = MutableRefObject<
+  ((diff: number) => void) | undefined
+>;
+
+export function useScroll(
+  onFlowsDiffCount?: OnFlowsDiffCount,
+): Partial<FixedSizeListProps> {
+  const outerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    if (nextFlowsDiffCount === flowsDiffCount) return;
+    if (!onFlowsDiffCount) return;
 
-    setFlowsDiffCount(flowsDiffCount);
-    const timeout = setTimeout(() => {
-      if (!ref.current) return;
+    onFlowsDiffCount.current = diff => {
+      if (!outerRef.current) return;
 
       scroll({
-        element: ref.current,
-        offset: nextFlowsDiffCount.value * sizes.flowsTableRowHeight,
-        scrolling,
+        element: outerRef.current,
+        offset: diff * sizes.flowsTableRowHeight,
       });
-    });
+    };
 
     return () => {
-      clearTimeout(timeout);
+      onFlowsDiffCount.current = () => void 0;
     };
-  }, [nextFlowsDiffCount]);
+  }, [onFlowsDiffCount]);
 
-  return { ref };
+  return { outerRef };
 }
 
 function scroll({
   element,
   offset,
-  scrolling,
 }: {
   element: Element | undefined | null;
   offset: number;
-  scrolling: boolean;
 }) {
   if (!element || element.scrollTop === 0) return;
-
-  if (scrolling) {
-    element.scrollTop = element.scrollTop + offset;
-    return;
-  }
-
-  element.scroll({
-    top: element.scrollTop + offset,
-    behavior: 'smooth',
-  });
+  element.scrollTop += offset;
 }

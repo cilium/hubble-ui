@@ -1,111 +1,102 @@
 $border-color: #c6cace;
 
-.table,
-.table td,
-.table th,
-.table tr,
-.table tbody,
-.table thead {
-  padding: 0;
-  border-spacing: 0;
-}
-
 .wrapper {
   position: relative;
-  overflow: auto;
+  overflow: hidden;
   width: 100%;
   height: 100%;
   border-top: 1px solid $border-color;
-}
 
-.table {
-  width: 100%;
-  table-layout: fixed;
-  background-color: #fff;
+  .table {
+    background-color: #fff;
 
-  td,
-  th {
-    padding-left: 8px;
-    padding-right: 8px;
-    font-size: 11px;
-    height: var(--flows-table-row-height);
-    line-height: var(--flows-table-row-height);
-    white-space: pre;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    vertical-align: top;
+    .row {
+      position: absolute;
+      display: flex;
+      width: 100%;
+      height: var(--flows-table-row-height);
+      line-height: var(--flows-table-row-height);
+      font-size: 11px;
 
-    &:not(:last-child) {
-      border-right: 1px solid $border-color;
-    }
-
-    &:first-child {
-      padding-left: 10px;
-    }
-
-    &:last-child {
-      padding-right: 10px;
-    }
-  }
-
-  th {
-    position: sticky;
-    top: 0;
-    background: #e4e7eb;
-    border-bottom: 1px solid $border-color;
-    text-align: left;
-    font-weight: 700;
-    color: #7c8389;
-  }
-
-  tbody {
-    tr {
-      &:nth-child(odd) {
+      &.odd {
         background-color: #fff;
       }
 
-      &:nth-child(even) {
+      &.even {
         background-color: #f2f4f6;
       }
 
-      &:not(.selected):hover {
+      &:not(.selected):not(.head):hover {
         background-color: #e0e2e4;
         cursor: pointer;
       }
 
       &:last-child {
-        td {
+        .cell {
           border-bottom: 1px solid $border-color;
         }
+      }
+
+      &.head {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background-color: #e4e7eb;
+        border-bottom: 1px solid $border-color;
+        text-align: left;
+        font-weight: 700;
+        color: #7c8389;
       }
 
       &.selected {
         background-color: #7b7b7b;
 
-        td {
+        .cell {
           color: #fff;
         }
       }
+
+      .cell {
+        flex: 1;
+        flex-shrink: 0;
+        padding-left: 8px;
+        padding-right: 8px;
+        white-space: pre;
+        text-overflow: ellipsis;
+        overflow: hidden;
+
+        &:not(:last-child) {
+          border-right: 1px solid $border-color;
+        }
+
+        &:first-child {
+          padding-left: 10px;
+        }
+
+        &:last-child {
+          padding-right: 10px;
+        }
+      }
     }
-  }
 
-  .emptyValue {
-    color: #999;
-    font-weight: 400;
-  }
+    .emptyValue {
+      color: #999;
+      font-weight: 400;
+    }
 
-  .forwardedVerdict {
-    color: #54a82d;
-  }
+    .forwardedVerdict {
+      color: #54a82d;
+    }
 
-  .droppedVerdict {
-    color: #d46363;
-  }
+    .droppedVerdict {
+      color: #d46363;
+    }
 
-  .subtitle {
-    color: #7b7b7b;
-    font-style: italic;
-    font-weight: 500;
+    .subtitle {
+      color: #7b7b7b;
+      font-style: italic;
+      font-weight: 500;
+    }
   }
 }
 

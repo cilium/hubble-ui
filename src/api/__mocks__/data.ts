@@ -294,7 +294,7 @@ export const services: HubbleService[] = [
   },
 ];
 
-export const flows: HubbleFlow[] = range(100).map(
+export const flows: HubbleFlow[] = range(1000).map(
   (): HubbleFlow => {
     return {
       source: {
@@ -305,8 +305,8 @@ export const flows: HubbleFlow[] = range(100).map(
         podName: `kafka-${Math.random() * 10}`,
       },
       time: {
-        seconds: Date.now() + Math.random(),
-        nanos: Date.now() + Math.random(),
+        seconds: Date.now() + Math.random() * 1000,
+        nanos: Date.now() + Math.random() * 1000,
       },
       destination: {
         id: 1,
