@@ -1,84 +1,97 @@
-import React, { memo, useCallback, useEffect } from 'react';
+import React, { memo, useCallback } from 'react';
+import { ListChildComponentProps, areEqual } from 'react-window';
 import classnames from 'classnames';
 
-import { useWhenOccured } from './hooks/useWhenOccured';
 import { Flow } from '~/domain/flows';
-import { CommonProps, TickerEvents } from './general';
 import { Ticker } from '~/utils/ticker';
+
+import { CommonProps, TickerEvents, FlowsTableColumn } from './general';
+import { Cell } from './Cell';
 
 import css from './styles.scss';
 
 export interface RowProps extends CommonProps {
   flow: Flow;
-  selected: boolean;
-  onSelect: (flow: Flow) => void;
-  ticker: Ticker<TickerEvents>;
+  isSelected: boolean;
+  onSelect?: (flow: Flow | null) => void;
+  ticker?: Ticker<TickerEvents>;
+  isOdd?: boolean;
+  isEven?: boolean;
+  style?: React.CSSProperties;
+}
+
+export interface RowRendererData {
+  flows: Flow[];
+  selectedFlow: Flow | null;
+  isVisibleColumn: CommonProps['isVisibleColumn'];
+  onSelectFlow?: RowProps['onSelect'];
+  ticker?: RowProps['ticker'];
+}
+
+export function RowRenderer({ index, style, data }: ListChildComponentProps) {
+  if (index === 0) return null;
+  const props = data as RowRendererData;
+  const flowIndex = index - 1; // header row is first row, so -1
+  const flow = props.flows[flowIndex];
+  return (
+    <Row
+      style={style}
+      flow={flow}
+      isVisibleColumn={props.isVisibleColumn}
+      isSelected={props.selectedFlow?.id === flow.id}
+      isEven={flowIndex % 2 === 0}
+      isOdd={flowIndex % 2 === 1}
+      onSelect={props.onSelectFlow}
+      ticker={props.ticker}
+    />
+  );
 }
 
 export const Row = memo<RowProps>(function FlowsTableRow(props) {
-  const { flow, isVisibleColumn } = props;
-  const ts = flow.millisecondsTimestamp;
-
-  const onClick = useCallback(() => props.onSelect(flow), []);
-  const timestamp = useWhenOccured(props.ticker, ts);
-
-  const sourceAppName = flow.sourceAppName ?? 'No app name';
-  const destinationAppName = flow.destinationAppName ?? 'No app name';
-
-  const sourceSubtitle = flow.sourceNamespace ? (
-    <span className={css.subtitle}>{flow.sourceNamespace}</span>
-  ) : (
-    ''
-  );
-  const destinationSubtitle = flow.destinationNamespace ? (
-    <span className={css.subtitle}>{flow.destinationNamespace}</span>
-  ) : flow.destinationDns ? (
-    <span className={css.subtitle}>{flow.destinationDns}</span>
-  ) : flow.destinationIp ? (
-    <span className={css.subtitle}>{flow.destinationIp}</span>
-  ) : (
-    ''
+  const onClick = useCallback(
+    () => props.onSelect?.(props.isSelected ? null : props.flow),
+    [props.onSelect, props.isSelected, props.flow],
   );
 
-  // prettier-ignore
-  const sourceTitle = <>{sourceAppName} {sourceSubtitle}</>;
-  // prettier-ignore
-  const destinationTitle = <>{destinationAppName} {destinationSubtitle}</>;
-
-  const className = classnames({ [css.selected]: props.selected });
-
-  const verdictClassName = classnames({
-    [css.forwardedVerdict]: props.flow.verdictLabel === 'forwarded',
-    [css.droppedVerdict]: props.flow.verdictLabel === 'dropped',
+  const className = classnames(css.row, {
+    [css.selected]: props.isSelected,
+    [css.even]: props.isEven,
+    [css.odd]: props.isOdd,
   });
 
   return (
-    <tr className={className} onClick={onClick}>
-      {isVisibleColumn('SrcPod') && (
-        <td>
-          {props.flow.sourcePodName || (
-            <span className={css.emptyValue}>—</span>
-          )}
-        </td>
+    <div className={className} style={props.style} onClick={onClick}>
+      {props.isVisibleColumn?.('SrcPod') && (
+        <Cell flow={props.flow} kind={FlowsTableColumn.SrcPod} />
       )}
-      {isVisibleColumn('SrcIp') && <td>{props.flow.sourceIp}</td>}
-      {isVisibleColumn('SrcService') && <td>{sourceTitle}</td>}
-      {isVisibleColumn('DstPod') && (
-        <td>
-          {props.flow.destinationPodName || (
-            <span className={css.emptyValue}>—</span>
-          )}
-        </td>
+      {props.isVisibleColumn?.('SrcIp') && (
+        <Cell flow={props.flow} kind={FlowsTableColumn.SrcIp} />
       )}
-      {isVisibleColumn('DstIp') && <td>{props.flow.destinationIp}</td>}
-      {isVisibleColumn('DstService') && <td>{destinationTitle}</td>}
-      {isVisibleColumn('DstPort') && <td>{flow.destinationPort}</td>}
-      {isVisibleColumn('Verdict') && (
-        <td className={verdictClassName}>{flow.verdictLabel}</td>
+      {props.isVisibleColumn?.('SrcService') && (
+        <Cell flow={props.flow} kind={FlowsTableColumn.SrcService} />
       )}
-      {isVisibleColumn('Timestamp') && (
-        <td title={flow.isoTimestamp || undefined}>{timestamp}</td>
+      {props.isVisibleColumn?.('DstPod') && (
+        <Cell flow={props.flow} kind={FlowsTableColumn.DstPod} />
       )}
-    </tr>
+      {props.isVisibleColumn?.('DstIp') && (
+        <Cell flow={props.flow} kind={FlowsTableColumn.DstIp} />
+      )}
+      {props.isVisibleColumn?.('DstService') && (
+        <Cell flow={props.flow} kind={FlowsTableColumn.DstService} />
+      )}
+      {props.isVisibleColumn?.('DstPort') && (
+        <Cell flow={props.flow} kind={FlowsTableColumn.DstPort} />
+      )}
+      {props.isVisibleColumn?.('Verdict') && (
+        <Cell flow={props.flow} kind={FlowsTableColumn.Verdict} />
+      )}
+      {props.isVisibleColumn?.('Timestamp') && (
+        <Cell
+          flow={props.flow}
+          kind={FlowsTableColumn.Timestamp}
+          ticker={props.ticker}
+        />
+      )}
+    </div>
   );
-});
+}, areEqual);

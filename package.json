@@ -49,7 +49,9 @@
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-spring": "8.0.27",
-    "react-use-gesture": "7.0.15"
+    "react-use-gesture": "7.0.15",
+    "react-virtualized-auto-sizer": "1.0.2",
+    "react-window": "1.8.5"
   },
   "devDependencies": {
     "@babel/core": "7.10.4",
@@ -70,6 +72,8 @@
     "@types/react": "16.9.43",
     "@types/react-dom": "16.9.8",
     "@types/react-test-renderer": "16.9.2",
+    "@types/react-virtualized-auto-sizer": "1.0.0",
+    "@types/react-window": "1.8.2",
     "@typescript-eslint/eslint-plugin": "3.6.0",
     "@typescript-eslint/parser": "3.6.0",
     "autoprefixer": "9.8.5",

@@ -1,5 +1,5 @@
 export interface CommonProps {
-  isVisibleColumn: (column: FlowsTableColumnKey) => boolean;
+  isVisibleColumn?: (column: FlowsTableColumnKey) => boolean;
 }
 
 export enum FlowsTableColumn {
