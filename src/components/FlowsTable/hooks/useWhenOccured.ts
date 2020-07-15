@@ -5,7 +5,7 @@ import { Ticker } from '~/utils/ticker';
 import { TickerEvents } from '../general';
 
 export function useWhenOccured(
-  ticker: Ticker<TickerEvents>,
+  ticker?: Ticker<TickerEvents>,
   ms?: number | null,
 ) {
   const [elapsedWords, setWords] = useState('');
@@ -19,10 +19,10 @@ export function useWhenOccured(
 
   useEffect(() => {
     setter();
-    ticker.on(TickerEvents.TimestampUpdate, setter);
+    ticker?.on(TickerEvents.TimestampUpdate, setter);
 
     return () => {
-      ticker.off(TickerEvents.TimestampUpdate, setter);
+      ticker?.off(TickerEvents.TimestampUpdate, setter);
     };
   }, [ticker]);
 

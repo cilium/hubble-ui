@@ -1,15 +1,11 @@
 import { observer } from 'mobx-react';
-import React, {
-  FunctionComponent,
-  useMemo,
-  useCallback,
-  useEffect,
-} from 'react';
+import React, { FunctionComponent, useCallback, useEffect } from 'react';
 
 import { DragPanel } from '~/components/DragPanel';
 import {
   FlowsTable,
   Props as FlowsTableProps,
+  OnFlowsDiffCount,
   TickerEvents,
   DEFAULT_TS_UPDATE_DELAY,
 } from '~/components/FlowsTable';
@@ -21,7 +17,7 @@ import { usePanelResize, ResizeProps } from './hooks/usePanelResize';
 
 import css from './styles.scss';
 
-export { DEFAULT_TS_UPDATE_DELAY, TickerEvents };
+export { DEFAULT_TS_UPDATE_DELAY, TickerEvents, OnFlowsDiffCount };
 
 interface SidebarProps {
   onCloseSidebar?: () => void;
@@ -40,12 +36,6 @@ export type Props = SidebarProps & TableProps & PanelProps;
 export const DetailsPanelComponent = function (props: Props) {
   const panelResize = usePanelResize();
   const flowsTableColumns = useFlowsTableColumns();
-
-  const diffCount = useMemo(() => {
-    if (props.flowsDiffCount != null) return props.flowsDiffCount;
-
-    return { value: 0 };
-  }, [props.flowsDiffCount]);
 
   const onStreamStop = useCallback(() => {
     props.onStreamStop?.();
@@ -72,10 +62,10 @@ export const DetailsPanelComponent = function (props: Props) {
         {tableLoaded ? (
           <FlowsTable
             flows={props.flows}
-            flowsDiffCount={diffCount}
             isVisibleColumn={flowsTableColumns.isVisibleColumn}
             selectedFlow={props.selectedFlow}
             onSelectFlow={props.onSelectFlow}
+            onFlowsDiffCount={props.onFlowsDiffCount}
             ticker={props.ticker}
           />
         ) : (

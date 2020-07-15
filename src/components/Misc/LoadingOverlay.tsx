@@ -5,7 +5,7 @@ import css from './LoadingOverlay.scss';
 
 export interface Props {
   text: string;
-  height?: string;
+  height?: string | number;
   spinnerSize?: number;
   spinnerIntent?: Intent;
 }
