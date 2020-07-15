@@ -22,7 +22,7 @@ export const FlowsTableColumnsSelector = memo<Props>(
       <Item
         key={column}
         column={column}
-        checked={props.isVisibleColumn(column)}
+        checked={props.isVisibleColumn?.(column) ?? false}
         onChange={props.toggleColumn}
       />
     ));
