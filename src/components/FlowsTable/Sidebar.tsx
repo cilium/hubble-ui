@@ -1,35 +1,27 @@
-import React, { memo, FunctionComponent } from 'react';
 import { Icon } from '@blueprintjs/core';
+import React, { memo } from 'react';
 
-import { Flow } from '~/domain/flows';
-import { KV } from '~/domain/misc';
+import { Flow, FlowsFilterDirection } from '~/domain/flows';
+
+import { FiltersProps } from './general';
+import {
+  LabelsBody,
+  TCPFlagsBody,
+  VerdictBodyItem,
+  IPBodyItem,
+  DnsBodyItem,
+  IdentityBodyItem,
+} from './SidebarComponents';
 
 import css from './styles.scss';
 
-export interface Props {
+export interface Props extends FiltersProps {
   flow: Flow;
   onClose?: () => void;
 }
 
 export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
   const { flow } = props;
-
-  const {
-    hasSource,
-    hasDestination,
-    isoTimestamp,
-    verdictLabel,
-    ciliumEventSubTypeLabel,
-    sourcePodName,
-    sourceLabels,
-    sourceIp,
-    destinationLabels,
-    destinationPodName,
-    destinationDns,
-    destinationPort,
-    destinationIp,
-    trafficDirectionLabel,
-  } = flow;
 
   return (
     <div className={css.sidebar}>
@@ -39,99 +31,147 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
       </header>
       <section className={css.block}>
         <span className={css.title}>Timestamp</span>
-        <div className={css.body}>{isoTimestamp}</div>
+        <div className={css.body}>{flow.isoTimestamp}</div>
       </section>
       <section className={css.block}>
         <span className={css.title}>Verdict</span>
-        <div className={css.body}>{verdictLabel}</div>
+        <div className={css.body}>
+          <VerdictBodyItem
+            verdict={flow.verdict}
+            dataFilters={props.dataFilters}
+            onSelectFilters={props.onSelectFilters}
+          />
+        </div>
       </section>
       <section className={css.block}>
         <span className={css.title}>Traffic direction</span>
-        <div className={css.body}>{trafficDirectionLabel}</div>
+        <div className={css.body}>{flow.trafficDirectionLabel}</div>
       </section>
-      {ciliumEventSubTypeLabel && (
+      {flow.ciliumEventSubTypeLabel && (
         <section className={css.block}>
           <span className={css.title}>Cilium event type</span>
-          <div className={css.body}>{ciliumEventSubTypeLabel}</div>
+          <div className={css.body}>{flow.ciliumEventSubTypeLabel}</div>
+        </section>
+      )}
+      {flow.tcpFlags && Object.keys(flow.tcpFlags).length > 0 && (
+        <section className={css.block}>
+          <span className={css.title}>TCP flags</span>
+          <div className={css.body}>
+            <TCPFlagsBody flags={flow.tcpFlags} />
+          </div>
         </section>
       )}
       <hr />
-      {hasSource && sourcePodName && (
+      {flow.hasSource && flow.sourcePodName && (
         <section className={css.block}>
           <span className={css.title}>Source pod</span>
-          <div className={css.body}>{sourcePodName}</div>
+          <div className={css.body}>{flow.sourcePodName}</div>
         </section>
       )}
-      {hasSource && sourceLabels.length > 0 && (
+      {flow.hasSource && flow.sourceIdentity && (
+        <section className={css.block}>
+          <span className={css.title}>Source identity</span>
+          <div className={css.body}>
+            <IdentityBodyItem
+              identity={flow.sourceIdentity}
+              dataFilters={props.dataFilters}
+              filterDirection={FlowsFilterDirection.From}
+              onSelectFilters={props.onSelectFilters}
+            />
+          </div>
+        </section>
+      )}
+      {flow.hasSource && flow.sourceLabels.length > 0 && (
         <section className={css.block}>
           <span className={css.title}>Source labels</span>
           <div className={css.body}>
-            <Labels labels={sourceLabels} />
+            <LabelsBody
+              labels={flow.sourceLabels}
+              dataFilters={props.dataFilters}
+              filterDirection={FlowsFilterDirection.From}
+              onSelectFilters={props.onSelectFilters}
+            />
           </div>
         </section>
       )}
-      {hasSource && sourceIp && (
+      {flow.hasSource && flow.sourceIp && (
         <section className={css.block}>
           <span className={css.title}>Source IP</span>
-          <div className={css.body}>{sourceIp}</div>
+          <div className={css.body}>
+            <IPBodyItem
+              ip={flow.sourceIp}
+              dataFilters={props.dataFilters}
+              filterDirection={FlowsFilterDirection.From}
+              onSelectFilters={props.onSelectFilters}
+            />
+          </div>
         </section>
       )}
       <hr />
-      {hasDestination && destinationPodName && (
+      {flow.hasDestination && flow.destinationPodName && (
         <section className={css.block}>
           <span className={css.title}>Destination pod</span>
-          <div className={css.body}>{destinationPodName}</div>
+          <div className={css.body}>{flow.destinationPodName}</div>
         </section>
       )}
-      {hasDestination && destinationLabels.length > 0 && (
+      {flow.hasDestination && flow.destinationIdentity && (
         <section className={css.block}>
-          <span className={css.title}>Destination labels</span>
+          <span className={css.title}>Destination identity</span>
           <div className={css.body}>
-            <Labels labels={destinationLabels} />
+            <IdentityBodyItem
+              identity={flow.destinationIdentity}
+              dataFilters={props.dataFilters}
+              filterDirection={FlowsFilterDirection.To}
+              onSelectFilters={props.onSelectFilters}
+            />
           </div>
         </section>
       )}
-      {hasDestination && destinationIp && (
+      {flow.hasDestination && flow.destinationLabels.length > 0 && (
+        <section className={css.block}>
+          <span className={css.title}>Destination labels</span>
+          <div className={css.body}>
+            <LabelsBody
+              labels={flow.destinationLabels}
+              dataFilters={props.dataFilters}
+              filterDirection={FlowsFilterDirection.To}
+              onSelectFilters={props.onSelectFilters}
+            />
+          </div>
+        </section>
+      )}
+      {flow.hasDestination && flow.destinationIp && (
         <section className={css.block}>
           <span className={css.title}>Destination IP</span>
-          <div className={css.body}>{destinationIp}</div>
+          <div className={css.body}>
+            <IPBodyItem
+              ip={flow.destinationIp}
+              dataFilters={props.dataFilters}
+              filterDirection={FlowsFilterDirection.To}
+              onSelectFilters={props.onSelectFilters}
+            />
+          </div>
         </section>
       )}
-      {hasDestination && destinationDns && (
+      {flow.hasDestination && flow.destinationDns && (
         <section className={css.block}>
           <span className={css.title}>Destination DNS</span>
-          <div className={css.body}>{destinationDns}</div>
+          <div className={css.body}>
+            <DnsBodyItem
+              dns={flow.destinationDns}
+              dataFilters={props.dataFilters}
+              filterDirection={FlowsFilterDirection.Both}
+              onSelectFilters={props.onSelectFilters}
+            />
+          </div>
         </section>
       )}
-      {hasDestination && typeof destinationPort === 'number' && (
+      {flow.hasDestination && typeof flow.destinationPort === 'number' && (
         <section className={css.block}>
           <span className={css.title}>Destination port</span>
-          <div className={css.body}>{destinationPort}</div>
+          <div className={css.body}>{flow.destinationPort}</div>
         </section>
       )}
     </div>
   );
 });
-
-const Labels: FunctionComponent<{ labels: KV[] }> = props => {
-  const cnt = props.labels.length;
-
-  return (
-    <div className={css.labels}>
-      {props.labels.map(({ key, value }, idx) => {
-        const isLastLabel = idx + 1 === cnt;
-
-        let title = key;
-        if (value) {
-          title += `=${value}`;
-        }
-        return (
-          <React.Fragment key={`${key}=${value}`}>
-            <div>{title}</div>
-            {isLastLabel ? '' : ' '}
-          </React.Fragment>
-        );
-      })}
-    </div>
-  );
-};

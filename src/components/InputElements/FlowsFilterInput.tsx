@@ -1,7 +1,8 @@
 import { Button, Classes, Icon, MenuItem } from '@blueprintjs/core';
 import { ItemRenderer, MultiSelect } from '@blueprintjs/select';
 import { trim } from 'lodash';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, memo } from 'react';
+import classnames from 'classnames';
 
 import { FlowsFilterDirection, FlowsFilterEntry } from '~/domain/flows';
 
@@ -103,47 +104,55 @@ const renderItem: ItemRenderer<FlowsFilterEntry | null> = () => {
   return null;
 };
 
-const renderTag = (item: FlowsFilterEntry | null) => {
+function renderTag(item: FlowsFilterEntry | null) {
   if (!item) return null;
 
-  const label = item.meta ? (
-    <>
-      {item.kind}={item.query} <i>{item.meta}</i>
-    </>
-  ) : (
-    <>
-      {item.kind}={item.query}
-    </>
-  );
-  let color: string;
-  let directionLabel: 'from:' | 'to:' | 'from|to:';
-  let icon: 'arrow-left' | 'arrow-right' | 'arrows-horizontal';
-
-  switch (item.direction) {
-    case FlowsFilterDirection.From:
-      color = '#468706';
-      icon = 'arrow-left';
-      directionLabel = 'from:';
-      break;
-    case FlowsFilterDirection.To:
-      color = '#065A8D';
-      icon = 'arrow-right';
-      directionLabel = 'to:';
-      break;
-    case FlowsFilterDirection.Both:
-      color = '#666';
-      icon = 'arrows-horizontal';
-      directionLabel = 'from|to:';
-      break;
-  }
-
   return (
-    <div className={css.tagContent}>
-      <b style={{ color }}>{directionLabel}</b>
-      <Icon icon={icon} iconSize={9} color={color} style={{ color }} />
-      <div className={css.tagTitle}>
-        <span>{label}</span>
-      </div>
+    <div className={css.tag}>
+      <TagDirection direction={item.direction} />
+      <span className={css.body}>
+        <span className={css.kind}>{item.kind}</span>
+        <span className={css.separator}>=</span>
+        <span className={css.query}>{item.query}</span>
+        {item.meta && <span className={css.meta}>{item.meta}</span>}
+      </span>
     </div>
   );
-};
+}
+
+interface TagDirectionProps {
+  direction: FlowsFilterDirection;
+}
+
+const TagDirection = memo<TagDirectionProps>(function TagDirection(props) {
+  const className = classnames(css.direction, {
+    [css.from]: props.direction === FlowsFilterDirection.From,
+    [css.to]: props.direction === FlowsFilterDirection.To,
+    [css.both]: props.direction === FlowsFilterDirection.Both,
+  });
+
+  return (
+    <span className={className}>
+      {props.direction === FlowsFilterDirection.From && (
+        <>
+          <span className={classnames(css.label, css.from)}>from</span>
+          <Icon icon="arrow-left" iconSize={9} className={css.icon} />
+        </>
+      )}
+      {props.direction === FlowsFilterDirection.To && (
+        <>
+          <Icon icon="arrow-right" iconSize={9} className={css.icon} />
+          <span className={classnames(css.label, css.to)}>to</span>
+        </>
+      )}
+      {props.direction === FlowsFilterDirection.Both && (
+        <>
+          <span className={classnames(css.label, css.from)}>from</span>
+          <Icon icon="arrows-horizontal" iconSize={9} className={css.icon} />
+          <span className={classnames(css.label, css.to)}>to</span>
+        </>
+      )}
+      {/* <Icon icon={icon} iconSize={9} color={color} style={{ color }} /> */}
+    </span>
+  );
+});
