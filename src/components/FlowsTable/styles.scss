@@ -54,6 +54,10 @@ $border-color: #c6cace;
         .cell {
           color: #fff;
         }
+
+        .subtitle {
+          color: #ccc;
+        }
       }
 
       .cell {
@@ -166,6 +170,38 @@ $border-color: #c6cace;
       font-size: 12px;
       line-height: 17px;
       color: #7b7b7b;
+      white-space: pre;
+
+      .clickable {
+        text-decoration: underline;
+        text-decoration-color: #b3b3b3;
+        cursor: pointer;
+
+        &:hover {
+          color: #5e5e5e;
+          text-decoration-color: #929292;
+        }
+
+        &.selected {
+          font-weight: 700;
+        }
+      }
+
+      .labels {
+        .label {
+          display: block;
+        }
+      }
+
+      .tcpFlags {
+        .tcpFlag {
+          margin-right: 5px;
+
+          &:last-child {
+            margin-right: 0;
+          }
+        }
+      }
     }
   }
 
