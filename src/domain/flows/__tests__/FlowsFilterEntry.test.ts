@@ -67,7 +67,7 @@ describe('correct strings parsing', () => {
     true,
     FlowsFilterDirection.Both,
     FlowsFilterKind.Label,
-    'k8s:app=name',
+    'app=name',
   );
 
   parse(
@@ -76,7 +76,7 @@ describe('correct strings parsing', () => {
     true,
     FlowsFilterDirection.From,
     FlowsFilterKind.Label,
-    'k8s:app=name',
+    'app=name',
   );
 
   parse(
@@ -85,7 +85,7 @@ describe('correct strings parsing', () => {
     true,
     FlowsFilterDirection.To,
     FlowsFilterKind.Label,
-    'k8s:app=name',
+    'app=name',
   );
 
   parse(
@@ -121,7 +121,7 @@ describe('correct strings parsing', () => {
     true,
     FlowsFilterDirection.Both,
     FlowsFilterKind.Label,
-    'k8s:app=name',
+    'app=name',
   );
 
   parse(
@@ -139,7 +139,7 @@ describe('correct strings parsing', () => {
     true,
     FlowsFilterDirection.Both,
     FlowsFilterKind.Label,
-    'k8s:app=name',
+    'app=name',
   );
 
   parse(
