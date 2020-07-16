@@ -65,7 +65,15 @@ export const filterFlow = (flow: Flow, filters: Filters): boolean => {
   }
 
   if (filters.httpStatus != null) {
-    if (`${flow.httpStatus}` !== filters.httpStatus) return false;
+    if (flow.httpStatus == null) return false;
+
+    const httpStatus = parseInt(filters.httpStatus);
+    const lastChar = filters.httpStatus.slice(-1);
+    const rangeSign = ['+', '-'].includes(lastChar) ? lastChar : undefined;
+
+    if (!rangeSign && flow.httpStatus !== httpStatus) return false;
+    if (rangeSign === '+' && flow.httpStatus < httpStatus) return false;
+    if (rangeSign === '-' && flow.httpStatus > httpStatus) return false;
   }
 
   let ok = true;

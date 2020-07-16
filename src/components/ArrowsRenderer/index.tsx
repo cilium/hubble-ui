@@ -145,7 +145,7 @@ const arrowHandleId = (handle: [Vec2, Vec2]): string => {
   const mid = gutils.linterp2(from, to, 0.5);
 
   // WARN: precision lose here
-  return `${mid.x | 0},${mid.y | 0}`;
+  return `${Math.trunc(mid.x)},${Math.trunc(mid.y)}`;
 };
 
 const arrowHandleEnter = (enter: any) => {
@@ -347,8 +347,8 @@ const manageArrows = (props: Props, g: SVGGElement) => {
 
       // prettier-ignore
       arrows.push([fromToId, {
-          points: allPoints,
-          handles: arrowHandles,
+        points: allPoints,
+        handles: arrowHandles,
       }]);
 
       const connector = connectorArrow.connector;

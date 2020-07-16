@@ -33,6 +33,15 @@ export class Labels {
     'covalent.io/',
   ];
 
+  public static toKV(label: string, normalize = false): KV {
+    const [key, ...rest] = label.split('=');
+
+    return {
+      key: normalize ? Labels.normalizeKey(key) : key,
+      value: rest.join('='),
+    };
+  }
+
   public static normalizeKey(key: string) {
     return Labels.prefixes.reduce(
       (acc, val) => acc.replace(val, ''),
@@ -115,6 +124,7 @@ export class Labels {
       isKubeDNS: false,
       isHealth: false,
       isPrometheusApp: false,
+      appName: undefined,
     };
 
     labels.forEach((kv: KV) => {
