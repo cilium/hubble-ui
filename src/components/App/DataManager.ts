@@ -5,6 +5,10 @@ import { GeneralStreamEventKind } from '~/api/general/stream';
 
 import { HubbleFlow } from '~/domain/hubble';
 import { Filters, areFiltersEqual, filterFlow } from '~/domain/filtering';
+import { Flow } from '~/domain/flows';
+import { flowFromRelay } from '~/domain/helpers';
+import { StateChange, setupDebugProp } from '~/domain/misc';
+
 import { EventEmitter } from '~/utils/emitter';
 import {
   EventParamsSet,
@@ -17,9 +21,6 @@ import {
 } from '~/api/general/event-stream';
 
 import { Store, StoreFrame } from '~/store';
-import { StateChange } from '~/domain/misc';
-import { flowFromRelay } from '~/domain/helpers';
-import { Flow } from '~/domain/flows';
 
 export enum EventKind {
   StreamError = 'stream-error',
@@ -55,6 +56,12 @@ export class DataManager extends EventEmitter<Events> {
 
     this.api = api;
     this.store = store;
+
+    setupDebugProp({
+      stopAllStreams: () => {
+        this.stopAllStreams();
+      },
+    });
   }
 
   public setupMock() {
@@ -187,6 +194,23 @@ export class DataManager extends EventEmitter<Events> {
 
   private offAllStreamEvents(stream: IEventStream) {
     stream.offAllEvents();
+  }
+
+  private stopAllStreams() {
+    if (this.mainStream) {
+      this.mainStream.stream.stop();
+      this.offAllStreamEvents(this.mainStream.stream);
+    }
+
+    if (this.initialStream) {
+      this.initialStream.stream.stop();
+      this.offAllStreamEvents(this.initialStream.stream);
+    }
+
+    if (this.filteringStream) {
+      this.filteringStream.stream.stop();
+      this.offAllStreamEvents(this.filteringStream.stream);
+    }
   }
 
   public get flowsDelay(): number | undefined {

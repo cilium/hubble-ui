@@ -6,11 +6,12 @@ import {
   TrafficDirection,
   TCPFlags,
 } from '~/domain/hubble';
-import { Labels } from '~/domain/labels';
+import { Labels, LabelsProps } from '~/domain/labels';
 import {
   CiliumEventSubTypesCodes,
   CiliumDropReasonCodes,
 } from '~/domain/cilium';
+import { KV } from '~/domain/misc';
 import { memoize } from '~/utils/memoize';
 
 export * from './flows-filter-entry';
@@ -39,6 +40,16 @@ export class Flow {
     }
 
     return `${timeStr}-${this.ref.nodeName}`;
+  }
+
+  @memoize
+  public get sourceLabelProps(): LabelsProps {
+    return Labels.detect(this.sourceLabels);
+  }
+
+  @memoize
+  public get destinationLabelProps(): LabelsProps {
+    return Labels.detect(this.destinationLabels);
   }
 
   public get hubbleFlow(): HubbleFlow {
