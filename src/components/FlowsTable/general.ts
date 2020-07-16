@@ -1,3 +1,6 @@
+import { Filters } from '~/domain/filtering';
+import { FlowsFilterDirection } from '~/domain/flows';
+
 export interface CommonProps {
   isVisibleColumn?: (column: FlowsTableColumnKey) => boolean;
 }
@@ -30,4 +33,9 @@ export const DEFAULT_FLOWS_TABLE_VISIBLE_COLUMNS = new Set<FlowsTableColumnKey>(
 
 export function getFlowsTableColumnLabel(column: FlowsTableColumnKey) {
   return FlowsTableColumn[column];
+}
+
+export interface FiltersProps {
+  dataFilters?: Filters;
+  onSelectFilters?: (filters: Filters) => void;
 }
