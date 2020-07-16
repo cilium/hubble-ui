@@ -100,13 +100,13 @@ runTest(3, data.flows.hubbleOne, {
 // `Source labels` info renders
 runTest(4, data.flows.hubbleOne, {
   title: 'Source labels',
-  body: 'app=Sender namespace=SenderNs',
+  body: 'app=Sendernamespace=SenderNs',
 });
 
 // `Destination labels` info renders
 runTest(5, data.flows.hubbleOne, {
   title: 'Destination labels',
-  body: 'app=Receiver namespace=ReceiverNs',
+  body: 'app=Receivernamespace=ReceiverNs',
 });
 
 // `Destination labels` info renders

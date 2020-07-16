@@ -35,6 +35,7 @@ import { DataManager, EventKind as DataManagerEvents } from './DataManager';
 import { Ticker } from '~/utils/ticker';
 import { sizes } from '~/ui/vars';
 import css from './styles.scss';
+import { Filters } from '~/domain/filtering';
 
 export interface AppProps extends RouteComponentProps {
   api: API;
@@ -153,6 +154,21 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     setMapWasDragged(val);
   }, []);
 
+  const setFilters = useCallback((f: Filters) => {
+    if (typeof f.httpStatus !== 'undefined') {
+      store.controls.setHttpStatus(f.httpStatus);
+    }
+    if (typeof f.verdict !== 'undefined') {
+      store.controls.setVerdict(f.verdict);
+    }
+    if (typeof f.namespace !== 'undefined') {
+      store.controls.setCurrentNamespace(f.namespace);
+    }
+    if (typeof f.filters !== 'undefined') {
+      store.setFlowFilters(f.filters);
+    }
+  }, []);
+
   // prettier-ignore
   const isCardActive = useCallback((id: string) => {
     return frame.isCardActive(id);
@@ -223,8 +239,10 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       <DetailsPanel
         isStreaming={isStreaming}
         flows={frame.interactions.flows}
+        dataFilters={frame.controls.dataFilters}
         selectedFlow={frame.controls.selectedTableFlow}
         onSelectFlow={frame.controls.selectTableFlow}
+        onSelectFilters={setFilters}
         onCloseSidebar={onCloseFlowsTableSidebar}
         ticker={ticker}
         onPanelResize={onPanelResize}

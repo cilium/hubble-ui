@@ -64,7 +64,9 @@ export const DetailsPanelComponent = function (props: Props) {
             flows={props.flows}
             isVisibleColumn={flowsTableColumns.isVisibleColumn}
             selectedFlow={props.selectedFlow}
+            dataFilters={props.dataFilters}
             onSelectFlow={props.onSelectFlow}
+            onSelectFilters={props.onSelectFilters}
             onFlowsDiffCount={props.onFlowsDiffCount}
             ticker={props.ticker}
           />
@@ -76,7 +78,9 @@ export const DetailsPanelComponent = function (props: Props) {
       {props.selectedFlow && (
         <FlowsTableSidebar
           flow={props.selectedFlow}
+          dataFilters={props.dataFilters}
           onClose={props.onCloseSidebar}
+          onSelectFilters={props.onSelectFilters}
         />
       )}
     </div>

@@ -70,11 +70,11 @@ export class Flow {
   }
 
   public get sourceIdentity() {
-    return this.ref.source?.identity;
+    return this.ref.source?.identity ?? null;
   }
 
   public get destinationIdentity() {
-    return this.ref.destination?.identity;
+    return this.ref.destination?.identity ?? null;
   }
 
   public get sourceNamespace() {
@@ -148,16 +148,7 @@ export class Flow {
   }
 
   public get verdictLabel(): 'forwarded' | 'dropped' | 'unknown' | 'unhandled' {
-    switch (this.ref.verdict) {
-      case Verdict.Forwarded:
-        return 'forwarded';
-      case Verdict.Dropped:
-        return 'dropped';
-      case Verdict.Unknown:
-        return 'unknown';
-      default:
-        return 'unhandled';
-    }
+    return Flow.getVerdictLabel(this.ref.verdict);
   }
 
   public get isReply() {
@@ -213,6 +204,25 @@ export class Flow {
         return 'ingress';
       case TrafficDirection.Egress:
         return 'egress';
+    }
+  }
+
+  public get tcpFlags() {
+    return this.ref.l4?.tcp?.flags ?? null;
+  }
+
+  public static getVerdictLabel(
+    verdict: Verdict,
+  ): 'forwarded' | 'dropped' | 'unknown' | 'unhandled' {
+    switch (verdict) {
+      case Verdict.Forwarded:
+        return 'forwarded';
+      case Verdict.Dropped:
+        return 'dropped';
+      case Verdict.Unknown:
+        return 'unknown';
+      default:
+        return 'unhandled';
     }
   }
 
