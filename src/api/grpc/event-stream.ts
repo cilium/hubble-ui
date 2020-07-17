@@ -238,9 +238,22 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
     }
 
     // filter out intermediate dns requests
-    const blDstLocalDnsFilter = new FlowFilter();
+    const [blSrcLocalDnsFilter, blDstLocalDnsFilter] = [
+      new FlowFilter(),
+      new FlowFilter(),
+    ];
+    blSrcLocalDnsFilter.addSourceFqdn('*.cluster.local');
     blDstLocalDnsFilter.addDestinationFqdn('*.cluster.local');
-    blFilters.push(blDstLocalDnsFilter);
+    blFilters.push(blSrcLocalDnsFilter, blDstLocalDnsFilter);
+
+    // filter out icmp flows
+    const [blICMPv4Filter, blICMPv6Filter] = [
+      new FlowFilter(),
+      new FlowFilter(),
+    ];
+    blICMPv4Filter.addProtocol('ICMPv4');
+    blICMPv6Filter.addProtocol('ICMPv6');
+    blFilters.push(blICMPv4Filter, blICMPv6Filter);
 
     return [wlFilters, blFilters];
   }
