@@ -104,6 +104,10 @@ export const TCPFlagsBody = memo<TCPFlagsBodyProps>(
     return (
       <div className={css.tcpFlags}>
         {Object.keys(props.flags)
+          .filter(f => {
+            const flag = f as keyof TCPFlags;
+            return props.flags[flag];
+          })
           .sort()
           .map(f => {
             const flag = f as keyof TCPFlags;
