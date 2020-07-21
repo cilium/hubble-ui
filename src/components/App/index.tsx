@@ -49,7 +49,6 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   const [mapVisibleHeight, setMapVisibleHeight] = useState<number | null>(null);
   const [mapWasDragged, setMapWasDragged] = useState<boolean>(false);
 
-  const frame = store.currentFrame;
   const notifier = useNotifier();
   const dataManager = useMemo(() => {
     return new DataManager(props.api, store);
@@ -63,27 +62,29 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
   }, [dataManager]);
 
   useEffect(() => {
-    dataManager.on(DataManagerEvents.StreamError, () => {
+    return dataManager.on(DataManagerEvents.StreamError, () => {
       setIsStreaming(false);
       notifier.showError(`
         Failed to receive data from backend.
         Please make sure that your deployment is up and try again.
       `);
     });
+  }, [dataManager, notifier]);
 
-    dataManager.on(DataManagerEvents.StreamEnd, () => {
+  useEffect(() => {
+    return dataManager.on(DataManagerEvents.StreamEnd, () => {
       setIsStreaming(false);
     });
+  }, [dataManager]);
 
-    dataManager.on(DataManagerEvents.StoreMocked, () => {
+  useEffect(() => {
+    return dataManager.on(DataManagerEvents.StoreMocked, () => {
       setIsStreaming(true);
     });
+  }, [dataManager]);
 
-    dataManager.on(DataManagerEvents.FlowsDiff, (diff: number) => {
-      onFlowsDiffCount.current?.(diff);
-    });
-
-    dataManager.on(
+  useEffect(() => {
+    const unsubscribe = dataManager.on(
       DataManagerEvents.NamespaceAdded,
       _.debounce(() => {
         const { namespaces, currentNamespace } = store.controls;
@@ -105,7 +106,25 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     } else if (store.controls.currentNamespace == null) {
       dataManager.setupInitialStream();
     }
-  }, [dataManager]);
+
+    return unsubscribe;
+  }, [
+    dataManager,
+    store.controls.namespaces,
+    store.controls.currentNamespace,
+    store.mocked,
+  ]);
+
+  useEffect(() => {
+    return dataManager.on(
+      DataManagerEvents.FlowsDiff,
+      (frame, diff: number) => {
+        if (store.currentFrame === frame) {
+          onFlowsDiffCount.current?.(diff);
+        }
+      },
+    );
+  }, [store.currentFrame, dataManager]);
 
   useEffect(() => {
     if (!store.controls.currentNamespace || store.mocked) return;
@@ -115,12 +134,11 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       dataManager.resetNamespace(newNamespace);
     }
 
-    const filtersChanged = dataManager.filtersChanged;
     if (dataManager.hasFilteringStream) {
       dataManager.dropFilteringFrame();
     }
 
-    if (filtersChanged) {
+    if (dataManager.filtersChanged && !store.controls.isDefault) {
       dataManager.setupFilteringFrame(store.controls.currentNamespace);
     }
 
@@ -171,10 +189,11 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
 
   // prettier-ignore
   const isCardActive = useCallback((id: string) => {
-    return frame.isCardActive(id);
-  },[frame.services.activeCardsList]);
+    return store.currentFrame.isCardActive(id);
+  },[store.currentFrame.services.activeCardsList]);
 
-  const mapLoaded = frame.layout.placement.length > 0 && isStreaming;
+  const mapLoaded =
+    store.currentFrame.layout.placement.length > 0 && isStreaming;
 
   const RenderedTopBar = (
     <TopBar
@@ -192,6 +211,10 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       onShowHostToggle={store.toggleShowHost}
       showKubeDns={store.controls.showKubeDns}
       onShowKubeDnsToggle={store.toggleShowKubeDns}
+      showRemoteNode={store.controls.showRemoteNode}
+      onShowRemoteNodeToggle={store.toggleShowRemoteNode}
+      showPrometheusApp={store.controls.showPrometheusApp}
+      onShowPrometheusAppToggle={store.toggleShowPrometheusApp}
     />
   );
 
@@ -214,18 +237,18 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       <div className={css.map}>
         {mapLoaded ? (
           <Map
-            namespace={frame.controls.currentNamespace}
-            namespaceBBox={frame.layout.namespaceBBox}
-            placement={frame.layout.placement}
+            namespace={store.currentFrame.controls.currentNamespace}
+            namespaceBBox={store.currentFrame.layout.namespaceBBox}
+            placement={store.currentFrame.layout.placement}
             visibleHeight={mapVisibleHeight ?? 0}
-            accessPoints={frame.interactions.accessPoints}
-            accessPointsCoords={frame.layout.accessPointsCoords}
-            arrows={frame.layout.arrows}
+            accessPoints={store.currentFrame.interactions.accessPoints}
+            accessPointsCoords={store.currentFrame.layout.accessPointsCoords}
+            arrows={store.currentFrame.layout.arrows}
             isCardActive={isCardActive}
             wasDragged={mapWasDragged}
             onCardSelect={onCardSelect}
             onAccessPointCoords={onAccessPointCoords}
-            onCardHeightChange={frame.layout.setCardHeight}
+            onCardHeightChange={store.currentFrame.layout.setCardHeight}
             onMapDrag={onMapDrag}
           />
         ) : (
@@ -238,10 +261,10 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
 
       <DetailsPanel
         isStreaming={isStreaming}
-        flows={frame.interactions.flows}
-        dataFilters={frame.controls.dataFilters}
-        selectedFlow={frame.controls.selectedTableFlow}
-        onSelectFlow={frame.controls.selectTableFlow}
+        flows={store.currentFrame.interactions.flows}
+        dataFilters={store.currentFrame.controls.dataFilters}
+        selectedFlow={store.currentFrame.controls.selectedTableFlow}
+        onSelectFlow={store.currentFrame.controls.selectTableFlow}
         onSelectFilters={setFilters}
         onCloseSidebar={onCloseFlowsTableSidebar}
         ticker={ticker}

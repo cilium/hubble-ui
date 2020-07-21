@@ -15,13 +15,21 @@ interface Props {
   onShowHostToggle?: () => void;
   showKubeDns: boolean;
   onShowKubeDnsToggle?: () => void;
+  showRemoteNode: boolean;
+  onShowRemoteNodeToggle?: () => void;
+  showPrometheusApp: boolean;
+  onShowPrometheusAppToggle?: () => void;
 }
 
 export const VisualFiltersDropdown = memo<Props>(function VisualFiltersDropdown(
   props,
 ) {
   const popover = usePopover();
-  const enabled = !props.showHost || !props.showKubeDns;
+  const enabled =
+    !props.showHost ||
+    !props.showKubeDns ||
+    !props.showRemoteNode ||
+    !props.showPrometheusApp;
 
   const content = (
     <Menu>
@@ -42,6 +50,26 @@ export const VisualFiltersDropdown = memo<Props>(function VisualFiltersDropdown(
             checked={!props.showKubeDns}
             label="Hide kube-dns:53 pod"
             onChange={props.onShowKubeDnsToggle}
+          />
+        }
+      />
+      <MenuItem
+        shouldDismissPopover={false}
+        text={
+          <Checkbox
+            checked={!props.showRemoteNode}
+            label="Hide remote node"
+            onChange={props.onShowRemoteNodeToggle}
+          />
+        }
+      />
+      <MenuItem
+        shouldDismissPopover={false}
+        text={
+          <Checkbox
+            checked={!props.showPrometheusApp}
+            label="Hide prometheus app"
+            onChange={props.onShowPrometheusAppToggle}
           />
         }
       />

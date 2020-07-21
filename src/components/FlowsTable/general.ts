@@ -1,5 +1,4 @@
 import { Filters } from '~/domain/filtering';
-import { FlowsFilterDirection } from '~/domain/flows';
 
 export interface CommonProps {
   isVisibleColumn?: (column: FlowsTableColumnKey) => boolean;
@@ -14,6 +13,7 @@ export enum FlowsTableColumn {
   DstService = 'Destination Service',
   DstPort = 'Destination Port',
   Verdict = 'Verdict',
+  TcpFlags = 'TCP Flags',
   Timestamp = 'Timestamp',
 }
 

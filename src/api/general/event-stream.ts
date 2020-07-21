@@ -56,6 +56,8 @@ export interface DataFilters {
   filters?: FlowsFilterEntry[];
   skipHost?: boolean;
   skipKubeDns?: boolean;
+  skipRemoteNode?: boolean;
+  skipPrometheusApp?: boolean;
 }
 
 export type EventStreamHandlers = GeneralStreamEvents & {

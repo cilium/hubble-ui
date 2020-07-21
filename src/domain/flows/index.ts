@@ -1,9 +1,17 @@
 import _ from 'lodash';
 
-import { HubbleFlow, Verdict, TrafficDirection } from '~/domain/hubble';
+import {
+  HubbleFlow,
+  Verdict,
+  TrafficDirection,
+  TCPFlags,
+} from '~/domain/hubble';
 import { Labels } from '~/domain/labels';
-import { KV } from '~/domain/misc';
-import { CiliumEventSubTypesCodes } from '~/domain/cilium';
+import {
+  CiliumEventSubTypesCodes,
+  CiliumDropReasonCodes,
+} from '~/domain/cilium';
+import { memoize } from '~/utils/memoize';
 
 export * from './flows-filter-entry';
 export { HubbleFlow, Verdict };
@@ -11,30 +19,26 @@ export { HubbleFlow, Verdict };
 export class Flow {
   private ref: HubbleFlow;
 
-  private _id: string;
-  private _sourceLabels: KV[];
-  private _destinationLabels: KV[];
-
-  // Cached
-  private _sourceNamespace: string | null = null;
-  private _destNamespace: string | null = null;
-
   constructor(flow: HubbleFlow) {
     this.ref = flow;
-
-    this._sourceLabels = this.mapLabelsToKv(flow.source?.labelsList || []);
-    this._destinationLabels = this.mapLabelsToKv(
-      flow.destination?.labelsList || [],
-    );
-    this._id = this.buildId();
   }
 
   public clone(): Flow {
     return new Flow(_.cloneDeep(this.ref));
   }
 
+  @memoize
   public get id() {
-    return this._id;
+    let timeStr = '';
+    if (this.ref.time) {
+      const { seconds: s, nanos: n } = this.ref.time;
+      timeStr = `${Math.trunc(s)}.${Math.trunc(n)}`;
+    } else {
+      // WAT ?
+      timeStr = `${Date.now()}`;
+    }
+
+    return `${timeStr}-${this.ref.nodeName}`;
   }
 
   public get hubbleFlow(): HubbleFlow {
@@ -53,12 +57,14 @@ export class Flow {
     return Boolean(this.ref.destination);
   }
 
+  @memoize
   public get sourceLabels() {
-    return this._sourceLabels;
+    return this.mapLabelsToKv(this.ref.source?.labelsList || []);
   }
 
+  @memoize
   public get destinationLabels() {
-    return this._destinationLabels;
+    return this.mapLabelsToKv(this.ref.destination?.labelsList || []);
   }
 
   public get sourceNamesList() {
@@ -77,42 +83,32 @@ export class Flow {
     return this.ref.destination?.identity ?? null;
   }
 
+  @memoize
   public get sourceNamespace() {
-    if (this._sourceNamespace != null) return this._sourceNamespace;
-
-    this._sourceNamespace = Labels.findNamespaceInLabels(this.sourceLabels);
-    return this._sourceNamespace;
+    return Labels.findNamespaceInLabels(this.sourceLabels);
   }
 
+  @memoize
   public get destinationNamespace() {
-    if (this._destNamespace != null) return this._destNamespace;
-
-    this._destNamespace = Labels.findNamespaceInLabels(this.destinationLabels);
-    return this._destNamespace;
+    return Labels.findNamespaceInLabels(this.destinationLabels);
   }
 
+  @memoize
   public get sourceAppName() {
     return Labels.findAppNameInLabels(this.sourceLabels);
   }
 
+  @memoize
   public get destinationAppName() {
     return Labels.findAppNameInLabels(this.destinationLabels);
   }
 
   public get sourcePodName() {
-    if (!this.ref.source) {
-      return null;
-    }
-
-    return this.ref.source.podName;
+    return this.ref.source?.podName ?? null;
   }
 
   public get destinationPodName() {
-    if (!this.ref.destination) {
-      return null;
-    }
-
-    return this.ref.destination.podName;
+    return this.ref.destination?.podName ?? null;
   }
 
   public get destinationPort() {
@@ -128,19 +124,11 @@ export class Flow {
   }
 
   public get sourceIp() {
-    if (!this.ref.ip?.source) {
-      return null;
-    }
-
-    return this.ref.ip.source;
+    return this.ref.ip?.source ?? null;
   }
 
   public get destinationIp() {
-    if (!this.ref.ip?.destination) {
-      return null;
-    }
-
-    return this.ref.ip.destination;
+    return this.ref.ip?.destination ?? null;
   }
 
   public get verdict(): Verdict {
@@ -149,6 +137,16 @@ export class Flow {
 
   public get verdictLabel(): 'forwarded' | 'dropped' | 'unknown' | 'unhandled' {
     return Flow.getVerdictLabel(this.ref.verdict);
+  }
+
+  public get dropReasonCode() {
+    return this.ref.dropReason;
+  }
+
+  public get dropReason() {
+    return CiliumDropReasonCodes[
+      this.dropReasonCode as keyof typeof CiliumDropReasonCodes
+    ];
   }
 
   public get isReply() {
@@ -211,6 +209,25 @@ export class Flow {
     return this.ref.l4?.tcp?.flags ?? null;
   }
 
+  @memoize
+  public get enabledTcpFlags(): Array<keyof TCPFlags> {
+    if (this.tcpFlags == null) return [];
+
+    return Object.keys(this.tcpFlags)
+      .filter(f => {
+        const flag = f as keyof TCPFlags;
+        return this.tcpFlags?.[flag];
+      })
+      .sort() as Array<keyof TCPFlags>;
+  }
+
+  @memoize
+  public get joinedTcpFlags() {
+    if (this.enabledTcpFlags.length === 0) return null;
+
+    return this.enabledTcpFlags.map(f => f.toLocaleUpperCase()).join(' ');
+  }
+
   public static getVerdictLabel(
     verdict: Verdict,
   ): 'forwarded' | 'dropped' | 'unknown' | 'unhandled' {
@@ -224,19 +241,6 @@ export class Flow {
       default:
         return 'unhandled';
     }
-  }
-
-  private buildId() {
-    let timeStr = '';
-    if (this.ref.time) {
-      const { seconds: s, nanos: n } = this.ref.time;
-      timeStr = `${Math.trunc(s)}.${Math.trunc(n)}`;
-    } else {
-      // WAT ?
-      timeStr = `${Date.now()}`;
-    }
-
-    return `${timeStr}-${this.ref.nodeName}`;
   }
 
   private mapLabelsToKv(labels: string[]) {

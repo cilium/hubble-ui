@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  Intent,
-  IToaster,
-  Toast,
-  IToasterProps,
-  IconName,
-} from '@blueprintjs/core';
+import { Intent, IToaster, IToasterProps, IconName } from '@blueprintjs/core';
 
 import {
   Notification,
