@@ -1,7 +1,7 @@
 import { Icon } from '@blueprintjs/core';
 import React, { memo } from 'react';
 
-import { Flow, FlowsFilterDirection } from '~/domain/flows';
+import { Flow, FlowsFilterDirection, Verdict } from '~/domain/flows';
 
 import { FiltersProps } from './general';
 import {
@@ -43,6 +43,12 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
           />
         </div>
       </section>
+      {flow.verdict === Verdict.Dropped && (
+        <section className={css.block}>
+          <span className={css.title}>Drop reason</span>
+          <div className={css.body}>{flow.dropReason}</div>
+        </section>
+      )}
       <section className={css.block}>
         <span className={css.title}>Traffic direction</span>
         <div className={css.body}>{flow.trafficDirectionLabel}</div>
@@ -53,11 +59,16 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
           <div className={css.body}>{flow.ciliumEventSubTypeLabel}</div>
         </section>
       )}
-      {flow.tcpFlags && Object.keys(flow.tcpFlags).length > 0 && (
+      {flow.enabledTcpFlags.length > 0 && (
         <section className={css.block}>
           <span className={css.title}>TCP flags</span>
           <div className={css.body}>
-            <TCPFlagsBody flags={flow.tcpFlags} />
+            <TCPFlagsBody
+              flags={flow.enabledTcpFlags}
+              dataFilters={props.dataFilters}
+              filterDirection={FlowsFilterDirection.Both}
+              onSelectFilters={props.onSelectFilters}
+            />
           </div>
         </section>
       )}

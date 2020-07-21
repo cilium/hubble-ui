@@ -7,6 +7,7 @@ import { ids } from '~/domain/ids';
 import { HubbleLink } from '~/domain/hubble';
 import { StateChange } from '~/domain/misc';
 import { flowFromRelay } from '~/domain/helpers';
+import { filterFlow, Filters } from '~/domain/filtering';
 
 // { cardId -> { cardId -> { acessPointId : Link }  }
 export type ConnectionsMap = Map<string, Map<string, Map<string, Link>>>;
@@ -92,18 +93,23 @@ export default class InteractionStore {
   }
 
   @action.bound
-  addFlows(flows: HubbleFlow[]) {
-    this.flows = _(flows)
+  addFlows(hubbleFlows: HubbleFlow[], filters?: Filters) {
+    const preparedFlows = hubbleFlows.reduce<Flow[]>((acc, hubbleFlow) => {
+      const flow = flowFromRelay(hubbleFlow);
+      if (filters == null || filterFlow(flow, filters)) acc.push(flow);
+      return acc;
+    }, []);
+
+    this.flows = _(preparedFlows)
       .reverse()
-      .map(flowFromRelay)
       .concat(this.flows)
       .uniqBy(f => f.id)
-      .value()
-      .slice(0, InteractionStore.FLOWS_MAX_COUNT);
+      .slice(0, InteractionStore.FLOWS_MAX_COUNT)
+      .value();
 
     return {
       flowsTotalCount: this.flows.length,
-      flowsDiffCount: flows.length,
+      flowsDiffCount: hubbleFlows.length,
     };
   }
 

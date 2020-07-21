@@ -4,9 +4,14 @@ import { trim } from 'lodash';
 import React, { useCallback, useState, memo } from 'react';
 import classnames from 'classnames';
 
-import { FlowsFilterDirection, FlowsFilterEntry } from '~/domain/flows';
+import {
+  FlowsFilterDirection,
+  FlowsFilterEntry,
+  FlowsFilterKind,
+} from '~/domain/flows';
 
 import css from './FlowsFilterInput.scss';
+import { Labels } from '~/domain/labels';
 
 interface Props {
   filters: FlowsFilterEntry[];
@@ -107,13 +112,18 @@ const renderItem: ItemRenderer<FlowsFilterEntry | null> = () => {
 function renderTag(item: FlowsFilterEntry | null) {
   if (!item) return null;
 
+  const query =
+    item.kind === FlowsFilterKind.Label
+      ? Labels.normalizeKey(item.query)
+      : item.query;
+
   return (
     <div className={css.tag}>
       <TagDirection direction={item.direction} />
       <span className={css.body}>
         <span className={css.kind}>{item.kind}</span>
         <span className={css.separator}>=</span>
-        <span className={css.query}>{item.query}</span>
+        <span className={css.query}>{query}</span>
         {item.meta && <span className={css.meta}>{item.meta}</span>}
       </span>
     </div>

@@ -53,11 +53,14 @@ export const Cell = memo<CellProps>(function FlowsTableCell(props) {
       return <div className={css.cell}>{props.flow.destinationIp}</div>;
     }
     case FlowsTableColumn.DstService: {
-      const appName = props.flow.destinationAppName ?? 'No app name';
-      const subtitle = props.flow.destinationNamespace ? (
+      const appName = props.flow.destinationDns
+        ? props.flow.destinationDns
+        : props.flow.destinationAppName ?? '—';
+
+      const subtitle = props.flow.destinationDns ? (
+        ''
+      ) : props.flow.destinationNamespace ? (
         <span className={css.subtitle}>{props.flow.destinationNamespace}</span>
-      ) : props.flow.destinationDns ? (
-        <span className={css.subtitle}>{props.flow.destinationDns}</span>
       ) : props.flow.destinationIp ? (
         <span className={css.subtitle}>{props.flow.destinationIp}</span>
       ) : (
@@ -68,16 +71,20 @@ export const Cell = memo<CellProps>(function FlowsTableCell(props) {
       return <div className={css.cell}>{title}</div>;
     }
     case FlowsTableColumn.DstPort: {
-      return <div className={css.cell}>{props.flow.destinationPort}</div>;
+      const className = classnames(css.cell, css.dstPort);
+      return <div className={className}>{props.flow.destinationPort}</div>;
     }
     case FlowsTableColumn.Verdict: {
-      const verdictClassName = classnames({
+      const className = classnames(css.cell, css.verdict, {
         [css.forwardedVerdict]: props.flow.verdict === Verdict.Forwarded,
         [css.droppedVerdict]: props.flow.verdict === Verdict.Dropped,
       });
+      return <div className={className}>{props.flow.verdictLabel}</div>;
+    }
+    case FlowsTableColumn.TcpFlags: {
       return (
-        <div className={classnames(css.cell, verdictClassName)}>
-          {props.flow.verdictLabel}
+        <div className={classnames(css.cell, css.tcpFlags)}>
+          {props.flow.joinedTcpFlags}
         </div>
       );
     }
@@ -85,8 +92,9 @@ export const Cell = memo<CellProps>(function FlowsTableCell(props) {
       const ts = props.flow.millisecondsTimestamp;
       const timestamp = useWhenOccured(props.ticker, ts);
       const title = props.flow.isoTimestamp || undefined;
+      const className = classnames(css.cell, css.timestamp);
       return (
-        <div className={css.cell} title={title}>
+        <div className={className} title={title}>
           {timestamp}
         </div>
       );

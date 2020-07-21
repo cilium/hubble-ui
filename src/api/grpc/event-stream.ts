@@ -99,7 +99,7 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
       wlSrcFilter.addHttpStatusCode(filters.httpStatus);
       wlDstFilter.addHttpStatusCode(filters.httpStatus);
     } else {
-      eventTypes.push(CiliumEventTypes.DROP, CiliumEventTypes.TRACE);
+      eventTypes.push(CiliumEventTypes.Drop, CiliumEventTypes.Trace);
     }
 
     eventTypes.forEach(eventTypeNumber => {
@@ -237,13 +237,37 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
       blFilters.push(blSrcKubeDnsFilter, blDstKubeDnsFilter);
     }
 
+    if (filters?.skipRemoteNode) {
+      // filter out reserved:remote-node
+      const [blSrcRemoteNodeLabelFilter, blDstRemoteNodeLabelFilter] = [
+        new FlowFilter(),
+        new FlowFilter(),
+      ];
+      blSrcRemoteNodeLabelFilter.addSourceLabel(`${ReservedLabel.RemoteNode}=`);
+      blDstRemoteNodeLabelFilter.addDestinationLabel(
+        `${ReservedLabel.RemoteNode}=`,
+      );
+      blFilters.push(blSrcRemoteNodeLabelFilter, blDstRemoteNodeLabelFilter);
+    }
+
+    if (filters?.skipPrometheusApp) {
+      // filter out prometheus app
+      const [blSrcPrometheusFilter, blDstPrometheusFilter] = [
+        new FlowFilter(),
+        new FlowFilter(),
+      ];
+      blSrcPrometheusFilter.addSourceLabel(SpecialLabel.PrometheusApp);
+      blDstPrometheusFilter.addDestinationLabel(SpecialLabel.PrometheusApp);
+      blFilters.push(blSrcPrometheusFilter, blDstPrometheusFilter);
+    }
+
     // filter out intermediate dns requests
     const [blSrcLocalDnsFilter, blDstLocalDnsFilter] = [
       new FlowFilter(),
       new FlowFilter(),
     ];
-    blSrcLocalDnsFilter.addSourceFqdn('*.cluster.local');
-    blDstLocalDnsFilter.addDestinationFqdn('*.cluster.local');
+    blSrcLocalDnsFilter.addSourceFqdn('*.cluster.local*');
+    blDstLocalDnsFilter.addDestinationFqdn('*.cluster.local*');
     blFilters.push(blSrcLocalDnsFilter, blDstLocalDnsFilter);
 
     // filter out icmp flows

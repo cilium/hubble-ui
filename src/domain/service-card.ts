@@ -103,7 +103,6 @@ export class ServiceCard {
   public get isKubeDNS(): boolean {
     return this.labelsProps.isKubeDNS;
   }
-
   public get isCIDR(): boolean {
     return false;
     // return (
@@ -122,6 +121,10 @@ export class ServiceCard {
 
   public get isAWS(): boolean {
     return (this.appProtocol || '').toLowerCase().includes('aws');
+  }
+
+  public get isPrometheusApp(): boolean {
+    return this.labelsProps.isPrometheusApp;
   }
 }
 

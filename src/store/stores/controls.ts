@@ -17,6 +17,8 @@ export default class ControlStore {
   @observable flowFilters: FlowsFilterEntry[] = [];
   @observable showHost = false;
   @observable showKubeDns = false;
+  @observable showRemoteNode = false;
+  @observable showPrometheusApp = false;
 
   clone(deep = false): ControlStore {
     const store = new ControlStore();
@@ -105,6 +107,30 @@ export default class ControlStore {
     return this.setShowKubeDns(!this.showKubeDns);
   }
 
+  @action.bound
+  setShowRemoteNode(val: boolean): boolean {
+    this.showRemoteNode = val;
+
+    return val;
+  }
+
+  @action.bound
+  toggleShowRemoteNode(): boolean {
+    return this.setShowRemoteNode(!this.showRemoteNode);
+  }
+
+  @action.bound
+  setShowPrometheusApp(val: boolean): boolean {
+    this.showPrometheusApp = val;
+
+    return val;
+  }
+
+  @action.bound
+  toggleShowPrometheusApp(): boolean {
+    return this.setShowPrometheusApp(!this.showPrometheusApp);
+  }
+
   @computed
   get activeCardFilter() {
     return this.flowFilters.find(f => {
@@ -127,7 +153,21 @@ export default class ControlStore {
   }
 
   @computed
-  get dataFilters(): Filters {
+  get defaultFilters(): Required<Filters> {
+    return {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: !this.showHost,
+      skipKubeDns: !this.showKubeDns,
+      skipRemoteNode: !this.showRemoteNode,
+      skipPrometheusApp: !this.showPrometheusApp,
+    };
+  }
+
+  @computed
+  get dataFilters(): Required<Filters> {
     return {
       namespace: this.currentNamespace,
       verdict: this.verdict,
@@ -135,6 +175,8 @@ export default class ControlStore {
       filters: this.flowFilters,
       skipHost: !this.showHost,
       skipKubeDns: !this.showKubeDns,
+      skipRemoteNode: !this.showRemoteNode,
+      skipPrometheusApp: !this.showPrometheusApp,
     };
   }
 
@@ -144,6 +186,8 @@ export default class ControlStore {
       namespace: this.currentNamespace,
       skipHost: !this.showHost,
       skipKubeDns: !this.showKubeDns,
+      skipRemoteNode: !this.showRemoteNode,
+      skipPrometheusApp: !this.showPrometheusApp,
     };
   }
 
@@ -154,7 +198,9 @@ export default class ControlStore {
       this.httpStatus == null &&
       this.flowFilters.length === 0 &&
       !this.showHost &&
-      !this.showKubeDns
+      !this.showKubeDns &&
+      !this.showRemoteNode &&
+      !this.showPrometheusApp
     );
   }
 }
