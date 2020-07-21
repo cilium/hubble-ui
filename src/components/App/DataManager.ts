@@ -29,7 +29,7 @@ export enum EventKind {
 type Events = {
   [EventKind.StreamError]: () => void;
   [EventKind.StreamEnd]: () => void;
-  [EventKind.FlowsDiff]: (diff: number) => void;
+  [EventKind.FlowsDiff]: (frame: StoreFrame, diff: number) => void;
   [EventKind.StoreMocked]: () => void;
   [EventKind.NamespaceAdded]: (namespace: string) => void;
 };
@@ -93,7 +93,7 @@ export class DataManager extends EventEmitter<Events> {
     const stream = this.api.v1.getEventStream(EventParamsSet.All, streamParams);
     this.setupGeneralEventHandlers(stream);
     this.setupNamespaceEventHandlers(stream);
-    this.setupServicesEventHandlers(stream, secondaryFrame);
+    this.setupServicesEventHandlers(stream, secondaryFrame, streamParams);
 
     this.filteringStream = { stream, dataFilters: streamParams };
   }
@@ -144,15 +144,19 @@ export class DataManager extends EventEmitter<Events> {
     });
   }
 
-  private setupServicesEventHandlers(stream: IEventStream, frame: StoreFrame) {
+  private setupServicesEventHandlers(
+    stream: IEventStream,
+    frame: StoreFrame,
+    filters?: Filters,
+  ) {
     stream.on(EventStreamEventKind.Service, (svcChange: ServiceChange) => {
       frame.applyServiceChange(svcChange.service, svcChange.change);
     });
 
     stream.on(EventStreamEventKind.Flows, (flows: HubbleFlow[]) => {
-      const { flowsDiffCount } = frame.addFlows(flows);
+      const { flowsDiffCount } = frame.addFlows(flows, filters);
 
-      this.emit(EventKind.FlowsDiff, flowsDiffCount);
+      this.emit(EventKind.FlowsDiff, frame, flowsDiffCount);
     });
 
     stream.on(EventStreamEventKind.ServiceLink, (link: ServiceLinkChange) => {

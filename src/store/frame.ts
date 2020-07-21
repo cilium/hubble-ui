@@ -49,8 +49,8 @@ export class StoreFrame {
   }
 
   @action.bound
-  addFlows(flows: HubbleFlow[]) {
-    return this.interactions.addFlows(flows);
+  addFlows(flows: HubbleFlow[], filters?: Filters) {
+    return this.interactions.addFlows(flows, filters);
   }
 
   @action.bound
@@ -115,6 +115,8 @@ export class StoreFrame {
 
         if (filters.skipHost && svc.isHost) return;
         if (filters.skipKubeDns && svc.isKubeDNS) return;
+        if (filters.skipRemoteNode && svc.isRemoteNode) return;
+        if (filters.skipPrometheusApp && svc.isPrometheusApp) return;
 
         services.addNewCard(svc);
 

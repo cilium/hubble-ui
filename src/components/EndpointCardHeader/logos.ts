@@ -19,3 +19,4 @@ export const grpahql = '/icons/logos/graphql-logo.svg';
 export const etcd = '/icons/logos/etcd-logo.svg';
 export const memcached = '/icons/logos/memcached-logo.svg';
 export const aws = '/icons/logos/aws-logo.svg';
+export const prometheus = '/icons/logos/prometheus-logo.svg';

@@ -39,6 +39,13 @@ export const extractLogo = (ep: ServiceCard): Logo => {
     };
   }
 
+  if (ep.isPrometheusApp) {
+    return {
+      id: 'prometheus',
+      type: LogoType.PROTOCOL,
+    };
+  }
+
   const appProto = ep.appProtocol || 'kubernetes';
   return {
     id: appProto,

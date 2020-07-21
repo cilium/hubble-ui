@@ -116,7 +116,7 @@ export const services: HubbleService[] = [
   {
     id: 'reserved:world:outgoing',
     name: 'World',
-    namespace: 'default',
+    namespace: selectedNamespace,
     labels: [{ key: 'reserved:world', value: '' }],
     dnsNames: [],
     egressPolicyEnforced: false,
@@ -127,7 +127,7 @@ export const services: HubbleService[] = [
   {
     id: 'reserved:world:incoming',
     name: 'google.com',
-    namespace: 'default',
+    namespace: selectedNamespace,
     labels: [{ key: 'reserved:world', value: '' }],
     dnsNames: ['google.com'],
     egressPolicyEnforced: false,
@@ -138,7 +138,7 @@ export const services: HubbleService[] = [
   {
     id: 'a8de92d55119c9a6bb6a6dd66bcf012fabefb32d',
     name: 'coreapi',
-    namespace: 'default',
+    namespace: selectedNamespace,
     labels: [
       { key: 'k8s:app', value: 'coreapi' },
       { key: 'k8s:io.cilium.k8s.policy.cluster', value: 'default' },
@@ -154,7 +154,7 @@ export const services: HubbleService[] = [
   {
     id: '91085aa98c983e249442e887d70ebc568f4ef07b',
     name: 'crawler',
-    namespace: 'default',
+    namespace: selectedNamespace,
     labels: [
       { key: 'k8s:app', value: 'crawler' },
       { key: 'k8s:io.cilium.k8s.policy.cluster', value: 'default' },
@@ -170,7 +170,7 @@ export const services: HubbleService[] = [
   {
     id: 'ca111583bf9c9a3547c0c10aa5e77aa97d0e6a14',
     name: 'elasticsearch',
-    namespace: 'default',
+    namespace: selectedNamespace,
     labels: [
       { key: 'k8s:app', value: 'elasticsearch' },
       { key: 'k8s:io.cilium.k8s.policy.cluster', value: 'default' },
@@ -186,7 +186,7 @@ export const services: HubbleService[] = [
   {
     id: 'd2f41b3210a1447bae8f194e1f611793e381a4f0',
     name: 'jobposting',
-    namespace: 'default',
+    namespace: selectedNamespace,
     labels: [
       { key: 'k8s:app.kubernetes.io/name', value: 'ydz' },
       { key: 'k8s:app', value: 'jobposting' },
@@ -203,7 +203,7 @@ export const services: HubbleService[] = [
   {
     id: '5eee91c15081c2d4fac733c517ecb71ac095053a',
     name: 'kafka',
-    namespace: 'default',
+    namespace: selectedNamespace,
     labels: [
       { key: 'k8s:app', value: 'kafka' },
       { key: 'k8s:io.cilium.k8s.policy.cluster', value: 'default' },
@@ -220,7 +220,7 @@ export const services: HubbleService[] = [
   {
     id: 'a31f0187f650569a41eb9ddd48ca470c96c7d753',
     name: 'loader',
-    namespace: 'default',
+    namespace: selectedNamespace,
     labels: [
       { key: 'k8s:app', value: 'loader' },
       { key: 'k8s:io.cilium.k8s.policy.cluster', value: 'default' },
@@ -236,7 +236,7 @@ export const services: HubbleService[] = [
   {
     id: '3ccf93bf4b7a7e6b832bcfac1df78ddf26450a9e',
     name: 'recruiter',
-    namespace: 'default',
+    namespace: selectedNamespace,
     labels: [
       { key: 'k8s:app', value: 'recruiter' },
       { key: 'k8s:io.cilium.k8s.policy.cluster', value: 'default' },
@@ -252,7 +252,7 @@ export const services: HubbleService[] = [
   {
     id: '669333a2d60b773d01e9a73837cd92fac3d9ecf0',
     name: 'zookeeper',
-    namespace: 'default',
+    namespace: selectedNamespace,
     labels: [
       { key: 'k8s:app', value: 'zookeeper' },
       { key: 'k8s:io.cilium.k8s.policy.cluster', value: 'default' },
@@ -268,7 +268,7 @@ export const services: HubbleService[] = [
   {
     id: '872ihs09123iou897ykjashk291029oospi09123',
     name: 'remote-node-bug',
-    namespace: 'default',
+    namespace: selectedNamespace,
     labels: [{ key: 'reserved:remote-node', value: '' }],
     dnsNames: [],
     egressPolicyEnforced: true,
@@ -278,13 +278,29 @@ export const services: HubbleService[] = [
   },
   {
     id: 'k8sbkjh1279asjk980712375hsakfs98109822nj',
-    name: 'kubedns',
+    name: 'kube-dns',
     namespace: 'kube-system',
     labels: [
-      { key: 'k8s:app', value: 'kubedns' },
+      { key: 'k8s:k8s-app', value: 'kube-dns' },
       { key: 'k8s:io.cilium.k8s.policy.cluster', value: 'default' },
       { key: 'k8s:io.cilium.k8s.policy.serviceaccount', value: 'default' },
       { key: 'k8s:io.kubernetes.pod.namespace', value: 'kube-system' },
+    ],
+    dnsNames: [],
+    egressPolicyEnforced: true,
+    ingressPolicyEnforced: false,
+    visibilityPolicyStatus: '?unknown?',
+    creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
+  },
+  {
+    id: 'prometheus-app',
+    name: 'prometheus',
+    namespace: selectedNamespace,
+    labels: [
+      { key: 'k8s:app', value: 'prometheus' },
+      { key: 'k8s:io.cilium.k8s.policy.cluster', value: 'default' },
+      { key: 'k8s:io.cilium.k8s.policy.serviceaccount', value: 'default' },
+      { key: 'k8s:io.kubernetes.pod.namespace', value: selectedNamespace },
     ],
     dnsNames: [],
     egressPolicyEnforced: true,

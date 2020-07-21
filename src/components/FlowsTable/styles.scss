@@ -80,20 +80,28 @@ $border-color: #c6cace;
         &:last-child {
           padding-right: 10px;
         }
+
+        &.dstPort {
+          max-width: 130px;
+        }
+
+        &.verdict {
+          max-width: 130px;
+        }
+
+        &.tcpFlags {
+          max-width: 130px;
+        }
+
+        &.timestamp {
+          max-width: 150px;
+        }
       }
     }
 
     .emptyValue {
       color: #999;
       font-weight: 400;
-    }
-
-    .forwardedVerdict {
-      color: #54a82d;
-    }
-
-    .droppedVerdict {
-      color: #d46363;
     }
 
     .subtitle {
@@ -185,6 +193,24 @@ $border-color: #c6cace;
         &.selected {
           font-weight: 700;
         }
+
+        &.forwardedVerdict {
+          text-decoration-color: #70c748;
+
+          &:hover {
+            color: #3d811d;
+            text-decoration-color: #54a82d;
+          }
+        }
+
+        &.droppedVerdict {
+          text-decoration-color: #e77878;
+
+          &:hover {
+            color: #b14b4b;
+            text-decoration-color: #d46363;
+          }
+        }
       }
 
       .labels {
@@ -214,4 +240,12 @@ $border-color: #c6cace;
     border: none;
     background-color: #d6d6d6;
   }
+}
+
+.forwardedVerdict {
+  color: #54a82d;
+}
+
+.droppedVerdict {
+  color: #d46363;
 }

@@ -27,6 +27,10 @@ export interface Props {
   onShowHostToggle?: () => void;
   showKubeDns: boolean;
   onShowKubeDnsToggle?: () => void;
+  showRemoteNode: boolean;
+  onShowRemoteNodeToggle?: () => void;
+  showPrometheusApp: boolean;
+  onShowPrometheusAppToggle: () => void;
 }
 
 export const TopBar = memo<Props>(function TopBar(props) {
@@ -43,16 +47,20 @@ export const TopBar = memo<Props>(function TopBar(props) {
         onSelect={props.onVerdictChange}
       />
       <div className={css.spacer} />
-      <HttpStatusCodeDropdown
+      {/* <HttpStatusCodeDropdown
         httpStatus={props.selectedHttpStatus}
         onSelect={props.onHttpStatusChange}
-      />
+      /> */}
       <div className={css.spacer} />
       <VisualFiltersDropdown
         showHost={props.showHost}
         onShowHostToggle={props.onShowHostToggle}
         showKubeDns={props.showKubeDns}
         onShowKubeDnsToggle={props.onShowKubeDnsToggle}
+        showRemoteNode={props.showRemoteNode}
+        onShowRemoteNodeToggle={props.onShowRemoteNodeToggle}
+        showPrometheusApp={props.showPrometheusApp}
+        onShowPrometheusAppToggle={props.onShowPrometheusAppToggle}
       />
     </>
   );

@@ -85,6 +85,9 @@ export const Row = memo<RowProps>(function FlowsTableRow(props) {
       {props.isVisibleColumn?.('Verdict') && (
         <Cell flow={props.flow} kind={FlowsTableColumn.Verdict} />
       )}
+      {props.isVisibleColumn?.('TcpFlags') && (
+        <Cell flow={props.flow} kind={FlowsTableColumn.TcpFlags} />
+      )}
       {props.isVisibleColumn?.('Timestamp') && (
         <Cell
           flow={props.flow}
