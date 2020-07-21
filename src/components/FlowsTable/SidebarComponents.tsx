@@ -95,37 +95,69 @@ export const LabelsBodyItem = memo<LabelsBodyItemProps>(
   },
 );
 
-export interface TCPFlagsBodyProps extends FiltersProps {
-  flags: TCPFlags;
+export interface TCPFlagsBodyProps extends BodyFiltersProps {
+  flags: Array<keyof TCPFlags>;
 }
 
 export const TCPFlagsBody = memo<TCPFlagsBodyProps>(
   function FlowsTableSidebarTCPFlagsBody(props) {
     return (
       <div className={css.tcpFlags}>
-        {Object.keys(props.flags)
-          .filter(f => {
-            const flag = f as keyof TCPFlags;
-            return props.flags[flag];
-          })
-          .sort()
-          .map(f => {
-            const flag = f as keyof TCPFlags;
-            return <TCPFlagsBodyItem key={flag} flag={flag} />;
-          })}
+        {props.flags.map(flag => (
+          <TCPFlagsBodyItem
+            key={flag}
+            flag={flag}
+            dataFilters={props.dataFilters}
+            filterDirection={props.filterDirection}
+            onSelectFilters={props.onSelectFilters}
+          />
+        ))}
       </div>
     );
   },
 );
 
-export interface TCPFlagsItemProps extends FiltersProps {
+export interface TCPFlagsItemProps extends BodyFiltersProps {
   flag: keyof TCPFlags;
 }
 
 export const TCPFlagsBodyItem = memo<TCPFlagsItemProps>(
   function FlowsTableSidebarTCPFlagsBodyItem(props) {
+    const isSelected = useMemo(() => {
+      if (!props.dataFilters?.filters) return false;
+
+      return props.dataFilters.filters.some(filter => {
+        return (
+          filter.kind === FlowsFilterKind.TCPFlag &&
+          filter.direction === props.filterDirection &&
+          filter.query === props.flag
+        );
+      });
+    }, [props.dataFilters, props.flag, props.filterDirection]);
+
+    const onClick = useCallback(() => {
+      props.onSelectFilters?.({
+        filters: isSelected
+          ? []
+          : [
+              new FlowsFilterEntry({
+                kind: FlowsFilterKind.TCPFlag,
+                direction: props.filterDirection ?? FlowsFilterDirection.Both,
+                query: props.flag,
+              }),
+            ],
+      });
+    }, [props.onSelectFilters, props.flag, isSelected]);
+
+    const className = classnames(css.tcpFlag, {
+      [css.clickable]: !!props.onSelectFilters,
+      [css.selected]: isSelected,
+    });
+
     return (
-      <span className={css.tcpFlag}>{props.flag.toLocaleUpperCase()}</span>
+      <span className={className} onClick={onClick}>
+        {props.flag.toLocaleUpperCase()}
+      </span>
     );
   },
 );

@@ -3,6 +3,7 @@ export enum FlowsFilterKind {
   Ip = 'ip',
   Dns = 'dns',
   Identity = 'identity',
+  TCPFlag = 'tcp-flag',
 }
 
 export enum FlowsFilterDirection {
@@ -101,6 +102,7 @@ export class FlowsFilterEntry {
       case FlowsFilterKind.Ip:
       case FlowsFilterKind.Dns:
       case FlowsFilterKind.Identity:
+      case FlowsFilterKind.TCPFlag:
         return s;
     }
 
@@ -110,7 +112,7 @@ export class FlowsFilterEntry {
   public static parseQuery(s: string): string {
     return s
       .replace(/^(from:|to:|both:)/g, '')
-      .replace(/^(label=|ip=|dns=|identity=)/g, '')
+      .replace(/^(label=|ip=|dns=|identity=|tcp\-flag=)/g, '')
       .trim();
   }
 
@@ -154,6 +156,10 @@ export class FlowsFilterEntry {
 
   public get isIp(): boolean {
     return this.kind === FlowsFilterKind.Ip;
+  }
+
+  public get isTCPFlag(): boolean {
+    return this.kind === FlowsFilterKind.TCPFlag;
   }
 
   public get labelKeyValue(): [string, string] {

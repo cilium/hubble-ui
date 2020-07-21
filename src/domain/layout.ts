@@ -8,6 +8,7 @@ export enum PlacementKind {
   AnotherNamespace = 'AnotherNamespace',
   InsideWithConnections = 'InsideWithConnections',
   InsideWithoutConnections = 'InsideWithoutConnections',
+  OutsideManaged = 'OutsideManaged',
 }
 
 export interface PlacementMeta {

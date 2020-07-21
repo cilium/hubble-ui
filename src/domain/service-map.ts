@@ -46,4 +46,5 @@ export enum ApplicationKind {
   MySQL = 'mysql',
   Redis = 'redis',
   Zookeeper = 'zookeeper',
+  Prometheus = 'prometheus',
 }

@@ -7,6 +7,7 @@ export interface LabelsProps {
   isKubeDNS: boolean;
   isInit: boolean;
   isHealth: boolean;
+  isPrometheusApp: boolean;
   appName?: string;
 }
 
@@ -22,6 +23,7 @@ export enum ReservedLabel {
 
 export enum SpecialLabel {
   KubeDNS = 'k8s:k8s-app=kube-dns',
+  PrometheusApp = 'k8s:app=prometheus',
 }
 
 export class Labels {
@@ -36,6 +38,12 @@ export class Labels {
       (acc, val) => acc.replace(val, ''),
       key.toLowerCase(),
     );
+  }
+
+  public static normalizeLabel(label: KV) {
+    let str = Labels.normalizeKey(label.key);
+    if (label.value) str += `=${label.value}`;
+    return str;
   }
 
   public static findLabelNameByNormalizedKey(
@@ -106,6 +114,7 @@ export class Labels {
       isRemoteNode: false,
       isKubeDNS: false,
       isHealth: false,
+      isPrometheusApp: false,
     };
 
     labels.forEach((kv: KV) => {
@@ -119,6 +128,8 @@ export class Labels {
         !!props.isKubeDNS || `${kv.key}=${kv.value}` === SpecialLabel.KubeDNS;
       props.isRemoteNode =
         !!props.isRemoteNode || nkey === ReservedLabel.RemoteNode;
+      props.isPrometheusApp =
+        !!props.isPrometheusApp || nkey === SpecialLabel.PrometheusApp;
     });
 
     const appName = Labels.findAppNameInLabels(labels);

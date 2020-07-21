@@ -27,13 +27,24 @@ export const Header = memo<CommonProps>(function FlowsTableHeader(props) {
         <div className={css.cell}>{getFlowsTableColumnLabel('DstService')}</div>
       )}
       {props.isVisibleColumn?.('DstPort') && (
-        <div className={css.cell}>{getFlowsTableColumnLabel('DstPort')}</div>
+        <div className={classnames(css.cell, css.dstPort)}>
+          {getFlowsTableColumnLabel('DstPort')}
+        </div>
       )}
       {props.isVisibleColumn?.('Verdict') && (
-        <div className={css.cell}>{getFlowsTableColumnLabel('Verdict')}</div>
+        <div className={classnames(css.cell, css.verdict)}>
+          {getFlowsTableColumnLabel('Verdict')}
+        </div>
+      )}
+      {props.isVisibleColumn?.('TcpFlags') && (
+        <div className={classnames(css.cell, css.tcpFlags)}>
+          {getFlowsTableColumnLabel('TcpFlags')}
+        </div>
       )}
       {props.isVisibleColumn?.('Timestamp') && (
-        <div className={css.cell}>{getFlowsTableColumnLabel('Timestamp')}</div>
+        <div className={classnames(css.cell, css.timestamp)}>
+          {getFlowsTableColumnLabel('Timestamp')}
+        </div>
       )}
     </div>
   );

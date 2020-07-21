@@ -69,7 +69,7 @@ const runTemporalTests = (row: HTMLElement, flow: Flow) => {
   jest.clearAllTimers();
   const flowTime = new Date(flow.millisecondsTimestamp || Date.now());
 
-  const tsLabel = row.querySelector('.cell:nth-child(9)')!;
+  const tsLabel = row.querySelector('.cell:nth-child(10)')!;
 
   // Just checks that tsLabel contains smth
   jest.advanceTimersByTime(0);
@@ -132,7 +132,7 @@ runTest(2, data.flows.hubbleNoSourceName, {
 
 runTest(3, data.flows.hubbleNoDstName, {
   sourceTitle: 'Sender SenderNs',
-  destTitle: 'No app name ReceiverNs',
+  destTitle: '— ReceiverNs',
   destPort: 80,
   verdict: 'forwarded',
 });

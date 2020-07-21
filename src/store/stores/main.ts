@@ -307,6 +307,22 @@ export class Store {
     return isActive;
   }
 
+  @action.bound
+  public toggleShowRemoteNode(): boolean {
+    const isActive = this.controls.toggleShowRemoteNode();
+
+    storage.saveShowRemoteNode(isActive);
+    return isActive;
+  }
+
+  @action.bound
+  public toggleShowPrometheusApp(): boolean {
+    const isActive = this.controls.toggleShowPrometheusApp();
+
+    storage.saveShowPrometheusApp(isActive);
+    return isActive;
+  }
+
   // D E B U G
   @action.bound
   public setupDebugTools() {
