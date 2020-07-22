@@ -89,6 +89,8 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
 
   // Taken from previous FlowStream class
   public static buildFlowFilters(filters?: DataFilters): FlowFilters {
+    const namespace = filters?.namespace;
+
     // *** whitelist filters section ***
     const [wlSrcFilter, wlDstFilter] = [new FlowFilter(), new FlowFilter()];
 
@@ -110,14 +112,12 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
       wlDstFilter.addEventType(eventTypeFilter);
     });
 
-    wlSrcFilter.addSourcePod(`${filters?.namespace}/`);
-    wlDstFilter.addDestinationPod(`${filters?.namespace}/`);
-
     if (filters?.verdict) {
       wlSrcFilter.addVerdict(dataHelpers.verdictToPb(filters.verdict));
       wlDstFilter.addVerdict(dataHelpers.verdictToPb(filters.verdict));
     }
 
+    let podFilterAdded = false;
     filters?.filters?.forEach(filter => {
       switch (filter.direction) {
         case FlowsFilterDirection.Both: {
@@ -140,6 +140,12 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
             case FlowsFilterKind.Identity: {
               wlSrcFilter.addSourceIdentity(+filter.query);
               wlDstFilter.addDestinationIdentity(+filter.query);
+              break;
+            }
+            case FlowsFilterKind.Pod: {
+              wlSrcFilter.addSourcePod(`${namespace}/${filter.query}`);
+              wlDstFilter.addDestinationPod(`${namespace}/${filter.query}`);
+              podFilterAdded = true;
               break;
             }
           }
@@ -167,6 +173,12 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
               wlDstFilter.addSourceIdentity(+filter.query);
               break;
             }
+            case FlowsFilterKind.Pod: {
+              wlSrcFilter.addSourcePod(`${namespace}/${filter.query}`);
+              wlDstFilter.addSourcePod(`${namespace}/${filter.query}`);
+              podFilterAdded = true;
+              break;
+            }
           }
           break;
         }
@@ -192,11 +204,22 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
               wlDstFilter.addDestinationIdentity(+filter.query);
               break;
             }
+            case FlowsFilterKind.Pod: {
+              wlSrcFilter.addDestinationPod(`${namespace}/${filter.query}`);
+              wlDstFilter.addDestinationPod(`${namespace}/${filter.query}`);
+              podFilterAdded = true;
+              break;
+            }
           }
           break;
         }
       }
     });
+
+    if (!podFilterAdded) {
+      wlSrcFilter.addSourcePod(`${namespace}/`);
+      wlDstFilter.addDestinationPod(`${namespace}/`);
+    }
 
     wlSrcFilter.addReply(false);
     wlDstFilter.addReply(false);

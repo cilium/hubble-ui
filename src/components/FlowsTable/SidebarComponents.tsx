@@ -13,6 +13,7 @@ import { KV } from '~/domain/misc';
 import { FiltersProps } from './general';
 
 import css from './styles.scss';
+import { Labels } from '~/domain/labels';
 
 export interface BodyFiltersProps extends FiltersProps {
   filterDirection?: FlowsFilterDirection;
@@ -82,7 +83,7 @@ export const LabelsBodyItem = memo<LabelsBodyItemProps>(
       [css.selected]: isSelected,
     });
 
-    let title = props.label.key;
+    let title = Labels.normalizeKey(props.label.key);
     if (props.label.value) {
       title += `=${props.label.value}`;
     }
@@ -321,6 +322,51 @@ export const IdentityBodyItem = memo<IdentityItemProps>(
     return (
       <span className={className} onClick={onClick}>
         {props.identity}
+      </span>
+    );
+  },
+);
+
+export interface PodItemProps extends BodyFiltersProps {
+  pod: string;
+}
+
+export const PodBodyItem = memo<PodItemProps>(
+  function FlowsTableSidebarPodBodyItem(props) {
+    const isSelected = useMemo(() => {
+      if (!props.dataFilters?.filters) return false;
+
+      return props.dataFilters.filters.some(filter => {
+        return (
+          filter.kind === FlowsFilterKind.Pod &&
+          filter.direction === props.filterDirection &&
+          filter.query === String(props.pod)
+        );
+      });
+    }, [props.dataFilters, props.pod, props.filterDirection]);
+
+    const onClick = useCallback(() => {
+      props.onSelectFilters?.({
+        filters: isSelected
+          ? []
+          : [
+              new FlowsFilterEntry({
+                kind: FlowsFilterKind.Pod,
+                direction: props.filterDirection ?? FlowsFilterDirection.Both,
+                query: String(props.pod),
+              }),
+            ],
+      });
+    }, [props.onSelectFilters, props.pod, isSelected]);
+
+    const className = classnames(css.podd, {
+      [css.clickable]: !!props.onSelectFilters,
+      [css.selected]: isSelected,
+    });
+
+    return (
+      <span className={className} onClick={onClick}>
+        {props.pod}
       </span>
     );
   },

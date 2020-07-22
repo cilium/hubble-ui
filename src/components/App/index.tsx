@@ -147,6 +147,7 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
 
   const onNamespaceChange = useCallback((ns: string) => {
     store.flush();
+    store.controls.reset();
     store.controls.setCurrentNamespace(ns);
   }, []);
 

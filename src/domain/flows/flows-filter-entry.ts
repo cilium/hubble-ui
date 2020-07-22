@@ -4,6 +4,7 @@ export enum FlowsFilterKind {
   Dns = 'dns',
   Identity = 'identity',
   TCPFlag = 'tcp-flag',
+  Pod = 'pod',
 }
 
 export enum FlowsFilterDirection {
@@ -41,7 +42,7 @@ export class FlowsFilterEntry {
     const kind = FlowsFilterEntry.parseKind(rawKind);
     if (!kind) return null;
 
-    const query = FlowsFilterEntry.parseQuery(rawQuery);
+    const query = FlowsFilterEntry.parseQuery(kind, rawQuery);
     if (!query) return null;
 
     return new FlowsFilterEntry({ kind, direction, query });
@@ -68,7 +69,7 @@ export class FlowsFilterEntry {
     const kindWithQuery = rest.join(':');
     parts = kindWithQuery.split('=');
     if (parts.length < 2) {
-      query = parts[0] || '';
+      query = FlowsFilterEntry.parseQuery(kind, parts[0] || '');
       return new FlowsFilterEntry({ kind, direction, query });
     }
 
@@ -81,7 +82,7 @@ export class FlowsFilterEntry {
       rest = [rawKind].concat(secondRest);
     }
 
-    query = rest.join('=');
+    query = FlowsFilterEntry.parseQuery(kind, rest.join('='));
     return new FlowsFilterEntry({ kind, direction, query });
   }
 
@@ -96,24 +97,46 @@ export class FlowsFilterEntry {
     return null;
   }
 
-  public static parseKind(s: string): FlowsFilterKind | null {
-    switch (s) {
+  public static parseKind(kind: string): FlowsFilterKind | null {
+    switch (kind) {
       case FlowsFilterKind.Label:
       case FlowsFilterKind.Ip:
       case FlowsFilterKind.Dns:
       case FlowsFilterKind.Identity:
       case FlowsFilterKind.TCPFlag:
-        return s;
+      case FlowsFilterKind.Pod:
+        return kind;
     }
 
     return null;
   }
 
-  public static parseQuery(s: string): string {
-    return s
+  public static parseQuery(kind: FlowsFilterKind, query: string): string {
+    const normalized = query
+      .trim()
       .replace(/^(from:|to:|both:)/g, '')
-      .replace(/^(label=|ip=|dns=|identity=|tcp\-flag=)/g, '')
       .trim();
+
+    switch (kind) {
+      case FlowsFilterKind.Label: {
+        return `k8s:${normalized.replace(/^label=/g, '')}`;
+      }
+      case FlowsFilterKind.Ip: {
+        return normalized.replace(/^ip=/g, '');
+      }
+      case FlowsFilterKind.Dns: {
+        return normalized.replace(/^dns=/g, '');
+      }
+      case FlowsFilterKind.Identity: {
+        return normalized.replace(/^identity=/g, '');
+      }
+      case FlowsFilterKind.TCPFlag: {
+        return normalized.replace(/^tcp-flag=/g, '');
+      }
+      case FlowsFilterKind.Pod: {
+        return normalized.replace(/^pod=/g, '');
+      }
+    }
   }
 
   constructor({ kind, direction, query, meta }: Params) {

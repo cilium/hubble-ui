@@ -7,11 +7,11 @@ import ServiceStore from '~/store/stores/service';
 import ControlStore from '~/store/stores/controls';
 
 import { Filters, filterFlow, filterService } from '~/domain/filtering';
-import { Link, Service } from '~/domain/service-map';
+import { Link } from '~/domain/service-map';
 import { HubbleService, HubbleLink } from '~/domain/hubble';
 import { StateChange } from '~/domain/misc';
 import { ServiceCard } from '~/domain/service-card';
-import { Flow, FlowsFilterEntry, HubbleFlow, Verdict } from '~/domain/flows';
+import { Flow } from '~/domain/flows';
 import { Vec2 } from '~/domain/geometry';
 
 export class StoreFrame {
@@ -49,8 +49,8 @@ export class StoreFrame {
   }
 
   @action.bound
-  addFlows(flows: HubbleFlow[], filters?: Filters) {
-    return this.interactions.addFlows(flows, filters);
+  addFlows(flows: Flow[]) {
+    return this.interactions.addFlows(flows);
   }
 
   @action.bound
