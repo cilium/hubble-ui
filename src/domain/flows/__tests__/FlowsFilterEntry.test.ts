@@ -54,47 +54,47 @@ describe('correct strings parsing', () => {
 
   parse(
     'correct 4',
-    'both:dns=127.0.0.1',
+    'both:dns=google.com',
     true,
     FlowsFilterDirection.Both,
     FlowsFilterKind.Dns,
-    '127.0.0.1',
+    'google.com',
   );
 
   parse(
     'correct 5',
-    'both:label=127.0.0.1',
+    'both:label=app=name',
     true,
     FlowsFilterDirection.Both,
     FlowsFilterKind.Label,
-    '127.0.0.1',
+    'k8s:app=name',
   );
 
   parse(
     'correct 6',
-    'from:label=127.0.0.1',
+    'from:label=app=name',
     true,
     FlowsFilterDirection.From,
     FlowsFilterKind.Label,
-    '127.0.0.1',
+    'k8s:app=name',
   );
 
   parse(
     'correct 7',
-    'to:label=127.0.0.1',
+    'to:label=app=name',
     true,
     FlowsFilterDirection.To,
     FlowsFilterKind.Label,
-    '127.0.0.1',
+    'k8s:app=name',
   );
 
   parse(
     'correct 8',
-    'from:dns=127.0.0.1',
+    'from:dns=google.com',
     true,
     FlowsFilterDirection.From,
     FlowsFilterKind.Dns,
-    '127.0.0.1',
+    'google.com',
   );
 
   parse(
@@ -117,29 +117,29 @@ describe('correct strings parsing', () => {
 
   parse(
     'correct 11',
-    'label=127.0.0.1',
+    'label=app=name',
     true,
     FlowsFilterDirection.Both,
     FlowsFilterKind.Label,
-    '127.0.0.1',
+    'k8s:app=name',
   );
 
   parse(
     'correct 12',
-    'dns=127.0.0.1',
+    'dns=google.com',
     true,
     FlowsFilterDirection.Both,
     FlowsFilterKind.Dns,
-    '127.0.0.1',
+    'google.com',
   );
 
   parse(
     'correct 13',
-    '127.0.0.1',
+    'app=name',
     true,
     FlowsFilterDirection.Both,
     FlowsFilterKind.Label,
-    '127.0.0.1',
+    'k8s:app=name',
   );
 
   parse(

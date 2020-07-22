@@ -11,6 +11,7 @@ import {
   FlowsFilterEntry,
   FlowsFilterKind,
   FlowsFilterDirection,
+  Flow,
 } from '~/domain/flows';
 
 import { Service } from '~/domain/service-map';
@@ -152,7 +153,7 @@ export class Store {
   }
 
   @action.bound
-  addFlows(flows: HubbleFlow[]) {
+  addFlows(flows: Flow[]) {
     const res = this.mainFrame.addFlows(flows);
     if (this.currentFrame == this.mainFrame) {
       return res;
@@ -168,8 +169,6 @@ export class Store {
 
   @action.bound
   public flush() {
-    console.log('flushing store data...');
-
     this.frames = [];
     this.controls.selectTableFlow(null);
     this.createMainFrame();

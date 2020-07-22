@@ -93,23 +93,17 @@ export default class InteractionStore {
   }
 
   @action.bound
-  addFlows(hubbleFlows: HubbleFlow[], filters?: Filters) {
-    const preparedFlows = hubbleFlows.reduce<Flow[]>((acc, hubbleFlow) => {
-      const flow = flowFromRelay(hubbleFlow);
-      if (filters == null || filterFlow(flow, filters)) acc.push(flow);
-      return acc;
-    }, []);
-
-    this.flows = _(preparedFlows)
-      .reverse()
+  addFlows(flows: Flow[]) {
+    this.flows = _(flows)
       .concat(this.flows)
       .uniqBy(f => f.id)
+      .sort((a, b) => b.millisecondsTimestamp! - a.millisecondsTimestamp!)
       .slice(0, InteractionStore.FLOWS_MAX_COUNT)
       .value();
 
     return {
       flowsTotalCount: this.flows.length,
-      flowsDiffCount: hubbleFlows.length,
+      flowsDiffCount: flows.length,
     };
   }
 
@@ -131,8 +125,7 @@ export default class InteractionStore {
   @action.bound
   moveTo(rhs: InteractionStore): CopyResult {
     const wasNFlows = rhs.flows.length;
-    const hubbleFlows = this.flows.map(f => f.hubbleFlow);
-    const { flowsTotalCount } = rhs.addFlows(hubbleFlows);
+    const { flowsTotalCount } = rhs.addFlows(this.flows);
 
     let newLinks = 0;
     this.links.forEach((link: Link) => {

@@ -38,6 +38,15 @@ export default class ControlStore {
   }
 
   @action.bound
+  reset() {
+    this.currentNamespace = null;
+    this.selectedTableFlow = null;
+    this.verdict = null;
+    this.httpStatus = null;
+    this.flowFilters = [];
+  }
+
+  @action.bound
   setCurrentNamespace(ns: string | null) {
     this.currentNamespace = ns;
   }
@@ -150,20 +159,6 @@ export default class ControlStore {
   @computed
   get fastFlowFilters() {
     return this.flowFilters.slice();
-  }
-
-  @computed
-  get defaultFilters(): Required<Filters> {
-    return {
-      namespace: null,
-      verdict: null,
-      httpStatus: null,
-      filters: [],
-      skipHost: !this.showHost,
-      skipKubeDns: !this.showKubeDns,
-      skipRemoteNode: !this.showRemoteNode,
-      skipPrometheusApp: !this.showPrometheusApp,
-    };
   }
 
   @computed
