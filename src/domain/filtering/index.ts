@@ -171,11 +171,15 @@ export const filterFlowUsingBasicEntry = (
   flow: Flow,
   filter: FlowsFilterEntry,
 ): boolean => {
-  const [k, v] = filter.labelKeyValue;
+  const [key, value] = filter.labelKeyValue;
 
   // TODO: improve performance: check only in appropriate switch/case
-  const sourceLabelMatch = !!flow.sourceLabels.find(l => l.key === k);
-  const destLabelMatch = !!flow.destinationLabels.find(l => l.key === k);
+  const sourceLabelMatch = flow.sourceLabels.some(
+    label => label.key === key && label.value === value,
+  );
+  const destLabelMatch = flow.destinationLabels.some(
+    label => label.key === key && label.value === value,
+  );
 
   const sourceDnsMatch = flow.sourceNamesList.includes(filter.query);
   const destDnsMatch = flow.destinationNamesList.includes(filter.query);
@@ -183,8 +187,10 @@ export const filterFlowUsingBasicEntry = (
   const sourceIdentityMatch = flow.sourceIdentity === +filter.query;
   const destIdentityMatch = flow.destinationIdentity === +filter.query;
 
+  const sourcePodMatch = flow.sourcePodName === filter.query;
+  const destPodMatch = flow.destinationPodName === filter.query;
+
   const tcpFlagMatch = flow.enabledTcpFlags.includes(filter.query as any);
-  console.log(tcpFlagMatch);
 
   switch (filter.direction) {
     case FlowsFilterDirection.Both: {
@@ -214,6 +220,10 @@ export const filterFlowUsingBasicEntry = (
           if (!tcpFlagMatch) return false;
           break;
         }
+        case FlowsFilterKind.Pod: {
+          if (!sourcePodMatch && !destPodMatch) return false;
+          break;
+        }
       }
       break;
     }
@@ -239,6 +249,10 @@ export const filterFlowUsingBasicEntry = (
           if (!tcpFlagMatch) return false;
           break;
         }
+        case FlowsFilterKind.Pod: {
+          if (!sourcePodMatch) return false;
+          break;
+        }
       }
       break;
     }
@@ -262,6 +276,10 @@ export const filterFlowUsingBasicEntry = (
         }
         case FlowsFilterKind.TCPFlag: {
           if (!tcpFlagMatch) return false;
+          break;
+        }
+        case FlowsFilterKind.Pod: {
+          if (!destPodMatch) return false;
           break;
         }
       }

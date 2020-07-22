@@ -11,6 +11,7 @@ import {
   IPBodyItem,
   DnsBodyItem,
   IdentityBodyItem,
+  PodBodyItem,
 } from './SidebarComponents';
 
 import css from './styles.scss';
@@ -76,7 +77,14 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
       {flow.hasSource && flow.sourcePodName && (
         <section className={css.block}>
           <span className={css.title}>Source pod</span>
-          <div className={css.body}>{flow.sourcePodName}</div>
+          <div className={css.body}>
+            <PodBodyItem
+              pod={flow.sourcePodName}
+              dataFilters={props.dataFilters}
+              filterDirection={FlowsFilterDirection.From}
+              onSelectFilters={props.onSelectFilters}
+            />
+          </div>
         </section>
       )}
       {flow.hasSource && flow.sourceIdentity && (
@@ -122,7 +130,14 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
       {flow.hasDestination && flow.destinationPodName && (
         <section className={css.block}>
           <span className={css.title}>Destination pod</span>
-          <div className={css.body}>{flow.destinationPodName}</div>
+          <div className={css.body}>
+            <PodBodyItem
+              pod={flow.destinationPodName}
+              dataFilters={props.dataFilters}
+              filterDirection={FlowsFilterDirection.To}
+              onSelectFilters={props.onSelectFilters}
+            />
+          </div>
         </section>
       )}
       {flow.hasDestination && flow.destinationIdentity && (

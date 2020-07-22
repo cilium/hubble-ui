@@ -1,9 +1,10 @@
+import _ from 'lodash';
 import { API } from '~/api/general';
 import * as mockData from '~/api/__mocks__/data';
 import { GeneralStreamEventKind } from '~/api/general/stream';
 
 import { HubbleFlow } from '~/domain/hubble';
-import { Filters, areFiltersEqual } from '~/domain/filtering';
+import { Filters, areFiltersEqual, filterFlow } from '~/domain/filtering';
 import { EventEmitter } from '~/utils/emitter';
 import {
   EventParamsSet,
@@ -17,6 +18,8 @@ import {
 
 import { Store, StoreFrame } from '~/store';
 import { StateChange } from '~/domain/misc';
+import { flowFromRelay } from '~/domain/helpers';
+import { Flow } from '~/domain/flows';
 
 export enum EventKind {
   StreamError = 'stream-error',
@@ -153,8 +156,16 @@ export class DataManager extends EventEmitter<Events> {
       frame.applyServiceChange(svcChange.service, svcChange.change);
     });
 
-    stream.on(EventStreamEventKind.Flows, (flows: HubbleFlow[]) => {
-      const { flowsDiffCount } = frame.addFlows(flows, filters);
+    stream.on(EventStreamEventKind.Flows, (hubbleFlows: HubbleFlow[]) => {
+      const preparedFlows = hubbleFlows
+        .reverse()
+        .reduce<Flow[]>((acc, hubbleFlow) => {
+          const flow = flowFromRelay(hubbleFlow);
+          if (filters == null || filterFlow(flow, filters)) acc.push(flow);
+          return acc;
+        }, []);
+
+      const { flowsDiffCount } = frame.addFlows(preparedFlows);
 
       this.emit(EventKind.FlowsDiff, frame, flowsDiffCount);
     });
