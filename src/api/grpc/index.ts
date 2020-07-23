@@ -14,10 +14,11 @@ export class APIv1 implements CoreAPIv1 {
   public static readonly defaultEventStreamParams = EventParamsSet.Namespaces;
 
   public constructor() {
-    const schema = process.env.GRPC_PROXY_SCHEMA;
-    const host = process.env.GRPC_PROXY_HOST;
-    const port = process.env.GRPC_PROXY_PORT;
-    this.client = new HubbleRelayClient(`${schema}://${host}:${port}`);
+    const schema = process.env.API_SCHEMA;
+    const host = process.env.API_HOST;
+    const port = process.env.API_PORT;
+    const path = process.env.API_PATH;
+    this.client = new HubbleRelayClient(`${schema}://${host}:${port}${path}`);
   }
 
   public getEventStream(
