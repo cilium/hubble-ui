@@ -19,7 +19,7 @@ import {
   TrafficDirection as PBTrafficDirection,
   CiliumEventType as PBCiliumEventType,
   Service as PBService,
-} from '~/proto/flow/flow_pb';
+} from '~backend/proto/flow/flow_pb';
 
 import {
   HubbleFlow,
@@ -46,11 +46,11 @@ import {
 } from '~/domain/hubble';
 
 import {
-  RelayService as PBRelayService,
+  Service as PBRelayService,
   ServiceLink as PBRelayServiceLink,
   IPProtocol as PBIPProtocol,
   StateChange as PBStateChange,
-} from '~/proto/relay/relay_pb';
+} from '~backend/proto/ui/ui_pb';
 
 import { StateChange } from '~/domain/misc';
 import { KV } from '~/domain/misc';

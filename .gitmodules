@@ -1,4 +1,0 @@
-[submodule "cilium"]
-	path = cilium
-	url = https://github.com/cilium/cilium.git
-	branch = pr/michi/peerapi
