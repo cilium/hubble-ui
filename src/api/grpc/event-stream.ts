@@ -4,14 +4,14 @@ import { ClientReadableStream, Status, Error as GRPCError } from 'grpc-web';
 import {
   GetEventsRequest,
   GetEventsResponse,
-  RelayEventType,
-  RelayEventFilter,
+  EventType,
+  EventFilter,
   ServiceState,
   ServiceLinkState,
   K8sNamespaceState,
-} from '~/proto/relay/relay_pb';
+} from '~backend/proto/ui/ui_pb';
 
-import { Flow, FlowFilter, EventTypeFilter } from '~/proto/flow/flow_pb';
+import { Flow, FlowFilter, EventTypeFilter } from '~backend/proto/flow/flow_pb';
 
 import { HubbleFlow } from '~/domain/hubble';
 import { FlowsFilterDirection, FlowsFilterKind } from '~/domain/flows';
@@ -52,19 +52,19 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
     const req = new GetEventsRequest();
 
     if (opts.flows) {
-      req.addEventTypes(RelayEventType.FLOW);
+      req.addEventTypes(EventType.FLOW);
     }
 
     if (opts.namespaces) {
-      req.addEventTypes(RelayEventType.K8S_NAMESPACE_STATE);
+      req.addEventTypes(EventType.K8S_NAMESPACE_STATE);
     }
 
     if (opts.services) {
-      req.addEventTypes(RelayEventType.SERVICE_STATE);
+      req.addEventTypes(EventType.SERVICE_STATE);
     }
 
     if (opts.serviceLinks) {
-      req.addEventTypes(RelayEventType.SERVICE_LINK_STATE);
+      req.addEventTypes(EventType.SERVICE_LINK_STATE);
     }
 
     const [wlFlowFilters, blFlowFilters] = EventStream.buildFlowFilters(
@@ -72,7 +72,7 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
     );
 
     const ffToEventFilter = (ff: FlowFilter) => {
-      const filter = new RelayEventFilter();
+      const filter = new EventFilter();
       filter.setFlowFilter(ff);
 
       return filter;

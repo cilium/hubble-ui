@@ -13,7 +13,5 @@ jobs:
           node-version: '13.x'
       - name: Install dependencies
         run: npm install
-      - name: Generate types
-        run: ./scripts/generate-proto.sh
       - name: Run tests
         run: npm test

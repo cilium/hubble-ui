@@ -3,11 +3,11 @@
   "private": true,
   "scripts": {
     "test": "jest",
-    "postinstall": "node ./scripts/install-grpc-deps",
+    "postinstall": "bash ./scripts/post-install.sh",
     "watch:server": "servor ./server/public index.html 8080",
     "watch:client": "./scripts/build-blueprint.sh && NODE_ENV=development webpack --progress",
     "watch": "run-p watch:*",
-    "build": "./scripts/generate-proto.sh && ./scripts/build-blueprint.sh && NODE_ENV=production webpack",
+    "build": "./scripts/build-blueprint.sh && NODE_ENV=production webpack",
     "lint:ts": "eslint --ignore-path .gitignore \"./src/**/*.{ts,tsx,js,jsx,mjs}\"",
     "lint:ts:fix": "npm run lint:ts -- --fix",
     "lint:scss": "stylelint --ignore-path .gitignore \"./**/*.scss\" --syntax scss",
