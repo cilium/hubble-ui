@@ -4,7 +4,7 @@
   "scripts": {
     "test": "jest",
     "postinstall": "node ./scripts/install-grpc-deps",
-    "watch:server": "servor ./server/public",
+    "watch:server": "servor ./server/public index.html 8080",
     "watch:client": "./scripts/build-blueprint.sh && NODE_ENV=development webpack --progress",
     "watch": "run-p watch:*",
     "build": "./scripts/generate-proto.sh && ./scripts/build-blueprint.sh && NODE_ENV=production webpack",

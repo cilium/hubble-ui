@@ -1,16 +1,13 @@
-admin:
-  access_log_path: /tmp/admin_access.log
-  address:
-    socket_address: { address: 0.0.0.0, port_value: 9901 }
-
 static_resources:
   listeners:
-    - name: listener_relay_api
+    - name: listener_hubble_ui
       address:
-        socket_address: { address: 0.0.0.0, port_value: 12345 }
+        socket_address:
+          address: 0.0.0.0
+          port_value: 8081
       filter_chains:
         - filters:
-            - name: envoy.http_connection_manager
+            - name: envoy.filters.network.http_connection_manager
               config:
                 codec_type: auto
                 stat_prefix: ingress_http
@@ -20,25 +17,42 @@ static_resources:
                     - name: local_service
                       domains: ['*']
                       routes:
-                        - match: { prefix: '/' }
+                        - match:
+                            prefix: '/api/'
                           route:
-                            cluster: events-server
+                            cluster: backend
                             max_grpc_timeout: 0s
+                            prefix_rewrite: '/'
+                        - match:
+                            prefix: '/'
+                          route:
+                            cluster: frontend
                       cors:
                         allow_origin_string_match:
                           - prefix: '*'
                         allow_methods: GET, PUT, DELETE, POST, OPTIONS
-                        allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,custom-header-1,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout
+                        allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout
                         max_age: '1728000'
-                        expose_headers: custom-header-1,grpc-status,grpc-message
+                        expose_headers: grpc-status,grpc-message
                 http_filters:
                   - name: envoy.filters.http.grpc_web
                   - name: envoy.filters.http.cors
                   - name: envoy.filters.http.router
   clusters:
-    - name: events-server
+    - name: frontend
+      connect_timeout: 0.25s
+      type: strict_dns
+      lb_policy: round_robin
+      hosts:
+        - socket_address:
+            address: 127.0.0.1
+            port_value: 8080
+    - name: backend
       connect_timeout: 0.25s
       type: logical_dns
-      http2_protocol_options: {}
       lb_policy: round_robin
-      hosts: [{ socket_address: { address: 127.0.0.1, port_value: 8090 } }]
+      http2_protocol_options: {}
+      hosts:
+        - socket_address:
+            address: 127.0.0.1
+            port_value: 8090
