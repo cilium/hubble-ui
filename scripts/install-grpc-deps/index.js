@@ -20,14 +20,29 @@ const prepare = async () => {
   return fs.readJSONSync(packageJsonPath).dependencies['grpc-web'];
 };
 
+const parseArgs = () => {
+  const args = process.argv.slice(2);
+  const parsed = {
+    protoc: args.includes('protoc'),
+    webPlugin: args.includes('web-plugin'),
+  };
+
+  return parsed;
+};
+
 const run = async () => {
   const pluginVersion = await prepare();
+  const whatToInstall = parseArgs();
 
-  console.log(`Downloading protoc...`);
-  await installProtoc(BIN_DIR);
+  if (whatToInstall.protoc) {
+    console.log(`Downloading protoc...`);
+    await installProtoc(BIN_DIR);
+  }
 
-  console.log(`Downloading GRPC Web plugin (version: ${pluginVersion}) ...`);
-  await installPlugin(BIN_DIR, pluginVersion);
+  if (whatToInstall.webPlugin) {
+    console.log(`Downloading GRPC Web plugin (version: ${pluginVersion}) ...`);
+    await installPlugin(BIN_DIR, pluginVersion);
+  }
 
   console.log('Done.');
 };

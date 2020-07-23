@@ -88,6 +88,7 @@ module.exports = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.jsx', '.json', '.mjs'],
     alias: {
+      '~backend': path.resolve(__dirname, './backend'),
       '~': path.resolve(__dirname, './src/'),
     },
   },
