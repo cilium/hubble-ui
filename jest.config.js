@@ -16,6 +16,7 @@ module.exports = {
     '\\.(css|styl|less|sass|scss)$': 'identity-obj-proxy',
     '\\.svg$': '<rootDir>/scripts/svg-mock.js',
     '^~/(.*)$': '<rootDir>/src/$1',
+    '^~backend/(.*)$': '<rootDir>/backend/$1',
   },
   moduleDirectories: ['node_modules', 'utils'],
   setupFilesAfterEnv: ['./scripts/jest.setup.js'],
