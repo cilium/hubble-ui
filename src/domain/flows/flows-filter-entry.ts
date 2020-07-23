@@ -119,7 +119,7 @@ export class FlowsFilterEntry {
 
     switch (kind) {
       case FlowsFilterKind.Label: {
-        return `${normalized.replace(/^label=/g, '')}`;
+        return normalized.replace(/^label=/g, '');
       }
       case FlowsFilterKind.Ip: {
         return normalized.replace(/^ip=/g, '');
