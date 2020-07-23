@@ -27,7 +27,7 @@ export const FlowsFilterInput = (props: Props) => {
     props.onChange?.([]);
   }, [props.onChange]);
 
-  const renderCreateNewItem = useCallback(
+  const createNewItemRenderer = useCallback(
     (
       query: string,
       active: boolean,
@@ -49,12 +49,20 @@ export const FlowsFilterInput = (props: Props) => {
     [props.filters],
   );
 
-  const handleQueryChange = useCallback((query: string) => {
+  const createNewItemFromQuery = (userInput: string) => {
+    const filter = FlowsFilterEntry.parse(userInput);
+    if (filter?.isLabel && !filter.query.startsWith('k8s:')) {
+      filter.query = `k8s:${filter.query}`;
+    }
+    return filter;
+  };
+
+  const onQueryChange = useCallback((query: string) => {
     setUserInput(query.replace(/\s/, ''));
   }, []);
 
   // prettier-ignore
-  const handleItemSelect = useCallback((item: FlowsFilterEntry | null) => {
+  const onItemSelect = useCallback((item: FlowsFilterEntry | null) => {
     if (!item || trim(item.query).length === 0) return;
 
     props.onChange?.([...props.filters, item]);
@@ -78,12 +86,12 @@ export const FlowsFilterInput = (props: Props) => {
       className={css.container}
       query={userInput}
       selectedItems={props.filters}
-      onQueryChange={handleQueryChange}
-      onItemSelect={handleItemSelect}
-      createNewItemFromQuery={FlowsFilterEntry.parse}
-      createNewItemRenderer={renderCreateNewItem}
-      itemRenderer={renderItem}
-      tagRenderer={renderTag}
+      onQueryChange={onQueryChange}
+      onItemSelect={onItemSelect}
+      createNewItemFromQuery={createNewItemFromQuery}
+      createNewItemRenderer={createNewItemRenderer}
+      itemRenderer={itemRenderer}
+      tagRenderer={tagRenderer}
       itemPredicate={useCallback(() => false, [])}
       items={[]}
       popoverProps={{
@@ -105,11 +113,11 @@ export const FlowsFilterInput = (props: Props) => {
   );
 };
 
-const renderItem: ItemRenderer<FlowsFilterEntry | null> = () => {
+const itemRenderer: ItemRenderer<FlowsFilterEntry | null> = () => {
   return null;
 };
 
-function renderTag(item: FlowsFilterEntry | null) {
+function tagRenderer(item: FlowsFilterEntry | null) {
   if (!item) return null;
 
   const query =
