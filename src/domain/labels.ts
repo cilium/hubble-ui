@@ -149,4 +149,10 @@ export class Labels {
 
     return props;
   }
+
+  public static ensureK8sPrefix(str: string): string {
+    if (str.startsWith('k8s:')) return str;
+
+    return `k8s:${str}`;
+  }
 }

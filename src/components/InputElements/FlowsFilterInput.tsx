@@ -51,9 +51,10 @@ export const FlowsFilterInput = (props: Props) => {
 
   const createNewItemFromQuery = (userInput: string) => {
     const filter = FlowsFilterEntry.parse(userInput);
-    if (filter?.isLabel && !filter.query.startsWith('k8s:')) {
-      filter.query = `k8s:${filter.query}`;
+    if (filter?.isLabel) {
+      filter.ensureLabelPrefix();
     }
+
     return filter;
   };
 
