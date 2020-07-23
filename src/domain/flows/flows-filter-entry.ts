@@ -1,3 +1,5 @@
+import { Labels } from '~/domain/labels';
+
 export enum FlowsFilterKind {
   Label = 'label',
   Ip = 'ip',
@@ -144,6 +146,13 @@ export class FlowsFilterEntry {
     this.query = query;
     this.direction = direction;
     this.meta = meta;
+  }
+
+  // It should probably return new FlowsFilterEntry or be private
+  public ensureLabelPrefix() {
+    if (!this.isLabel) return;
+
+    this.query = Labels.ensureK8sPrefix(this.query);
   }
 
   public setMeta(meta: string): FlowsFilterEntry {
