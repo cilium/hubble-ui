@@ -15,6 +15,7 @@ module.exports = {
       '<rootDir>/scripts/assets-transformer.js',
     '\\.(css|styl|less|sass|scss)$': 'identity-obj-proxy',
     '^~/(.*)$': '<rootDir>/src/$1',
+    '^~backend/(.*)$': '<rootDir>/backend/$1',
   },
   moduleDirectories: ['node_modules', 'utils'],
   setupFilesAfterEnv: ['./scripts/jest.setup.js'],

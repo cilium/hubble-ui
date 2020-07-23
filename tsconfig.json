@@ -11,7 +11,8 @@
     "outDir": "./build",
     "jsx": "react",
     "paths": {
-      "~/*": ["./*"]
+      "~/*": ["./*"],
+      "~backend/*": ["./../backend/*"]
     },
     "typeRoots": ["./node_modules/@types"],
     "types": ["node", "jest"],
@@ -34,6 +35,6 @@
     "strictPropertyInitialization": true,
     "strictNullChecks": true
   },
-  "exclude": ["node_modules/*", "src/proto"],
+  "exclude": ["node_modules/*"],
   "include": ["src/**/*"]
 }

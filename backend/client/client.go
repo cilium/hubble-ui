@@ -9,12 +9,12 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/cilium/cilium/api/v1/flow"
-	"github.com/cilium/cilium/api/v1/relay"
-	"github.com/cilium/hubble-ui/events-server/logger"
+	"github.com/cilium/hubble-ui/backend/logger"
+	"github.com/cilium/hubble-ui/backend/proto/ui"
 )
 
 var (
-	log = logger.New("relay-client")
+	log = logger.New("ui-client")
 )
 
 type Client struct {
@@ -33,16 +33,16 @@ func (cl *Client) Run() {
 	}
 
 	log.Infof("grpc client successfully created\n")
-	relayClient := relay.NewHubbleRelayClient(conn)
+	uiClient := ui.NewUIClient(conn)
 
-	cl.RunStream(relayClient)
+	cl.RunStream(uiClient)
 }
 
-func (cl *Client) RunStream(relayClient relay.HubbleRelayClient) {
+func (cl *Client) RunStream(uiClient ui.UIClient) {
 	ctx := context.Background()
 	req := prepareRequest()
 
-	stream, err := relayClient.GetEvents(ctx, req)
+	stream, err := uiClient.GetEvents(ctx, req)
 	if err != nil {
 		log.Errorf("failed to GetEvents: %v\n", err)
 		os.Exit(1)
@@ -67,20 +67,20 @@ func (cl *Client) RunStream(relayClient relay.HubbleRelayClient) {
 	}
 }
 
-func prepareRequest() *relay.GetEventsRequest {
+func prepareRequest() *ui.GetEventsRequest {
 	flowFilter := &flow.FlowFilter{}
 
-	return &relay.GetEventsRequest{
-		EventTypes: []relay.RelayEventType{
-			// relay.RelayEventType_FLOW,
-			relay.RelayEventType_SERVICE_STATE,
-			relay.RelayEventType_SERVICE_LINK_STATE,
-			relay.RelayEventType_K8S_NAMESPACE_STATE,
+	return &ui.GetEventsRequest{
+		EventTypes: []ui.EventType{
+			// ui.EventType_FLOW,
+			ui.EventType_SERVICE_STATE,
+			ui.EventType_SERVICE_LINK_STATE,
+			ui.EventType_K8S_NAMESPACE_STATE,
 		},
 		Since: ptypes.TimestampNow(),
-		Whitelist: []*relay.RelayEventFilter{
+		Whitelist: []*ui.EventFilter{
 			{
-				Filter: &relay.RelayEventFilter_FlowFilter{flowFilter},
+				Filter: &ui.EventFilter_FlowFilter{flowFilter},
 			},
 		},
 	}

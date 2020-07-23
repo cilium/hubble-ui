@@ -5,26 +5,26 @@ import (
 	"strings"
 
 	"github.com/cilium/cilium/api/v1/flow"
-	"github.com/cilium/cilium/api/v1/relay"
+	"github.com/cilium/hubble-ui/backend/proto/ui"
 	"github.com/golang/protobuf/ptypes"
 )
 
 type serviceCache struct {
-	services map[string]*relay.RelayService
-	links    map[string]*relay.ServiceLink
+	services map[string]*ui.Service
+	links    map[string]*ui.ServiceLink
 }
 
 func newServiceCache() *serviceCache {
 	return &serviceCache{
-		services: make(map[string]*relay.RelayService),
-		links:    make(map[string]*relay.ServiceLink),
+		services: make(map[string]*ui.Service),
+		links:    make(map[string]*ui.ServiceLink),
 	}
 }
 
 func (c *serviceCache) FromFlow(f *flow.Flow) (
-	*relay.GetEventsResponse, *relay.GetEventsResponse,
+	*ui.GetEventsResponse, *ui.GetEventsResponse,
 ) {
-	var senderEvent, receiverEvent *relay.GetEventsResponse
+	var senderEvent, receiverEvent *ui.GetEventsResponse
 
 	senderSvc := serviceFromEndpoint(f.Source, f.SourceNames)
 	receiverSvc := serviceFromEndpoint(f.Destination, f.DestinationNames)
@@ -46,7 +46,7 @@ func (c *serviceCache) FromFlow(f *flow.Flow) (
 	return senderEvent, receiverEvent
 }
 
-func (c *serviceCache) LinkFromFlow(f *flow.Flow) *relay.GetEventsResponse {
+func (c *serviceCache) LinkFromFlow(f *flow.Flow) *ui.GetEventsResponse {
 	if f.L4 == nil || f.Source == nil || f.Destination == nil {
 		return nil
 	}
@@ -54,27 +54,27 @@ func (c *serviceCache) LinkFromFlow(f *flow.Flow) *relay.GetEventsResponse {
 	srcId := getServiceId(f.Source, f.SourceNames)
 	destId := getServiceId(f.Destination, f.DestinationNames)
 	destPort := uint32(0)
-	ipProtocol := relay.IPProtocol_UNKNOWN_IP_PROTOCOL
+	ipProtocol := ui.IPProtocol_UNKNOWN_IP_PROTOCOL
 
 	if tcp := f.L4.GetTCP(); tcp != nil {
 		destPort = tcp.DestinationPort
-		ipProtocol = relay.IPProtocol_TCP
+		ipProtocol = ui.IPProtocol_TCP
 	}
 
 	if udp := f.L4.GetUDP(); udp != nil {
 		destPort = udp.DestinationPort
-		ipProtocol = relay.IPProtocol_UDP
+		ipProtocol = ui.IPProtocol_UDP
 	}
 
 	if icmp4 := f.L4.GetICMPv4(); icmp4 != nil {
-		ipProtocol = relay.IPProtocol_ICMP_V4
+		ipProtocol = ui.IPProtocol_ICMP_V4
 	}
 
 	if icmp6 := f.L4.GetICMPv6(); icmp6 != nil {
-		ipProtocol = relay.IPProtocol_ICMP_V6
+		ipProtocol = ui.IPProtocol_ICMP_V6
 	}
 
-	protocolStr := relay.IPProtocol_name[int32(ipProtocol)]
+	protocolStr := ui.IPProtocol_name[int32(ipProtocol)]
 	linkId := fmt.Sprintf("%v %v %v:%v", srcId, protocolStr, destId, destPort)
 
 	// TODO: check if cached data should be updated and resend to client
@@ -83,7 +83,7 @@ func (c *serviceCache) LinkFromFlow(f *flow.Flow) *relay.GetEventsResponse {
 		return nil
 	}
 
-	slink := &relay.ServiceLink{
+	slink := &ui.ServiceLink{
 		Id:              linkId,
 		SourceId:        fmt.Sprintf("%v", srcId),
 		DestinationId:   fmt.Sprintf("%v", destId),
@@ -94,37 +94,37 @@ func (c *serviceCache) LinkFromFlow(f *flow.Flow) *relay.GetEventsResponse {
 
 	c.links[linkId] = slink
 
-	lstate := &relay.ServiceLinkState{
+	lstate := &ui.ServiceLinkState{
 		ServiceLink: slink,
-		Type:        relay.StateChange_EXISTS,
+		Type:        ui.StateChange_EXISTS,
 	}
 
-	return &relay.GetEventsResponse{
+	return &ui.GetEventsResponse{
 		Node:      f.NodeName,
 		Timestamp: f.Time,
-		Event:     &relay.GetEventsResponse_ServiceLinkState{lstate},
+		Event:     &ui.GetEventsResponse_ServiceLinkState{lstate},
 	}
 }
 
 func eventResponseFromService(
-	f *flow.Flow, svc *relay.RelayService,
-) *relay.GetEventsResponse {
-	sstate := &relay.ServiceState{
+	f *flow.Flow, svc *ui.Service,
+) *ui.GetEventsResponse {
+	sstate := &ui.ServiceState{
 		Service: svc,
-		Type:    relay.StateChange_EXISTS,
+		Type:    ui.StateChange_EXISTS,
 	}
 
-	return &relay.GetEventsResponse{
+	return &ui.GetEventsResponse{
 		Node:      f.NodeName,
 		Timestamp: f.Time,
-		Event:     &relay.GetEventsResponse_ServiceState{sstate},
+		Event:     &ui.GetEventsResponse_ServiceState{sstate},
 	}
 }
 
-func serviceFromEndpoint(ep *flow.Endpoint, dnsNames []string) *relay.RelayService {
+func serviceFromEndpoint(ep *flow.Endpoint, dnsNames []string) *ui.Service {
 	serviceId := getServiceId(ep, dnsNames)
 
-	return &relay.RelayService{
+	return &ui.Service{
 		Id:                     serviceId,
 		Name:                   appNameFromLabels(ep.Labels, serviceId),
 		Namespace:              ep.Namespace,

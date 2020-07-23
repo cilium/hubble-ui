@@ -8,33 +8,38 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/cilium/cilium/api/v1/observer"
-	"github.com/cilium/cilium/api/v1/relay"
+	"github.com/cilium/hubble-ui/backend/proto/ui"
 )
 
 const (
-	FLOW_EVENT          = relay.RelayEventType_FLOW
-	NS_STATE_EVENT      = relay.RelayEventType_K8S_NAMESPACE_STATE
-	SERVICE_STATE_EVENT = relay.RelayEventType_SERVICE_STATE
-	SERVICE_LINK_EVENT  = relay.RelayEventType_SERVICE_LINK_STATE
+	FLOW_EVENT          = ui.EventType_FLOW
+	NS_STATE_EVENT      = ui.EventType_K8S_NAMESPACE_STATE
+	SERVICE_STATE_EVENT = ui.EventType_SERVICE_STATE
+	SERVICE_LINK_EVENT  = ui.EventType_SERVICE_LINK_STATE
 )
 
-type EventStream = relay.HubbleRelay_GetEventsServer
+type EventStream = ui.UI_GetEventsServer
 type FlowStream = observer.Observer_GetFlowsClient
 
-func (srv *RelayServer) GetEvents(
-	req *relay.GetEventsRequest, stream EventStream,
+type eventFlags struct {
+	Flows        bool
+	Services     bool
+	ServiceLinks bool
+	Namespaces   bool
+}
+
+func (srv *UIServer) GetEvents(
+	req *ui.GetEventsRequest, stream EventStream,
 ) error {
 	if len(req.EventTypes) == 0 {
 		log.Infof("no events specified, aborted.\n")
 		return nil
 	}
 
-	flowEvent := eventRequested(req.EventTypes, FLOW_EVENT)
-	sStateEvent := eventRequested(req.EventTypes, SERVICE_STATE_EVENT)
-	sLinkEvent := eventRequested(req.EventTypes, SERVICE_LINK_EVENT)
+	eventsRequested := getFlagsWhichEventsRequested(req.EventTypes)
 
 	var flowSource FlowStream = nil
-	if flowEvent || sStateEvent || sLinkEvent {
+	if eventsRequested.FlowsRequired() {
 		fs, cancel, err := srv.GetFlows(req)
 
 		if err != nil {
@@ -47,7 +52,7 @@ func (srv *RelayServer) GetEvents(
 	}
 
 	var nsSource chan *NSEvent
-	if eventRequested(req.EventTypes, NS_STATE_EVENT) {
+	if eventsRequested.Namespaces {
 		watcherChan, stop := srv.RunNSWatcher()
 		defer close(stop)
 
@@ -56,16 +61,15 @@ func (srv *RelayServer) GetEvents(
 
 	flowDrain, flowErr, handleFlows := handleFlowStream(
 		flowSource,
-		flowEvent,
-		sStateEvent,
-		sLinkEvent,
+		eventsRequested,
+		srv.serviceCache,
 	)
 
 	if handleFlows != nil {
 		go handleFlows()
 	}
 
-	nsDrain := make(chan *relay.GetEventsResponse)
+	nsDrain := make(chan *ui.GetEventsResponse)
 	go handleNsEvents(nsSource, nsDrain)
 
 	defer close(nsDrain)
@@ -95,7 +99,7 @@ F:
 	return nil
 }
 
-func handleNsEvents(src chan *NSEvent, drain chan *relay.GetEventsResponse) {
+func handleNsEvents(src chan *NSEvent, drain chan *ui.GetEventsResponse) {
 	for e := range src {
 		resp := respFromNSEvent(e)
 
@@ -105,20 +109,21 @@ func handleNsEvents(src chan *NSEvent, drain chan *relay.GetEventsResponse) {
 
 func handleFlowStream(
 	src FlowStream,
-	flowEvent bool,
-	sStateEvent bool,
-	sLinkEvent bool,
-) (chan *relay.GetEventsResponse, chan error, func()) {
+	eventsRequested *eventFlags,
+	svcCache *serviceCache,
+) (chan *ui.GetEventsResponse, chan error, func()) {
 	if src == nil {
 		return nil, nil, nil
 	}
 
-	drain := make(chan *relay.GetEventsResponse)
+	drain := make(chan *ui.GetEventsResponse)
 	errch := make(chan error)
-	svcCache := newServiceCache()
 
 	// TODO: do recovery when src.Recv() returns error
 	thread := func() {
+		defer close(drain)
+		defer close(errch)
+
 		for {
 			flowResponse, err := src.Recv()
 			if err == io.EOF {
@@ -144,18 +149,15 @@ func handleFlowStream(
 				continue
 			}
 
-			// log.Infof("flow: %v\n", flow)
-
-			if flowEvent {
-				// Raw flow event sending
-				drain <- &relay.GetEventsResponse{
+			if eventsRequested.Flows {
+				drain <- &ui.GetEventsResponse{
 					Node:      flowResponse.NodeName,
 					Timestamp: flowResponse.Time,
-					Event:     &relay.GetEventsResponse_Flow{flow},
+					Event:     &ui.GetEventsResponse_Flow{flow},
 				}
 			}
 
-			if sStateEvent {
+			if eventsRequested.Services {
 				senderEvent, receiverEvent := svcCache.FromFlow(flow)
 
 				// Service state event (only EXISTS state is handled)
@@ -168,7 +170,7 @@ func handleFlowStream(
 				}
 			}
 
-			if sLinkEvent {
+			if eventsRequested.ServiceLinks {
 				// Service Link event (only EXISTS state is handled)
 				linkEvent := svcCache.LinkFromFlow(flow)
 
@@ -178,22 +180,8 @@ func handleFlowStream(
 			}
 		}
 
-		log.Infof("sending flows stopped\n")
-		close(drain)
-		close(errch)
+		log.Infof("flows sending stopped\n")
 	}
 
 	return drain, errch, thread
-}
-
-func eventRequested(events []relay.RelayEventType, et ...relay.RelayEventType) bool {
-	for _, t := range events {
-		for _, tt := range et {
-			if t == tt {
-				return true
-			}
-		}
-	}
-
-	return false
 }

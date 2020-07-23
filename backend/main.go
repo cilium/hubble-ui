@@ -5,16 +5,18 @@ import (
 	"net"
 	"os"
 
-	"github.com/cilium/cilium/api/v1/relay"
+	// "github.com/cilium/cilium/pkg/logging"
+	// "github.com/cilium/cilium/pkg/logging/logfields"
+	"github.com/cilium/hubble-ui/backend/proto/ui"
 	"google.golang.org/grpc"
 
-	"github.com/cilium/hubble-ui/events-server/client"
-	"github.com/cilium/hubble-ui/events-server/logger"
-	"github.com/cilium/hubble-ui/events-server/server"
+	"github.com/cilium/hubble-ui/backend/client"
+	"github.com/cilium/hubble-ui/backend/logger"
+	"github.com/cilium/hubble-ui/backend/server"
 )
 
 var (
-	log = logger.New("main")
+	log = logger.New("ui-backend")
 )
 
 const (
@@ -64,7 +66,7 @@ func runServer() {
 	}
 
 	grpcServer := grpc.NewServer()
-	relay.RegisterHubbleRelayServer(grpcServer, srv)
+	ui.RegisterUIServer(grpcServer, srv)
 
 	listener := setupListener()
 	grpcServer.Serve(listener)

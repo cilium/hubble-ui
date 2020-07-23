@@ -7,7 +7,7 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/tools/cache"
 
-	"github.com/cilium/cilium/api/v1/relay"
+	"github.com/cilium/hubble-ui/backend/proto/ui"
 )
 
 type NSEvent struct {
@@ -21,7 +21,7 @@ func eventFromNSObject(event string, obj interface{}) *NSEvent {
 	return &NSEvent{event, ns}
 }
 
-func (srv *RelayServer) RunNSWatcher() (chan *NSEvent, chan struct{}) {
+func (srv *UIServer) RunNSWatcher() (chan *NSEvent, chan struct{}) {
 	restClient := srv.k8s.CoreV1().RESTClient()
 	nsWatcher := cache.NewListWatchFromClient(
 		restClient,
@@ -74,19 +74,19 @@ func (srv *RelayServer) RunNSWatcher() (chan *NSEvent, chan struct{}) {
 	return eventChannel, stop
 }
 
-func respFromNSEvent(e *NSEvent) *relay.GetEventsResponse {
+func respFromNSEvent(e *NSEvent) *ui.GetEventsResponse {
 	ns := e.Namespace
 	event := e.Event
 
 	ts := metaV1.Now()
-	var stateChange relay.StateChange = relay.StateChange_MODIFIED
+	var stateChange ui.StateChange = ui.StateChange_MODIFIED
 
 	if event == "added" {
 		ts = ns.CreationTimestamp
-		stateChange = relay.StateChange_ADDED
+		stateChange = ui.StateChange_ADDED
 	} else if event == "deleted" {
 		ts = *ns.DeletionTimestamp
-		stateChange = relay.StateChange_DELETED
+		stateChange = ui.StateChange_DELETED
 	}
 
 	creationTimestamp, err := ptypes.TimestampProto(ns.CreationTimestamp.Time)
@@ -99,8 +99,8 @@ func respFromNSEvent(e *NSEvent) *relay.GetEventsResponse {
 		log.Errorf("failed to convert timestamp from k8s to pb: %v\n", err)
 	}
 
-	state := &relay.K8SNamespaceState{
-		Namespace: &relay.K8SNamespace{
+	state := &ui.K8SNamespaceState{
+		Namespace: &ui.K8SNamespace{
 			Id:                string(ns.UID),
 			Name:              ns.Name,
 			CreationTimestamp: creationTimestamp,
@@ -108,9 +108,9 @@ func respFromNSEvent(e *NSEvent) *relay.GetEventsResponse {
 		Type: stateChange,
 	}
 
-	nsEvent := &relay.GetEventsResponse_K8SNamespaceState{state}
+	nsEvent := &ui.GetEventsResponse_K8SNamespaceState{state}
 
-	return &relay.GetEventsResponse{
+	return &ui.GetEventsResponse{
 		Node:      ns.ClusterName, // not node name but though
 		Timestamp: eventTimestamp,
 		Event:     nsEvent,

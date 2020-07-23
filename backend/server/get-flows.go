@@ -5,10 +5,10 @@ import (
 
 	"github.com/cilium/cilium/api/v1/flow"
 	"github.com/cilium/cilium/api/v1/observer"
-	"github.com/cilium/cilium/api/v1/relay"
+	"github.com/cilium/hubble-ui/backend/proto/ui"
 )
 
-func extractFlowsRequest(req *relay.GetEventsRequest) *observer.GetFlowsRequest {
+func extractFlowsRequest(req *ui.GetEventsRequest) *observer.GetFlowsRequest {
 	var bl, wl []*flow.FlowFilter
 
 	for _, eventFilter := range req.Blacklist {
@@ -40,7 +40,7 @@ func extractFlowsRequest(req *relay.GetEventsRequest) *observer.GetFlowsRequest 
 	}
 }
 
-func (srv *RelayServer) GetFlows(req *relay.GetEventsRequest) (
+func (srv *UIServer) GetFlows(req *ui.GetEventsRequest) (
 	FlowStream, context.CancelFunc, error,
 ) {
 	// TODO: handle context cancellation

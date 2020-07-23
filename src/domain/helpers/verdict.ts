@@ -1,4 +1,4 @@
-import { Verdict as PBVerdict } from '~/proto/flow/flow_pb';
+import { Verdict as PBVerdict } from '~backend/proto/flow/flow_pb';
 import { Verdict } from '~/domain/hubble';
 
 export const verdictFromPb = (v: PBVerdict): Verdict => {

@@ -10,29 +10,33 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/cilium/cilium/api/v1/observer"
-	"github.com/cilium/cilium/api/v1/relay"
+	"github.com/cilium/hubble-ui/backend/proto/ui"
 
-	"github.com/cilium/hubble-ui/events-server/logger"
+	"github.com/cilium/hubble-ui/backend/logger"
 )
 
 var (
-	log = logger.New("relay-server")
+	log = logger.DefaultLogger
 )
 
-type RelayServer struct {
-	relay.UnimplementedHubbleRelayServer
+type UIServer struct {
+	ui.UnimplementedUIServer
 
 	hubbleAddr   string
 	hubbleClient observer.ObserverClient
 
-	k8s kubernetes.Interface
+	k8s          kubernetes.Interface
+	serviceCache *serviceCache
 }
 
-func New(hubbleAddr string) *RelayServer {
-	return &RelayServer{hubbleAddr: hubbleAddr}
+func New(hubbleAddr string) *UIServer {
+	return &UIServer{
+		hubbleAddr:   hubbleAddr,
+		serviceCache: newServiceCache(),
+	}
 }
 
-func (srv *RelayServer) Run() error {
+func (srv *UIServer) Run() error {
 	if len(srv.hubbleAddr) == 0 {
 		log.Warnf("hubbleAddr is empty, flows broadcasting aborted.\n")
 		return nil
