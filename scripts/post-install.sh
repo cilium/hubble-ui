@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-NODE_MODULES="./node_modules"
+CWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+NODE_MODULES="$CWD/../node_modules"
 
 function installation_check() {
 	if [ ! -d "$NODE_MODULES" ]; then
@@ -30,27 +31,4 @@ function install_prerequisites() {
 	install_grpc_web_plugin
 }
 
-function regular_run() {
-	install_prerequisites
-	(
-		cd ./backend && bash ./ctl.sh build
-	)
-	bash ./scripts/generate-proto.sh
-}
-
-function run() {
-	local cmd=${1:-"all"}
-	shift
-
-	case $cmd in
-		all)
-			regular_run
-			;;
-		prerequisites)
-			installation_check
-			install_grpc_web_plugin
-			;;
-	esac
-}
-
-run $@
+install_prerequisites

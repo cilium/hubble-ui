@@ -1,7 +1,1 @@
-proto/flow/
-proto/observer/
-proto/relay/
-proto/external/
-proto/*/*.d.ts
-proto/*/*.js
 backend

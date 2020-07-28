@@ -64,11 +64,6 @@ function check_outer_dependencies() {
 }
 
 function build_proto_inner() {
-    if [ "$1" == "docker" ]; then
-        PROTOC="/usr/bin/protoc"
-        echo "Running docker version of build-proto-inner"
-    fi
-
     mkdir -p proto
     cp -R $CILIUM_API/{observer,flow,relay,external} ./proto
     chmod +w -R ./proto
@@ -142,11 +137,8 @@ function run() {
         run)
             main_run $@
             ;;
-        prerequisites)
-            install_go_prerequisites $@
-            ;;
-        build-proto-docker)
-            build_proto_inner docker
+        update-proto)
+            build_proto
             ;;
         *)
             unknown_command $main_cmd
