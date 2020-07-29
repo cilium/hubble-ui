@@ -15,8 +15,6 @@ export interface RowProps extends CommonProps {
   isSelected: boolean;
   onSelect?: (flow: Flow | null) => void;
   ticker?: Ticker<TickerEvents>;
-  isOdd?: boolean;
-  isEven?: boolean;
   style?: React.CSSProperties;
 }
 
@@ -39,8 +37,6 @@ export function RowRenderer({ index, style, data }: ListChildComponentProps) {
       flow={flow}
       isVisibleColumn={props.isVisibleColumn}
       isSelected={props.selectedFlow?.id === flow.id}
-      isEven={flowIndex % 2 === 0}
-      isOdd={flowIndex % 2 === 1}
       onSelect={props.onSelectFlow}
       ticker={props.ticker}
     />
@@ -55,8 +51,6 @@ export const Row = memo<RowProps>(function FlowsTableRow(props) {
 
   const className = classnames(css.row, {
     [css.selected]: props.isSelected,
-    [css.even]: props.isEven,
-    [css.odd]: props.isOdd,
   });
 
   return (

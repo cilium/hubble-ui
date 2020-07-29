@@ -1,14 +1,13 @@
-import {
-  Button,
-  Intent,
-  Menu,
-  MenuItem,
-  Popover,
-  Checkbox,
-} from '@blueprintjs/core';
+import { Checkbox, Menu, MenuItem, Popover } from '@blueprintjs/core';
 import React, { memo } from 'react';
+import classnames from 'classnames';
 
 import { usePopover } from '~/ui/hooks/usePopover';
+
+import VisualIcon from '~/assets/icons/visual-icon.svg';
+import { FilterIcon } from './FilterIcon';
+
+import css from './styles.scss';
 
 interface Props {
   showHost: boolean;
@@ -78,12 +77,13 @@ export const VisualFiltersDropdown = memo<Props>(function VisualFiltersDropdown(
 
   return (
     <Popover {...popover.props} content={content}>
-      <Button
-        minimal
+      <FilterIcon
+        icon={<VisualIcon />}
         text="Visual"
-        intent={enabled ? Intent.PRIMARY : Intent.NONE}
-        rightIcon="chevron-down"
         onClick={popover.toggle}
+        className={classnames({
+          [css.visualFilterEnabled]: enabled,
+        })}
       />
     </Popover>
   );

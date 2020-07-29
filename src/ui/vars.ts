@@ -24,21 +24,26 @@ export const sizes = {
   endpointProtocolHeight: 16,
   egressConnectorWidth: 38,
   ingressConnectorPadding: 24,
-  linkWidth: 4,
+  linkWidth: 2,
   linkCurveRadius: 8,
+  connectorWidth: 4,
   flowsTableRowHeight: 20,
-  feetInnerWidth: 3,
-  feetOuterWidth: 5,
+  flowsTableHeadHeight: 24,
+  feetInnerWidth: 2,
+  feetOuterWidth: 4,
   topBarHeight: 50,
   arrowHandleHWRatio: 10.87 / 11.61,
 };
 
 // C O L O R S
 export const colors = {
-  arrowStroke: '#989898',
-  connectorFill: '#C6C4C4',
-  arrowHandle: '#7B7A7A',
+  startPlaceStroke: '#b4b4b4',
+  startPlateFill: '#b4b4b4',
+  arrowStroke: '#ACB1B8',
+  arrowHandle: '#58626D',
+  connectorFill: '#AEB7C0',
+  connectorStroke: '#58626D',
   feetOuterStroke: '#EBEEF0',
-  feetForwardedStroke: '#AFAFAF',
+  feetForwardedStroke: '#C1C8D0',
   feetDroppedStroke: '#FF5E5E',
 };

@@ -1,14 +1,13 @@
 import React, { memo } from 'react';
 
-import { FlowsFilterInput } from '~/components/InputElements/FlowsFilterInput';
-import { ForwardingStatusDropdown } from '~/components/InputElements/ForwardingStatusDropdown';
-import { HttpStatusCodeDropdown } from '~/components/InputElements/HttpStatusCodeDropdown';
-import { VisualFiltersDropdown } from '~/components/InputElements/VisualFiltersDropdown';
-import { NamespaceDropdown } from './NamespaceDropdown';
-import { StreamingIndicator } from './StreamingIndicator';
-
 import { Verdict } from '~/domain/hubble';
 import { FlowsFilterEntry } from '~/domain/flows';
+
+import { FlowsFilterInput } from './FlowsFilterInput';
+import { VerdictFilterDropdown } from './VerdictFilterDropdown';
+import { VisualFiltersDropdown } from './VisualFiltersDropdown';
+import { NamespaceSelectorDropdown } from './NamespaceSelectorDropdown';
+import { StreamingIndicator } from './StreamingIndicator';
 
 import css from './styles.scss';
 
@@ -36,22 +35,18 @@ export interface Props {
 export const TopBar = memo<Props>(function TopBar(props) {
   const RenderedFilters = (
     <>
-      <div className={css.border} />
+      <div className={css.spacer} />
+      <div className={css.spacer} />
       <FlowsFilterInput
         filters={props.flowFilters}
         onChange={props.onChangeFlowFilters}
       />
       <div className={css.spacer} />
-      <ForwardingStatusDropdown
+      <VerdictFilterDropdown
         verdict={props.selectedVerdict}
         onSelect={props.onVerdictChange}
       />
-      <div className={css.spacer} />
-      {/* <HttpStatusCodeDropdown
-        httpStatus={props.selectedHttpStatus}
-        onSelect={props.onHttpStatusChange}
-      /> */}
-      <div className={css.spacer} />
+      <div className={css.border} />
       <VisualFiltersDropdown
         showHost={props.showHost}
         onShowHostToggle={props.onShowHostToggle}
@@ -68,7 +63,7 @@ export const TopBar = memo<Props>(function TopBar(props) {
   return (
     <div className={css.topbar}>
       <div className={css.left}>
-        <NamespaceDropdown
+        <NamespaceSelectorDropdown
           namespaces={props.namespaces}
           currentNamespace={props.currentNamespace}
           onChange={props.onNamespaceChange}
@@ -76,6 +71,7 @@ export const TopBar = memo<Props>(function TopBar(props) {
         {props.currentNamespace && RenderedFilters}
       </div>
       <div className={css.right}>
+        <div className={css.spacer} />
         <div className={css.spacer} />
         <StreamingIndicator isStreaming={props.isStreaming} />
       </div>
