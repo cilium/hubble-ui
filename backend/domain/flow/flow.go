@@ -21,14 +21,20 @@ func (f *Flow) BuildServices() (*service.Service, *service.Service) {
 }
 
 func (f *Flow) BuildSenderService() *service.Service {
-	svc := service.FromEndpointProtoAndDns(f.ref.Source, f.ref.SourceNames)
+	svc := service.FromEndpointProtoAndDns(
+		f.ref.Source, f.ref.SourceNames,
+	)
+
 	svc.SetIsSender(true)
 
 	return svc
 }
 
 func (f *Flow) BuildReceiverService() *service.Service {
-	svc := service.FromEndpointProtoAndDns(f.ref.Source, f.ref.SourceNames)
+	svc := service.FromEndpointProtoAndDns(
+		f.ref.Destination, f.ref.DestinationNames,
+	)
+
 	svc.SetIsReceiver(true)
 
 	return svc

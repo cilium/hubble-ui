@@ -21,6 +21,11 @@ func newServiceCache() *serviceCache {
 	}
 }
 
+func (c *serviceCache) Drop() {
+	c.services = make(map[string]*ui.Service)
+	c.links = make(map[string]*ui.ServiceLink)
+}
+
 func (c *serviceCache) FromFlow(pbf *pbFlow.Flow) (
 	*ui.GetEventsResponse, *ui.GetEventsResponse,
 ) {

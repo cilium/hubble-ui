@@ -112,6 +112,8 @@ func handleFlowStream(
 	eventsRequested *eventFlags,
 	svcCache *serviceCache,
 ) (chan *ui.GetEventsResponse, chan error, func()) {
+	svcCache.Drop()
+
 	if src == nil {
 		return nil, nil, nil
 	}
