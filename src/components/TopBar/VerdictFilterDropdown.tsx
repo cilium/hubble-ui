@@ -1,15 +1,15 @@
-import {
-  Button,
-  ButtonGroup,
-  Menu,
-  MenuItem,
-  Popover,
-} from '@blueprintjs/core';
+import { Menu, MenuItem, Popover } from '@blueprintjs/core';
 import { find } from 'lodash';
 import React, { memo, useCallback } from 'react';
+import classnames from 'classnames';
 
 import { usePopover } from '~/ui/hooks/usePopover';
 import { Verdict } from '~/domain/hubble';
+
+import VerdictIcon from '~/assets/icons/verdict-icon.svg';
+import { FilterIcon } from './FilterIcon';
+
+import css from './styles.scss';
 
 export interface Props {
   verdict: Verdict | null;
@@ -36,7 +36,9 @@ const filters: FilterOption[] = [
   },
 ];
 
-export const ForwardingStatusDropdown = memo<Props>(props => {
+export const VerdictFilterDropdown = memo<Props>(function VerdictFilterDropdown(
+  props,
+) {
   const popover = usePopover();
 
   const getLabel = useCallback(() => {
@@ -59,23 +61,15 @@ export const ForwardingStatusDropdown = memo<Props>(props => {
 
   return (
     <Popover {...popover.props} content={content}>
-      <ButtonGroup>
-        <Button
-          minimal
-          intent={
-            props.verdict === Verdict.Forwarded
-              ? 'success'
-              : props.verdict === Verdict.Dropped
-              ? 'danger'
-              : 'none'
-          }
-          rightIcon="chevron-down"
-          text={getLabel()}
-          onClick={popover.toggle}
-        />
-      </ButtonGroup>
+      <FilterIcon
+        icon={<VerdictIcon />}
+        text={getLabel()}
+        onClick={popover.toggle}
+        className={classnames({
+          [css.verdictFilterDropped]: props.verdict === Verdict.Dropped,
+          [css.verdictFilterForwarded]: props.verdict === Verdict.Forwarded,
+        })}
+      />
     </Popover>
   );
 });
-
-ForwardingStatusDropdown.displayName = 'ForwardingStatusDropdown';

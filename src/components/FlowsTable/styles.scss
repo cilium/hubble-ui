@@ -1,11 +1,8 @@
-$border-color: #c6cace;
-
 .wrapper {
   position: relative;
   overflow: hidden;
   width: 100%;
   height: 100%;
-  border-top: 1px solid $border-color;
 
   .table {
     background-color: #fff;
@@ -14,9 +11,10 @@ $border-color: #c6cace;
       position: absolute;
       display: flex;
       width: 100%;
-      height: var(--flows-table-row-height);
       line-height: var(--flows-table-row-height);
       font-size: 11px;
+      font-weight: 500;
+      color: #303030;
 
       &.odd {
         background-color: #fff;
@@ -27,29 +25,23 @@ $border-color: #c6cace;
       }
 
       &:not(.selected):not(.head):hover {
-        background-color: #e0e2e4;
+        background-color: #dee4e9;
         cursor: pointer;
-      }
-
-      &:last-child {
-        .cell {
-          border-bottom: 1px solid $border-color;
-        }
       }
 
       &.head {
         position: sticky;
         top: 0;
         z-index: 2;
-        background-color: #e4e7eb;
-        border-bottom: 1px solid $border-color;
+        line-height: var(--flows-table-head-height);
+        background-color: #f6f6f6;
+        border-bottom: 1px solid #ebeef1;
         text-align: left;
-        font-weight: 700;
-        color: #7c8389;
+        color: #5c7080;
       }
 
       &.selected {
-        background-color: #7b7b7b;
+        background-color: darken(#dee4e9, 20);
 
         .cell {
           color: #fff;
@@ -69,10 +61,6 @@ $border-color: #c6cace;
         text-overflow: ellipsis;
         overflow: hidden;
 
-        &:not(:last-child) {
-          border-right: 1px solid $border-color;
-        }
-
         &:first-child {
           padding-left: 10px;
         }
@@ -83,6 +71,7 @@ $border-color: #c6cace;
 
         &.dstPort {
           max-width: 130px;
+          text-align: right;
         }
 
         &.verdict {
@@ -122,7 +111,6 @@ $border-color: #c6cace;
   height: 100%;
   overflow: auto;
   background: #fff;
-  border-left: 1px solid #c6cace;
   box-shadow: 0 22px 22px rgba(0, 0, 0, 0.25);
 
   .header {
@@ -238,7 +226,7 @@ $border-color: #c6cace;
     margin-bottom: 10px;
     margin-left: -$padding;
     border: none;
-    background-color: #d6d6d6;
+    background-color: #ebeef1;
   }
 }
 
@@ -247,5 +235,5 @@ $border-color: #c6cace;
 }
 
 .droppedVerdict {
-  color: #d46363;
+  color: #e26d66;
 }

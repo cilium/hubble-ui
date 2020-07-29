@@ -71,12 +71,12 @@ const startPlatePath = (d: any) => {
   const { x, y } = d[1];
 
   // prettier-ignore
-  const r = 3, w = 10, h = 30;
+  const r = 3, w = 5, h = 20;
   const tr = `a ${r} ${r} 0 0 1 ${r} ${r}`;
   const br = `a ${r} ${r} 0 0 1 -${r} ${r}`;
 
   return `
-    M ${x} ${y - h / 2}
+    M ${x - 1} ${y - h / 2}
     h ${w - r}
     ${tr}
     v ${h - 2 * r}
@@ -95,8 +95,8 @@ const startPlatesEnter = (enter: any) => {
     .append('g')
     .attr('class', (d: any) => d[0])
     .append('path')
-    .attr('fill', colors.connectorFill)
-    .attr('stroke', colors.arrowStroke)
+    .attr('fill', colors.startPlateFill)
+    .attr('stroke', colors.startPlaceStroke)
     .attr('stroke-width', sizes.linkWidth)
     .attr('d', startPlatePath);
 };
@@ -283,8 +283,8 @@ const connectorsEnter = (enter: any) => {
     .attr('cx', (d: any) => d[1].x)
     .attr('cy', (d: any) => d[1].y)
     .attr('r', 7.5)
-    .attr('stroke', colors.arrowStroke)
-    .attr('stroke-width', sizes.linkWidth)
+    .attr('stroke', colors.connectorStroke)
+    .attr('stroke-width', sizes.connectorWidth)
     .attr('fill', colors.connectorFill);
 };
 

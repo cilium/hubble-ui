@@ -87,7 +87,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
           </div>
         </section>
       )}
-      {flow.hasSource && flow.sourceIdentity && (
+      {flow.hasSource && typeof flow.sourceIdentity === 'number' && (
         <section className={css.block}>
           <span className={css.title}>Source identity</span>
           <div className={css.body}>
@@ -140,7 +140,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
           </div>
         </section>
       )}
-      {flow.hasDestination && flow.destinationIdentity && (
+      {flow.hasDestination && typeof flow.destinationIdentity === 'number' && (
         <section className={css.block}>
           <span className={css.title}>Destination identity</span>
           <div className={css.body}>

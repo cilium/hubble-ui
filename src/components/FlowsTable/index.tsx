@@ -1,6 +1,6 @@
 import React, { memo, useMemo, createContext, forwardRef } from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import { FixedSizeList } from 'react-window';
+import { VariableSizeList } from 'react-window';
 
 import { Flow } from '~/domain/flows';
 import { sizes } from '~/ui';
@@ -54,26 +54,30 @@ export const FlowsTable = memo<Props>(function FlowsTable(props: Props) {
       <AutoSizer>
         {({ width, height }) => (
           <ItemDataContext.Provider value={itemData}>
-            <FixedSizeList
+            <VariableSizeList
               {...scroll}
               className={css.table}
               innerElementType={stickyHeaderElement}
               width={width}
               height={height}
-              itemSize={sizes.flowsTableRowHeight}
+              itemSize={itemSize}
               itemCount={props.flows.length + 1 /* first header row counts */}
               itemKey={itemKey}
               itemData={itemData}
               overscanCount={Math.ceil(height / sizes.flowsTableRowHeight / 2)}
             >
               {RowRenderer}
-            </FixedSizeList>
+            </VariableSizeList>
           </ItemDataContext.Provider>
         )}
       </AutoSizer>
     </div>
   );
 });
+
+function itemSize(index: number) {
+  return index === 0 ? sizes.flowsTableHeadHeight : sizes.flowsTableRowHeight;
+}
 
 function itemKey(index: number, data: RowRendererData) {
   return index === 0 ? 'header-row' : data.flows[index - 1].id;
