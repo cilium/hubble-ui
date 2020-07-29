@@ -14,6 +14,7 @@ module.exports = {
     '\\.(png|jpg|gif|ttf|woff|woff2)$':
       '<rootDir>/scripts/assets-transformer.js',
     '\\.(css|styl|less|sass|scss)$': 'identity-obj-proxy',
+    '\\.svg$': '<rootDir>/scripts/svg-mock.js',
     '^~/(.*)$': '<rootDir>/src/$1',
   },
   moduleDirectories: ['node_modules', 'utils'],
