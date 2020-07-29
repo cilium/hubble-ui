@@ -3,8 +3,9 @@ package server
 import (
 	"fmt"
 
-	"github.com/cilium/cilium/api/v1/flow"
-	"github.com/cilium/hubble-ui/backend/domain"
+	pbFlow "github.com/cilium/cilium/api/v1/flow"
+	"github.com/cilium/hubble-ui/backend/domain/flow"
+	"github.com/cilium/hubble-ui/backend/domain/service"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 )
 
@@ -20,35 +21,38 @@ func newServiceCache() *serviceCache {
 	}
 }
 
-func (c *serviceCache) FromFlow(f *flow.Flow) (
+func (c *serviceCache) FromFlow(pbf *pbFlow.Flow) (
 	*ui.GetEventsResponse, *ui.GetEventsResponse,
 ) {
 	var senderEvent, receiverEvent *ui.GetEventsResponse
-	senderSvc, receiverSvc := domain.ServicesFromFlow(f)
+
+	f := flow.FromProto(pbf)
+	senderSvc, receiverSvc := f.BuildServices()
+	senderProto, receiverProto := senderSvc.ToProto(), receiverSvc.ToProto()
 
 	// TODO: check if updated data received from flow
-	_, exists := c.services[senderSvc.Id]
+	_, exists := c.services[senderProto.Id]
 	if !exists {
-		senderEvent = eventResponseFromService(f, senderSvc)
-		c.services[senderSvc.Id] = senderSvc
+		c.services[senderProto.Id] = senderProto
+		senderEvent = eventResponseFromService(pbf, senderProto)
 	}
 
 	// TODO: check if updated data received from flow
-	_, exists = c.services[receiverSvc.Id]
+	_, exists = c.services[receiverProto.Id]
 	if !exists {
-		receiverEvent = eventResponseFromService(f, receiverSvc)
-		c.services[receiverSvc.Id] = receiverSvc
+		c.services[receiverProto.Id] = receiverProto
+		receiverEvent = eventResponseFromService(pbf, receiverProto)
 	}
 
 	return senderEvent, receiverEvent
 }
 
-func (c *serviceCache) LinkFromFlow(f *flow.Flow) *ui.GetEventsResponse {
+func (c *serviceCache) LinkFromFlow(f *pbFlow.Flow) *ui.GetEventsResponse {
 	if f.L4 == nil || f.Source == nil || f.Destination == nil {
 		return nil
 	}
 
-	srcId, destId := domain.ServiceIdsFromFlow(f)
+	srcId, destId := service.IdsFromFlowProto(f)
 	destPort := uint32(0)
 	ipProtocol := ui.IPProtocol_UNKNOWN_IP_PROTOCOL
 
@@ -103,7 +107,7 @@ func (c *serviceCache) LinkFromFlow(f *flow.Flow) *ui.GetEventsResponse {
 }
 
 func eventResponseFromService(
-	f *flow.Flow, svc *ui.Service,
+	f *pbFlow.Flow, svc *ui.Service,
 ) *ui.GetEventsResponse {
 	sstate := &ui.ServiceState{
 		Service: svc,
