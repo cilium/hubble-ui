@@ -81,7 +81,9 @@ export function useMapZoom(args: Args): MapZoom {
 
 function createTransformToCenter(args: Args) {
   const containerWidth = window.innerWidth;
-  const containerHeight = args.visibleHeight;
+  const containerHeight = Math.round(
+    Math.max(window.innerHeight / 2, args.visibleHeight),
+  );
   const mapWidth = args.mapBBox.w || containerWidth;
   const mapHeight = args.mapBBox.h || containerHeight;
   const totalMapWidth = mapWidth + sizes.endpointHPadding * 2;
