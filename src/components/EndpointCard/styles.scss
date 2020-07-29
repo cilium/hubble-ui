@@ -4,12 +4,12 @@
   margin: var(--endpoint-shadow-size);
   background-color: #fff;
   border-radius: 10px;
-  border: 1px solid #b4b4b4;
+  border: 2px solid #b4b4b4;
   user-select: none;
 
   &:hover {
     cursor: pointer;
-    border-color: #6e6e6e;
+    border-color: darken(#b4b4b4, 20);
   }
 
   &:active {
@@ -19,10 +19,6 @@
   &.active {
     border-color: #3177ff;
   }
-}
-
-.layer1 {
-  box-shadow: 0 0 var(--endpoint-shadow-size) rgba(0, 0, 0, 0.15);
 }
 
 .layer2 {

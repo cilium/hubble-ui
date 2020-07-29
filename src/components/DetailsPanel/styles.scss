@@ -5,16 +5,14 @@
   position: absolute;
   bottom: 0;
   top: 66%;
-  width: calc(100% - 20px);
-  margin: 0 10px;
-  border-top: 1px solid #c6cace;
-  border-left: 1px solid #c6cace;
-  border-right: 1px solid #c6cace;
-  border-radius: 3px 3px 0 0;
-  box-shadow: 0 0 23px rgba(8, 44, 65, 0.12);
+  z-index: 40;
+  width: calc(100% - 32px);
+  margin: 0 16px;
+  border-radius: 6px 6px 0 0;
+  box-shadow: 0 0 34px rgba(0, 0, 0, 0.16);
 
   overflow: hidden;
-  background-color: #f2f4f6;
+  background-color: #f6f6f6;
 
   .dragPanel {
     @include exact-size(default, 29px);
