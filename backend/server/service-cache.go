@@ -2,11 +2,10 @@ package server
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/cilium/cilium/api/v1/flow"
+	"github.com/cilium/hubble-ui/backend/domain"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
-	"github.com/golang/protobuf/ptypes"
 )
 
 type serviceCache struct {
@@ -25,9 +24,7 @@ func (c *serviceCache) FromFlow(f *flow.Flow) (
 	*ui.GetEventsResponse, *ui.GetEventsResponse,
 ) {
 	var senderEvent, receiverEvent *ui.GetEventsResponse
-
-	senderSvc := serviceFromEndpoint(f.Source, f.SourceNames)
-	receiverSvc := serviceFromEndpoint(f.Destination, f.DestinationNames)
+	senderSvc, receiverSvc := domain.ServicesFromFlow(f)
 
 	// TODO: check if updated data received from flow
 	_, exists := c.services[senderSvc.Id]
@@ -51,8 +48,7 @@ func (c *serviceCache) LinkFromFlow(f *flow.Flow) *ui.GetEventsResponse {
 		return nil
 	}
 
-	srcId := getServiceId(f.Source, f.SourceNames)
-	destId := getServiceId(f.Destination, f.DestinationNames)
+	srcId, destId := domain.ServiceIdsFromFlow(f)
 	destPort := uint32(0)
 	ipProtocol := ui.IPProtocol_UNKNOWN_IP_PROTOCOL
 
@@ -119,59 +115,4 @@ func eventResponseFromService(
 		Timestamp: f.Time,
 		Event:     &ui.GetEventsResponse_ServiceState{sstate},
 	}
-}
-
-func serviceFromEndpoint(ep *flow.Endpoint, dnsNames []string) *ui.Service {
-	serviceId := getServiceId(ep, dnsNames)
-
-	return &ui.Service{
-		Id:                     serviceId,
-		Name:                   appNameFromLabels(ep.Labels, serviceId),
-		Namespace:              ep.Namespace,
-		Labels:                 ep.Labels,
-		DnsNames:               dnsNames,
-		EgressPolicyEnforced:   false,
-		IngressPolicyEnforced:  false,
-		VisibilityPolicyStatus: "",
-		CreationTimestamp:      ptypes.TimestampNow(),
-	}
-}
-
-func appNameFromLabels(labels []string, identity string) string {
-	for _, lbl := range labels {
-		one := strings.HasPrefix(lbl, "k8s:k8s-app")
-		two := strings.HasPrefix(lbl, "k8s-app")
-
-		if !(one || two) {
-			continue
-		}
-
-		parts := strings.SplitN(lbl, "=", 2)
-		if len(parts) != 2 {
-			continue
-		}
-
-		return parts[1]
-	}
-
-	// Fallback app name based on identity
-	return fmt.Sprintf("identity-%v", identity)
-}
-
-func getServiceId(ep *flow.Endpoint, dnsNames []string) string {
-	if isWorld(ep.Labels) && len(dnsNames) > 0 {
-		return dnsNames[0]
-	}
-
-	return fmt.Sprintf("%v", ep.Identity)
-}
-
-func isWorld(labels []string) bool {
-	for _, lbl := range labels {
-		if strings.Contains(lbl, "reserved:world") {
-			return true
-		}
-	}
-
-	return false
 }
