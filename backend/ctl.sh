@@ -2,10 +2,13 @@
 set -e
 
 CWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-CILIUM_API="$GOPATH/pkg/mod/github.com/cilium/cilium@v1.8.2/api/v1"
+CILIUM_VERSION="v1.8.2"
+CILIUM_API="$GOPATH/pkg/mod/github.com/cilium/cilium@$CILIUM_VERSION/api/v1"
 if [ ! -d "$CILIUM_API" ]; then
-    CILIUM_API="$GOPATH/src/github.com/cilium/cilium@v1.8.2/api/v1"
+    CILIUM_API="$GOPATH/src/github.com/cilium/cilium@$CILIUM_VERSION/api/v1"
 fi
+
+CILIUM_MOD_VERSION="$(go list -m all | grep cilium/cilium | awk '{print $2}')"
 
 PROTOC_GEN_GRPC_WEB_PATH="${CWD}/../node_modules/.bin/protoc-gen-grpc-web"
 PROTOC_GO_PLUGIN="--plugin $GOPATH/bin/protoc-gen-go"
@@ -61,6 +64,10 @@ function check_outer_dependencies() {
         echo "You must install outer node_modules first. Exit."
         exit 1
     fi
+
+    if [ "$CILIUM_MOD_VERSION" != "$CILIUM_VERSION" ]; then
+        go mod download
+    fi
 }
 
 function build_proto_inner() {
@@ -105,7 +112,6 @@ function build_proto() {
 function build() {
     if [ "$1" != "skip-proto-build" ]; then
         echo $(faded "Building proto...")
-        go mod download
 
         build_proto
     fi
