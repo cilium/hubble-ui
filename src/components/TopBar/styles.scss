@@ -5,7 +5,6 @@
   @include row(flex-start, center);
   position: absolute;
   top: 0;
-  z-index: 30;
 
   width: calc(100% - 32px);
   min-height: var(--top-bar-height);
