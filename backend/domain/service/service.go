@@ -85,18 +85,18 @@ func getServiceId(
 	lblProps *labels.LabelProps,
 	isWorldReceiver bool,
 ) string {
-	if lblProps.IsWorld {
-		sideStr := "sender"
-		if isWorldReceiver {
-			sideStr = "receiver"
-		}
-
-		if len(dnsNames) > 0 {
-			return fmt.Sprintf("%s-%s", dnsNames[0], sideStr)
-		}
-
-		return fmt.Sprintf("world-%s", sideStr)
+	if !lblProps.IsWorld {
+		return fmt.Sprintf("%v", ep.Identity)
 	}
 
-	return fmt.Sprintf("%v", ep.Identity)
+	sideStr := "sender"
+	if isWorldReceiver {
+		sideStr = "receiver"
+	}
+
+	if len(dnsNames) > 0 {
+		return fmt.Sprintf("%s-%s", dnsNames[0], sideStr)
+	}
+
+	return fmt.Sprintf("world-%s", sideStr)
 }
