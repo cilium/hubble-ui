@@ -34,15 +34,15 @@ func IdsFromFlowProto(f *pbFlow.Flow) (string, string) {
 	sourceProps := labels.Props(f.Source.Labels)
 	destProps := labels.Props(f.Destination.Labels)
 
-	sourceSvcId := getServiceId(
+	senderSvcId := getServiceId(
 		f.Source, f.SourceNames, sourceProps, false,
 	)
 
-	destSvcId := getServiceId(
+	receiverSvcId := getServiceId(
 		f.Destination, f.DestinationNames, destProps, true,
 	)
 
-	return sourceSvcId, destSvcId
+	return senderSvcId, receiverSvcId
 }
 
 // TODO: its not ok to have this code here
@@ -83,15 +83,19 @@ func getServiceId(
 	ep *pbFlow.Endpoint,
 	dnsNames []string,
 	lblProps *labels.LabelProps,
-	isWorldSender bool,
+	isWorldReceiver bool,
 ) string {
-	if lblProps.IsWorld && len(dnsNames) > 0 {
+	if lblProps.IsWorld {
 		sideStr := "sender"
-		if isWorldSender {
+		if isWorldReceiver {
 			sideStr = "receiver"
 		}
 
-		return fmt.Sprintf("%s-%s", dnsNames[0], sideStr)
+		if len(dnsNames) > 0 {
+			return fmt.Sprintf("%s-%s", dnsNames[0], sideStr)
+		}
+
+		return fmt.Sprintf("world-%s", sideStr)
 	}
 
 	return fmt.Sprintf("%v", ep.Identity)
