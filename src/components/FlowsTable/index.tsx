@@ -1,6 +1,6 @@
-import React, { memo, useMemo, createContext, forwardRef } from 'react';
+import React, { memo, useMemo } from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import { VariableSizeList } from 'react-window';
+import { FixedSizeList } from 'react-window';
 
 import { Flow } from '~/domain/flows';
 import { sizes } from '~/ui';
@@ -27,9 +27,6 @@ export interface Props extends CommonProps {
   onFlowsDiffCount?: OnFlowsDiffCount;
 }
 
-const ItemDataContext = createContext<RowRendererData | null>(null);
-ItemDataContext.displayName = 'FlowsTableItemDataContext';
-
 export const FlowsTable = memo<Props>(function FlowsTable(props: Props) {
   const scroll = useScroll(props.onFlowsDiffCount);
 
@@ -51,49 +48,28 @@ export const FlowsTable = memo<Props>(function FlowsTable(props: Props) {
 
   return (
     <div className={css.wrapper}>
+      <Header isVisibleColumn={itemData.isVisibleColumn} />
       <AutoSizer>
         {({ width, height }) => (
-          <ItemDataContext.Provider value={itemData}>
-            <VariableSizeList
-              {...scroll}
-              className={css.table}
-              innerElementType={stickyHeaderElement}
-              width={width}
-              height={height}
-              itemSize={itemSize}
-              itemCount={props.flows.length + 1 /* first header row counts */}
-              itemKey={itemKey}
-              itemData={itemData}
-              overscanCount={Math.ceil(height / sizes.flowsTableRowHeight / 2)}
-            >
-              {RowRenderer}
-            </VariableSizeList>
-          </ItemDataContext.Provider>
+          <FixedSizeList
+            {...scroll}
+            className={css.table}
+            width={width}
+            height={height - sizes.flowsTableHeadHeight}
+            itemSize={sizes.flowsTableRowHeight}
+            itemCount={props.flows.length}
+            itemKey={itemKey}
+            itemData={itemData}
+            overscanCount={Math.ceil(height / sizes.flowsTableRowHeight / 2)}
+          >
+            {RowRenderer}
+          </FixedSizeList>
         )}
       </AutoSizer>
     </div>
   );
 });
 
-function itemSize(index: number) {
-  return index === 0 ? sizes.flowsTableHeadHeight : sizes.flowsTableRowHeight;
-}
-
 function itemKey(index: number, data: RowRendererData) {
-  return index === 0 ? 'header-row' : data.flows[index - 1].id;
+  return data.flows[index].id;
 }
-
-const stickyHeaderElement = forwardRef<HTMLDivElement>(
-  function FlowsTableHeaderWrapper({ children, ...props }, ref) {
-    return (
-      <ItemDataContext.Consumer>
-        {itemData => (
-          <div ref={ref} {...props}>
-            <Header isVisibleColumn={itemData?.isVisibleColumn} />
-            {children}
-          </div>
-        )}
-      </ItemDataContext.Consumer>
-    );
-  },
-);
