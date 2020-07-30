@@ -27,10 +27,8 @@ export interface RowRendererData {
 }
 
 export function RowRenderer({ index, style, data }: ListChildComponentProps) {
-  if (index === 0) return null;
   const props = data as RowRendererData;
-  const flowIndex = index - 1; // header row is first row, so -1
-  const flow = props.flows[flowIndex];
+  const flow = props.flows[index];
   return (
     <Row
       style={style}

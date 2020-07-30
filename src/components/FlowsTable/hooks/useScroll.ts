@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, MutableRefObject } from 'react';
-import { VariableSizeListProps } from 'react-window';
+import { FixedSizeListProps } from 'react-window';
 
 import { sizes } from '~/ui';
 
@@ -9,7 +9,7 @@ export type OnFlowsDiffCount = MutableRefObject<
 
 export function useScroll(
   onFlowsDiffCount?: OnFlowsDiffCount,
-): Partial<VariableSizeListProps> {
+): Partial<FixedSizeListProps> {
   const outerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
