@@ -7,6 +7,9 @@ jobs:
       - uses: actions/checkout@v1
         with:
           submodules: true
-      - name: Build Image
+      - name: Build UI image
         run: |
           docker build .
+      - name: Build Backend image
+        run: |
+          docker build ./backend
