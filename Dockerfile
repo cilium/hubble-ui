@@ -1,4 +1,3 @@
-
 FROM node:14.4.0-alpine as stage1
 RUN apk add bash
 WORKDIR /app
