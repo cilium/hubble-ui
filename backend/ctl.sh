@@ -102,7 +102,7 @@ function build_proto_inner() {
         ./proto/ui/ui.proto
 }
 
-function build_proto() {
+function update_proto() {
     check_outer_dependencies
     install_go_prerequisites
 
@@ -110,12 +110,6 @@ function build_proto() {
 }
 
 function build() {
-    if [ "$1" != "skip-proto-build" ]; then
-        echo $(faded "Building proto...")
-
-        build_proto
-    fi
-
     if ! go build -o $BIN . ; then
         exit 1
     fi
@@ -144,7 +138,7 @@ function run() {
             main_run $@
             ;;
         update-proto)
-            build_proto
+            update_proto
             ;;
         *)
             unknown_command $main_cmd
