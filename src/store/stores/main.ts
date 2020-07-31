@@ -27,6 +27,7 @@ import ControlStore from './controls';
 
 import { StoreFrame } from '~/store/frame';
 import * as storage from '~/storage/local';
+import { ReservedLabel } from '~/domain/labels';
 
 configure({ enforceActions: 'observed' });
 
@@ -257,11 +258,21 @@ export class Store {
     const card = this.currentFrame.services.byId(serviceId);
     if (card == null) return;
 
+    let kind = FlowsFilterKind.Identity;
+    let query = card.id;
+
+    if (card.isDNS) {
+      kind = FlowsFilterKind.Dns;
+      query = card.caption;
+    } else if (card.isWorld) {
+      kind = FlowsFilterKind.Label;
+      query = ReservedLabel.World + '=';
+    }
+
     const filter = new FlowsFilterEntry({
-      kind: card.isDNS ? FlowsFilterKind.Dns : FlowsFilterKind.Identity,
+      kind,
+      query,
       direction: FlowsFilterDirection.Both,
-      query: card.id,
-      meta: card.isDNS ? undefined : card.caption,
     });
 
     this.setFlowFilters([filter]);
