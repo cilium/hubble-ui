@@ -8,6 +8,8 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/cilium/cilium/api/v1/observer"
+	"github.com/cilium/hubble-ui/backend/domain/flow"
+	"github.com/cilium/hubble-ui/backend/domain/link"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 )
 
@@ -62,7 +64,7 @@ func (srv *UIServer) GetEvents(
 	flowDrain, flowErr, handleFlows := handleFlowStream(
 		flowSource,
 		eventsRequested,
-		srv.serviceCache,
+		srv.dataCache,
 	)
 
 	if handleFlows != nil {
@@ -110,9 +112,9 @@ func handleNsEvents(src chan *NSEvent, drain chan *ui.GetEventsResponse) {
 func handleFlowStream(
 	src FlowStream,
 	eventsRequested *eventFlags,
-	svcCache *serviceCache,
+	cache *dataCache,
 ) (chan *ui.GetEventsResponse, chan error, func()) {
-	svcCache.Drop()
+	cache.Drop()
 
 	if src == nil {
 		return nil, nil, nil
@@ -146,37 +148,51 @@ func handleFlowStream(
 				break
 			}
 
-			flow := flowResponse.GetFlow()
-			if flow == nil {
+			pbFlow := flowResponse.GetFlow()
+			if pbFlow == nil {
 				continue
 			}
+
+			f := flow.FromProto(pbFlow)
 
 			if eventsRequested.Flows {
 				drain <- &ui.GetEventsResponse{
 					Node:      flowResponse.NodeName,
 					Timestamp: flowResponse.Time,
-					Event:     &ui.GetEventsResponse_Flow{flow},
+					Event:     &ui.GetEventsResponse_Flow{pbFlow},
 				}
 			}
 
 			if eventsRequested.Services {
-				senderEvent, receiverEvent := svcCache.FromFlow(flow)
+				senderSvc, receiverSvc := f.BuildServices()
 
-				// Service state event (only EXISTS state is handled)
-				if senderEvent != nil {
+				flags := cache.UpsertService(senderSvc)
+				if flags.Changed() {
+					svc := senderSvc.ToProto()
+					senderEvent := eventResponseForService(pbFlow, svc, flags)
+
 					drain <- senderEvent
 				}
 
-				if receiverEvent != nil {
+				flags = cache.UpsertService(receiverSvc)
+				if flags.Changed() {
+					svc := receiverSvc.ToProto()
+					receiverEvent := eventResponseForService(pbFlow, svc, flags)
+
 					drain <- receiverEvent
 				}
 			}
 
 			if eventsRequested.ServiceLinks {
-				// Service Link event (only EXISTS state is handled)
-				linkEvent := svcCache.LinkFromFlow(flow)
+				serviceLink := link.FromFlowProto(pbFlow)
 
-				if linkEvent != nil {
+				if serviceLink == nil {
+					continue
+				}
+
+				flags := cache.UpsertServiceLink(serviceLink)
+				if flags.Changed() {
+					linkEvent := eventResponseForLink(serviceLink, flags)
 					drain <- linkEvent
 				}
 			}

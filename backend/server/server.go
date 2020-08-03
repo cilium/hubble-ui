@@ -25,14 +25,14 @@ type UIServer struct {
 	hubbleAddr   string
 	hubbleClient observer.ObserverClient
 
-	k8s          kubernetes.Interface
-	serviceCache *serviceCache
+	k8s       kubernetes.Interface
+	dataCache *dataCache
 }
 
 func New(hubbleAddr string) *UIServer {
 	return &UIServer{
-		hubbleAddr:   hubbleAddr,
-		serviceCache: newServiceCache(),
+		hubbleAddr: hubbleAddr,
+		dataCache:  newDataCache(),
 	}
 }
 
