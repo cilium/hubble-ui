@@ -148,11 +148,8 @@ export class FlowsFilterEntry {
     this.meta = meta;
   }
 
-  // It should probably return new FlowsFilterEntry or be private
-  public ensureLabelPrefix() {
-    if (!this.isLabel) return;
-
-    this.query = Labels.ensureK8sPrefix(this.query);
+  public prepareLabel() {
+    this.ensureLabelPrefix();
   }
 
   public setMeta(meta: string): FlowsFilterEntry {
@@ -198,5 +195,10 @@ export class FlowsFilterEntry {
     const [key, ...rest] = this.query.split('=');
 
     return [key, rest.join('=')];
+  }
+
+  private ensureLabelPrefix() {
+    if (!this.isLabel) return;
+    this.query = Labels.ensureK8sPrefix(this.query);
   }
 }

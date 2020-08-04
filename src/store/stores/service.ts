@@ -34,7 +34,7 @@ export default class ServiceStore {
   }
 
   @computed get activeCards() {
-    return this.activeCardsSet;
+    return new Set(this.activeCardsSet);
   }
 
   @computed get activeCardsList(): string[] {
