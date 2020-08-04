@@ -124,7 +124,10 @@ export const filterServiceUsingBasicEntry = (
   if (e.isIdentity) return service.id === e.query;
 
   if (e.isLabel) {
-    const labels = service.labels.map(kv => `${kv.key}=${kv.value}`);
+    const labels = service.labels.map(kv => {
+      if (!kv.value) return kv.key;
+      return `${kv.key}=${kv.value}`;
+    });
     return labels.includes(e.query);
   }
 

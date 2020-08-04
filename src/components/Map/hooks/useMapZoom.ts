@@ -100,7 +100,10 @@ function createTransformToCenter(args: Args) {
   const scaledYOffset = (-args.mapBBox.y + sizes.endpointVPadding) * scale;
 
   const x = scaledXOffset + (containerWidth - scaledMapWidth) / 2;
-  const y = scaledYOffset + (containerHeight - scaledMapHeight) / 2;
+  const y =
+    sizes.topBarHeight +
+    scaledYOffset +
+    (containerHeight - scaledMapHeight) / 2;
 
   return d3.zoomIdentity.translate(x, y).scale(scale);
 }

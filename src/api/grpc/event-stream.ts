@@ -16,7 +16,7 @@ import { Flow, FlowFilter, EventTypeFilter } from '~backend/proto/flow/flow_pb';
 import { HubbleFlow } from '~/domain/hubble';
 import { FlowsFilterDirection, FlowsFilterKind } from '~/domain/flows';
 import { CiliumEventTypes } from '~/domain/cilium';
-import { ReservedLabel, SpecialLabel } from '~/domain/labels';
+import { ReservedLabel, SpecialLabel, Labels } from '~/domain/labels';
 import * as dataHelpers from '~/domain/helpers';
 
 import { EventEmitter } from '~/utils/emitter';
@@ -117,8 +117,14 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
       wlDstFilter.addVerdict(dataHelpers.verdictToPb(filters.verdict));
     }
 
-    let podFilterAdded = false;
+    let shouldAddPodFilter = true;
     filters?.filters?.forEach(filter => {
+      if (filter.kind === FlowsFilterKind.Label) {
+        if (Labels.isReservedKey(filter.query)) {
+          shouldAddPodFilter = false;
+        }
+      }
+
       switch (filter.direction) {
         case FlowsFilterDirection.Both: {
           switch (filter.kind) {
@@ -145,7 +151,7 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
             case FlowsFilterKind.Pod: {
               wlSrcFilter.addSourcePod(`${namespace}/${filter.query}`);
               wlDstFilter.addDestinationPod(`${namespace}/${filter.query}`);
-              podFilterAdded = true;
+              shouldAddPodFilter = false;
               break;
             }
           }
@@ -176,7 +182,7 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
             case FlowsFilterKind.Pod: {
               wlSrcFilter.addSourcePod(`${namespace}/${filter.query}`);
               wlDstFilter.addSourcePod(`${namespace}/${filter.query}`);
-              podFilterAdded = true;
+              shouldAddPodFilter = false;
               break;
             }
           }
@@ -207,7 +213,7 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
             case FlowsFilterKind.Pod: {
               wlSrcFilter.addDestinationPod(`${namespace}/${filter.query}`);
               wlDstFilter.addDestinationPod(`${namespace}/${filter.query}`);
-              podFilterAdded = true;
+              shouldAddPodFilter = false;
               break;
             }
           }
@@ -216,7 +222,7 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
       }
     });
 
-    if (!podFilterAdded) {
+    if (shouldAddPodFilter) {
       wlSrcFilter.addSourcePod(`${namespace}/`);
       wlDstFilter.addDestinationPod(`${namespace}/`);
     }
@@ -233,8 +239,8 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
       new FlowFilter(),
       new FlowFilter(),
     ];
-    blSrcUnknownLabelFilter.addSourceLabel(`${ReservedLabel.Unknown}=`);
-    blDstUnknownLabelFilter.addDestinationLabel(`${ReservedLabel.Unknown}=`);
+    blSrcUnknownLabelFilter.addSourceLabel(ReservedLabel.Unknown);
+    blDstUnknownLabelFilter.addDestinationLabel(ReservedLabel.Unknown);
     blFilters.push(blSrcUnknownLabelFilter, blDstUnknownLabelFilter);
 
     if (filters?.skipHost) {
@@ -243,8 +249,8 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
         new FlowFilter(),
         new FlowFilter(),
       ];
-      blSrcHostLabelFilter.addSourceLabel(`${ReservedLabel.Host}=`);
-      blDstHostLabelFilter.addDestinationLabel(`${ReservedLabel.Host}=`);
+      blSrcHostLabelFilter.addSourceLabel(ReservedLabel.Host);
+      blDstHostLabelFilter.addDestinationLabel(ReservedLabel.Host);
       blFilters.push(blSrcHostLabelFilter, blDstHostLabelFilter);
     }
 
@@ -266,10 +272,8 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
         new FlowFilter(),
         new FlowFilter(),
       ];
-      blSrcRemoteNodeLabelFilter.addSourceLabel(`${ReservedLabel.RemoteNode}=`);
-      blDstRemoteNodeLabelFilter.addDestinationLabel(
-        `${ReservedLabel.RemoteNode}=`,
-      );
+      blSrcRemoteNodeLabelFilter.addSourceLabel(ReservedLabel.RemoteNode);
+      blDstRemoteNodeLabelFilter.addDestinationLabel(ReservedLabel.RemoteNode);
       blFilters.push(blSrcRemoteNodeLabelFilter, blDstRemoteNodeLabelFilter);
     }
 

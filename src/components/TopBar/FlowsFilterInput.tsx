@@ -52,7 +52,7 @@ export const FlowsFilterInput = (props: Props) => {
   const createNewItemFromQuery = (userInput: string) => {
     const filter = FlowsFilterEntry.parse(userInput);
     if (filter?.isLabel) {
-      filter.ensureLabelPrefix();
+      filter.prepareLabel();
     }
 
     return filter;
@@ -108,7 +108,7 @@ export const FlowsFilterInput = (props: Props) => {
         rightElement: rightElement,
         className: Classes.INPUT,
         placeholder:
-          'Filter by: labels key=val, ip=0.0.0.0, dns=google.com, identity=42',
+          'Filter by: label key=val, ip=1.1.1.1, dns=google.com, identity=42, pod=frontend',
       }}
     />
   );

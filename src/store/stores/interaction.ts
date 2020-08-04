@@ -7,7 +7,6 @@ import { ids } from '~/domain/ids';
 import { HubbleLink } from '~/domain/hubble';
 import { StateChange } from '~/domain/misc';
 import { flowFromRelay } from '~/domain/helpers';
-import { filterFlow, Filters } from '~/domain/filtering';
 
 // { cardId -> { cardId -> { acessPointId : Link }  }
 export type ConnectionsMap = Map<string, Map<string, Map<string, Link>>>;
@@ -30,20 +29,30 @@ export interface SetOptions {
 export default class InteractionStore {
   public static readonly FLOWS_MAX_COUNT = 100000;
 
-  @observable flows: Array<Flow>;
-  @observable links: Array<Link>;
+  @observable private _flows: Array<Flow>;
+  @observable private _links: Array<Link>;
 
   constructor() {
-    this.flows = [];
-    this.links = [];
+    this._flows = [];
+    this._links = [];
+  }
+
+  @computed
+  get flows() {
+    return this._flows.slice();
+  }
+
+  @computed
+  get links() {
+    return this._links.slice();
   }
 
   // TODO: be careful with shallow cloning
   clone(deep = false): InteractionStore {
     const store = new InteractionStore();
 
-    store.flows = deep ? _.cloneDeep(this.flows) : this.flows.slice();
-    store.links = deep ? _.cloneDeep(this.links) : this.links.slice();
+    store._flows = deep ? _.cloneDeep(this._flows) : this._flows.slice();
+    store._links = deep ? _.cloneDeep(this._links) : this._links.slice();
 
     return store;
   }
@@ -56,12 +65,12 @@ export default class InteractionStore {
 
   @action.bound
   clearFlows() {
-    this.flows = [];
+    this._flows = [];
   }
 
   @action.bound
   clearLinks() {
-    this.links = [];
+    this._links = [];
   }
 
   @action.bound
@@ -71,7 +80,7 @@ export default class InteractionStore {
 
   @action.bound
   setLinks(links: Link[]) {
-    this.links = links;
+    this._links = links;
   }
 
   @action.bound
@@ -83,26 +92,26 @@ export default class InteractionStore {
   @action.bound
   setFlows(flows: Flow[], opts?: SetOptions) {
     if (!opts?.sort) {
-      this.flows = flows;
+      this._flows = flows;
       return;
     }
 
-    this.flows = flows.slice().sort((a, b) => {
+    this._flows = flows.slice().sort((a, b) => {
       return b.millisecondsTimestamp! - a.millisecondsTimestamp!;
     });
   }
 
   @action.bound
   addFlows(flows: Flow[]) {
-    this.flows = _(flows)
-      .concat(this.flows)
+    this._flows = _(flows)
+      .concat(this._flows)
       .uniqBy(f => f.id)
       .sort((a, b) => b.millisecondsTimestamp! - a.millisecondsTimestamp!)
       .slice(0, InteractionStore.FLOWS_MAX_COUNT)
       .value();
 
     return {
-      flowsTotalCount: this.flows.length,
+      flowsTotalCount: this._flows.length,
       flowsDiffCount: flows.length,
     };
   }
@@ -124,11 +133,11 @@ export default class InteractionStore {
 
   @action.bound
   moveTo(rhs: InteractionStore): CopyResult {
-    const wasNFlows = rhs.flows.length;
-    const { flowsTotalCount } = rhs.addFlows(this.flows);
+    const wasNFlows = rhs._flows.length;
+    const { flowsTotalCount } = rhs.addFlows(this._flows);
 
     let newLinks = 0;
-    this.links.forEach((link: Link) => {
+    this._links.forEach((link: Link) => {
       const added = rhs.addNewLink(link);
       newLinks += Number(added);
     });
@@ -144,7 +153,7 @@ export default class InteractionStore {
     const existing = this.linksMap.get(link.id);
     if (existing != null) return false;
 
-    this.links.push(link);
+    this._links.push(link);
     return true;
   }
 
@@ -152,36 +161,36 @@ export default class InteractionStore {
   private addLink(hubbleLink: HubbleLink) {
     if (this.linksMap.has(hubbleLink.id)) return this.updateLink(hubbleLink);
 
-    this.links.push(Link.fromHubbleLink(hubbleLink));
+    this._links.push(Link.fromHubbleLink(hubbleLink));
   }
 
   @action.bound
   private deleteLink(hubbleLink: HubbleLink) {
     if (!this.linksMap.has(hubbleLink.id)) return;
 
-    const idx = this.links.findIndex(l => l.id === hubbleLink.id);
+    const idx = this._links.findIndex(l => l.id === hubbleLink.id);
     if (idx === -1) return;
 
-    const currentHubbleLink = this.links[idx];
+    const currentHubbleLink = this._links[idx];
     if (currentHubbleLink.verdicts.size > 1) {
       currentHubbleLink.verdicts.delete(hubbleLink.verdict);
       return;
     }
 
-    this.links.splice(idx, 1);
+    this._links.splice(idx, 1);
   }
 
   @action.bound
   private updateLink(hubbleLink: HubbleLink) {
     if (!this.linksMap.has(hubbleLink.id)) return;
 
-    const idx = this.links.findIndex(l => l.id === hubbleLink.id);
+    const idx = this._links.findIndex(l => l.id === hubbleLink.id);
     if (idx === -1) return;
 
-    const currentLink = this.links[idx];
+    const currentLink = this._links[idx];
     const updatedLink = currentLink.updateWithHubbleLink(hubbleLink);
 
-    this.links.splice(idx, 1, updatedLink);
+    this._links.splice(idx, 1, updatedLink);
   }
 
   @computed
@@ -196,7 +205,7 @@ export default class InteractionStore {
     const outgoings: ConnectionsMap = new Map();
     const incomings: ConnectionsMap = new Map();
 
-    this.links.forEach((link: Link) => {
+    this._links.forEach((link: Link) => {
       const senderId = link.sourceId;
       const receiverId = link.destinationId;
       const accessPointId = ids.accessPoint(receiverId, link.destinationPort);
@@ -232,7 +241,7 @@ export default class InteractionStore {
   get accessPoints(): AccessPoints {
     const index: AccessPoints = new Map();
 
-    this.links.forEach((l: Link) => {
+    this._links.forEach((l: Link) => {
       const id = ids.accessPoint(l.destinationId, l.destinationPort);
       if (!index.has(l.destinationId)) {
         index.set(l.destinationId, new Map());
@@ -252,14 +261,14 @@ export default class InteractionStore {
 
   @computed get all() {
     return {
-      links: this.links,
+      links: this._links,
     };
   }
 
   @computed get linksMap(): Map<string, Link> {
     const index = new Map();
 
-    this.links.forEach((l: Link) => {
+    this._links.forEach((l: Link) => {
       index.set(l.id, l);
     });
 
