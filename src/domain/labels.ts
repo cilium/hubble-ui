@@ -95,6 +95,13 @@ export class Labels {
     return labels.some(l => Labels.normalizeKey(l.key) === reserved);
   }
 
+  public static isReservedKey(key: string) {
+    const normalizedKey = key.endsWith('=')
+      ? key.substring(0, key.length - 1)
+      : key;
+    return Object.values(ReservedLabel).some(val => val === normalizedKey);
+  }
+
   public static isWorld(labels: KV[]): boolean {
     return Labels.haveReserved(labels, ReservedLabel.World);
   }
@@ -152,6 +159,7 @@ export class Labels {
 
   public static ensureK8sPrefix(str: string): string {
     if (str.startsWith('k8s:')) return str;
+    if (Labels.isReservedKey(str)) return str;
 
     return `k8s:${str}`;
   }
