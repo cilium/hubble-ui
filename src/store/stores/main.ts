@@ -38,19 +38,23 @@ export interface Props {
 export class Store {
   @observable controls: ControlStore;
   @observable route: RouteStore;
-  @observable frames: StoreFrame[];
+  @observable private _frames: StoreFrame[];
 
   constructor({ historySource }: Props) {
     this.controls = new ControlStore();
     this.route = new RouteStore(historySource);
 
-    this.frames = [];
+    this._frames = [];
 
     this.createMainFrame();
     this.setupReactions();
     this.restoreNamespace();
     this.restoreVisualFilters();
     this.setupDebugTools();
+  }
+
+  @computed get frames() {
+    return this._frames.slice();
   }
 
   @action.bound
@@ -73,10 +77,10 @@ export class Store {
     const frame = this.createFrame();
 
     // Ensure frame to be the first in frames array
-    if (this.frames.length === 0) {
-      this.frames.push(frame);
+    if (this._frames.length === 0) {
+      this._frames.push(frame);
     } else {
-      this.frames.unshift(frame);
+      this._frames.unshift(frame);
     }
 
     return frame;
@@ -110,10 +114,10 @@ export class Store {
 
   @action.bound
   squashFrames() {
-    if (this.frames.length <= 1) return;
+    if (this._frames.length <= 1) return;
 
     const target = this.mainFrame;
-    this.frames.forEach((frame: StoreFrame, i: number) => {
+    this._frames.forEach((frame: StoreFrame, i: number) => {
       if (i === 0) return; // Skip main frame
 
       // NOTE: this methods implements move semantics, thus doesnt .clone()
@@ -121,12 +125,12 @@ export class Store {
       frame.moveServiceLinks(target);
     });
 
-    this.frames.splice(1, this.frames.length);
+    this._frames.splice(1, this._frames.length);
   }
 
   @action.bound
   pushFrame(frame: StoreFrame): number {
-    return this.frames.push(frame);
+    return this._frames.push(frame);
   }
 
   @action.bound
@@ -170,7 +174,7 @@ export class Store {
 
   @action.bound
   public flush() {
-    this.frames = [];
+    this._frames = [];
     this.controls.selectTableFlow(null);
     this.createMainFrame();
   }
@@ -266,7 +270,7 @@ export class Store {
       query = card.caption;
     } else if (card.isWorld) {
       kind = FlowsFilterKind.Label;
-      query = ReservedLabel.World + '=';
+      query = ReservedLabel.World;
     }
 
     const filter = new FlowsFilterEntry({
@@ -384,13 +388,13 @@ export class Store {
 
   @computed
   get mainFrame(): StoreFrame {
-    if (this.frames.length === 0) throw new Error('main frame is undefined');
+    if (this._frames.length === 0) throw new Error('main frame is undefined');
 
-    return this.frames[0];
+    return this._frames[0];
   }
 
   @computed
   get currentFrame(): StoreFrame {
-    return this.frames[this.frames.length - 1];
+    return this._frames[this._frames.length - 1];
   }
 }
