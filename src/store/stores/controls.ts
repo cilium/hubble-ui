@@ -162,8 +162,8 @@ export default class ControlStore {
   }
 
   @computed
-  get dataFilters(): Required<Filters> {
-    return {
+  get filters(): Filters {
+    return Filters.fromObject({
       namespace: this.currentNamespace,
       verdict: this.verdict,
       httpStatus: this.httpStatus,
@@ -172,30 +172,17 @@ export default class ControlStore {
       skipKubeDns: !this.showKubeDns,
       skipRemoteNode: !this.showRemoteNode,
       skipPrometheusApp: !this.showPrometheusApp,
-    };
+    });
   }
 
   @computed
-  get mainFilters() {
-    return {
+  get mainFilters(): Filters {
+    return Filters.fromObject({
       namespace: this.currentNamespace,
       skipHost: !this.showHost,
       skipKubeDns: !this.showKubeDns,
       skipRemoteNode: !this.showRemoteNode,
       skipPrometheusApp: !this.showPrometheusApp,
-    };
-  }
-
-  @computed
-  get isDefault(): boolean {
-    return (
-      this.verdict == null &&
-      this.httpStatus == null &&
-      this.flowFilters.length === 0 &&
-      !this.showHost &&
-      !this.showKubeDns &&
-      !this.showRemoteNode &&
-      !this.showPrometheusApp
-    );
+    });
   }
 }

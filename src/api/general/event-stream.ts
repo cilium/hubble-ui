@@ -49,17 +49,6 @@ export interface ServiceLinkChange {
   change: StateChange;
 }
 
-export interface DataFilters {
-  namespace: string;
-  verdict?: Verdict | null;
-  httpStatus?: string | null;
-  filters?: FlowsFilterEntry[];
-  skipHost?: boolean;
-  skipKubeDns?: boolean;
-  skipRemoteNode?: boolean;
-  skipPrometheusApp?: boolean;
-}
-
 export type EventStreamHandlers = GeneralStreamEvents & {
   [EventKind.Flows]: (_: HubbleFlow[]) => void;
   [EventKind.Namespace]: (_: NamespaceChange) => void;

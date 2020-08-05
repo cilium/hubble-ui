@@ -138,6 +138,8 @@ export interface TCPFlags {
   ns: boolean;
 }
 
+export type TCPFlagName = keyof TCPFlags;
+
 export interface IP {
   source: string;
   destination: string;
