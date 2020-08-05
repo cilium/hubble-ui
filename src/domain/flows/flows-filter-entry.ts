@@ -141,6 +141,60 @@ export class FlowsFilterEntry {
     }
   }
 
+  public static newTCPFlag(flag: string): FlowsFilterEntry {
+    return new FlowsFilterEntry({
+      kind: FlowsFilterKind.TCPFlag,
+      query: flag,
+      direction: FlowsFilterDirection.Both,
+      meta: '',
+    });
+  }
+
+  public static newLabel(label: string): FlowsFilterEntry {
+    return new FlowsFilterEntry({
+      kind: FlowsFilterKind.Label,
+      query: label,
+      direction: FlowsFilterDirection.Both,
+      meta: '',
+    });
+  }
+
+  public static newPod(podName: string): FlowsFilterEntry {
+    return new FlowsFilterEntry({
+      kind: FlowsFilterKind.Pod,
+      query: podName,
+      direction: FlowsFilterDirection.Both,
+      meta: '',
+    });
+  }
+
+  public static newIdentity(identity: string): FlowsFilterEntry {
+    return new FlowsFilterEntry({
+      kind: FlowsFilterKind.Identity,
+      query: identity,
+      direction: FlowsFilterDirection.Both,
+      meta: '',
+    });
+  }
+
+  public static newDNS(dns: string): FlowsFilterEntry {
+    return new FlowsFilterEntry({
+      kind: FlowsFilterKind.Dns,
+      query: dns,
+      direction: FlowsFilterDirection.Both,
+      meta: '',
+    });
+  }
+
+  public static newIP(ip: string): FlowsFilterEntry {
+    return new FlowsFilterEntry({
+      kind: FlowsFilterKind.Ip,
+      query: ip,
+      direction: FlowsFilterDirection.Both,
+      meta: '',
+    });
+  }
+
   constructor({ kind, direction, query, meta }: Params) {
     this.kind = kind;
     this.query = query;
@@ -158,6 +212,24 @@ export class FlowsFilterEntry {
     return this;
   }
 
+  public setQuery(q: string): FlowsFilterEntry {
+    this.query = q;
+
+    return this;
+  }
+
+  public setDirection(dir: FlowsFilterDirection): FlowsFilterEntry {
+    this.direction = dir;
+
+    return this;
+  }
+
+  public setKind(kind: FlowsFilterKind): FlowsFilterEntry {
+    this.kind = kind;
+
+    return this;
+  }
+
   public toString(): string {
     return `${this.direction}:${this.kind}=${this.query}`;
   }
@@ -169,6 +241,14 @@ export class FlowsFilterEntry {
       query: this.query,
       meta: this.meta,
     });
+  }
+
+  public equals(rhs: FlowsFilterEntry): boolean {
+    return (
+      this.kind === rhs.kind &&
+      this.direction === rhs.direction &&
+      this.query === rhs.query
+    );
   }
 
   public get isDNS(): boolean {
@@ -189,6 +269,10 @@ export class FlowsFilterEntry {
 
   public get isTCPFlag(): boolean {
     return this.kind === FlowsFilterKind.TCPFlag;
+  }
+
+  public get isPod(): boolean {
+    return this.kind === FlowsFilterKind.Pod;
   }
 
   public get labelKeyValue(): [string, string] {

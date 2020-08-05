@@ -12,7 +12,6 @@ import { Header } from './Header';
 import { RowRenderer, RowRendererData } from './Row';
 
 import css from './styles.scss';
-import { Filters } from '~/domain/filtering';
 
 export const DEFAULT_TS_UPDATE_DELAY = 2500;
 export { TickerEvents, OnFlowsDiffCount };
@@ -21,8 +20,6 @@ export interface Props extends CommonProps {
   flows: Flow[];
   selectedFlow: Flow | null;
   onSelectFlow?: (flow: Flow | null) => void;
-  onSelectFilters?: (filters: Filters) => void;
-  dataFilters?: Filters;
   ticker?: Ticker<TickerEvents>;
   onFlowsDiffCount?: OnFlowsDiffCount;
 }
