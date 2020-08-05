@@ -34,8 +34,3 @@ export const DEFAULT_FLOWS_TABLE_VISIBLE_COLUMNS = new Set<FlowsTableColumnKey>(
 export function getFlowsTableColumnLabel(column: FlowsTableColumnKey) {
   return FlowsTableColumn[column];
 }
-
-export interface FiltersProps {
-  dataFilters?: Filters;
-  onSelectFilters?: (filters: Filters) => void;
-}

@@ -1,4 +1,5 @@
 import { KV } from '~/domain/misc';
+export { KV };
 
 export interface LabelsProps {
   isHost: boolean;
@@ -53,6 +54,12 @@ export class Labels {
     let str = Labels.normalizeKey(label.key);
     if (label.value) str += `=${label.value}`;
     return str;
+  }
+
+  public static concatKV(label: KV, normalize = false): string {
+    const key = normalize ? Labels.normalizeKey(label.key) : label.key;
+
+    return `${key}${label.value ? `=${label.value}` : ''}`;
   }
 
   public static findLabelNameByNormalizedKey(

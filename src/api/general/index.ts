@@ -1,8 +1,8 @@
 import { HubbleFlow } from '~/domain/flows';
+import { Filters } from '~/domain/filtering';
 import {
   IEventStream,
   EventParams,
-  DataFilters,
   EventStreamHandlers,
   EventKind as EventStreamEventKind,
   NamespaceChange,
@@ -13,7 +13,7 @@ import {
 export interface CoreAPIv1 {
   getEventStream: (
     params?: EventParams,
-    filters?: DataFilters, // TODO: builder pattern ?
+    filters?: Filters, // TODO: builder pattern ?
   ) => IEventStream;
 }
 
@@ -24,7 +24,6 @@ export interface API {
 export {
   IEventStream,
   EventParams,
-  DataFilters,
   EventStreamHandlers,
   EventStreamEventKind,
   NamespaceChange,

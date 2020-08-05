@@ -17,6 +17,7 @@ import { HubbleFlow } from '~/domain/hubble';
 import { FlowsFilterDirection, FlowsFilterKind } from '~/domain/flows';
 import { CiliumEventTypes } from '~/domain/cilium';
 import { ReservedLabel, SpecialLabel, Labels } from '~/domain/labels';
+import { Filters } from '~/domain/filtering';
 import * as dataHelpers from '~/domain/helpers';
 
 import { EventEmitter } from '~/utils/emitter';
@@ -25,7 +26,6 @@ import {
   EventParams,
   EventStreamHandlers,
   EventKind,
-  DataFilters,
 } from '~/api/general/event-stream';
 import { GeneralStreamEventKind } from '~/api/general/stream';
 
@@ -47,7 +47,7 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
   // TODO: add another params to handle filters
   public static buildRequest(
     opts: EventParams,
-    filters?: DataFilters,
+    filters?: Filters,
   ): GetEventsRequest {
     const req = new GetEventsRequest();
 
@@ -88,7 +88,7 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
   }
 
   // Taken from previous FlowStream class
-  public static buildFlowFilters(filters?: DataFilters): FlowFilters {
+  public static buildFlowFilters(filters?: Filters): FlowFilters {
     const namespace = filters?.namespace;
 
     // *** whitelist filters section ***

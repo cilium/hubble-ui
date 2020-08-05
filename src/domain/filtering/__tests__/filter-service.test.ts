@@ -1,5 +1,6 @@
 import {
   Filters,
+  FiltersObject,
   filterService,
   filterServiceUsingBasicEntry,
 } from '~/domain/filtering';
@@ -17,17 +18,17 @@ import {
 import { expectFilterEntry } from './general';
 
 const runUnusedFiltersTests = (
-  filters: Filters[],
+  filters: FiltersObject[],
   services: Dictionary<ServiceCard>,
 ) => {
   Object.keys(services).forEach((linkName: string) => {
     const service = services[linkName];
 
-    filters.forEach((f: Filters, fidx: number) => {
+    filters.forEach((f: FiltersObject, fidx: number) => {
       test(`unused filter fields test, service: ${linkName}, filters: ${
         fidx + 1
       }`, () => {
-        const stay = filterService(service, f);
+        const stay = filterService(service, Filters.fromObject(f));
         expect(stay).toBe(true);
       });
     });
@@ -166,63 +167,63 @@ describe('filterService', () => {
   });
 
   test('host > doesnt match (skipHost = true)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipHost: true,
-    };
+    });
 
     const stay = filterService(host, filters);
     expect(stay).toBe(false);
   });
 
   test('host > matches (skipHost = false)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipHost: false,
-    };
+    });
 
     const stay = filterService(host, filters);
     expect(stay).toBe(true);
   });
 
   test('host > matches (skipKubeDns = true)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipKubeDns: true,
-    };
+    });
 
     const stay = filterService(host, filters);
     expect(stay).toBe(true);
   });
 
   test('kubeDns > matches (skipHost = true)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipHost: true,
-    };
+    });
 
     const stay = filterService(kubeDns, filters);
     expect(stay).toBe(true);
   });
 
   test('kubeDns > matches (skipHost = false)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipHost: false,
-    };
+    });
 
     const stay = filterService(kubeDns, filters);
     expect(stay).toBe(true);
   });
 
   test('kubeDns > matches (skipKubeDns = false)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipKubeDns: false,
-    };
+    });
 
     const stay = filterService(kubeDns, filters);
     expect(stay).toBe(true);
   });
 
   test('kubeDns > doesnt match (skipKubeDns = true)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipKubeDns: true,
-    };
+    });
 
     const stay = filterService(kubeDns, filters);
     expect(stay).toBe(false);

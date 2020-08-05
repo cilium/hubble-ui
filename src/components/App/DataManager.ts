@@ -4,7 +4,7 @@ import * as mockData from '~/api/__mocks__/data';
 import { GeneralStreamEventKind } from '~/api/general/stream';
 
 import { HubbleFlow } from '~/domain/hubble';
-import { Filters, areFiltersEqual, filterFlow } from '~/domain/filtering';
+import { Filters, filterFlow } from '~/domain/filtering';
 import { Flow } from '~/domain/flows';
 import { flowFromRelay } from '~/domain/helpers';
 import { StateChange, setupDebugProp } from '~/domain/misc';
@@ -17,7 +17,6 @@ import {
   ServiceChange,
   ServiceLinkChange,
   IEventStream,
-  DataFilters,
 } from '~/api/general/event-stream';
 
 import { Store, StoreFrame } from '~/store';
@@ -40,7 +39,7 @@ type Events = {
 
 interface StreamDescriptor {
   stream: IEventStream;
-  dataFilters?: DataFilters;
+  filters?: Filters;
 }
 
 export class DataManager extends EventEmitter<Events> {
@@ -74,15 +73,17 @@ export class DataManager extends EventEmitter<Events> {
 
   public setupMainStream(namespace: string) {
     const store = this.store;
+    const streamParams = store.controls.mainFilters
+      .clone()
+      .setNamespace(namespace);
 
-    const streamParams = { ...store.controls.mainFilters, namespace };
     const stream = this.api.v1.getEventStream(EventParamsSet.All, streamParams);
 
     this.setupGeneralEventHandlers(stream);
     this.setupNamespaceEventHandlers(stream);
     this.setupServicesEventHandlers(stream, store.mainFrame);
 
-    this.mainStream = { stream, dataFilters: streamParams };
+    this.mainStream = { stream, filters: streamParams };
   }
 
   public dropMainStream() {
@@ -95,9 +96,9 @@ export class DataManager extends EventEmitter<Events> {
 
   public setupFilteringFrame(namespace: string) {
     const store = this.store;
-    const streamParams = { ...store.controls.dataFilters, namespace };
+    const streamParams = store.controls.filters.clone().setNamespace(namespace);
 
-    const secondaryFrame = store.currentFrame.filter(streamParams as Filters);
+    const secondaryFrame = store.currentFrame.filter(streamParams);
     store.pushFrame(secondaryFrame);
 
     const stream = this.api.v1.getEventStream(EventParamsSet.All, streamParams);
@@ -105,7 +106,7 @@ export class DataManager extends EventEmitter<Events> {
     this.setupNamespaceEventHandlers(stream);
     this.setupServicesEventHandlers(stream, secondaryFrame, streamParams);
 
-    this.filteringStream = { stream, dataFilters: streamParams };
+    this.filteringStream = { stream, filters: streamParams };
   }
 
   public dropFilteringFrame() {
@@ -218,7 +219,7 @@ export class DataManager extends EventEmitter<Events> {
   }
 
   public get currentNamespace(): string | undefined {
-    return this.mainStream?.dataFilters?.namespace;
+    return this.mainStream?.filters?.namespace || undefined;
   }
 
   public get hasFilteringStream(): boolean {
@@ -226,18 +227,12 @@ export class DataManager extends EventEmitter<Events> {
   }
 
   public get filtersChanged(): boolean {
-    if (this.filteringStream != null && this.filteringStream.dataFilters) {
-      return !areFiltersEqual(
-        this.store.controls.dataFilters,
-        this.filteringStream.dataFilters,
-      );
+    if (this.filteringStream != null && this.filteringStream.filters) {
+      return !this.store.controls.filters.equals(this.filteringStream.filters);
     }
 
-    if (this.mainStream != null && this.mainStream.dataFilters) {
-      return !areFiltersEqual(
-        this.store.controls.dataFilters,
-        this.mainStream.dataFilters,
-      );
+    if (this.mainStream != null && this.mainStream.filters) {
+      return !this.store.controls.filters.equals(this.mainStream.filters);
     }
 
     return false;

@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { FlowsTableSidebar } from '~/components/FlowsTable/Sidebar';
+
 import { Flow } from '~/domain/flows';
 import { HubbleFlow } from '~/domain/hubble';
+import { Filters } from '~/domain/filtering';
+
 import { act, data, fireEvent, React, render } from '~/testing';
 
 interface Expectations {
@@ -58,6 +61,7 @@ const runAppearanceTests = (container: HTMLElement, exps: Expectations) => {
 // 2. Testing that element under `.close` is clickable
 const runTest = (ntest: number, hf: HubbleFlow, exps: Expectations) => {
   const flow = new Flow(hf);
+  const filters = Filters.fromObject(Filters.default());
 
   const onClose = jest.fn(() => void 0);
   describe(`Sidebar: test ${ntest}`, () => {
@@ -65,7 +69,11 @@ const runTest = (ntest: number, hf: HubbleFlow, exps: Expectations) => {
 
     beforeEach(() => {
       container = renderSidebar(
-        <FlowsTableSidebar flow={flow} onClose={onClose}></FlowsTableSidebar>,
+        <FlowsTableSidebar
+          flow={flow}
+          onClose={onClose}
+          filters={filters}
+        ></FlowsTableSidebar>,
       );
     });
 
