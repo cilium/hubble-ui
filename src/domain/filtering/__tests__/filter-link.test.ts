@@ -1,5 +1,6 @@
 import {
   Filters,
+  FiltersObject,
   filterLink,
   filterLinkUsingBasicEntry,
 } from '~/domain/filtering';
@@ -10,15 +11,18 @@ import { Flow, FlowsFilterEntry } from '~/domain/flows';
 import { Dictionary } from '~/domain/misc';
 import { links } from '~/testing/data';
 
-const runUnusedFiltersTests = (filters: Filters[], links: Dictionary<Link>) => {
+const runUnusedFiltersTests = (
+  filters: FiltersObject[],
+  links: Dictionary<Link>,
+) => {
   Object.keys(links).forEach((linkName: string) => {
     const link = links[linkName];
 
-    filters.forEach((f: Filters, fidx: number) => {
+    filters.forEach((f: FiltersObject, fidx: number) => {
       test(`unused filter fields test, link: ${linkName}, filters: ${
         fidx + 1
       }`, () => {
-        const stay = filterLink(link, f);
+        const stay = filterLink(link, Filters.fromObject(f));
         expect(stay).toBe(true);
       });
     });
@@ -53,162 +57,162 @@ describe('filterLink', () => {
   const { tcpForwardedDropped, tcpMixed } = links;
 
   test('verdict > matches 1', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Forwarded,
-    };
+    });
 
     const stay = filterLink(tcpForwarded, filters);
     expect(stay).toBe(true);
   });
 
   test('verdict > matches 2', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Dropped,
-    };
+    });
 
     const stay = filterLink(tcpDropped, filters);
     expect(stay).toBe(true);
   });
 
   test('verdict > matches 3', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Error,
-    };
+    });
 
     const stay = filterLink(tcpError, filters);
     expect(stay).toBe(true);
   });
 
   test('verdict > matches 4', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Unknown,
-    };
+    });
 
     const stay = filterLink(tcpUnknown, filters);
     expect(stay).toBe(true);
   });
 
   test('verdict > matches 5', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Forwarded,
-    };
+    });
 
     const stay = filterLink(tcpForwardedDropped, filters);
     expect(stay).toBe(true);
   });
 
   test('verdict > matches 6', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Dropped,
-    };
+    });
 
     const stay = filterLink(tcpForwardedDropped, filters);
     expect(stay).toBe(true);
   });
 
   test('verdict > matches 7', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Forwarded,
-    };
+    });
 
     const stay = filterLink(tcpMixed, filters);
     expect(stay).toBe(true);
   });
 
   test('verdict > matches 8', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Dropped,
-    };
+    });
 
     const stay = filterLink(tcpMixed, filters);
     expect(stay).toBe(true);
   });
 
   test('verdict > matches 9', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Error,
-    };
+    });
 
     const stay = filterLink(tcpMixed, filters);
     expect(stay).toBe(true);
   });
 
   test('verdict > matches 10', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Unknown,
-    };
+    });
 
     const stay = filterLink(tcpMixed, filters);
     expect(stay).toBe(true);
   });
 
   test('verdict > doesnt match 1', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Forwarded,
-    };
+    });
 
     const stay = filterLink(tcpDropped, filters);
     expect(stay).toBe(false);
   });
 
   test('verdict > doesnt match 2', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Unknown,
-    };
+    });
 
     const stay = filterLink(tcpDropped, filters);
     expect(stay).toBe(false);
   });
 
   test('verdict > doesnt match 3', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Error,
-    };
+    });
 
     const stay = filterLink(tcpDropped, filters);
     expect(stay).toBe(false);
   });
 
   test('verdict > doesnt match 4', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Dropped,
-    };
+    });
 
     const stay = filterLink(tcpForwarded, filters);
     expect(stay).toBe(false);
   });
 
   test('verdict > doesnt match 5', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Unknown,
-    };
+    });
 
     const stay = filterLink(tcpForwarded, filters);
     expect(stay).toBe(false);
   });
 
   test('verdict > doesnt match 6', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Error,
-    };
+    });
 
     const stay = filterLink(tcpForwarded, filters);
     expect(stay).toBe(false);
   });
 
   test('verdict > doesnt match 7', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Error,
-    };
+    });
 
     const stay = filterLink(tcpForwardedDropped, filters);
     expect(stay).toBe(false);
   });
 
   test('verdict > doesnt match 8', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Unknown,
-    };
+    });
 
     const stay = filterLink(tcpForwardedDropped, filters);
     expect(stay).toBe(false);

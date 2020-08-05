@@ -4,6 +4,7 @@ import {
   filterFlowUsingBasicEntry,
 } from '~/domain/filtering';
 
+import { Dictionary } from '~/domain/misc';
 import { Verdict } from '~/domain/hubble';
 import {
   Flow,
@@ -11,9 +12,9 @@ import {
   FlowsFilterKind,
   FlowsFilterDirection,
 } from '~/domain/flows';
+
 import * as combinations from '~/utils/iter-tools/combinations';
 import { flows } from '~/testing/data';
-import { Dictionary } from '~/domain/misc';
 
 const testFilterEntry = (
   captionFn: (flowName: string, testNum: number) => string,
@@ -53,171 +54,171 @@ describe('filterFlow', () => {
   const bothHostFlow = new Flow(flows.fromToHost);
 
   test('namespace > matches to source and destination', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       namespace: 'kube-system',
-    };
+    });
 
     const stay = filterFlow(sameNsFlow, filters);
     expect(stay).toBe(true);
   });
 
   test('namespace > doesnt match with source and destination', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       namespace: 'random-123987-ns',
-    };
+    });
 
     const stay = filterFlow(diffNsFlow, filters);
     expect(stay).toBe(false);
   });
 
   test('namespace > matches with source', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       namespace: 'SenderNs',
-    };
+    });
 
     const stay = filterFlow(diffNsFlow, filters);
     expect(stay).toBe(true);
   });
 
   test('namespace > matches with destination', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       namespace: 'ReceiverNs',
-    };
+    });
 
     const stay = filterFlow(diffNsFlow, filters);
     expect(stay).toBe(true);
   });
 
   test('verdict > matches (Forwarded)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Forwarded,
-    };
+    });
 
     const stay = filterFlow(diffNsFlow, filters);
     expect(stay).toBe(true);
   });
 
   test('verdict > doesnt match (Forwarded vs Dropped)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Dropped,
-    };
+    });
 
     const stay = filterFlow(diffNsFlow, filters);
     expect(stay).toBe(false);
   });
 
   test('verdict > doesnt match (Forwarded vs Unknown)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Unknown,
-    };
+    });
 
     const stay = filterFlow(diffNsFlow, filters);
     expect(stay).toBe(false);
   });
 
   test('verdict > matches (Dropped)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Dropped,
-    };
+    });
 
     const stay = filterFlow(verdictDropped, filters);
     expect(stay).toBe(true);
   });
 
   test('verdict > doesnt match (Dropped vs Forwarded)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Forwarded,
-    };
+    });
 
     const stay = filterFlow(verdictDropped, filters);
     expect(stay).toBe(false);
   });
 
   test('verdict > doesnt match (Dropped vs Unknown)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Unknown,
-    };
+    });
 
     const stay = filterFlow(verdictDropped, filters);
     expect(stay).toBe(false);
   });
 
   test('verdict > matches (Unknown)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Unknown,
-    };
+    });
 
     const stay = filterFlow(verdictUnknown, filters);
     expect(stay).toBe(true);
   });
 
   test('verdict > doesnt match (Unknown vs Forwarded)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Forwarded,
-    };
+    });
 
     const stay = filterFlow(verdictUnknown, filters);
     expect(stay).toBe(false);
   });
 
   test('verdict > doesnt match (Unknown vs Dropped)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       verdict: Verdict.Dropped,
-    };
+    });
 
     const stay = filterFlow(verdictUnknown, filters);
     expect(stay).toBe(false);
   });
 
   test('http status > matches (200)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       httpStatus: '200',
-    };
+    });
 
     const stay = filterFlow(flowHttp200, filters);
     expect(stay).toBe(true);
   });
 
   test('http status > doesnt match (400)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       httpStatus: '400',
-    };
+    });
 
     const stay = filterFlow(flowHttp200, filters);
     expect(stay).toBe(false);
   });
 
   test('http status > matches (200+)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       httpStatus: '200+',
-    };
+    });
 
     const stay = filterFlow(flowHttp200, filters);
     expect(stay).toBe(true);
   });
 
   test('http status > matches (100+)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       httpStatus: '100+',
-    };
+    });
 
     const stay = filterFlow(flowHttp200, filters);
     expect(stay).toBe(true);
   });
 
   test('http status > doesnt match (0)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       httpStatus: '0',
-    };
+    });
 
     const stay = filterFlow(flowHttp200, filters);
     expect(stay).toBe(false);
   });
 
   test('http status > doesnt match (l7 not presented)', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       httpStatus: '200',
-    };
+    });
 
     const stay = filterFlow(sameNsFlow, filters);
     expect(stay).toBe(false);
@@ -241,72 +242,72 @@ describe('filterFlow', () => {
   // they are just visual (service) filters and should be violate
   // data on flows table
   test('skip kube dns > flow not skipped 1', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipKubeDns: true,
-    };
+    });
 
     const stay = filterFlow(flows.normalOne, filters);
     expect(stay).toBe(true);
   });
 
   test('skip kube dns > flow not skipped 2', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipKubeDns: false,
-    };
+    });
 
     const stay = filterFlow(flows.normalOne, filters);
     expect(stay).toBe(true);
   });
 
   test('skip kube dns > flow not skipped 3', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipKubeDns: true,
-    };
+    });
 
     const stay = filterFlow(toKubeDNSFlow, filters);
     expect(stay).toBe(true);
   });
 
   test('skip kube dns > flow not skipped 4', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipKubeDns: false,
-    };
+    });
 
     const stay = filterFlow(toKubeDNSFlow, filters);
     expect(stay).toBe(true);
   });
 
   test('skip kube dns > flow not skipped 5', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipKubeDns: true,
-    };
+    });
 
     const stay = filterFlow(fromKubeDNSFlow, filters);
     expect(stay).toBe(true);
   });
 
   test('skip kube dns > flow not skipped 6', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipKubeDns: false,
-    };
+    });
 
     const stay = filterFlow(fromKubeDNSFlow, filters);
     expect(stay).toBe(true);
   });
 
   test('skip kube dns > flow not skipped 7', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipKubeDns: true,
-    };
+    });
 
     const stay = filterFlow(bothKubeDNSFlow, filters);
     expect(stay).toBe(true);
   });
 
   test('skip kube dns > flow not skipped 8', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipKubeDns: false,
-    };
+    });
 
     const stay = filterFlow(bothKubeDNSFlow, filters);
     expect(stay).toBe(true);
@@ -327,72 +328,72 @@ describe('filterFlow', () => {
   });
 
   test('skip host > flow not skipped 1', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipHost: true,
-    };
+    });
 
     const stay = filterFlow(flows.normalOne, filters);
     expect(stay).toBe(true);
   });
 
   test('skip host > flow not skipped 2', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipHost: false,
-    };
+    });
 
     const stay = filterFlow(flows.normalOne, filters);
     expect(stay).toBe(true);
   });
 
   test('skip host > flow not skipped 3', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipHost: true,
-    };
+    });
 
     const stay = filterFlow(fromHostFlow, filters);
     expect(stay).toBe(true);
   });
 
   test('skip host > flow not skipped 4', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipHost: false,
-    };
+    });
 
     const stay = filterFlow(fromHostFlow, filters);
     expect(stay).toBe(true);
   });
 
   test('skip host > flow not skipped 5', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipHost: true,
-    };
+    });
 
     const stay = filterFlow(toHostFlow, filters);
     expect(stay).toBe(true);
   });
 
   test('skip host > flow not skipped 6', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipHost: false,
-    };
+    });
 
     const stay = filterFlow(toHostFlow, filters);
     expect(stay).toBe(true);
   });
 
   test('skip host > flow not skipped 7', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipHost: true,
-    };
+    });
 
     const stay = filterFlow(bothHostFlow, filters);
     expect(stay).toBe(true);
   });
 
   test('skip host > flow not skipped 8', () => {
-    const filters: Filters = {
+    const filters: Filters = Filters.fromObject({
       skipHost: false,
-    };
+    });
 
     const stay = filterFlow(bothHostFlow, filters);
     expect(stay).toBe(true);

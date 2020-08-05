@@ -9,7 +9,12 @@ import {
   TickerEvents,
   DEFAULT_TS_UPDATE_DELAY,
 } from '~/components/FlowsTable';
-import { FlowsTableSidebar } from '~/components/FlowsTable/Sidebar';
+
+import {
+  FlowsTableSidebar,
+  Props as SidebarProps,
+} from '~/components/FlowsTable/Sidebar';
+
 import { useFlowsTableColumns } from '~/components/FlowsTable/hooks/useColumns';
 import { LoadingOverlay } from '~/components/Misc/LoadingOverlay';
 
@@ -19,10 +24,6 @@ import css from './styles.scss';
 
 export { DEFAULT_TS_UPDATE_DELAY, TickerEvents, OnFlowsDiffCount };
 
-interface SidebarProps {
-  onCloseSidebar?: () => void;
-}
-
 interface PanelProps {
   isStreaming: boolean;
   onPanelResize?: (resizeProps: ResizeProps) => void;
@@ -31,7 +32,18 @@ interface PanelProps {
 
 type TableProps = Omit<FlowsTableProps, 'isVisibleColumn'>;
 
-export type Props = SidebarProps & TableProps & PanelProps;
+export type Props = PanelProps &
+  TableProps & {
+    onCloseSidebar: SidebarProps['onClose'];
+    onSidebarVerdictClick: SidebarProps['onVerdictClick'];
+    onSidebarTCPFlagClick: SidebarProps['onTcpFlagClick'];
+    onSidebarLabelClick: SidebarProps['onLabelClick'];
+    onSidebarPodClick: SidebarProps['onPodClick'];
+    onSidebarIdentityClick: SidebarProps['onIdentityClick'];
+    onSidebarIpClick: SidebarProps['onIpClick'];
+    onSidebarDnsClick: SidebarProps['onDnsClick'];
+    filters: SidebarProps['filters'];
+  };
 
 export const DetailsPanelComponent = function (props: Props) {
   const panelResize = usePanelResize();
@@ -64,9 +76,7 @@ export const DetailsPanelComponent = function (props: Props) {
             flows={props.flows}
             isVisibleColumn={flowsTableColumns.isVisibleColumn}
             selectedFlow={props.selectedFlow}
-            dataFilters={props.dataFilters}
             onSelectFlow={props.onSelectFlow}
-            onSelectFilters={props.onSelectFilters}
             onFlowsDiffCount={props.onFlowsDiffCount}
             ticker={props.ticker}
           />
@@ -78,9 +88,15 @@ export const DetailsPanelComponent = function (props: Props) {
       {props.selectedFlow && (
         <FlowsTableSidebar
           flow={props.selectedFlow}
-          dataFilters={props.dataFilters}
+          filters={props.filters}
           onClose={props.onCloseSidebar}
-          onSelectFilters={props.onSelectFilters}
+          onVerdictClick={props.onSidebarVerdictClick}
+          onTcpFlagClick={props.onSidebarTCPFlagClick}
+          onLabelClick={props.onSidebarLabelClick}
+          onPodClick={props.onSidebarPodClick}
+          onIdentityClick={props.onSidebarIdentityClick}
+          onIpClick={props.onSidebarIpClick}
+          onDnsClick={props.onSidebarDnsClick}
         />
       )}
     </div>

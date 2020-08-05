@@ -22,8 +22,11 @@ import { Map } from '~/components/Map';
 import { LoadingOverlay } from '~/components/Misc/LoadingOverlay';
 import { WelcomeScreen } from './WelcomeScreen';
 
+import { Verdict, TCPFlagName } from '~/domain/hubble';
 import { ServiceCard } from '~/domain/service-card';
 import { Vec2 } from '~/domain/geometry';
+import { FlowsFilterEntry, FlowsFilterDirection } from '~/domain/flows';
+import { KV, Labels } from '~/domain/labels';
 
 import { useStore } from '~/store';
 import { useNotifier } from '~/notifier';
@@ -138,12 +141,12 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       dataManager.dropFilteringFrame();
     }
 
-    if (dataManager.filtersChanged && !store.controls.isDefault) {
+    if (dataManager.filtersChanged && !store.controls.filters.isDefault) {
       dataManager.setupFilteringFrame(store.controls.currentNamespace);
     }
 
     setMapWasDragged(false);
-  }, [store.controls.dataFilters]);
+  }, [store.controls.filters]);
 
   const onNamespaceChange = useCallback((ns: string) => {
     store.flush();
@@ -186,6 +189,72 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     if (typeof f.filters !== 'undefined') {
       store.setFlowFilters(f.filters);
     }
+  }, []);
+
+  const onSidebarVerdictClick = useCallback((v: Verdict | null) => {
+    store.controls.setVerdict(v);
+  }, []);
+
+  const onSidebarTCPFlagClick = useCallback(
+    (flag?: TCPFlagName, dir?: FlowsFilterDirection) => {
+      if (!flag || !dir) return store.setFlowFilters([]);
+
+      store.setFlowFilters([
+        FlowsFilterEntry.newTCPFlag(flag!).setDirection(dir!),
+      ]);
+    },
+    [],
+  );
+
+  const onSidebarLabelClick = useCallback(
+    (label?: KV, dir?: FlowsFilterDirection) => {
+      if (!label || !dir) return store.setFlowFilters([]);
+      const labelStr = Labels.concatKV(label!);
+
+      store.setFlowFilters([
+        FlowsFilterEntry.newLabel(labelStr).setDirection(dir!),
+      ]);
+    },
+    [],
+  );
+
+  const onSidebarPodClick = useCallback(
+    (podName?: string, dir?: FlowsFilterDirection) => {
+      if (!podName || !dir) return store.setFlowFilters([]);
+
+      store.setFlowFilters([
+        FlowsFilterEntry.newPod(podName!).setDirection(dir!),
+      ]);
+    },
+    [],
+  );
+
+  const onSidebarIdentityClick = useCallback(
+    (identity?: string, dir?: FlowsFilterDirection) => {
+      if (identity == null || !dir) return store.setFlowFilters([]);
+
+      store.setFlowFilters([
+        FlowsFilterEntry.newIdentity(identity!).setDirection(dir!),
+      ]);
+    },
+    [],
+  );
+
+  const onSidebarIpClick = useCallback(
+    (ip?: string, dir?: FlowsFilterDirection) => {
+      if (ip == null || !dir) return store.setFlowFilters([]);
+
+      store.setFlowFilters([FlowsFilterEntry.newIP(ip!).setDirection(dir!)]);
+    },
+    [],
+  );
+
+  const onSidebarDnsClick = useCallback((dns?: string) => {
+    if (dns == null) return store.setFlowFilters([]);
+
+    store.setFlowFilters([
+      FlowsFilterEntry.newDNS(dns).setDirection(FlowsFilterDirection.Both),
+    ]);
   }, []);
 
   // prettier-ignore
@@ -263,11 +332,17 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
       <DetailsPanel
         isStreaming={isStreaming}
         flows={store.currentFrame.interactions.flows}
-        dataFilters={store.currentFrame.controls.dataFilters}
+        filters={store.currentFrame.controls.filters}
         selectedFlow={store.currentFrame.controls.selectedTableFlow}
         onSelectFlow={store.currentFrame.controls.selectTableFlow}
-        onSelectFilters={setFilters}
         onCloseSidebar={onCloseFlowsTableSidebar}
+        onSidebarVerdictClick={onSidebarVerdictClick}
+        onSidebarTCPFlagClick={onSidebarTCPFlagClick}
+        onSidebarLabelClick={onSidebarLabelClick}
+        onSidebarPodClick={onSidebarPodClick}
+        onSidebarIdentityClick={onSidebarIdentityClick}
+        onSidebarIpClick={onSidebarIpClick}
+        onSidebarDnsClick={onSidebarDnsClick}
         ticker={ticker}
         onPanelResize={onPanelResize}
         onFlowsDiffCount={onFlowsDiffCount}
