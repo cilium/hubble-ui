@@ -1,3 +1,4 @@
+
 FROM node:14.4.0-alpine as stage1
 RUN apk add bash
 WORKDIR /app
@@ -15,7 +16,8 @@ COPY . .
 ARG NODE_ENV=production
 RUN npm run build
 
-FROM nginx
-RUN rm -r /usr/share/nginx/html
-COPY --from=stage1 /app/server/public /usr/share/nginx/html
-COPY --from=stage1 /app/server/nginx.conf /etc/nginx/nginx.conf
+
+# bitnami/nginx with configured non-root user
+FROM bitnami/nginx
+COPY --from=stage1 /app/server/public /app
+COPY --from=stage1 /app/server/nginx-hubble-ui-frontend.conf /opt/bitnami/nginx/conf/server_blocks/nginx-hubble-ui-frontend.conf
