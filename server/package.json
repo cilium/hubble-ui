@@ -50,9 +50,9 @@
     "copy-schema": "cp ./src/schema.graphql ./build/src/schema.graphql"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "1.12.1",
-    "@graphql-codegen/typescript": "1.12.1",
-    "@graphql-codegen/typescript-operations": "1.12.1",
+    "@graphql-codegen/cli": "^1.17.7",
+    "@graphql-codegen/typescript": "^1.17.7",
+    "@graphql-codegen/typescript-operations": "^1.17.7",
     "@types/bunyan": "^1.8.0",
     "@types/compression": "1.0.1",
     "@types/express": "4.17.2",
