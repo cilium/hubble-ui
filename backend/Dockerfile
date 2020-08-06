@@ -7,4 +7,5 @@ RUN bash ctl.sh build
 
 FROM alpine:3.12
 COPY --from=stage1 /app/backend /usr/bin
+
 CMD ["/usr/bin/backend"]
