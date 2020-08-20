@@ -1,0 +1,55 @@
+@import "~/styles/common/layout.scss";
+
+$dot-size: 10px;
+
+.accessPoint {
+  @include row(flex-start, center);
+
+  .icons {
+    @include row(flex-start, center);
+    margin-right: 10px;
+
+    .arrow {
+      @include centered();
+      margin-left: 10px;
+
+      img {
+        width: 20px;
+      }
+    }
+
+    .circle {
+      @include centered();
+      @include exact-size(25px, 25px);
+
+      img {
+        width: 100%;
+      }
+    }
+  }
+
+  .data {
+    @include row(flex-start, center);
+    font-size: 20px;
+
+    .dot {
+      @include exact-size($dot-size, $dot-size);
+
+      border-radius: 50%;
+      background: #c8cdd3;
+
+      margin: 0 10px;
+    }
+
+    .port {
+      font-size: 24px;
+      font-weight: bold;
+
+      color: #7129ba;
+    }
+
+    .protocol {
+      color: black;
+    }
+  }
+}

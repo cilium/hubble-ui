@@ -1,1 +1,3 @@
-hubble_proto
+public/bundle.*
+public/static/media/*.png
+public/index.html

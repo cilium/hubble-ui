@@ -1,0 +1,25 @@
+@import "~/styles/common/layout.scss";
+
+.panel {
+  @include column();
+  position: absolute;
+  bottom: 0;
+  top: 66%;
+  width: calc(100% - 32px);
+  margin: 0 16px;
+  border-radius: 6px 6px 0 0;
+  box-shadow: 0 0 34px rgba(0, 0, 0, 0.16);
+
+  overflow: hidden;
+  background-color: #f6f6f6;
+
+  .dragPanel {
+    @include exact-size(default, 29px);
+  }
+
+  .tableWrapper {
+    flex-grow: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+}

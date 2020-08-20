@@ -1,3 +1,7 @@
+/src/blueprint.css
+/src/proto
+/build
+
 # Logs
 logs
 *.log
@@ -37,16 +41,11 @@ jspm_packages
 .node_repl_history
 # See https://help.github.com/ignore-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
-
 # testing
 /coverage
 
 # production
-/build
-/client/build
-/server/build
+/server/public/bundle.*
 
 # misc
 .DS_Store
@@ -57,26 +56,6 @@ yarn-error.log*
 
 # WebStorm
 .idea
-server/.idea/workspace.xml
-
-
-client/**/*.css
-client/index.html
-
-# Generated files
-server/src/graphqlTypes.ts
-server/src/observer_*_pb.d.ts
-server/src/observer_*_pb.js
-server/src/observer_pb.d.ts
-server/src/observer_pb.js
-cli/src/graphqlTypes.d.ts
-cli/src/schema.json
-
-# CLI stuff
-cli/build/
-cli/covalent-cli-linux
-cli/covalent-cli-macos
-cli/covalent-cli-win.exe
 
 # VSCode
 .vscode

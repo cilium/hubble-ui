@@ -1,0 +1,25 @@
+.wrapper {
+  display: block;
+  width: 100%;
+  height: 100vh;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.namespaceBackplate {
+  rect {
+    fill: #ebeef0;
+    stroke: #9ba1a8;
+    stroke-dasharray: 10px 10px;
+    stroke-width: 2px;
+  }
+
+  text {
+    font-size: 1.75em;
+    fill: #58626d;
+    font-weight: 700;
+  }
+}

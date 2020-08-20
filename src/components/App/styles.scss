@@ -1,0 +1,19 @@
+@import "~/styles/common/layout.scss";
+
+.app {
+  @include column();
+  flex-grow: 1;
+
+  position: relative;
+  overflow: hidden;
+
+  width: 100%;
+  height: 100%;
+
+  .map {
+    box-shadow: inset 0 0 23px rgba(8, 44, 65, 0.12);
+    background-color: #f0f4f8;
+
+    flex-grow: 1;
+  }
+}

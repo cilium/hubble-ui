@@ -1,0 +1,121 @@
+@import "~/styles/common/layout.scss";
+@import "~/styles/common/vars.scss";
+
+.topbar {
+  @include row(flex-start, center);
+  position: absolute;
+  top: 0;
+
+  width: calc(100% - 32px);
+  min-height: var(--top-bar-height);
+  max-height: var(--top-bar-height);
+  height: 100%;
+
+  margin: 0 16px;
+  padding: 0 10px;
+
+  border-radius: 0 0 6px 6px;
+  box-shadow: 0 0 34px rgba(0, 0, 0, 0.16);
+  background-color: #fff;
+
+  .border {
+    flex-shrink: 0;
+    width: 1px;
+    height: 26px;
+    margin: 0 20px;
+    border: none;
+    background-color: #dce0e3;
+  }
+
+  .spacer {
+    flex-shrink: 0;
+    width: 20px;
+    height: 26px;
+    border: none;
+  }
+
+  .left {
+    @include row(flex-start, center);
+    flex: 1;
+  }
+
+  .right {
+    @include row(flex-end, center);
+  }
+
+  .namespacesDropdownButton {
+    display: flex;
+    flex-wrap: nowrap;
+    width: 240px;
+
+    :global(.bp3-button-text) {
+      white-space: pre;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .namespacesDropdownButtonIcon {
+    width: 14px;
+  }
+}
+
+.icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+
+  font-size: 12px;
+  line-height: 12px;
+  font-weight: 500;
+  color: #5c7080;
+
+  .image {
+    max-width: 100%;
+    max-height: calc(100% - 20px);
+  }
+
+  &.clickable {
+    cursor: pointer;
+  }
+
+  &.verdictFilterDropped {
+    color: #e26d66;
+  }
+
+  &.verdictFilterForwarded {
+    color: #54a82d;
+  }
+
+  &.visualFilterEnabled {
+    color: #147fbc;
+  }
+}
+
+.httpStatus {
+  &.outer {
+    padding: 10px;
+  }
+
+  &.wrapper {
+    display: flex;
+    width: 200px;
+
+    button {
+      margin-left: 10px;
+    }
+  }
+
+  &.note {
+    display: block;
+    color: #666;
+    margin-top: 10px;
+
+    svg {
+      position: relative;
+      top: -1px;
+    }
+  }
+}

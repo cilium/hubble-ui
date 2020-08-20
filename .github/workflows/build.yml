@@ -1,22 +1,15 @@
-name: Build Image
-on:
-  push:
-    branches:
-      - master
-      - v*
-    tags:
-      - v*
-  pull_request:
-    branches:
-    - master
-    - v*
+name: Build docker image
+on: push
 jobs:
-  build:
+  building:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: true
-    - name: Build Image
-      run: |
-        docker build .
+      - uses: actions/checkout@v1
+        with:
+          submodules: true
+      - name: Build UI image
+        run: |
+          docker build .
+      - name: Build Backend image
+        run: |
+          docker build ./backend

@@ -1,0 +1,61 @@
+@import "~/styles/common/layout.scss";
+
+.wrapper {
+  margin: var(--endpoint-shadow-size);
+  background-color: #fff;
+  border-radius: 10px;
+  border: 2px solid #b4b4b4;
+  user-select: none;
+
+  &:hover {
+    cursor: pointer;
+    border-color: darken(#b4b4b4, 20);
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &.active {
+    border-color: #3177ff;
+  }
+}
+
+.layer2 {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.labels {
+  @include row();
+  flex-flow: wrap;
+
+  border-top: 1px solid #e4e4e4;
+  padding-top: 10px;
+  margin: 20px 20px 10px;
+
+  .label {
+    @include ellipsis-limit();
+
+    border-radius: 5px;
+    padding: 5px 10px;
+
+    color: #929292;
+    background: #eaeaea;
+
+    margin-bottom: 5px;
+
+    &:not(:last-child) {
+      margin-right: 5px;
+    }
+  }
+}
+
+.accessPoints {
+  @include column();
+
+  margin: 0 20px 20px;
+  padding: 15px;
+
+  border: 1px solid #d4d4d4;
+  border-radius: 10px;
+}

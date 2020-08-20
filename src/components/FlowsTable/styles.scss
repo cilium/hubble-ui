@@ -1,0 +1,241 @@
+.wrapper {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+
+  .table {
+    background-color: #fff;
+  }
+
+  .row {
+    position: absolute;
+    display: flex;
+    width: 100%;
+    font-size: 11px;
+    line-height: var(--flows-table-row-height);
+    border-bottom: 1px solid #eaeef1;
+    font-weight: 500;
+    color: #303030;
+
+    &.odd {
+      background-color: #fff;
+    }
+
+    &.even {
+      background-color: #f2f4f6;
+    }
+
+    &:not(.selected):not(.head):hover {
+      background-color: #dee4e9;
+      cursor: pointer;
+    }
+
+    &.head {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      line-height: var(--flows-table-head-height);
+      background-color: #f6f6f6;
+      border-bottom: 1px solid #ebeef1;
+      text-align: left;
+      color: #5c7080;
+    }
+
+    &.selected {
+      background-color: darken(#dee4e9, 20);
+
+      .cell {
+        color: #fff;
+      }
+
+      .subtitle {
+        color: #ccc;
+      }
+    }
+
+    .cell {
+      flex: 1;
+      flex-shrink: 0;
+      padding-left: 8px;
+      padding-right: 8px;
+      white-space: pre;
+      text-overflow: ellipsis;
+      overflow: hidden;
+
+      &:first-child {
+        padding-left: 10px;
+      }
+
+      &:last-child {
+        padding-right: 10px;
+      }
+
+      &.dstPort {
+        max-width: 130px;
+        text-align: right;
+      }
+
+      &.verdict {
+        max-width: 130px;
+      }
+
+      &.tcpFlags {
+        max-width: 130px;
+      }
+
+      &.timestamp {
+        max-width: 150px;
+      }
+    }
+  }
+
+  .emptyValue {
+    color: #999;
+    font-weight: 400;
+  }
+
+  .subtitle {
+    color: #7b7b7b;
+    font-style: italic;
+    font-weight: 500;
+  }
+}
+
+.sidebar {
+  $padding: 12px;
+
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 20;
+  width: 320px;
+  height: 100%;
+  overflow: auto;
+  background: #fff;
+  box-shadow: 0 22px 22px rgba(0, 0, 0, 0.25);
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: $padding;
+    padding-left: $padding;
+    padding-right: $padding;
+    padding-bottom: 16px;
+    font-size: 14px;
+    line-height: 17px;
+    color: #7b7b7b;
+
+    .close {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: fixed;
+      right: $padding * 3;
+      margin-top: -1px;
+      padding: 3px;
+      border-radius: 3px;
+      background-color: rgba(255, 255, 255, 0.5);
+      color: #c2c2c2;
+
+      &:hover {
+        cursor: pointer;
+        color: #a0a0a0;
+      }
+    }
+  }
+
+  .block {
+    padding-left: $padding;
+    padding-right: $padding;
+
+    &:last-child {
+      padding-bottom: $padding;
+    }
+
+    .title {
+      margin-bottom: 2px;
+      font-size: 12px;
+      line-height: 14px;
+      font-weight: 700;
+      color: #303030;
+    }
+
+    .body {
+      padding-bottom: 10px;
+      overflow-x: auto;
+      font-size: 12px;
+      line-height: 17px;
+      color: #7b7b7b;
+      white-space: pre;
+
+      .clickable {
+        text-decoration: underline;
+        text-decoration-color: #b3b3b3;
+        cursor: pointer;
+
+        &:hover {
+          color: #5e5e5e;
+          text-decoration-color: #929292;
+        }
+
+        &.selected {
+          font-weight: 700;
+        }
+
+        &.forwardedVerdict {
+          text-decoration-color: #70c748;
+
+          &:hover {
+            color: #3d811d;
+            text-decoration-color: #54a82d;
+          }
+        }
+
+        &.droppedVerdict {
+          text-decoration-color: #e77878;
+
+          &:hover {
+            color: #b14b4b;
+            text-decoration-color: #d46363;
+          }
+        }
+      }
+
+      .labels {
+        .label {
+          display: block;
+        }
+      }
+
+      .tcpFlags {
+        .tcpFlag {
+          margin-right: 5px;
+
+          &:last-child {
+            margin-right: 0;
+          }
+        }
+      }
+    }
+  }
+
+  .block + hr {
+    display: block;
+    width: calc(#{$padding} + 100%);
+    height: 1px;
+    margin-bottom: 10px;
+    margin-left: -$padding;
+    border: none;
+    background-color: #ebeef1;
+  }
+}
+
+.forwardedVerdict {
+  color: #54a82d;
+}
+
+.droppedVerdict {
+  color: #e26d66;
+}
