@@ -43,9 +43,9 @@ export const NamespaceSelectorDropdown = memo<Props>(
 
     // prettier-ignore
     const onChange = useCallback(
-    (ns: string) => props.onChange?.(ns),
-    [props.onChange]
-  );
+      (ns: string) => props.onChange?.(ns),
+      [props.onChange]
+    );
 
     const btnIcon = (
       <img

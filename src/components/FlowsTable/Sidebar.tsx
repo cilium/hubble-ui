@@ -11,7 +11,6 @@ import { Filters } from '~/domain/filtering';
 import { TCPFlagName } from '~/domain/hubble';
 import { KV, Labels } from '~/domain/labels';
 
-// import { FiltersProps } from './general';
 import {
   LabelsEntry,
   TCPFlagsEntry,
