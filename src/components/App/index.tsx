@@ -176,21 +176,6 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     setMapWasDragged(val);
   }, []);
 
-  const setFilters = useCallback((f: Filters) => {
-    if (typeof f.httpStatus !== 'undefined') {
-      store.controls.setHttpStatus(f.httpStatus);
-    }
-    if (typeof f.verdict !== 'undefined') {
-      store.controls.setVerdict(f.verdict);
-    }
-    if (typeof f.namespace !== 'undefined') {
-      store.controls.setCurrentNamespace(f.namespace);
-    }
-    if (typeof f.filters !== 'undefined') {
-      store.setFlowFilters(f.filters);
-    }
-  }, []);
-
   const onSidebarVerdictClick = useCallback((v: Verdict | null) => {
     store.controls.setVerdict(v);
   }, []);
