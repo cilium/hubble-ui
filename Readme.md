@@ -18,10 +18,21 @@ See [Hubble Getting Started Guide](https://docs.cilium.io/en/latest/gettingstart
 
 ### Development
 
-1. Install deps: `npm install`
-2. Forward port: `kubectl port-forward -n kube-system deployment/hubble-ui 8081`. It allows local app to access hubble-relay.
-3. Start development server on port 8080: `npm run watch`
-4. Open [http://localhost:8080](http://localhost:8080)
+#### Backend
+
+If you want to point frontend to backend deployed into minikube, then just do next port forward: `kubectl port-forward -n kube-system deployment/hubble-ui 8081`.
+
+Otherwise, if you want to change something in Go backend there are additional steps:
+
+1. Go to backend directory `cd ./backend`, execute `./ctl.sh run`, wait build and server running
+2. In another terminal go to server directory with envoy config `cd ./server` and execute `envoy -c ./envoy.yaml` (envoy must be installed)
+3. In another terminal do port forward to hubble-relay `kubectl port-forward -n kube-system deployment/hubble-relay 50051:4245`
+
+#### Frontend
+
+1. Install deps `npm install`
+2. Start development server `npm run watch`
+3. Open [http://localhost:8080](http://localhost:8080)
 
 ## Community
 
