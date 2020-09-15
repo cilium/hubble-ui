@@ -14,8 +14,13 @@ export class APIv1 implements CoreAPIv1 {
     const schema = process.env.API_SCHEMA;
     const host = process.env.API_HOST;
     const port = process.env.API_PORT;
-    const path = process.env.API_PATH;
-    this.client = new UIClient(`${schema}://${host}:${port}${path}`);
+    const path = process.env.API_PATH ?? '';
+
+    if (process.env.NODE_ENV === 'development') {
+      this.client = new UIClient(`${schema}://${host}:${port}${path}`);
+    } else {
+      this.client = new UIClient(`${document.location.origin}${path}`);
+    }
   }
 
   public getEventStream(params?: EventParams, filters?: Filters): IEventStream {
