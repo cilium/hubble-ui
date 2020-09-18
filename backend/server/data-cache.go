@@ -3,9 +3,12 @@ package server
 import (
 	"github.com/cilium/hubble-ui/backend/domain/link"
 	"github.com/cilium/hubble-ui/backend/domain/service"
+
+	"github.com/cilium/cilium/pkg/lock"
 )
 
 type dataCache struct {
+	lock.Mutex
 	services map[string]*service.Service
 	links    map[string]*link.Link
 }
@@ -25,6 +28,8 @@ func newDataCache() *dataCache {
 }
 
 func (c *dataCache) Drop() {
+	c.Mutex.Lock()
+	defer c.Mutex.Unlock()
 	c.services = make(map[string]*service.Service)
 	c.links = make(map[string]*link.Link)
 }
@@ -33,6 +38,8 @@ func (c *dataCache) UpsertService(svc *service.Service) *cacheFlags {
 	flags := new(cacheFlags)
 	svcId := svc.Id()
 
+	c.Mutex.Lock()
+	defer c.Mutex.Unlock()
 	_, exists := c.services[svcId]
 	if !exists {
 		c.services[svcId] = svc
@@ -47,6 +54,8 @@ func (c *dataCache) UpsertService(svc *service.Service) *cacheFlags {
 func (c *dataCache) UpsertServiceLink(newLink *link.Link) *cacheFlags {
 	flags := new(cacheFlags)
 
+	c.Mutex.Lock()
+	defer c.Mutex.Unlock()
 	currentLink, exists := c.links[newLink.Id]
 	if !exists {
 		c.links[newLink.Id] = newLink
