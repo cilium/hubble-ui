@@ -30,6 +30,7 @@ import {
 import { GeneralStreamEventKind } from '~/api/general/stream';
 
 import EventCase = GetEventsResponse.EventCase;
+import { Timestamp } from 'google-protobuf/google/protobuf/timestamp_pb';
 
 type GRPCEventStream = ClientReadableStream<GetEventsResponse>;
 type FlowFilters = [FlowFilter[], FlowFilter[]];
@@ -83,6 +84,13 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
 
     req.setWhitelistList(wlFilters);
     req.setBlacklistList(blFilters);
+
+    // requests flows for last 5 minutes
+    const last5Min = new Date(new Date().valueOf() - 1000 * 60 * 5).getTime();
+    const last5MinTimestamp = new Timestamp();
+    last5MinTimestamp.setSeconds(Math.trunc(last5Min / 1000));
+    last5MinTimestamp.setNanos(Math.trunc((last5Min & 1000) * 1e6));
+    req.setSince(last5MinTimestamp);
 
     return req;
   }
