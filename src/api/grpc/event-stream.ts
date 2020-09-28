@@ -36,7 +36,7 @@ type FlowFilters = [FlowFilter[], FlowFilter[]];
 
 export class EventStream extends EventEmitter<EventStreamHandlers>
   implements IEventStream {
-  public static readonly FlowsThrottleDelay: number = 5000;
+  public static readonly FlowsThrottleDelay: number = 250;
 
   private stream: GRPCEventStream;
   private flowBuffer: HubbleFlow[] = [];
