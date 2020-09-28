@@ -169,6 +169,7 @@ func handleFlowStream(
 				flags := cache.UpsertService(senderSvc)
 				if flags.Changed() {
 					svc := senderSvc.ToProto()
+					log.Infof("Service changed: %s", svc)
 					senderEvent := eventResponseForService(pbFlow, svc, flags)
 
 					drain <- senderEvent
@@ -177,6 +178,7 @@ func handleFlowStream(
 				flags = cache.UpsertService(receiverSvc)
 				if flags.Changed() {
 					svc := receiverSvc.ToProto()
+					log.Infof("Service changed: %s", svc)
 					receiverEvent := eventResponseForService(pbFlow, svc, flags)
 
 					drain <- receiverEvent
@@ -192,6 +194,7 @@ func handleFlowStream(
 
 				flags := cache.UpsertServiceLink(serviceLink)
 				if flags.Changed() {
+					log.Infof("Service link changed: %s", serviceLink)
 					linkEvent := eventResponseForLink(serviceLink, flags)
 					drain <- linkEvent
 				}
