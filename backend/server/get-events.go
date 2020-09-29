@@ -10,6 +10,7 @@ import (
 	"github.com/cilium/cilium/api/v1/observer"
 	"github.com/cilium/hubble-ui/backend/domain/flow"
 	"github.com/cilium/hubble-ui/backend/domain/link"
+	"github.com/cilium/hubble-ui/backend/domain/service"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 )
 
@@ -114,8 +115,6 @@ func handleFlowStream(
 	eventsRequested *eventFlags,
 	cache *dataCache,
 ) (chan *ui.GetEventsResponse, chan error, func()) {
-	cache.Drop()
-
 	if src == nil {
 		return nil, nil, nil
 	}
@@ -127,6 +126,20 @@ func handleFlowStream(
 	thread := func() {
 		defer close(drain)
 		defer close(errch)
+
+		if eventsRequested.Services {
+			cache.ForEachService(func(key string, svc *service.Service) {
+				senderEvent := eventResponseForService(svc, newExistFlags())
+				drain <- senderEvent
+			})
+		}
+
+		if eventsRequested.ServiceLinks {
+			cache.ForEachLink(func(key string, l *link.Link) {
+				linkEvent := eventResponseForLink(l, newExistFlags())
+				drain <- linkEvent
+			})
+		}
 
 		for {
 			flowResponse, err := src.Recv()
@@ -168,18 +181,16 @@ func handleFlowStream(
 
 				flags := cache.UpsertService(senderSvc)
 				if flags.Changed() {
-					svc := senderSvc.ToProto()
-					log.Infof("Service changed: %s", svc)
-					senderEvent := eventResponseForService(pbFlow, svc, flags)
+					log.Infof("Service changed: %v", senderSvc)
+					senderEvent := eventResponseForService(senderSvc, flags)
 
 					drain <- senderEvent
 				}
 
 				flags = cache.UpsertService(receiverSvc)
 				if flags.Changed() {
-					svc := receiverSvc.ToProto()
-					log.Infof("Service changed: %s", svc)
-					receiverEvent := eventResponseForService(pbFlow, svc, flags)
+					log.Infof("Service changed: %v", receiverSvc)
+					receiverEvent := eventResponseForService(receiverSvc, flags)
 
 					drain <- receiverEvent
 				}

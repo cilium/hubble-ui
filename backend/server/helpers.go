@@ -1,8 +1,8 @@
 package server
 
 import (
-	pbFlow "github.com/cilium/cilium/api/v1/flow"
 	"github.com/cilium/hubble-ui/backend/domain/link"
+	"github.com/cilium/hubble-ui/backend/domain/service"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 )
 
@@ -35,12 +35,14 @@ func (ef *eventFlags) FlowsRequired() bool {
 }
 
 func eventResponseForService(
-	f *pbFlow.Flow, svc *ui.Service, cflags *cacheFlags,
+	svc *service.Service, cflags *cacheFlags,
 ) *ui.GetEventsResponse {
 	sstate := &ui.ServiceState{
-		Service: svc,
+		Service: svc.ToProto(),
 		Type:    stateChangeFromCacheFlags(cflags),
 	}
+
+	f := svc.FlowRef()
 
 	return &ui.GetEventsResponse{
 		Node:      f.NodeName,
