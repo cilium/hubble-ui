@@ -13,6 +13,7 @@ import (
 type Service struct {
 	LabelProps *labels.LabelProps
 
+	flowRef    *pbFlow.Flow
 	ref        *pbUi.Service
 	endpoint   *pbFlow.Endpoint
 	dnsNames   []string
@@ -20,8 +21,13 @@ type Service struct {
 	isReceiver bool
 }
 
-func FromEndpointProtoAndDns(ep *pbFlow.Endpoint, dnsNames []string) *Service {
+func FromEndpointProtoAndDns(
+	f *pbFlow.Flow,
+	ep *pbFlow.Endpoint,
+	dnsNames []string,
+) *Service {
 	svc := new(Service)
+	svc.flowRef = f
 	svc.endpoint = ep
 	svc.dnsNames = dnsNames
 
@@ -77,6 +83,10 @@ func (s *Service) SetIsReceiver(state bool) {
 
 func (s *Service) Id() string {
 	return getServiceId(s.endpoint, s.dnsNames, s.LabelProps, s.isReceiver)
+}
+
+func (s *Service) FlowRef() *pbFlow.Flow {
+	return s.flowRef
 }
 
 func getServiceId(

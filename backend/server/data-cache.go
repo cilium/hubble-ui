@@ -40,6 +40,7 @@ func (c *dataCache) UpsertService(svc *service.Service) *cacheFlags {
 
 	c.Mutex.Lock()
 	defer c.Mutex.Unlock()
+
 	_, exists := c.services[svcId]
 	if !exists {
 		c.services[svcId] = svc
@@ -75,6 +76,28 @@ func (c *dataCache) UpsertServiceLink(newLink *link.Link) *cacheFlags {
 	return flags
 }
 
+func (c *dataCache) ForEachService(cb func(key string, svc *service.Service)) {
+	c.Lock()
+	defer c.Unlock()
+
+	for key, svc := range c.services {
+		cb(key, svc)
+	}
+}
+
+func (c *dataCache) ForEachLink(cb func(key string, link *link.Link)) {
+	c.Lock()
+	defer c.Unlock()
+
+	for key, l := range c.links {
+		cb(key, l)
+	}
+}
+
 func (cf *cacheFlags) Changed() bool {
 	return cf.Created || cf.Updated || cf.Deleted
+}
+
+func newExistFlags() *cacheFlags {
+	return &cacheFlags{false, false, false, true}
 }

@@ -75,7 +75,8 @@ func extractFlowsRequest(req *ui.GetEventsRequest) *observer.GetFlowsRequest {
 			}
 		}
 	}
-	log.Infof("Get flows request: %s", request)
+
+	log.Infof("Get flows request: %v", request)
 	return &request
 }
 
