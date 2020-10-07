@@ -10,7 +10,6 @@ import (
 	"github.com/cilium/cilium/api/v1/observer"
 	"github.com/cilium/hubble-ui/backend/domain/flow"
 	"github.com/cilium/hubble-ui/backend/domain/link"
-	"github.com/cilium/hubble-ui/backend/domain/service"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 )
 
@@ -65,7 +64,7 @@ func (srv *UIServer) GetEvents(
 	flowDrain, flowErr, handleFlows := handleFlowStream(
 		flowSource,
 		eventsRequested,
-		srv.dataCache,
+		srv.dataCache.Empty(),
 	)
 
 	if handleFlows != nil {
@@ -126,20 +125,6 @@ func handleFlowStream(
 	thread := func() {
 		defer close(drain)
 		defer close(errch)
-
-		if eventsRequested.Services {
-			cache.ForEachService(func(key string, svc *service.Service) {
-				senderEvent := eventResponseForService(svc, newExistFlags())
-				drain <- senderEvent
-			})
-		}
-
-		if eventsRequested.ServiceLinks {
-			cache.ForEachLink(func(key string, l *link.Link) {
-				linkEvent := eventResponseForLink(l, newExistFlags())
-				drain <- linkEvent
-			})
-		}
 
 		for {
 			flowResponse, err := src.Recv()

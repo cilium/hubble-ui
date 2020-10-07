@@ -94,6 +94,10 @@ func (c *dataCache) ForEachLink(cb func(key string, link *link.Link)) {
 	}
 }
 
+func (cf *dataCache) Empty() *dataCache {
+	return newDataCache()
+}
+
 func (cf *cacheFlags) Changed() bool {
 	return cf.Created || cf.Updated || cf.Deleted
 }
