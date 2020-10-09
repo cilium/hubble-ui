@@ -6,8 +6,7 @@ import {
   Verdict,
 } from '~/domain/flows';
 
-import { Link, Service } from '~/domain/service-map';
-import { ServiceCard } from '~/domain/service-card';
+import { Link, Service, ServiceCard } from '~/domain/service-map';
 import { Filters, FiltersObject } from './filters';
 
 export { Filters, FiltersObject };

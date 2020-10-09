@@ -1,6 +1,6 @@
 import React, { FunctionComponent } from 'react';
 
-import { ServiceCard } from '~/domain/service-card';
+import { ServiceCard } from '~/domain/service-map';
 
 import { extractLogo } from './helpers';
 import * as logos from './logos';

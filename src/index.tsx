@@ -1,13 +1,16 @@
 import 'mobx-react-lite/batchingForReactDom';
+
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { Router } from '@reach/router';
 
 import './blueprint.css';
 import './index.scss';
 
 import { App } from './components/App';
+
 import { StoreProvider } from '~/store';
-import { RouteHistorySourceKind } from '~/store/stores/route';
+import { RouteHistorySourceKind, Route } from '~/store/stores/route';
 import { NotifierProvider } from '~/notifier';
 
 import * as ui from '~/ui';
@@ -22,10 +25,14 @@ declare global {
 const run = async () => {
   ui.setCSSVars(ui.sizes);
 
+  const routes: Route[] = [Route.new('service-map', { path: '(/:namespace)' })];
+
   const elems = (
     <NotifierProvider>
-      <StoreProvider historySource={RouteHistorySourceKind.URL}>
-        <App api={api} />
+      <StoreProvider historySource={RouteHistorySourceKind.URL} routes={routes}>
+        <Router>
+          <App key="service-map" api={api} path="/*appPath" />
+        </Router>
       </StoreProvider>
     </NotifierProvider>
   );

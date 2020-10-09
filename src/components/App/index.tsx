@@ -8,7 +8,7 @@ import React, {
   useRef,
 } from 'react';
 import { IconNames } from '@blueprintjs/icons';
-import { RouteComponentProps, Router } from '@reach/router';
+import { RouteComponentProps } from '@reach/router';
 import { observer } from 'mobx-react';
 
 import { TopBar } from '~/components/TopBar';
@@ -18,15 +18,23 @@ import {
   TickerEvents as DPTickerEvents,
   DEFAULT_TS_UPDATE_DELAY,
 } from '~/components/DetailsPanel';
+
 import { Map } from '~/components/Map';
 import { LoadingOverlay } from '~/components/Misc/LoadingOverlay';
+import { ServiceMapCard } from '~/components/ServiceMapCard';
+import { CardComponent } from '~/components/Card';
 import { WelcomeScreen } from './WelcomeScreen';
 
 import { Verdict, TCPFlagName } from '~/domain/hubble';
-import { ServiceCard } from '~/domain/service-card';
+import { ServiceCard } from '~/domain/service-map';
 import { Vec2 } from '~/domain/geometry';
 import { FlowsFilterEntry, FlowsFilterDirection } from '~/domain/flows';
 import { KV, Labels } from '~/domain/labels';
+
+import {
+  ServiceMapPlacementStrategy,
+  ServiceMapArrowStrategy,
+} from '~/domain/layout/service-map';
 
 import { useStore } from '~/store';
 import { useNotifier } from '~/notifier';
@@ -44,7 +52,7 @@ export interface AppProps extends RouteComponentProps {
   api: API;
 }
 
-export const AppComponent: FunctionComponent<AppProps> = observer(props => {
+export const App: FunctionComponent<AppProps> = observer(props => {
   const store = useStore();
 
   const onFlowsDiffCount = useRef<(diff: number) => void>();
@@ -95,9 +103,9 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
         if (currentNamespace && namespaces.includes(currentNamespace)) return;
 
         const message = `
-        Namespace "${currentNamespace}" is still not observed.
-        Keep waiting for the data.
-      `;
+          Namespace "${currentNamespace}" is still not observed.
+          Keep waiting for the data.
+        `;
 
         notifier.showWarning(message, 5000, IconNames.SEARCH_AROUND);
         storage.deleteLastNamespace();
@@ -161,10 +169,6 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
 
   const onCloseFlowsTableSidebar = useCallback(() => {
     store.controls.selectTableFlow(null);
-  }, []);
-
-  const onAccessPointCoords = useCallback((apId: string, coords: Vec2) => {
-    store.setAccessPointCoords(apId, coords);
   }, []);
 
   const onPanelResize = useCallback((resizeProps: DetailsResizeProps) => {
@@ -247,8 +251,47 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     return store.currentFrame.isCardActive(id);
   },[store.currentFrame.services.activeCardsList]);
 
+  const plcStrategy = store.currentFrame.placement;
+  const arrowStrategy = store.currentFrame.arrows;
+
+  const onAccessPointCoords = useCallback((apId: string, coords: Vec2) => {
+    store.currentFrame.setAccessPointCoords(apId, coords);
+  }, []);
+
+  const cardRenderer = useCallback(
+    (card: ServiceCard) => {
+      const coords = plcStrategy.cardsBBoxes.get(card.id);
+      if (coords == null) return null;
+
+      const onHeightChange = (h: number) => {
+        return store.currentFrame.setCardHeight(card.id, h);
+      };
+
+      return (
+        <ServiceMapCard
+          key={card.id}
+          active={isCardActive(card.id)}
+          coords={coords}
+          currentNamespace={store.currentFrame.controls.currentNamespace}
+          card={card}
+          onHeightChange={onHeightChange}
+          onClick={onCardSelect}
+          onAccessPointCoords={onAccessPointCoords}
+        />
+      );
+    },
+    [
+      plcStrategy,
+      plcStrategy.cardsBBoxes,
+      store.currentFrame,
+      store.currentFrame.controls.currentNamespace,
+      onAccessPointCoords,
+      isCardActive,
+    ],
+  );
+
   const mapLoaded =
-    store.currentFrame.layout.placement.length > 0 && isStreaming;
+    store.currentFrame.services.cardsList.length > 0 && isStreaming;
 
   const RenderedTopBar = (
     <TopBar
@@ -293,17 +336,15 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
         {mapLoaded ? (
           <Map
             namespace={store.currentFrame.controls.currentNamespace}
-            namespaceBBox={store.currentFrame.layout.namespaceBBox}
-            placement={store.currentFrame.layout.placement}
+            namespaceBBox={plcStrategy.namespaceBBox}
+            placement={plcStrategy}
+            arrows={arrowStrategy}
+            cards={store.currentFrame.services.cardsList}
+            cardRenderer={cardRenderer}
             visibleHeight={mapVisibleHeight ?? 0}
-            accessPoints={store.currentFrame.interactions.accessPoints}
-            accessPointsCoords={store.currentFrame.layout.accessPointsCoords}
-            arrows={store.currentFrame.layout.arrows}
             isCardActive={isCardActive}
             wasDragged={mapWasDragged}
-            onCardSelect={onCardSelect}
-            onAccessPointCoords={onAccessPointCoords}
-            onCardHeightChange={store.currentFrame.layout.setCardHeight}
+            onCardHeightChange={plcStrategy.setCardHeight}
             onMapDrag={onMapDrag}
           />
         ) : (
@@ -335,9 +376,3 @@ export const AppComponent: FunctionComponent<AppProps> = observer(props => {
     </div>
   );
 });
-
-export const App = (props: AppProps) => (
-  <Router>
-    <AppComponent api={props.api} path="/*appPath" />
-  </Router>
-);

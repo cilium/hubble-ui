@@ -12,6 +12,9 @@ import { FlowsFilterEntry } from '~/domain/flows';
 import { Verdict } from '~/domain/hubble';
 import { Dictionary } from '~/domain/misc';
 
+import { Route } from './route';
+export { Route };
+
 export enum RouteHistorySourceKind {
   Memory = 'memory',
   URL = 'url',
@@ -40,7 +43,12 @@ export default class RouteStore {
   @observable
   private location: History['location'];
 
-  constructor(historySource: RouteHistorySourceKind) {
+  @observable
+  private routes: Route[];
+
+  constructor(historySource: RouteHistorySourceKind, routes?: Route[]) {
+    this.routes = routes || [];
+
     this.history =
       historySource === 'url'
         ? globalHistory
@@ -60,7 +68,20 @@ export default class RouteStore {
   }
 
   @computed get namespace(): string | null {
-    return this.parts[0] || null;
+    const route = this.currentRoute;
+    if (route == null) return null;
+
+    const match = route.matches(this.currentRoutePath);
+    if (!match || match === true) return null;
+
+    const ns = (match as any).namespace;
+    if (ns == null) return null;
+
+    if (this.hash.length > 0) {
+      return ns.slice(0, ns.indexOf('#'));
+    }
+
+    return ns;
   }
 
   @computed get verdict(): Verdict | null {
@@ -128,11 +149,16 @@ export default class RouteStore {
   }
 
   @action.bound
-  setNamespace(ns: string) {
-    this.gotoFn((parts, params, hash) => {
-      parts = [ns].concat(parts.slice(1));
+  setNamespace(namespace: string) {
+    const route = this.currentRoute;
+    // console.log('setNamespace route: ', route);
+    if (route == null) return;
 
-      return { parts, params, hash };
+    const newUrl = route.reverse({ namespace });
+    if (!newUrl) return;
+
+    this.gotoFn((_, params, hash) => {
+      return { parts: newUrl.split('/'), params, hash };
     });
   }
 
@@ -146,7 +172,7 @@ export default class RouteStore {
 
     const qs = RouteStore.stringifyParams(transformed.params);
 
-    const path = transformed.parts.join('/');
+    const path = transformed.parts.filter(p => !!p).join('/');
     const query = qs.length > 0 ? '?' + qs : '';
     const hash = transformed.hash.length > 0 ? '#' + this.hash : '';
 
@@ -173,6 +199,16 @@ export default class RouteStore {
     });
   }
 
+  private buildRoutesMap(routes: Route[]): Map<string, Route> {
+    const routesMap: Map<string, Route> = new Map();
+
+    routes.forEach(route => {
+      routesMap.set(route.name, route);
+    });
+
+    return routesMap;
+  }
+
   private static stringifyParams(params: qs.ParsedQuery<string>) {
     return qs.stringify(params, {
       sort: (a, b) => a.localeCompare(b),
@@ -182,5 +218,26 @@ export default class RouteStore {
   @computed
   get hash() {
     return this.location.hash.slice(1);
+  }
+
+  @computed
+  get currentRoutePath(): string {
+    const currentSearch = this.location.search;
+    const search = currentSearch.length > 0 ? `?${currentSearch}` : '';
+    const hash = this.hash.length > 0 ? `#${this.hash}` : '';
+
+    let path = this.location.pathname;
+    while (path.length > 0 && path[path.length - 1] === '/') {
+      path = path.slice(0, -1);
+    }
+
+    return `${path}${search}${hash}`;
+  }
+
+  @computed
+  get currentRoute(): Route | undefined {
+    return this.routes.find(r => {
+      return !!r.matches(this.currentRoutePath);
+    });
   }
 }

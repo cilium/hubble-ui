@@ -1,4 +1,5 @@
 import { XY, WH } from './general';
+import { tooSmall } from '~/domain/misc';
 
 export interface Sides {
   top: [XY, XY];
@@ -22,6 +23,10 @@ export class XYWH implements XY, WH {
 
   public static fromArgs(x: number, y: number, w: number, h: number): XYWH {
     return new XYWH(x, y, w, h);
+  }
+
+  public static fromParts(xy: XY, wh: WH): XYWH {
+    return new XYWH(xy.x, xy.y, wh.w, wh.h);
   }
 
   public static empty(): XYWH {
@@ -107,5 +112,31 @@ export class XYWH implements XY, WH {
         { x: rightX, y: bottomY },
       ],
     };
+  }
+
+  public get isFinite(): boolean {
+    return (
+      Number.isFinite(this.x) &&
+      Number.isFinite(this.y) &&
+      Number.isFinite(this.w) &&
+      Number.isFinite(this.h)
+    );
+  }
+
+  public get isEmpty(): boolean {
+    return (
+      tooSmall(this.x) &&
+      tooSmall(this.y) &&
+      tooSmall(this.w) &&
+      tooSmall(this.h)
+    );
+  }
+
+  public get xy(): XY {
+    return { x: this.x, y: this.y };
+  }
+
+  public get wh(): WH {
+    return { w: this.w, h: this.h };
   }
 }

@@ -1,8 +1,8 @@
 import _ from 'lodash';
 import { action, observable, computed } from 'mobx';
 
-import { ServiceCard } from '~/domain/service-card';
-import { Link, Service } from '~/domain/service-map';
+import { HubbleLink, HubbleService } from '~/domain/hubble';
+import { ServiceCard, Link, AccessPoint } from '~/domain/service-map';
 import { StateChange } from '~/domain/misc';
 
 export default class ServiceStore {
@@ -85,12 +85,12 @@ export default class ServiceStore {
   }
 
   @action.bound
-  set(services: Array<Service>) {
+  set(services: Array<HubbleService>) {
     this.cards = services.map(ServiceCard.fromService);
   }
 
   @action.bound
-  applyServiceChange(svc: Service, change: StateChange) {
+  applyServiceChange(svc: HubbleService, change: StateChange) {
     if (change === StateChange.Deleted) {
       return this.deleteService(svc);
     }
@@ -103,7 +103,7 @@ export default class ServiceStore {
   }
 
   @action.bound
-  deleteService(svc: Service) {
+  deleteService(svc: HubbleService) {
     if (!this.cardsMap.has(svc.id)) return;
 
     const idx = this.cards.findIndex(s => s.id === svc.id);
@@ -138,5 +138,21 @@ export default class ServiceStore {
     }
 
     return numAdded;
+  }
+
+  @action.bound
+  extractAccessPoint(link: HubbleLink) {
+    const accessPoint = AccessPoint.fromLink(link);
+    const card = this.cardsMap.get(accessPoint.serviceId);
+    if (card == null) return;
+
+    card.addAccessPoint(accessPoint);
+  }
+
+  @action.bound
+  extractAccessPoints(links: HubbleLink[]) {
+    links.forEach(link => {
+      this.extractAccessPoint(link);
+    });
   }
 }

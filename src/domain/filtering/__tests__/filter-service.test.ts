@@ -5,7 +5,7 @@ import {
   filterServiceUsingBasicEntry,
 } from '~/domain/filtering';
 
-import { ServiceCard } from '~/domain/service-card';
+import { ServiceCard } from '~/domain/service-map';
 import { Verdict } from '~/domain/hubble';
 import { Dictionary } from '~/domain/misc';
 import { services } from '~/testing/data';

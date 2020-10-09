@@ -1,28 +1,58 @@
 import _ from 'lodash';
 
-import { Service, ApplicationKind } from './service-map';
-import { KV } from './misc';
-import { Labels, LabelsProps } from './labels';
+import { AbstractCard } from '~/domain/cards';
+import { HubbleService } from '~/domain/hubble';
+import { Labels, LabelsProps } from '~/domain/labels';
+import { KV } from '~/domain/misc';
+
+import { ApplicationKind } from './types';
+import { AccessPoint } from './access-point';
 
 // This entity maintains ONLY THE DATA of service card
-export class ServiceCard {
+export class ServiceCard extends AbstractCard {
   public static readonly AppLabel = 'k8s:app';
 
-  private _labelsProps: LabelsProps | null = null;
+  private _labelsProps: LabelsProps | null;
+  private _accessPoints: Map<string, AccessPoint>;
 
-  public service: Service;
+  public service: HubbleService;
 
-  constructor(service: Service) {
+  constructor(service: HubbleService) {
+    super();
+
     this.service = service;
+    this._labelsProps = null;
+    this._accessPoints = new Map();
   }
 
-  public static fromService(srvc: Service): ServiceCard {
+  public get id(): string {
+    return this.service.id;
+  }
+
+  public get accessPoints(): Map<string, AccessPoint> {
+    return new Map(this._accessPoints);
+  }
+
+  public static fromService(srvc: HubbleService): ServiceCard {
     return new ServiceCard(srvc);
   }
 
-  public clone(): ServiceCard {
-    return new ServiceCard(_.cloneDeep(this.service));
+  public addAccessPoint(ap: AccessPoint) {
+    if (this._accessPoints.get(ap.id) != null) return;
+
+    this._accessPoints.set(ap.id, ap);
   }
+
+  public clone(): ServiceCard {
+    const card = new ServiceCard(_.cloneDeep(this.service));
+
+    this._accessPoints.forEach(ap => {
+      card.addAccessPoint(ap.clone());
+    });
+
+    return card;
+  }
+
   public get appProtocol(): ApplicationKind | undefined {
     const appLbl = this.appLabel;
     if (appLbl == null) return undefined;
@@ -56,10 +86,6 @@ export class ServiceCard {
 
       return isExporter || isAgent;
     });
-  }
-
-  public get id(): string {
-    return this.service.id;
   }
 
   public get caption(): string {

@@ -21,7 +21,7 @@ import { Vec2 } from '~/domain/geometry';
 import { HubbleService, HubbleLink, HubbleFlow } from '~/domain/hubble';
 
 import InteractionStore from './interaction';
-import RouteStore, { RouteHistorySourceKind } from './route';
+import RouteStore, { RouteHistorySourceKind, Route } from './route';
 import ServiceStore from './service';
 import ControlStore from './controls';
 
@@ -33,16 +33,22 @@ configure({ enforceActions: 'observed' });
 
 export interface Props {
   historySource: RouteHistorySourceKind;
+  routes?: Route[];
 }
 
 export class Store {
-  @observable controls: ControlStore;
-  @observable route: RouteStore;
-  @observable private _frames: StoreFrame[];
+  @observable
+  public route: RouteStore;
 
-  constructor({ historySource }: Props) {
+  @observable
+  public controls: ControlStore;
+
+  @observable
+  private _frames: StoreFrame[];
+
+  constructor(props: Props) {
     this.controls = new ControlStore();
-    this.route = new RouteStore(historySource);
+    this.route = new RouteStore(props.historySource, props.routes);
 
     this._frames = [];
 
@@ -68,6 +74,7 @@ export class Store {
     links: HubbleLink[];
   }) {
     this.currentFrame.services.set(services);
+    this.currentFrame.services.extractAccessPoints(links);
     this.currentFrame.interactions.addHubbleLinks(links);
     this.currentFrame.interactions.setHubbleFlows(flows, { sort: true });
   }
@@ -93,11 +100,6 @@ export class Store {
     if (!this.route.namespace && nss.length > 0) {
       this.controls.setCurrentNamespace(nss[0]);
     }
-  }
-
-  @action.bound
-  setAccessPointCoords(apId: string, coords: Vec2) {
-    this.currentFrame.setAccessPointCoords(apId, coords);
   }
 
   createFrame(): StoreFrame {
@@ -344,9 +346,9 @@ export class Store {
       printMapData: () => {
         this.printMapData();
       },
-      printLayoutData: () => {
-        this.printLayoutData();
-      },
+      // printLayoutData: () => {
+      //   this.printLayoutData();
+      // },
     });
   }
 
@@ -379,12 +381,12 @@ export class Store {
     console.log(JSON.stringify(data, null, 2));
   }
 
-  @action.bound
-  private printLayoutData() {
-    const data = this.currentFrame.layout.debugData;
+  // @action.bound
+  // private printLayoutData() {
+  //   const data = this.currentFrame.layout.debugData;
 
-    console.log(JSON.stringify(data, null, 2));
-  }
+  //   console.log(JSON.stringify(data, null, 2));
+  // }
 
   @computed
   get mainFrame(): StoreFrame {

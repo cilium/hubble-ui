@@ -1,7 +1,7 @@
 import classnames from 'classnames';
 import React, { memo } from 'react';
 
-import { ServiceCard } from '~/domain/service-card';
+import { ServiceCard } from '~/domain/service-map';
 
 import { EndpointLogo } from './EndpointLogo';
 
@@ -9,7 +9,7 @@ import css from './styles.scss';
 
 export interface Props {
   card: ServiceCard;
-  currentNamespace: string | null;
+  currentNamespace?: string | null;
 }
 
 export const EndpointCardHeader = memo(function EndpointCardHeader({
