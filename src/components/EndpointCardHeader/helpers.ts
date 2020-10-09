@@ -1,4 +1,4 @@
-import { ServiceCard } from '~/domain/service-card';
+import { ServiceCard } from '~/domain/service-map';
 
 export enum LogoType {
   PROTOCOL = 'logo',

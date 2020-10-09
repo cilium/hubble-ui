@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { action, observable, computed } from 'mobx';
 
 import { Flow, HubbleFlow } from '~/domain/flows';
-import { Link, AccessPoints } from '~/domain/service-map';
+import { Link, ServiceCard, AccessPoint } from '~/domain/service-map';
 import { ids } from '~/domain/ids';
 import { HubbleLink } from '~/domain/hubble';
 import { StateChange } from '~/domain/misc';
@@ -208,7 +208,10 @@ export default class InteractionStore {
     this._links.forEach((link: Link) => {
       const senderId = link.sourceId;
       const receiverId = link.destinationId;
-      const accessPointId = ids.accessPoint(receiverId, link.destinationPort);
+      const accessPointId = AccessPoint.generateId(
+        receiverId,
+        link.destinationPort,
+      );
 
       // Outgoing connection setup
       if (!outgoings.has(senderId)) {
@@ -235,28 +238,6 @@ export default class InteractionStore {
     });
 
     return { outgoings, incomings };
-  }
-
-  @computed
-  get accessPoints(): AccessPoints {
-    const index: AccessPoints = new Map();
-
-    this._links.forEach((l: Link) => {
-      const id = ids.accessPoint(l.destinationId, l.destinationPort);
-      if (!index.has(l.destinationId)) {
-        index.set(l.destinationId, new Map());
-      }
-
-      const serviceAPs = index.get(l.destinationId)!;
-      serviceAPs.set(l.destinationPort, {
-        id,
-        port: l.destinationPort,
-        protocol: l.ipProtocol,
-        serviceId: l.destinationId,
-      });
-    });
-
-    return index;
   }
 
   @computed get all() {

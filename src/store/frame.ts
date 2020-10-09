@@ -2,15 +2,19 @@ import _ from 'lodash';
 import { observable, action } from 'mobx';
 
 import InteractionStore from '~/store/stores/interaction';
-import LayoutStore from '~/store/stores/layout';
 import ServiceStore from '~/store/stores/service';
 import ControlStore from '~/store/stores/controls';
+
+import {
+  ServiceMapPlacementStrategy,
+  ServiceMapArrowStrategy,
+} from '~/domain/layout/service-map';
 
 import { Filters, filterFlow, filterService } from '~/domain/filtering';
 import { Link } from '~/domain/service-map';
 import { HubbleService, HubbleLink } from '~/domain/hubble';
 import { StateChange } from '~/domain/misc';
-import { ServiceCard } from '~/domain/service-card';
+import { ServiceCard } from '~/domain/service-map';
 import { Flow } from '~/domain/flows';
 import { Vec2 } from '~/domain/geometry';
 
@@ -25,7 +29,10 @@ export class StoreFrame {
   public services: ServiceStore;
 
   @observable
-  public layout: LayoutStore;
+  public placement: ServiceMapPlacementStrategy;
+
+  @observable
+  public arrows: ServiceMapArrowStrategy;
 
   constructor(
     interactions: InteractionStore,
@@ -36,7 +43,18 @@ export class StoreFrame {
     this.services = services;
     this.controls = controls;
 
-    this.layout = new LayoutStore(services, interactions, controls);
+    this.placement = new ServiceMapPlacementStrategy(
+      this.controls,
+      this.interactions,
+      this.services,
+    );
+
+    this.arrows = new ServiceMapArrowStrategy(
+      this.controls,
+      this.interactions,
+      this.services,
+      this.placement,
+    );
   }
 
   getServiceById(id: string) {
@@ -56,6 +74,7 @@ export class StoreFrame {
   @action.bound
   applyServiceLinkChange(link: HubbleLink, change: StateChange) {
     this.interactions.applyLinkChange(link, change);
+    this.services.extractAccessPoint(link);
   }
 
   @action.bound
@@ -70,7 +89,12 @@ export class StoreFrame {
 
   @action.bound
   setAccessPointCoords(apId: string, coords: Vec2) {
-    this.layout.setAccessPointCoords(apId, coords);
+    this.placement.setAccessPointCoords(apId, coords);
+  }
+
+  @action.bound
+  setCardHeight(cardId: string, height: number) {
+    this.placement.setCardHeight(cardId, height);
   }
 
   @action.bound

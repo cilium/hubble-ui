@@ -4,30 +4,84 @@ import { observer } from 'mobx-react';
 import React, { FunctionComponent, useEffect, useRef } from 'react';
 
 import { Line2, utils as gutils, Vec2 } from '~/domain/geometry';
-import { SenderArrows } from '~/domain/layout';
-import { Verdict } from '~/domain/hubble';
-import { Link } from '~/domain/service-map';
+import {
+  Arrow,
+  ArrowColor,
+  ArrowEnding,
+  ArrowPath,
+  ArrowPathsMap,
+  EndingFigure,
+  InnerEnding,
+} from '~/domain/layout/abstract/arrows';
 
 import { colors, sizes } from '~/ui/vars';
 import { chunks } from '~/utils/iter-tools';
 
 export interface Props {
-  arrows: Map<string, SenderArrows>;
-  accessPointsCoords: Map<string, Vec2>;
+  arrows: ArrowPathsMap;
+}
+
+interface FigureData {
+  id: string;
+  isStart: boolean;
+  figure: EndingFigure;
+  color: ArrowColor;
+  coords: Vec2;
+  direction: Vec2;
 }
 
 interface ArrowData {
+  color: ArrowColor;
   points: Array<Vec2>;
   handles: [Vec2, Vec2][];
 }
 
+type RenderingArrow = [string, ArrowData];
+
 interface FeetData {
-  connectorPosition: Vec2;
-  accessPointCoord: Vec2;
-  link: Link;
+  id: string;
+
+  // NOTE: treat this field as outer connector coords
+  endingCoords: Vec2;
+
+  // NOTE: coords of inner "access point"
+  innerCoords: Vec2;
+  colors: Set<ArrowColor>;
 }
 
-type Arrow = [string, ArrowData];
+// NOTE: returns stroke and fill colors
+const figureColorProps = (fd: FigureData): [string, string] => {
+  if (fd.figure === EndingFigure.Circle) {
+    switch (fd.color) {
+      case ArrowColor.Neutral:
+        return [colors.connectorStroke, colors.connectorFill];
+      case ArrowColor.Red:
+        return [colors.connectorStrokeRed, colors.connectorFillRed];
+      case ArrowColor.Green:
+        return [colors.connectorStrokeGreen, colors.connectorFillGreen];
+    }
+  } else if (fd.figure === EndingFigure.Plate) {
+    switch (fd.color) {
+      case ArrowColor.Neutral:
+        return [colors.startPlateStroke, colors.startPlateFill];
+      case ArrowColor.Red:
+        return [colors.connectorStrokeRed, colors.connectorFillRed];
+      case ArrowColor.Green:
+        return [colors.connectorStrokeGreen, colors.connectorFillGreen];
+    }
+  } else if (fd.figure === EndingFigure.Arrow) {
+    switch (fd.color) {
+      case ArrowColor.Neutral:
+        return [colors.connectorStroke, colors.connectorStroke];
+      case ArrowColor.Red:
+        return [colors.connectorStrokeRed, colors.connectorStrokeRed];
+      case ArrowColor.Green:
+        return [colors.connectorStrokeGreen, colors.connectorStrokeGreen];
+    }
+  }
+
+  return [colors.arrowStroke, colors.arrowStroke];
+};
 
 const arrowLine = (points: Vec2[]): string => {
   if (points.length < 2) return '';
@@ -68,7 +122,7 @@ const arrowLine = (points: Vec2[]): string => {
 };
 
 const startPlatePath = (d: any) => {
-  const { x, y } = d[1];
+  const { x, y } = d.coords;
 
   // prettier-ignore
   const r = 3, w = 5, h = 20;
@@ -90,13 +144,21 @@ const generalExit = (exit: any) => {
   exit.remove();
 };
 
+const figureFillColor = (fd: FigureData): string => {
+  const [_, fill] = figureColorProps(fd);
+  return fill;
+};
+
+const figureStrokeColor = (fd: FigureData): string => {
+  const [stroke, _] = figureColorProps(fd);
+  return stroke;
+};
+
 const startPlatesEnter = (enter: any) => {
   return enter
-    .append('g')
-    .attr('class', (d: any) => d[0])
     .append('path')
-    .attr('fill', colors.startPlateFill)
-    .attr('stroke', colors.startPlaceStroke)
+    .attr('fill', figureFillColor)
+    .attr('stroke', figureStrokeColor)
     .attr('stroke-width', sizes.linkWidth)
     .attr('d', startPlatePath);
 };
@@ -104,11 +166,14 @@ const startPlatesEnter = (enter: any) => {
 const startPlatesUpdate = (update: any) => {
   // XXX: why d3.select('g path').attr(...) is not working?
   return update.each((d: any, i: any, e: any) => {
-    d3.select(e[i]).select('path').attr('d', startPlatePath);
+    d3.select(e[i])
+      .select('path')
+      .attr('d', startPlatePath)
+      .attr('stroke', figureStrokeColor as any);
   });
 };
 
-const arrowHandle = (handle: [Vec2, Vec2] | null): string => {
+const arrowTriangle = (handle: [Vec2, Vec2] | null): string => {
   if (handle == null) return '';
 
   const [start, end] = handle;
@@ -121,7 +186,7 @@ const arrowHandle = (handle: [Vec2, Vec2] | null): string => {
   const baseB = start.sub(side);
 
   const criteria = (baseA.x - baseB.x) * (end.y - start.y);
-  const sweep = criteria < 0 ? 0 : 1;
+  const sweep = criteria <= 0 ? 0 : 1;
 
   const r = 2;
   const [ar1, ar2] = gutils.roundCorner(r, [start, baseA, end]);
@@ -154,37 +219,56 @@ const arrowHandleEnter = (enter: any) => {
     .attr('class', 'handle')
     .attr('fill', colors.arrowHandle)
     .attr('stroke', 'none')
-    .attr('d', (handle: [Vec2, Vec2]) => arrowHandle(handle));
+    .attr('d', (handle: [Vec2, Vec2]) => arrowTriangle(handle));
 };
 
 const arrowHandleUpdate = (update: any) => {
-  return update.attr('d', (handle: [Vec2, Vec2]) => arrowHandle(handle));
+  return update.attr('d', (handle: [Vec2, Vec2]) => arrowTriangle(handle));
+};
+
+const arrowStrokeColor = (ad: RenderingArrow) => {
+  switch (ad[1].color) {
+    case ArrowColor.Neutral:
+      return colors.arrowStroke;
+    case ArrowColor.Red:
+      return colors.arrowStrokeRed;
+    case ArrowColor.Green:
+      return colors.arrowStrokeGreen;
+  }
+
+  return ArrowColor.Neutral;
 };
 
 const arrowsEnter = (enter: any) => {
-  const arrowGroup = enter.append('g').attr('class', (d: Arrow) => d[0]);
+  const arrowGroup = enter
+    .append('g')
+    .attr('class', (d: RenderingArrow) => d[0]);
 
   arrowGroup
     .append('path')
     .attr('class', 'line')
-    .attr('stroke', colors.arrowStroke)
+    .attr('stroke', arrowStrokeColor)
     .attr('stroke-width', sizes.linkWidth)
     .attr('fill', 'none')
-    .attr('d', (d: Arrow) => arrowLine(d[1].points));
+    .attr('d', (d: RenderingArrow) => arrowLine(d[1].points));
 
   arrowGroup
     .selectAll('path.handle')
-    .data((d: Arrow) => d[1].handles, arrowHandleId)
+    .data((d: RenderingArrow) => d[1].handles, arrowHandleId)
     .join(arrowHandleEnter, _.identity, generalExit);
 
   return arrowGroup;
 };
 
 const arrowsUpdate = (update: any) => {
-  update.select('path.line').attr('d', (d: Arrow) => arrowLine(d[1].points));
+  update
+    .select('path.line')
+    .attr('d', (d: RenderingArrow) => arrowLine(d[1].points))
+    .attr('stroke', arrowStrokeColor);
+
   update
     .selectAll('path.handle')
-    .data((d: Arrow) => d[1].handles, arrowHandleId)
+    .data((d: RenderingArrow) => d[1].handles, arrowHandleId)
     .join(arrowHandleEnter, arrowHandleUpdate, generalExit);
 
   return update;
@@ -193,106 +277,137 @@ const arrowsUpdate = (update: any) => {
 const feetHelpers = {
   setPositions(group: any) {
     return group
-      .attr('x1', (d: [string, FeetData]) => d[1].connectorPosition.x)
-      .attr('y1', (d: [string, FeetData]) => d[1].connectorPosition.y)
-      .attr('x2', (d: [string, FeetData]) => d[1].accessPointCoord.x)
-      .attr('y2', (d: [string, FeetData]) => d[1].accessPointCoord.y);
+      .attr('x1', (d: FeetData) => d.endingCoords.x)
+      .attr('y1', (d: FeetData) => d.endingCoords.y)
+      .attr('x2', (d: FeetData) => d.innerCoords.x)
+      .attr('y2', (d: FeetData) => d.innerCoords.y);
   },
-  innerFirstVerdictStroke(d: [string, FeetData]) {
-    const { verdicts } = d[1].link;
+  innerStrokeColor(d: FeetData) {
+    const feetColors = d.colors;
 
-    if (verdicts.has(Verdict.Forwarded) && verdicts.has(Verdict.Dropped)) {
-      return undefined;
-    } else if (verdicts.has(Verdict.Dropped)) {
-      return colors.feetDroppedStroke;
+    if (feetColors.has(ArrowColor.Red)) {
+      return colors.feetRedStroke;
     }
 
-    return colors.feetForwardedStroke;
+    return colors.feetNeutralStroke;
   },
-  innerSecondVerdictStroke(d: [string, FeetData]) {
-    const { verdicts } = d[1].link;
+  innerStrokeStyle(d: FeetData) {
+    const feetColors = d.colors;
 
-    if (verdicts.has(Verdict.Forwarded) && verdicts.has(Verdict.Dropped)) {
-      return colors.feetDroppedStroke;
-    }
-
-    return undefined;
-  },
-  innerSecondVerdictStrokeDasharray(d: [string, FeetData]) {
-    return d[1].link.verdicts.size > 1 ? '5 4' : undefined;
+    return feetColors.size > 1 ? '5 4' : undefined;
   },
 };
 
 const feetsEnter = (enter: any) => {
-  const feetGroup = enter
-    .append('g')
-    .attr('class', (d: [string, FeetData]) => d[0]);
+  const feetGroup = enter.append('g').attr('class', (d: FeetData) => d.id);
 
-  feetHelpers.setPositions(
-    feetGroup
-      .append('line')
-      .attr('class', 'outer')
-      .attr('stroke-width', sizes.feetOuterWidth)
-      .attr('stroke', colors.feetOuterStroke),
-  );
+  feetGroup
+    .append('line')
+    .attr('class', 'outer')
+    .attr('stroke-width', sizes.feetOuterWidth)
+    .attr('stroke', colors.feetOuterStroke)
+    .call(feetHelpers.setPositions);
 
-  feetHelpers.setPositions(
-    feetGroup
-      .append('line')
-      .attr('class', 'inner-first-verdict')
-      .attr('stroke-width', sizes.feetInnerWidth)
-      .attr('stroke', feetHelpers.innerFirstVerdictStroke),
-  );
-
-  feetHelpers.setPositions(
-    feetGroup
-      .append('line')
-      .attr('class', 'inner-second-verdict')
-      .attr('stroke-width', sizes.feetInnerWidth)
-      .attr('stroke', feetHelpers.innerSecondVerdictStroke)
-      .attr('stroke-dasharray', feetHelpers.innerSecondVerdictStrokeDasharray),
-  );
+  feetGroup
+    .append('line')
+    .attr('class', 'inner')
+    .attr('stroke', feetHelpers.innerStrokeColor)
+    .attr('stroke-width', sizes.feetInnerWidth)
+    .attr('stroke-dasharray', feetHelpers.innerStrokeStyle)
+    .call(feetHelpers.setPositions);
 
   return feetGroup;
 };
 
 const feetsUpdate = (update: any) => {
-  feetHelpers.setPositions(update.select('line.outer'));
+  update.select('line.outer').call(feetHelpers.setPositions);
 
-  feetHelpers.setPositions(
-    update
-      .select('line.inner-first-verdict')
-      .attr('stroke', feetHelpers.innerFirstVerdictStroke),
-  );
-
-  feetHelpers.setPositions(
-    update
-      .select('line.inner-second-verdict')
-      .attr('stroke', feetHelpers.innerSecondVerdictStroke)
-      .attr('stroke-dasharray', feetHelpers.innerSecondVerdictStrokeDasharray),
-  );
+  update
+    .select('line.inner')
+    .attr('stroke', feetHelpers.innerStrokeColor)
+    .attr('stroke-dasharray', feetHelpers.innerStrokeStyle)
+    .call(feetHelpers.setPositions);
 
   return update;
 };
 
-const connectorsEnter = (enter: any) => {
-  return enter
-    .append('g')
-    .attr('class', (d: any) => d[0])
-    .append('circle')
-    .attr('cx', (d: any) => d[1].x)
-    .attr('cy', (d: any) => d[1].y)
+const trianglePropsSet = (group: any) => {
+  const triangleW = sizes.arrowHandleWidth;
+
+  return group
+    .attr('fill', figureFillColor)
+    .attr('stroke', figureStrokeColor)
+    .attr('d', (fd: FigureData) => {
+      const triangleStart = fd.coords.sub(fd.direction.mul(triangleW));
+      const triangleEnd = fd.coords;
+
+      return arrowTriangle([triangleStart, triangleEnd]);
+    });
+};
+
+const triangleEndingEnter = (enter: any) => {
+  return enter.append('path').call(trianglePropsSet);
+};
+
+const triangleEndingUpdate = (update: any) => {
+  return update.select('path').call(trianglePropsSet);
+};
+
+const connectorPropsSet = (group: any) => {
+  return group
+    .attr('cx', (d: any) => d.coords.x)
+    .attr('cy', (d: any) => d.coords.y)
     .attr('r', 7.5)
-    .attr('stroke', colors.connectorStroke)
+    .attr('stroke', figureStrokeColor)
     .attr('stroke-width', sizes.connectorWidth)
-    .attr('fill', colors.connectorFill);
+    .attr('fill', figureFillColor);
+};
+
+const connectorsEnter = (enter: any) => {
+  return enter.append('circle').call(connectorPropsSet);
 };
 
 const connectorsUpdate = (update: any) => {
-  return update
-    .select('circle')
-    .attr('cx', (d: any) => d[1].x)
-    .attr('cy', (d: any) => d[1].y);
+  return update.select('circle').call(connectorPropsSet);
+};
+
+const figuresEnter = (enter: any) => {
+  return enter
+    .append('g')
+    .attr('class', (d: FigureData) => d.id)
+    .each((d: FigureData, i: number, group: any) => {
+      const figureGroup = d3.select(group[i]);
+
+      if (d.figure === EndingFigure.Plate) {
+        figureGroup.call(startPlatesEnter);
+      } else if (d.figure === EndingFigure.Circle) {
+        figureGroup.call(connectorsEnter);
+      } else if (d.figure === EndingFigure.Arrow) {
+        figureGroup.call(triangleEndingEnter);
+      } else {
+        throw new Error(
+          `enter: rendering of ${d.figure} ending figure is not implemented`,
+        );
+      }
+    });
+};
+
+const figuresUpdate = (update: any) => {
+  return update.each((d: FigureData, i: number, group: any) => {
+    const figureGroup = d3.select(group[i]);
+
+    if (d.figure === EndingFigure.Plate) {
+      figureGroup.call(startPlatesUpdate);
+    } else if (d.figure === EndingFigure.Circle) {
+      figureGroup.call(connectorsUpdate);
+    } else if (d.figure === EndingFigure.Arrow) {
+      figureGroup.call(triangleEndingUpdate);
+    } else {
+      throw new Error(
+        `update: rendering of ${d.figure} ending figure is not implemented`,
+      );
+    }
+  });
 };
 
 // Handle is created for each segment of arrow whose length >= minArrowLength
@@ -319,102 +434,142 @@ const arrowHandlesFromPoints = (points: Vec2[]): [Vec2, Vec2][] => {
   return handles;
 };
 
-const manageArrows = (props: Props, g: SVGGElement) => {
-  const arrowsMap = props.arrows;
-  const accessPointsCoords = props.accessPointsCoords;
+// NOTE: returns directions of first two points and last two points
+const calcDirections = (points: Vec2[]): [Vec2, Vec2] => {
+  if (points.length < 2) return [Vec2.zero(), Vec2.zero()];
 
+  const [first, second] = points.slice(0, 2);
+  // NOTE: reversed, cz direction computed TO start point
+  const startDir = first.sub(second).normalize();
+
+  if (points.length === 2) return [startDir, startDir.clone()];
+
+  const [prev, last] = points.slice(-2, points.length);
+  const endDir = last.sub(prev).normalize();
+
+  return [startDir, endDir];
+};
+
+const manageArrows = (arrows: ArrowPathsMap, g: SVGGElement) => {
   const rootGroup = d3.select(g);
-  const startPlatesGroup = rootGroup.select('.start-plates');
+  const startFiguresGroup = rootGroup.select('.start-figures');
+  const endFiguresGroup = rootGroup.select('.end-figures');
   const arrowsGroup = rootGroup.select('.arrows');
-  const connectorsGroup = rootGroup.select('.connectors');
   const feetsGroup = rootGroup.select('.feets');
 
-  const startPlates: Array<[string, Vec2]> = [];
-  const arrows: Array<Arrow> = [];
-  const connectors: Array<[string, Vec2]> = [];
-  const knownConnectors: Set<string> = new Set();
-  const feets: Array<[string, FeetData]> = [];
+  const startFiguresMap: Map<string, FigureData> = new Map();
+  const endFiguresMap: Map<string, FigureData> = new Map();
 
-  // Just split data to simple arrays so that it will be easier to work
-  // with them in d3
-  arrowsMap.forEach((senderArrows, senderId) => {
-    startPlates.push([senderId, senderArrows.startPoint]);
+  const arrowsToRender: Array<RenderingArrow> = [];
+  const feetsMap: Map<string, FeetData> = new Map();
 
-    senderArrows.arrows.forEach((connectorArrow, receiverId) => {
-      const fromToId = `${senderId} -> ${receiverId}`;
-      const allPoints = [senderArrows.startPoint].concat(connectorArrow.points);
-      const arrowHandles = arrowHandlesFromPoints(allPoints);
+  arrows.forEach((arrow, arrowId) => {
+    const startId = arrow.start.endingId;
+    const endId = `${startId} -> ${arrow.end.endingId}`;
+    const allPoints = [arrow.start.coords].concat(arrow.points);
+    const [startDirection, endDirection] = calcDirections(allPoints);
 
-      // prettier-ignore
-      arrows.push([fromToId, {
+    if (!startFiguresMap.has(startId)) {
+      // TODO: what if there are two arrows with different colors ?
+      startFiguresMap.set(startId, {
+        id: startId,
+        isStart: true,
+        figure: arrow.start.figure,
+        color: arrow.color,
+        coords: arrow.start.coords,
+        direction: startDirection,
+      });
+    }
+
+    if (!endFiguresMap.has(endId)) {
+      endFiguresMap.set(endId, {
+        id: arrow.end.endingId,
+        isStart: false,
+        figure: arrow.end.figure,
+        color: arrow.color,
+        coords: arrow.end.coords,
+        direction: endDirection,
+      });
+    }
+
+    const arrowHandles = !!arrow.noHandles
+      ? []
+      : arrowHandlesFromPoints(allPoints);
+
+    arrowsToRender.push([
+      arrow.arrowId,
+      {
         points: allPoints,
         handles: arrowHandles,
-      }]);
+        color: arrow.color,
+      },
+    ]);
 
-      const connector = connectorArrow.connector;
-      if (!knownConnectors.has(connector.id)) {
-        connectors.push([connector.id, connector.position]);
-        knownConnectors.add(connector.id);
-      }
+    if (arrow.end.innerEndings != null) {
+      arrow.end.innerEndings.forEach((ending, innerId) => {
+        const feetId = innerId;
+        if (feetsMap.has(feetId)) return;
 
-      connector.accessPointsMap.forEach((link, accessPointId) => {
-        const feetId = `${fromToId} -> ${accessPointId}`;
-        const accessPointCoord = accessPointsCoords.get(accessPointId);
-
-        if (accessPointCoord == null) return;
-
-        const feetData: FeetData = {
-          connectorPosition: connector.position,
-          accessPointCoord,
-          link,
-        };
-
-        feets.push([feetId, feetData]);
+        feetsMap.set(feetId, {
+          id: feetId,
+          endingCoords: arrow.end.coords,
+          innerCoords: ending.coords,
+          colors: ending.colors,
+        });
       });
-    });
+    }
+
+    if (arrow.start.innerEndings != null) {
+      arrow.start.innerEndings.forEach((ending, innerId) => {
+        const feetId = innerId;
+
+        feetsMap.set(feetId, {
+          id: feetId,
+          endingCoords: arrow.start.coords,
+          innerCoords: ending.coords,
+          colors: ending.colors,
+        });
+      });
+    }
   });
 
   const fns = {
-    startPlates: {
-      enter: startPlatesEnter,
-      update: startPlatesUpdate,
-    },
     arrows: {
       enter: arrowsEnter,
       update: arrowsUpdate,
     },
-    connectors: {
-      enter: connectorsEnter,
-      update: connectorsUpdate,
-    },
     feets: {
       enter: feetsEnter,
       update: feetsUpdate,
+    },
+    endingFigures: {
+      enter: figuresEnter,
+      update: figuresUpdate,
     },
     common: {
       exit: generalExit,
     },
   };
 
-  startPlatesGroup
-    .selectAll('g')
-    .data(startPlates, (d: any) => d[0])
-    .join(fns.startPlates.enter, fns.startPlates.update, fns.common.exit);
-
   arrowsGroup
     .selectAll('g')
-    .data(arrows, (d: any) => d[0])
+    .data(arrowsToRender, (d: any) => d[0])
     .join(fns.arrows.enter, fns.arrows.update, fns.common.exit);
-
-  connectorsGroup
-    .selectAll('g')
-    .data(connectors, (d: any) => d[0])
-    .join(fns.connectors.enter, fns.connectors.update, fns.common.exit);
 
   feetsGroup
     .selectAll('g')
-    .data(feets, (d: any) => d[0])
+    .data([...feetsMap.values()], (d: any) => d.id)
     .join(fns.feets.enter, fns.feets.update, fns.common.exit);
+
+  startFiguresGroup
+    .selectAll('g')
+    .data([...startFiguresMap.values()], (d: any) => d.id)
+    .join(fns.endingFigures.enter, fns.endingFigures.update, fns.common.exit);
+
+  endFiguresGroup
+    .selectAll('g')
+    .data([...endFiguresMap.values()], (d: any) => d.id)
+    .join(fns.endingFigures.enter, fns.endingFigures.update, fns.common.exit);
 };
 
 // This component manages multiple arrows to be able to draw them
@@ -426,15 +581,15 @@ export const Component: FunctionComponent<Props> = observer(
     useEffect(() => {
       if (rootRef == null || rootRef.current == null) return;
 
-      manageArrows(props, rootRef.current);
-    }, [props.arrows, props.accessPointsCoords, rootRef]);
+      manageArrows(props.arrows, rootRef.current);
+    }, [props.arrows, rootRef]);
 
     return (
       <g ref={rootRef} className="arrows">
         <g className="arrows" />
-        <g className="start-plates" />
         <g className="feets" />
-        <g className="connectors" />
+        <g className="start-figures" />
+        <g className="end-figures" />
       </g>
     );
   },

@@ -7,8 +7,9 @@ const StoreContext = createContext<Store | null>(null);
 export const StoreProvider: FunctionComponent<MainStoreProps> = ({
   children,
   historySource,
+  routes,
 }) => {
-  const store = useLocalStore(() => new Store({ historySource }));
+  const store = useLocalStore(() => new Store({ historySource, routes }));
 
   return (
     <StoreContext.Provider value={store}>{children}</StoreContext.Provider>

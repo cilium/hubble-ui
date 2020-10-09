@@ -4,7 +4,7 @@
 // all sizes in this map should be considered in pixels
 export const sizes = {
   endpointWidth: 560,
-  endpointShadowSize: 12,
+  endpointShadowSize: 24,
   endpointIconWidth: 80,
   endpointHeaderheight: 115,
   endpointTitleHeight: 29,
@@ -37,13 +37,19 @@ export const sizes = {
 
 // C O L O R S
 export const colors = {
-  startPlaceStroke: '#b4b4b4',
+  startPlateStroke: '#b4b4b4',
   startPlateFill: '#b4b4b4',
   arrowStroke: '#ACB1B8',
+  arrowStrokeGreen: '#2F9316',
+  arrowStrokeRed: '#D94C4C',
   arrowHandle: '#58626D',
   connectorFill: '#AEB7C0',
   connectorStroke: '#58626D',
+  connectorFillGreen: '#A0D693',
+  connectorStrokeGreen: '#2F9316',
+  connectorStrokeRed: '#D94C4C',
+  connectorFillRed: '#F08F8F',
   feetOuterStroke: '#EBEEF0',
-  feetForwardedStroke: '#C1C8D0',
-  feetDroppedStroke: '#FF5E5E',
+  feetNeutralStroke: '#C1C8D0',
+  feetRedStroke: '#FF5E5E',
 };

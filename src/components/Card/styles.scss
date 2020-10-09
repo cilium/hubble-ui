@@ -1,0 +1,26 @@
+@import "~/styles/common/layout.scss";
+
+.wrapper {
+  // NOTE: display: flex is required to count margins for offsetHeight
+  @include column();
+
+  margin: var(--endpoint-shadow-size);
+  background-color: #fff;
+  border-radius: 10px;
+  user-select: none;
+  box-shadow: 0 0 24px rgba(23, 49, 65, 0.13);
+
+  &:hover {
+    cursor: pointer;
+    box-shadow: 0 0 24px rgba(23, 49, 65, 0.3);
+    transition: all ease-out 0.25s;
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.content {
+  background-color: rgba(255, 255, 255, 0.9);
+}

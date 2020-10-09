@@ -1,93 +1,108 @@
-import React, { memo, useCallback } from 'react';
+import { observer } from 'mobx-react';
+import React, { ReactNode, useCallback, useEffect, useMemo } from 'react';
+
+import { AbstractCard } from '~/domain/cards';
+import { Vec2, XYWH } from '~/domain/geometry';
+import { ArrowStrategy, PlacementStrategy } from '~/domain/layout';
 
 import { ArrowsRenderer } from '~/components/ArrowsRenderer';
-import {
-  EndpointCardBackplate,
-  EndpointCardContent,
-} from '~/components/EndpointCard';
+import { Card as BaseCard } from '~/components/Card';
+import { NamespaceBackplate } from './NamespaceBackplate';
 
-import { Vec2, XYWH } from '~/domain/geometry';
-import { Placement, SenderArrows } from '~/domain/layout';
-import { ServiceCard } from '~/domain/service-card';
-import { AccessPoints } from '~/domain/service-map';
+import { useMapZoom } from './hooks/useMapZoom';
 
 import { sizes } from '~/ui/vars';
-
-import { NamespaceBackplate } from './NamespaceBackplate';
-import { useMapZoom } from './hooks/useMapZoom';
-import { useMapBBox } from './hooks/useMapBBox';
-
 import css from './styles.scss';
 
-export interface Props {
+export interface Props<C extends AbstractCard> {
+  placement: PlacementStrategy;
+  namespace?: string | null;
+  namespaceBBox?: XYWH | null;
+  cards: Array<C>;
   wasDragged: boolean;
-  namespace: string | null;
-  namespaceBBox: XYWH;
-  placement: Placement;
   visibleHeight: number;
-  arrows: Map<string, SenderArrows>;
-  isCardActive: (id: string) => boolean;
-  accessPoints: AccessPoints;
-  accessPointsCoords: Map<string, Vec2>;
-  onCardSelect: (srvc: ServiceCard) => void;
-  onAccessPointCoords: (apId: string, coords: Vec2) => void;
-  onCardHeightChange: (id: string, height: number) => void;
+  arrows?: ArrowStrategy;
+  cardRenderer: (card: C) => ReactNode;
+  isCardActive?: (id: string) => boolean;
+  onCardHeightChange?: (id: string, height: number) => void;
   onMapDrag?: (val: boolean) => void;
 }
 
-export const MapElements = memo(function MapElements(props: Props) {
-  // prettier-ignore
-  const onCardHeightChange = useCallback((card: ServiceCard, h: number) => {
-    props.onCardHeightChange(card.id, h);
-  }, [props.onCardHeightChange]);
+export const MapElements = observer(function MapElements<
+  C extends AbstractCard
+>(props: Props<C>) {
+  useEffect(() => {
+    props.cards.forEach(c => {
+      props.placement.initUninitializedCard(c.id);
+    });
+  }, [props.cards, props.placement]);
+
+  const isCardActive = useCallback(
+    (cardId: string): boolean => {
+      return props.isCardActive ? props.isCardActive(cardId) : false;
+    },
+    [props.isCardActive],
+  );
+
+  const [backplates, cards] = useMemo(() => {
+    const backplates: ReactNode[] = [];
+    const cards: ReactNode[] = [];
+
+    props.cards.forEach(card => {
+      const coords = props.placement.cardsBBoxes.get(card.id);
+      if (coords == null) return;
+
+      const onHeightChange = (h: number) => {
+        return props.onCardHeightChange?.(card.id, h);
+      };
+
+      backplates.push(
+        <BaseCard
+          key={card.id}
+          coords={coords}
+          active={isCardActive(card.id)}
+          isBackplate={true}
+          onHeightChange={onHeightChange}
+        />,
+      );
+
+      cards.push(props.cardRenderer(card));
+    });
+
+    return [backplates, cards];
+  }, [
+    props.cardRenderer,
+    props.cards,
+    props.onCardHeightChange,
+    props.placement.cardsBBoxes,
+    isCardActive,
+  ]);
 
   return (
     <>
-      <NamespaceBackplate
-        namespace={props.namespace}
-        xywh={props.namespaceBBox.addMargin(sizes.endpointHPadding / 2)}
-      />
-
-      {props.placement.map(plc => (
-        <EndpointCardBackplate
-          key={plc.card.id}
-          coords={plc.geometry}
-          card={plc.card}
-          onHeightChange={onCardHeightChange}
+      {props.namespaceBBox && props.namespace && (
+        <NamespaceBackplate
+          namespace={props.namespace}
+          xywh={props.namespaceBBox.addMargin(sizes.endpointHPadding / 2)}
         />
-      ))}
+      )}
 
-      <ArrowsRenderer
-        arrows={props.arrows}
-        accessPointsCoords={props.accessPointsCoords}
-      />
+      {backplates}
 
-      {props.placement.map(plc => {
-        const accessPoints = props.accessPoints.get(plc.card.id);
+      {props.arrows && <ArrowsRenderer arrows={props.arrows.paths} />}
 
-        return (
-          <EndpointCardContent
-            active={props.isCardActive(plc.card.id)}
-            key={plc.card.id}
-            coords={plc.geometry}
-            currentNamespace={props.namespace}
-            card={plc.card}
-            accessPoints={accessPoints}
-            onHeightChange={onCardHeightChange}
-            onClick={props.onCardSelect}
-            onAccessPointCoords={props.onAccessPointCoords}
-          />
-        );
-      })}
+      {cards}
     </>
   );
 });
 
-export const Map = memo(function Map(props: Props) {
+export const Map = observer(function Map<C extends AbstractCard>(
+  props: Props<C>,
+) {
   const zoom = useMapZoom({
     wasDragged: props.wasDragged,
     onMapDrag: props.onMapDrag,
-    mapBBox: useMapBBox(props.placement, props.namespaceBBox),
+    mapBBox: props.placement.bbox,
     visibleHeight: props.visibleHeight,
   });
 
