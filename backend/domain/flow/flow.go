@@ -39,3 +39,7 @@ func (f *Flow) BuildReceiverService() *service.Service {
 
 	return svc
 }
+
+func (f *Flow) Ref() *pbFlow.Flow {
+	return f.ref
+}
