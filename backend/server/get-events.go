@@ -1,12 +1,6 @@
 package server
 
 import (
-	"context"
-	"io"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"github.com/cilium/cilium/api/v1/observer"
 	"github.com/cilium/hubble-ui/backend/domain/flow"
 	"github.com/cilium/hubble-ui/backend/domain/link"
@@ -38,19 +32,20 @@ func (srv *UIServer) GetEvents(
 		return nil
 	}
 
+	cache := srv.dataCache.Empty()
 	eventsRequested := getFlagsWhichEventsRequested(req.EventTypes)
+	flowResponses := make(chan *ui.GetEventsResponse)
+	flowErrors := make(chan error)
+	var flowCancel func()
 
-	var flowSource FlowStream = nil
 	if eventsRequested.FlowsRequired() {
-		fs, cancel, err := srv.GetFlows(req)
-
+		cancel, err := srv.GetFlows(req, flowResponses, flowErrors)
 		if err != nil {
 			log.Errorf("failed to GetFlows: %v\n", err)
 			return err
 		}
 
-		flowSource = fs
-		defer cancel()
+		flowCancel = cancel
 	}
 
 	var nsSource chan *NSEvent
@@ -61,16 +56,6 @@ func (srv *UIServer) GetEvents(
 		nsSource = watcherChan
 	}
 
-	flowDrain, flowErr, handleFlows := handleFlowStream(
-		flowSource,
-		eventsRequested,
-		srv.dataCache.Empty(),
-	)
-
-	if handleFlows != nil {
-		go handleFlows()
-	}
-
 	nsDrain := make(chan *ui.GetEventsResponse)
 	go handleNsEvents(nsSource, nsDrain)
 
@@ -79,20 +64,52 @@ func (srv *UIServer) GetEvents(
 F:
 	for {
 		select {
-		case err := <-flowErr:
-			return err
-		case flowEvent := <-flowDrain:
-			if flowEvent == nil {
+		case err := <-flowErrors:
+			if !srv.IsGrpcUnavailable(err) {
+				return err
+			}
+
+			flowCancel()
+			cancel, err := srv.GetFlows(req, flowResponses, flowErrors)
+			if err != nil {
+				log.Errorf("failed to GetFlows on retry: %v\n", err)
+				return err
+			}
+
+			flowCancel = cancel
+		case flowResponse := <-flowResponses:
+			if flowResponse == nil {
 				break F
 			}
 
-			if err := stream.Send(flowEvent); err != nil {
-				log.Infof("send failed: %v\n", err)
+			if err := stream.Send(flowResponse); err != nil {
+				log.Infof("failed to send flow response: %v\n", err)
 				return err
+			}
+
+			// NOTE: take links and services from flow
+			links, svcs := extractDerivedEvents(
+				flowResponse,
+				eventsRequested,
+				cache,
+			)
+
+			for _, svcEvent := range svcs {
+				if err := stream.Send(svcEvent); err != nil {
+					log.Infof("failed to send svc response: %v\n", err)
+					return err
+				}
+			}
+
+			for _, linkEvent := range links {
+				if err := stream.Send(linkEvent); err != nil {
+					log.Infof("failed to send link response: %v\n", err)
+					return err
+				}
 			}
 		case nsEvent := <-nsDrain:
 			if err := stream.Send(nsEvent); err != nil {
-				log.Infof("send failed: %v\n", err)
+				log.Infof("failed to send ns response: %v\n", err)
 				return err
 			}
 		}
@@ -109,96 +126,60 @@ func handleNsEvents(src chan *NSEvent, drain chan *ui.GetEventsResponse) {
 	}
 }
 
-func handleFlowStream(
-	src FlowStream,
+func extractDerivedEvents(
+	flowResponse *ui.GetEventsResponse,
 	eventsRequested *eventFlags,
 	cache *dataCache,
-) (chan *ui.GetEventsResponse, chan error, func()) {
-	if src == nil {
-		return nil, nil, nil
+) (
+	linkResponses []*ui.GetEventsResponse,
+	svcResponses []*ui.GetEventsResponse,
+) {
+	if flowResponse == nil {
+		return
 	}
 
-	drain := make(chan *ui.GetEventsResponse)
-	errch := make(chan error)
+	pbFlow := flowResponse.GetFlow()
+	if pbFlow == nil {
+		return
+	}
 
-	// TODO: do recovery when src.Recv() returns error
-	thread := func() {
-		defer close(drain)
-		defer close(errch)
+	f := flow.FromProto(pbFlow)
 
-		for {
-			flowResponse, err := src.Recv()
-			if err == io.EOF {
-				log.Infof("flow stream is exhausted (EOF)\n")
-				errch <- err
-				break
-			}
+	if eventsRequested.Services {
+		senderSvc, receiverSvc := f.BuildServices()
 
-			if err != nil {
-				codeIsCanceled := status.Code(err) == codes.Canceled
-				if codeIsCanceled || err == context.Canceled {
-					log.Infof("flow stream is canceled\n")
-				} else {
-					log.Warnf("flow stream error: %v\n", err)
-				}
+		flags := cache.UpsertService(senderSvc)
+		if flags.Changed() {
+			log.Infof("Service changed: %v", senderSvc)
+			senderEvent := eventResponseForService(senderSvc, flags)
 
-				errch <- err
-				break
-			}
-
-			pbFlow := flowResponse.GetFlow()
-			if pbFlow == nil {
-				continue
-			}
-
-			f := flow.FromProto(pbFlow)
-
-			if eventsRequested.Flows {
-				drain <- &ui.GetEventsResponse{
-					Node:      flowResponse.NodeName,
-					Timestamp: flowResponse.Time,
-					Event:     &ui.GetEventsResponse_Flow{pbFlow},
-				}
-			}
-
-			if eventsRequested.Services {
-				senderSvc, receiverSvc := f.BuildServices()
-
-				flags := cache.UpsertService(senderSvc)
-				if flags.Changed() {
-					log.Infof("Service changed: %v", senderSvc)
-					senderEvent := eventResponseForService(senderSvc, flags)
-
-					drain <- senderEvent
-				}
-
-				flags = cache.UpsertService(receiverSvc)
-				if flags.Changed() {
-					log.Infof("Service changed: %v", receiverSvc)
-					receiverEvent := eventResponseForService(receiverSvc, flags)
-
-					drain <- receiverEvent
-				}
-			}
-
-			if eventsRequested.ServiceLinks {
-				serviceLink := link.FromFlowProto(pbFlow)
-
-				if serviceLink == nil {
-					continue
-				}
-
-				flags := cache.UpsertServiceLink(serviceLink)
-				if flags.Changed() {
-					log.Infof("Service link changed: %s", serviceLink)
-					linkEvent := eventResponseForLink(serviceLink, flags)
-					drain <- linkEvent
-				}
-			}
+			svcResponses = append(svcResponses, senderEvent)
 		}
 
-		log.Infof("flows sending stopped\n")
+		flags = cache.UpsertService(receiverSvc)
+		if flags.Changed() {
+			log.Infof("Service changed: %v", receiverSvc)
+			receiverEvent := eventResponseForService(receiverSvc, flags)
+
+			svcResponses = append(svcResponses, receiverEvent)
+		}
 	}
 
-	return drain, errch, thread
+	if eventsRequested.ServiceLinks {
+		serviceLink := link.FromFlowProto(pbFlow)
+
+		if serviceLink == nil {
+			return linkResponses, svcResponses
+		}
+
+		flags := cache.UpsertServiceLink(serviceLink)
+		if flags.Changed() {
+			log.Infof("Service link changed: %s", serviceLink)
+			linkEvent := eventResponseForLink(serviceLink, flags)
+
+			linkResponses = append(linkResponses, linkEvent)
+		}
+	}
+
+	return
 }

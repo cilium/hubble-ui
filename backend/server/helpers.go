@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/cilium/hubble-ui/backend/domain/flow"
 	"github.com/cilium/hubble-ui/backend/domain/link"
 	"github.com/cilium/hubble-ui/backend/domain/service"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
@@ -64,6 +65,15 @@ func eventResponseForLink(
 		Node:      f.NodeName,
 		Timestamp: f.Time,
 		Event:     &ui.GetEventsResponse_ServiceLinkState{lstate},
+	}
+}
+
+func eventResponseForFlow(f *flow.Flow) *ui.GetEventsResponse {
+	ref := f.Ref()
+	return &ui.GetEventsResponse{
+		Node:      ref.NodeName,
+		Timestamp: ref.Time,
+		Event:     &ui.GetEventsResponse_Flow{ref},
 	}
 }
 

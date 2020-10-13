@@ -11,7 +11,64 @@ import (
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 	hubbleTime "github.com/cilium/hubble/pkg/time"
 	"github.com/golang/protobuf/ptypes"
+
+	dflow "github.com/cilium/hubble-ui/backend/domain/flow"
 )
+
+func (srv *UIServer) GetFlows(
+	req *ui.GetEventsRequest,
+	responses chan *ui.GetEventsResponse,
+	errors chan error,
+) (context.CancelFunc, error) {
+	// TODO: handle context cancellation
+	ctx, cancel := context.WithCancel(context.Background())
+	flowsRequest := extractFlowsRequest(req)
+
+	var flowStream FlowStream
+	err := srv.RetryIfGrpcUnavailable(func(attempt int) error {
+		if attempt > 0 {
+			log.Warnf("GetFlows: attempt #%d\n", attempt)
+		}
+
+		fs, err := srv.hubbleClient.GetFlows(ctx, flowsRequest)
+		if err != nil {
+			return err
+		}
+
+		flowStream = fs
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+	F:
+		for {
+			select {
+			case <-ctx.Done():
+				break F
+			default:
+				flowResponse, err := flowStream.Recv()
+				if err != nil {
+					errors <- err
+					break F
+				}
+
+				pbFlow := flowResponse.GetFlow()
+				if pbFlow == nil {
+					continue F
+				}
+
+				f := dflow.FromProto(pbFlow)
+				responses <- eventResponseForFlow(f)
+			}
+		}
+	}()
+
+	return cancel, nil
+}
 
 func extractFlowsRequest(req *ui.GetEventsRequest) *observer.GetFlowsRequest {
 	var bl, wl []*flow.FlowFilter
@@ -78,19 +135,4 @@ func extractFlowsRequest(req *ui.GetEventsRequest) *observer.GetFlowsRequest {
 
 	log.Infof("Get flows request: %v", request)
 	return &request
-}
-
-func (srv *UIServer) GetFlows(req *ui.GetEventsRequest) (
-	FlowStream, context.CancelFunc, error,
-) {
-	// TODO: handle context cancellation
-	ctx, cancel := context.WithCancel(context.Background())
-	flowsRequest := extractFlowsRequest(req)
-
-	fs, err := srv.hubbleClient.GetFlows(ctx, flowsRequest)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return fs, cancel, nil
 }

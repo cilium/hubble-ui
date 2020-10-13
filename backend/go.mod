@@ -3,6 +3,7 @@ module github.com/cilium/hubble-ui/backend
 go 1.14
 
 require (
+	github.com/cenkalti/backoff/v4 v4.1.0
 	github.com/cilium/cilium v1.8.3
 	github.com/cilium/hubble v0.6.1
 	github.com/golang/protobuf v1.4.2
