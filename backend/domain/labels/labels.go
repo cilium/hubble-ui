@@ -19,7 +19,7 @@ const (
 )
 
 var (
-	prefixes = []string{"k8s:", "io.kubernetes.pod.", "covalent.io/"}
+	prefixes = []string{"k8s:", "io.kubernetes.pod."}
 	appKeys  = []string{"app", "name", "functionName", "k8s-app"}
 )
 

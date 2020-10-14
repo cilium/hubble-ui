@@ -31,7 +31,7 @@ export class Labels {
   public static readonly prefixes = [
     'k8s:',
     'io.kubernetes.pod.',
-    'covalent.io/',
+    'app.kubernetes.io/',
   ];
 
   public static toKV(label: string, normalize = false): KV {
@@ -84,7 +84,7 @@ export class Labels {
       Labels.findLabelNameByNormalizedKey(labels, [
         'app',
         'name',
-        'functionName',
+        'functionname',
         'k8s-app',
       ])
     );
