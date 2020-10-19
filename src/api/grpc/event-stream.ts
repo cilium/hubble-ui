@@ -9,15 +9,20 @@ import {
   ServiceState,
   ServiceLinkState,
   K8sNamespaceState,
+  Flows as PBFlows,
 } from '~backend/proto/ui/ui_pb';
 
-import { Flow, FlowFilter, EventTypeFilter } from '~backend/proto/flow/flow_pb';
+import {
+  Flow as PBFlow,
+  FlowFilter,
+  EventTypeFilter,
+} from '~backend/proto/flow/flow_pb';
 
 import { HubbleFlow } from '~/domain/hubble';
-import { FlowsFilterDirection, FlowsFilterKind } from '~/domain/flows';
+import { FlowsFilterDirection, FlowsFilterKind, Flow } from '~/domain/flows';
 import { CiliumEventTypes } from '~/domain/cilium';
 import { ReservedLabel, SpecialLabel, Labels } from '~/domain/labels';
-import { Filters } from '~/domain/filtering';
+import { filterFlow, Filters } from '~/domain/filtering';
 import * as dataHelpers from '~/domain/helpers';
 
 import { EventEmitter } from '~/utils/emitter';
@@ -38,8 +43,9 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
   implements IEventStream {
   public static readonly FlowsThrottleDelay: number = 250;
 
+  private filters?: Filters;
   private stream: GRPCEventStream;
-  private flowBuffer: HubbleFlow[] = [];
+  private flowBuffer: Flow[] = [];
   private throttledFlowReceived: () => void = () => {
     return;
   };
@@ -309,10 +315,11 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
     return [wlFilters, blFilters];
   }
 
-  constructor(stream: GRPCEventStream) {
+  constructor(stream: GRPCEventStream, filters?: Filters) {
     super();
 
     this.stream = stream;
+    this.filters = filters;
 
     this.setupThrottledHandlers();
     this.setupEventHandlers();
@@ -320,7 +327,7 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
 
   private setupThrottledHandlers() {
     this.throttledFlowReceived = throttle(() => {
-      this.emit(EventKind.Flows, this.flowBuffer);
+      this.emit(EventKind.Flows, this.flowBuffer.reverse());
       this.flowBuffer = [];
     }, this.flowsDelay);
   }
@@ -334,6 +341,8 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
           return;
         case EventCase.FLOW:
           return this.onFlowReceived(res.getFlow());
+        case EventCase.FLOWS:
+          return this.onFlowsReceived(res.getFlows());
         case EventCase.SERVICE_STATE:
           return this.onServiceReceived(res.getServiceState());
         case EventCase.SERVICE_LINK_STATE:
@@ -356,12 +365,36 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
     });
   }
 
-  private onFlowReceived(flow: Flow | undefined) {
-    if (flow == null) return;
+  private onFlowReceived(pbFlow: PBFlow | undefined) {
+    if (pbFlow == null) return;
 
-    const hubbleFlow = dataHelpers.hubbleFlowFromPb(flow);
+    const flow = dataHelpers.flowFromRelay(
+      dataHelpers.hubbleFlowFromPb(pbFlow),
+    );
 
-    this.flowBuffer.push(hubbleFlow);
+    if (this.filters == null || filterFlow(flow, this.filters)) {
+      this.flowBuffer.push(flow);
+      this.throttledFlowReceived();
+    }
+  }
+
+  private onFlowsReceived(pbFlows: PBFlows | undefined) {
+    if (pbFlows == null) return;
+
+    const pbFlowsList = pbFlows.getFlowsList();
+    if (pbFlowsList.length === 0) return;
+
+    pbFlowsList.forEach(pbFlow => {
+      const flow = dataHelpers.flowFromRelay(
+        dataHelpers.hubbleFlowFromPb(pbFlow),
+      );
+      if (this.filters == null || filterFlow(flow, this.filters)) {
+        this.flowBuffer.push(flow);
+      }
+    });
+
+    if (this.flowBuffer.length === 0) return;
+
     this.throttledFlowReceived();
   }
 
