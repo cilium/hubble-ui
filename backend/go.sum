@@ -88,6 +88,7 @@ github.com/cilium/ebpf v0.0.0-20191113100448-d9fb101ca1fb/go.mod h1:MA5e5Lr8slmE
 github.com/cilium/ebpf v0.0.0-20200612163523-d7bee28bad96/go.mod h1:XT+cAw5wfvsodedcijoh1l9cf7v1x9FlFB/3VmF/O8s=
 github.com/cilium/hubble v0.6.1 h1:xB5NZjNakcn0glHgceuJdLgTqcdeFWl249n7zxKAKSA=
 github.com/cilium/hubble v0.6.1/go.mod h1:oRKm7NbxFcBD/4Lu/BB+Cl8ilr1TXoLaaFpdWARxCq4=
+github.com/cilium/hubble-ui v0.7.2 h1:Vi3uSDsGnodXHm1SNbFj/inQeJHjenMS6B6oWEv1ZsI=
 github.com/cilium/ipam v0.0.0-20200420133938-2f672ef3ad54/go.mod h1:Ascfar4FtgB+K+mwqbZpSb3WVZ5sPFIarg+iAOXNZqI=
 github.com/cilium/kafka v0.0.0-20180809090225-01ce283b732b/go.mod h1:ktgizta3CPZBKz5uW272SJyjiro0vn4nOVP7Pk4RopA=
 github.com/cilium/proxy v0.0.0-20200309181938-3cf80fe45d03/go.mod h1:MsrtgITWuZatZCS715qDH+dp2iaVjOuxnIr8uwja5cM=

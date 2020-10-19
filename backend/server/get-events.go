@@ -1,6 +1,8 @@
 package server
 
 import (
+	"time"
+
 	"github.com/cilium/cilium/api/v1/observer"
 	"github.com/cilium/hubble-ui/backend/domain/flow"
 	"github.com/cilium/hubble-ui/backend/domain/link"
@@ -9,6 +11,7 @@ import (
 
 const (
 	FLOW_EVENT          = ui.EventType_FLOW
+	FLOWS_EVENT         = ui.EventType_FLOWS
 	NS_STATE_EVENT      = ui.EventType_K8S_NAMESPACE_STATE
 	SERVICE_STATE_EVENT = ui.EventType_SERVICE_STATE
 	SERVICE_LINK_EVENT  = ui.EventType_SERVICE_LINK_STATE
@@ -16,13 +19,6 @@ const (
 
 type EventStream = ui.UI_GetEventsServer
 type FlowStream = observer.Observer_GetFlowsClient
-
-type eventFlags struct {
-	Flows        bool
-	Services     bool
-	ServiceLinks bool
-	Namespaces   bool
-}
 
 func (srv *UIServer) GetEvents(
 	req *ui.GetEventsRequest, stream EventStream,
@@ -33,6 +29,7 @@ func (srv *UIServer) GetEvents(
 	}
 
 	cache := srv.dataCache.Empty()
+	flowsLimiter := flow.NewLimiter(500 * time.Millisecond)
 	eventsRequested := getFlagsWhichEventsRequested(req.EventTypes)
 	flowResponses := make(chan *ui.GetEventsResponse)
 	flowErrors := make(chan error)
@@ -77,15 +74,23 @@ F:
 			}
 
 			flowCancel = cancel
+		case flows := <-flowsLimiter.Flushed:
+			flowsResponse := eventResponseFromRawFlows(flows)
+			if flowsResponse == nil {
+				continue
+			}
+
+			log.Infof("sending bunch of flows: %v\n", len(flows))
+			if err := stream.Send(flowsResponse); err != nil {
+				log.Errorf("failed to send buffered flows response: %v\n", err)
+				return err
+			}
 		case flowResponse := <-flowResponses:
 			if flowResponse == nil {
 				break F
 			}
 
-			if err := stream.Send(flowResponse); err != nil {
-				log.Infof("failed to send flow response: %v\n", err)
-				return err
-			}
+			flowsLimiter.Push(flowResponse.GetFlow())
 
 			// NOTE: take links and services from flow
 			links, svcs := extractDerivedEvents(

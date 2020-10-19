@@ -62,7 +62,7 @@ func (srv *UIServer) GetFlows(
 				}
 
 				f := dflow.FromProto(pbFlow)
-				responses <- eventResponseForFlow(f)
+				responses <- eventResponseFromFlow(f)
 			}
 		}
 	}()
