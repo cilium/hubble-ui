@@ -2,7 +2,7 @@ import { EventEmitter } from '~/utils/emitter';
 import { GeneralStreamEvents } from './stream';
 
 import { Verdict, HubbleService, HubbleLink } from '~/domain/hubble';
-import { HubbleFlow, FlowsFilterEntry } from '~/domain/flows';
+import { Flow, FlowsFilterEntry } from '~/domain/flows';
 import { StateChange } from '~/domain/misc';
 
 export interface EventParams {
@@ -14,12 +14,14 @@ export interface EventParams {
 
 export const EventParamsSet = {
   All: {
+    flow: false,
     flows: true,
     namespaces: true,
     services: true,
     serviceLinks: true,
   },
   Namespaces: {
+    flow: false,
     flows: false,
     namespaces: true,
     services: false,
@@ -28,6 +30,7 @@ export const EventParamsSet = {
 };
 
 export enum EventKind {
+  Flow = 'flow',
   Flows = 'flows',
   Namespace = 'namespace',
   Service = 'service',
@@ -50,7 +53,7 @@ export interface ServiceLinkChange {
 }
 
 export type EventStreamHandlers = GeneralStreamEvents & {
-  [EventKind.Flows]: (_: HubbleFlow[]) => void;
+  [EventKind.Flows]: (_: Flow[]) => void;
   [EventKind.Namespace]: (_: NamespaceChange) => void;
   [EventKind.Service]: (_: ServiceChange) => void;
   [EventKind.ServiceLink]: (_: ServiceLinkChange) => void;

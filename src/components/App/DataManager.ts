@@ -164,17 +164,8 @@ export class DataManager extends EventEmitter<Events> {
       frame.applyServiceChange(svcChange.service, svcChange.change);
     });
 
-    stream.on(EventStreamEventKind.Flows, (hubbleFlows: HubbleFlow[]) => {
-      const preparedFlows = hubbleFlows
-        .reverse()
-        .reduce<Flow[]>((acc, hubbleFlow) => {
-          const flow = flowFromRelay(hubbleFlow);
-          if (filters == null || filterFlow(flow, filters)) acc.push(flow);
-          return acc;
-        }, []);
-
-      const { flowsDiffCount } = frame.addFlows(preparedFlows);
-
+    stream.on(EventStreamEventKind.Flows, (flows: Flow[]) => {
+      const { flowsDiffCount } = frame.addFlows(flows);
       this.emit(EventKind.FlowsDiff, frame, flowsDiffCount);
     });
 
