@@ -1,6 +1,7 @@
 package server
 
 import (
+	pbFlow "github.com/cilium/cilium/api/v1/flow"
 	"github.com/cilium/hubble-ui/backend/domain/flow"
 	"github.com/cilium/hubble-ui/backend/domain/link"
 	"github.com/cilium/hubble-ui/backend/domain/service"
@@ -12,6 +13,10 @@ func getFlagsWhichEventsRequested(events []ui.EventType) *eventFlags {
 
 	for _, event := range events {
 		if event == FLOW_EVENT {
+			flags.Flow = true
+		}
+
+		if event == FLOWS_EVENT {
 			flags.Flows = true
 		}
 
@@ -29,10 +34,6 @@ func getFlagsWhichEventsRequested(events []ui.EventType) *eventFlags {
 	}
 
 	return flags
-}
-
-func (ef *eventFlags) FlowsRequired() bool {
-	return ef.Flows || ef.Services || ef.ServiceLinks
 }
 
 func eventResponseForService(
@@ -68,12 +69,30 @@ func eventResponseForLink(
 	}
 }
 
-func eventResponseForFlow(f *flow.Flow) *ui.GetEventsResponse {
+func eventResponseFromFlow(f *flow.Flow) *ui.GetEventsResponse {
 	ref := f.Ref()
 	return &ui.GetEventsResponse{
 		Node:      ref.NodeName,
 		Timestamp: ref.Time,
 		Event:     &ui.GetEventsResponse_Flow{ref},
+	}
+}
+
+func eventResponseFromRawFlows(flows []*pbFlow.Flow) *ui.GetEventsResponse {
+	n := len(flows)
+	if n == 0 {
+		return nil
+	}
+
+	ref := flows[n-1]
+	return &ui.GetEventsResponse{
+		Node:      ref.NodeName,
+		Timestamp: ref.Time,
+		Event: &ui.GetEventsResponse_Flows{
+			Flows: &ui.Flows{
+				Flows: flows,
+			},
+		},
 	}
 }
 

@@ -70,6 +70,11 @@ export class GetEventsResponse extends jspb.Message {
   hasServiceLinkState(): boolean;
   clearServiceLinkState(): GetEventsResponse;
 
+  getFlows(): Flows | undefined;
+  setFlows(value?: Flows): GetEventsResponse;
+  hasFlows(): boolean;
+  clearFlows(): GetEventsResponse;
+
   getEventCase(): GetEventsResponse.EventCase;
 
   serializeBinary(): Uint8Array;
@@ -88,6 +93,7 @@ export namespace GetEventsResponse {
     k8sNamespaceState?: K8sNamespaceState.AsObject,
     serviceState?: ServiceState.AsObject,
     serviceLinkState?: ServiceLinkState.AsObject,
+    flows?: Flows.AsObject,
   }
 
   export enum EventCase { 
@@ -96,6 +102,27 @@ export namespace GetEventsResponse {
     K8S_NAMESPACE_STATE = 4,
     SERVICE_STATE = 5,
     SERVICE_LINK_STATE = 6,
+    FLOWS = 7,
+  }
+}
+
+export class Flows extends jspb.Message {
+  getFlowsList(): Array<flow_flow_pb.Flow>;
+  setFlowsList(value: Array<flow_flow_pb.Flow>): Flows;
+  clearFlowsList(): Flows;
+  addFlows(value?: flow_flow_pb.Flow, index?: number): flow_flow_pb.Flow;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Flows.AsObject;
+  static toObject(includeInstance: boolean, msg: Flows): Flows.AsObject;
+  static serializeBinaryToWriter(message: Flows, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Flows;
+  static deserializeBinaryFromReader(message: Flows, reader: jspb.BinaryReader): Flows;
+}
+
+export namespace Flows {
+  export type AsObject = {
+    flowsList: Array<flow_flow_pb.Flow.AsObject>,
   }
 }
 
@@ -398,6 +425,7 @@ export enum EventType {
   K8S_NAMESPACE_STATE = 2,
   SERVICE_STATE = 3,
   SERVICE_LINK_STATE = 4,
+  FLOWS = 5,
 }
 export enum IPProtocol { 
   UNKNOWN_IP_PROTOCOL = 0,
