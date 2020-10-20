@@ -133,7 +133,8 @@ export class StoreFrame {
 
   @action.bound
   applyFrame(rhs: StoreFrame, filters: Filters): this {
-    const allowedServiceIds: Set<string> = new Set();
+    debugger;
+    const allowedCardIds: Set<string> = new Set();
 
     const flows: Flow[] = [];
     const links: Link[] = [];
@@ -147,14 +148,15 @@ export class StoreFrame {
 
     rhs.services.cardsList.forEach((card: ServiceCard) => {
       if (!filterService(card, filters)) return;
-      allowedServiceIds.add(card.id);
+      allowedCardIds.add(card.id);
     });
 
+    console.log('allowedCardIds: ', allowedCardIds);
     const connections = rhs.interactions.connections;
-    allowedServiceIds.forEach(svcId => {
+    allowedCardIds.forEach(svcId => {
       const card = rhs.services.cardsMap.get(svcId);
       if (card == null) {
-        allowedServiceIds.delete(svcId);
+        allowedCardIds.delete(svcId);
         return;
       }
 
@@ -165,10 +167,11 @@ export class StoreFrame {
       const incomings = connections.incomings.get(svcId);
 
       // NOTE: iteratte only by incomings cz in the end of outer cycle
-      // NOTE: on allowedServiceIds, all links will be traversed
-      incomings?.forEach(senders => {
-        senders.forEach((link, senderId) => {
-          if (!allowedServiceIds.has(senderId)) return;
+      // NOTE: on allowedCardIds, all links will be traversed
+      incomings?.forEach((linkProps, senderId) => {
+        if (!allowedCardIds.has(senderId)) return;
+
+        linkProps.forEach((link, apId) => {
           if (filters.skipKubeDns && card.isKubeDNS && link.isDNSRequest)
             return;
 
@@ -183,6 +186,7 @@ export class StoreFrame {
       });
 
       if (cardShouldBeSkipped) return;
+      console.log('adding card to frame: ', cloned);
       this.services.addNewCard(cloned);
 
       if (rhs.services.isCardActive(svcId)) {
