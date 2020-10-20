@@ -6,6 +6,7 @@ import { Flow, FlowsFilterEntry } from '~/domain/flows';
 import { StateChange } from '~/domain/misc';
 
 export interface EventParams {
+  flow?: boolean;
   flows?: boolean;
   namespaces?: boolean;
   services?: boolean;
@@ -53,6 +54,7 @@ export interface ServiceLinkChange {
 }
 
 export type EventStreamHandlers = GeneralStreamEvents & {
+  [EventKind.Flow]: (_: Flow) => void;
   [EventKind.Flows]: (_: Flow[]) => void;
   [EventKind.Namespace]: (_: NamespaceChange) => void;
   [EventKind.Service]: (_: ServiceChange) => void;

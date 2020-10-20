@@ -56,9 +56,12 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
     filters?: Filters,
   ): GetEventsRequest {
     const req = new GetEventsRequest();
+    if (opts.flow) {
+      req.addEventTypes(EventType.FLOW);
+    }
 
     if (opts.flows) {
-      req.addEventTypes(EventType.FLOW);
+      req.addEventTypes(EventType.FLOWS);
     }
 
     if (opts.namespaces) {
