@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { action, observable, computed } from 'mobx';
 
 import { AbstractCard } from '~/domain/cards';
 import { HubbleService } from '~/domain/hubble';
@@ -13,6 +14,8 @@ export class ServiceCard extends AbstractCard {
   public static readonly AppLabel = 'k8s:app';
 
   private _labelsProps: LabelsProps | null;
+
+  @observable
   private _accessPoints: Map<string, AccessPoint>;
 
   public service: HubbleService;
@@ -29,6 +32,7 @@ export class ServiceCard extends AbstractCard {
     return this.service.id;
   }
 
+  @computed
   public get accessPoints(): Map<string, AccessPoint> {
     return new Map(this._accessPoints);
   }
@@ -37,6 +41,7 @@ export class ServiceCard extends AbstractCard {
     return new ServiceCard(srvc);
   }
 
+  @action.bound
   public addAccessPoint(ap: AccessPoint) {
     if (this._accessPoints.get(ap.id) != null) return;
 
