@@ -51,18 +51,32 @@ func IdsFromFlowProto(f *pbFlow.Flow) (string, string) {
 	return senderSvcId, receiverSvcId
 }
 
-// TODO: its not ok to have this code here
-func (s *Service) ToProto() *pbUi.Service {
-	serviceId := s.Id()
-
-	serviceName := fmt.Sprintf("%v", serviceId)
-	if s.LabelProps.AppName != nil {
-		serviceName = *s.LabelProps.AppName
+func (s *Service) String() string {
+	side := "Unknown"
+	if s.isSender {
+		side = "Sender"
 	}
 
+	if s.isReceiver {
+		side = "Receiver"
+	}
+
+	return fmt.Sprintf(
+		"<%s %p, id: '%v', name: '%v', namespace: '%v', from flow: %p>",
+		side,
+		s,
+		s.Id(),
+		s.Name(),
+		s.endpoint.Namespace,
+		s.flowRef,
+	)
+}
+
+// TODO: its not ok to have this code here
+func (s *Service) ToProto() *pbUi.Service {
 	return &pbUi.Service{
-		Id:                     serviceId,
-		Name:                   serviceName,
+		Id:                     s.Id(),
+		Name:                   s.Name(),
 		Namespace:              s.endpoint.Namespace,
 		Labels:                 s.endpoint.Labels,
 		DnsNames:               s.dnsNames,
@@ -71,6 +85,16 @@ func (s *Service) ToProto() *pbUi.Service {
 		VisibilityPolicyStatus: "",
 		CreationTimestamp:      ptypes.TimestampNow(),
 	}
+}
+
+func (s *Service) Name() string {
+	serviceName := fmt.Sprintf("%v", s.Id())
+
+	if s.LabelProps.AppName != nil {
+		serviceName = *s.LabelProps.AppName
+	}
+
+	return serviceName
 }
 
 func (s *Service) SetIsSender(state bool) {
