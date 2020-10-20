@@ -155,7 +155,7 @@ func extractDerivedEvents(
 
 		flags := cache.UpsertService(senderSvc)
 		if flags.Changed() {
-			log.Infof("Service changed: %v", senderSvc)
+			log.Infof("Service changed: %s", senderSvc)
 			senderEvent := eventResponseForService(senderSvc, flags)
 
 			svcResponses = append(svcResponses, senderEvent)
@@ -163,7 +163,7 @@ func extractDerivedEvents(
 
 		flags = cache.UpsertService(receiverSvc)
 		if flags.Changed() {
-			log.Infof("Service changed: %v", receiverSvc)
+			log.Infof("Service changed: %s", receiverSvc)
 			receiverEvent := eventResponseForService(receiverSvc, flags)
 
 			svcResponses = append(svcResponses, receiverEvent)
