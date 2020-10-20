@@ -8,6 +8,7 @@ import React, {
 
 import { Vec2 } from '~/domain/geometry';
 import { IPProtocol } from '~/domain/hubble';
+import { tooSmall } from '~/domain/misc';
 
 import css from './styles.scss';
 
@@ -30,6 +31,9 @@ export const Component: FunctionComponent<Props> = props => {
   useEffect(() => {
     const container = imgContainer.current;
     if (!container) return;
+
+    const box = container.getBoundingClientRect();
+    if (tooSmall(box.x + box.width)) return;
 
     props.onConnectorReady?.(accessPointId, () => {
       const box = container.getBoundingClientRect();

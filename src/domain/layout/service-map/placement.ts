@@ -103,6 +103,7 @@ export class ServiceMapPlacementStrategy extends PlacementStrategy {
 
   @action
   private buildPlacement() {
+    // console.log(`ServiceMapPlacementStrategy::buildPlacement`);
     this.cardsPlacement.forEach((plcEntry: PlacementEntry, cardId: string) => {
       this.cardsXYs.set(cardId, plcEntry.geometry);
     });

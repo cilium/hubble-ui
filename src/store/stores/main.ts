@@ -118,16 +118,23 @@ export class Store {
   squashFrames() {
     if (this._frames.length <= 1) return;
 
-    const target = this.mainFrame;
-    this._frames.forEach((frame: StoreFrame, i: number) => {
-      if (i === 0) return; // Skip main frame
+    // const target = this.mainFrame;
+    // this._frames.forEach((frame: StoreFrame, i: number) => {
+    //   if (i === 0) return; // Skip main frame
 
-      // NOTE: this methods implements move semantics, thus doesnt .clone()
-      frame.moveServices(target);
-      frame.moveServiceLinks(target);
+    //   // NOTE: this methods implements move semantics, thus doesnt .clone()
+    //   frame.moveServices(target);
+    //   frame.moveServiceLinks(target);
+    // });
+
+    // console.log(target.services.cardsList.find(c => c.caption === 'kube-dns')?.accessPoints);
+    // this._frames.splice(1, this._frames.length);
+    const squashed = this.mainFrame.cloneEmpty();
+    this._frames.forEach(f => {
+      squashed.applyFrame(f, this.controls.filters);
     });
 
-    this._frames.splice(1, this._frames.length);
+    this._frames = [squashed];
   }
 
   @action.bound
@@ -346,9 +353,9 @@ export class Store {
       printMapData: () => {
         this.printMapData();
       },
-      // printLayoutData: () => {
-      //   this.printLayoutData();
-      // },
+      printLayoutData: () => {
+        this.printLayoutData();
+      },
     });
   }
 
@@ -381,12 +388,18 @@ export class Store {
     console.log(JSON.stringify(data, null, 2));
   }
 
-  // @action.bound
-  // private printLayoutData() {
-  //   const data = this.currentFrame.layout.debugData;
+  @action.bound
+  private printLayoutData() {
+    const data = {
+      cardsBBoxes: this.currentFrame.placement.cardsBBoxes,
+      accessPointCoords: this.currentFrame.placement.accessPointCoords,
+      arrows: this.currentFrame.arrows.arrowsMap,
+      connections: this.currentFrame.interactions.connections,
+    };
 
-  //   console.log(JSON.stringify(data, null, 2));
-  // }
+    console.log(JSON.stringify(data, null, 2));
+    console.log(data);
+  }
 
   @computed
   get mainFrame(): StoreFrame {

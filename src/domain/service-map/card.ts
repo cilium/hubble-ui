@@ -3,6 +3,7 @@ import { action, observable, computed } from 'mobx';
 
 import { AbstractCard } from '~/domain/cards';
 import { HubbleService } from '~/domain/hubble';
+import { Link } from '~/domain/link';
 import { Labels, LabelsProps } from '~/domain/labels';
 import { KV } from '~/domain/misc';
 
@@ -46,6 +47,18 @@ export class ServiceCard extends AbstractCard {
     if (this._accessPoints.get(ap.id) != null) return;
 
     this._accessPoints.set(ap.id, ap);
+  }
+
+  @action.bound
+  public addAccessPointFromLink(link: Link) {
+    const ap = AccessPoint.fromLink(link.hubbleLink);
+    return this.addAccessPoint(ap);
+  }
+
+  @action.bound
+  public dropAccessPoints(): this {
+    this._accessPoints = new Map();
+    return this;
   }
 
   public clone(): ServiceCard {

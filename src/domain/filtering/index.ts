@@ -63,7 +63,7 @@ export const filterLink = (link: Link, filters: Filters): boolean => {
 
 export const filterService = (svc: ServiceCard, filters: Filters): boolean => {
   if (filters.skipHost && svc.isHost) return false;
-  if (filters.skipKubeDns && svc.isKubeDNS) return false;
+  // if (filters.skipKubeDns && svc.isKubeDNS) return false;
   if (filters.skipRemoteNode && svc.isRemoteNode) return false;
   if (filters.skipRemoteNode && svc.isPrometheusApp) return false;
 

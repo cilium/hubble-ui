@@ -1,4 +1,4 @@
-import { HubbleLink, Verdict } from '~/domain/hubble';
+import { HubbleLink, Verdict, IPProtocol } from '~/domain/hubble';
 
 export class Link {
   private ref: HubbleLink;
@@ -49,5 +49,9 @@ export class Link {
 
   public get destinationPort() {
     return this.ref.destinationPort;
+  }
+
+  public get isDNSRequest() {
+    return this.ipProtocol === IPProtocol.UDP && this.destinationPort === 53;
   }
 }
