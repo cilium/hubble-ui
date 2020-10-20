@@ -27,6 +27,22 @@ func FromFlowProto(f *pbFlow.Flow) *Link {
 	}
 
 	srcId, destId := service.IdsFromFlowProto(f)
+	destPort, ipProtocol := portProtocolFromFlow(f)
+	linkId := linkIdFromParts(srcId, destId, destPort, ipProtocol)
+
+	return &Link{
+		Id:              linkId,
+		SourceId:        srcId,
+		DestinationId:   destId,
+		DestinationPort: destPort,
+		Verdict:         f.Verdict,
+		IPProtocol:      ipProtocol,
+
+		ref: f,
+	}
+}
+
+func portProtocolFromFlow(f *pbFlow.Flow) (uint32, ui.IPProtocol) {
 	destPort := uint32(0)
 	ipProtocol := ui.IPProtocol_UNKNOWN_IP_PROTOCOL
 
@@ -48,19 +64,35 @@ func FromFlowProto(f *pbFlow.Flow) *Link {
 		ipProtocol = ui.IPProtocol_ICMP_V6
 	}
 
-	protocolStr := ui.IPProtocol_name[int32(ipProtocol)]
-	linkId := fmt.Sprintf("%v %v %v:%v", srcId, protocolStr, destId, destPort)
+	return destPort, ipProtocol
+}
 
-	return &Link{
-		Id:              linkId,
-		SourceId:        srcId,
-		DestinationId:   destId,
-		DestinationPort: destPort,
-		Verdict:         f.Verdict,
-		IPProtocol:      ipProtocol,
+func linkIdFromParts(srcId, dstId string, port uint32, proto ui.IPProtocol) string {
+	protocolStr := ui.IPProtocol_name[int32(proto)]
+	linkId := fmt.Sprintf(
+		"%v %v %v:%v",
+		srcId,
+		protocolStr,
+		dstId,
+		port,
+	)
 
-		ref: f,
-	}
+	return linkId
+}
+
+func (l *Link) String() string {
+	return fmt.Sprintf(
+		"<Link %p, %s '%v' (ns: '%s') -> '%v':%v (ns: '%s') (%v), from flow %p>",
+		l,
+		ui.IPProtocol_name[int32(l.IPProtocol)],
+		l.SourceId,
+		l.ref.Source.Namespace,
+		l.DestinationId,
+		l.DestinationPort,
+		l.ref.Destination.Namespace,
+		pbFlow.Verdict_name[int32(l.Verdict)],
+		l.ref,
+	)
 }
 
 func (l *Link) ToProto() *ui.ServiceLink {
