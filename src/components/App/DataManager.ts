@@ -98,7 +98,11 @@ export class DataManager extends EventEmitter<Events> {
     const store = this.store;
     const streamParams = store.controls.filters.clone().setNamespace(namespace);
 
-    const secondaryFrame = store.currentFrame.filter(streamParams);
+    // const secondaryFrame = store.currentFrame.filter(streamParams);
+    const secondaryFrame = store
+      .createFrame()
+      .applyFrame(store.currentFrame, streamParams);
+    // debugger;
     store.pushFrame(secondaryFrame);
 
     const stream = this.api.v1.getEventStream(EventParamsSet.All, streamParams);
@@ -111,6 +115,7 @@ export class DataManager extends EventEmitter<Events> {
 
   public dropFilteringFrame() {
     if (this.filteringStream == null) return;
+    console.log('DataManager::dropFilteringFrame');
 
     this.filteringStream.stream.stop();
     this.offAllStreamEvents(this.filteringStream.stream);

@@ -10,7 +10,12 @@ import {
   ServiceMapArrowStrategy,
 } from '~/domain/layout/service-map';
 
-import { Filters, filterFlow, filterService } from '~/domain/filtering';
+import {
+  Filters,
+  filterFlow,
+  filterService,
+  filterLink,
+} from '~/domain/filtering';
 import { Link } from '~/domain/service-map';
 import { HubbleService, HubbleLink } from '~/domain/hubble';
 import { StateChange } from '~/domain/misc';
@@ -33,6 +38,10 @@ export class StoreFrame {
 
   @observable
   public arrows: ServiceMapArrowStrategy;
+
+  public static empty(controls: ControlStore): StoreFrame {
+    return new StoreFrame(new InteractionStore(), new ServiceStore(), controls);
+  }
 
   constructor(
     interactions: InteractionStore,
@@ -123,6 +132,72 @@ export class StoreFrame {
   }
 
   @action.bound
+  applyFrame(rhs: StoreFrame, filters: Filters): this {
+    const allowedServiceIds: Set<string> = new Set();
+
+    const flows: Flow[] = [];
+    const links: Link[] = [];
+
+    rhs.interactions.flows.forEach(f => {
+      const passed = filterFlow(f, filters);
+      if (!passed) return;
+
+      flows.push(f.clone());
+    });
+
+    rhs.services.cardsList.forEach((card: ServiceCard) => {
+      if (!filterService(card, filters)) return;
+      allowedServiceIds.add(card.id);
+    });
+
+    const connections = rhs.interactions.connections;
+    allowedServiceIds.forEach(svcId => {
+      const card = rhs.services.cardsMap.get(svcId);
+      if (card == null) {
+        allowedServiceIds.delete(svcId);
+        return;
+      }
+
+      const cloned = card.clone().dropAccessPoints();
+      let cardShouldBeSkipped = true;
+
+      const outgoings = connections.outgoings.get(svcId);
+      const incomings = connections.incomings.get(svcId);
+
+      // NOTE: iteratte only by incomings cz in the end of outer cycle
+      // NOTE: on allowedServiceIds, all links will be traversed
+      incomings?.forEach(senders => {
+        senders.forEach((link, senderId) => {
+          if (!allowedServiceIds.has(senderId)) return;
+          if (filters.skipKubeDns && card.isKubeDNS && link.isDNSRequest)
+            return;
+
+          const passed = filterLink(link, filters);
+          if (!passed) return;
+
+          // NOTE: only add AP to cloned (allowed) card
+          cloned.addAccessPointFromLink(link);
+          links.push(link.clone());
+          cardShouldBeSkipped = false;
+        });
+      });
+
+      if (cardShouldBeSkipped) return;
+      this.services.addNewCard(cloned);
+
+      if (rhs.services.isCardActive(svcId)) {
+        this.services.setActive(svcId);
+      }
+    });
+
+    this.interactions.addFlows(flows);
+    this.interactions.addLinks(links);
+
+    return this;
+  }
+
+  // TODO: consider this method to delete
+  @action.bound
   filter(filters: Filters): StoreFrame {
     const services = new ServiceStore();
     const interactions = new InteractionStore();
@@ -133,20 +208,27 @@ export class StoreFrame {
     const allowedLinkIds: Set<string> = new Set();
 
     const extractServiceAndLinks = (obj: Map<string, Map<string, Link>>) => {
-      obj?.forEach((accessPointsMap, serviceId: string) => {
+      obj.forEach((accessPointsMap, serviceId: string) => {
         const svc = this.services.cardsMap.get(serviceId);
         if (!svc) return;
 
         if (filters.skipHost && svc.isHost) return;
-        if (filters.skipKubeDns && svc.isKubeDNS) return;
+        // if (filters.skipKubeDns && svc.isKubeDNS) return;
         if (filters.skipRemoteNode && svc.isRemoteNode) return;
         if (filters.skipPrometheusApp && svc.isPrometheusApp) return;
 
-        services.addNewCard(svc);
-
+        let onlyKubeDNSLinks = true;
         accessPointsMap.forEach((link: Link, accessPointId: string) => {
+          if (filters.skipKubeDns && svc.isKubeDNS && link.isDNSRequest) {
+            return;
+          }
+
+          onlyKubeDNSLinks = false;
           allowedLinkIds.add(link.id);
         });
+
+        if (onlyKubeDNSLinks && filters.skipKubeDns) return;
+        services.addNewCard(svc);
       });
     };
 
@@ -159,9 +241,8 @@ export class StoreFrame {
     const connections = this.interactions.connections;
     this.services.cardsList.forEach((card: ServiceCard) => {
       if (!filterService(card, filters)) return;
-
       // NOTE: card.id might be not simple identity (number)
-      services.addNewCard(card.clone());
+      // services.addNewCard(card.clone());
       allowedServiceIds.add(card.id);
 
       if (this.services.isCardActive(card.id)) {
@@ -183,7 +264,7 @@ export class StoreFrame {
       const link = this.interactions.linksMap.get(linkId);
       if (!link) return;
 
-      links.push(_.cloneDeep(link));
+      links.push(link.clone());
     });
 
     interactions.setFlows(flows, { sort: true });
@@ -196,6 +277,14 @@ export class StoreFrame {
     return new StoreFrame(
       this.interactions.clone(),
       this.services.clone(),
+      this.controls,
+    );
+  }
+
+  cloneEmpty() {
+    return new StoreFrame(
+      new InteractionStore(),
+      new ServiceStore(),
       this.controls,
     );
   }

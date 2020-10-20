@@ -102,7 +102,7 @@ export default class InteractionStore {
   }
 
   @action.bound
-  addFlows(flows: Flow[]) {
+  public addFlows(flows: Flow[]) {
     this._flows = _(flows)
       .concat(this._flows)
       .uniqBy(f => f.id)
@@ -114,6 +114,13 @@ export default class InteractionStore {
       flowsTotalCount: this._flows.length,
       flowsDiffCount: flows.length,
     };
+  }
+
+  @action.bound
+  public addLinks(links: Link[]) {
+    links.forEach(link => {
+      this.addLink(link.hubbleLink);
+    });
   }
 
   @action.bound

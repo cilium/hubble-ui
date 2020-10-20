@@ -451,6 +451,7 @@ const calcDirections = (points: Vec2[]): [Vec2, Vec2] => {
 };
 
 const manageArrows = (arrows: ArrowPathsMap, g: SVGGElement) => {
+  // console.log(`ArrowsRenderer::manageArrows`);
   const rootGroup = d3.select(g);
   const startFiguresGroup = rootGroup.select('.start-figures');
   const endFiguresGroup = rootGroup.select('.end-figures');

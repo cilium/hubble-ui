@@ -1,4 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { observer } from 'mobx-react';
 
 import { AccessPoint, CenterGetter } from '~/components/AccessPoint';
 import { EndpointCardHeader } from '~/components/EndpointCardHeader';
@@ -22,7 +23,7 @@ import css from './styles.scss';
 
 export type Props = CardComponentProps<ServiceCard>;
 
-export const ServiceMapCard = memo(function ServiceMapCard(props: Props) {
+export const ServiceMapCard = observer(function ServiceMapCard(props: Props) {
   const [coordsFn, setCoordsFn] = useState<CoordsFn | null>(() => null);
 
   const centerGetters = useMemo((): Map<string, CenterGetter> => {
@@ -46,7 +47,9 @@ export const ServiceMapCard = memo(function ServiceMapCard(props: Props) {
 
     centerGetters.forEach((cg: CenterGetter, apId: string) => {
       const connectorCenterCoords = cg();
+      // console.log(`connectorCenterCoords of ${apId}: `, connectorCenterCoords);
       const [_, svgCoords] = coordsFn(connectorCenterCoords);
+      // console.log(`svgCoords of ${apId}: `, svgCoords);
 
       props.onAccessPointCoords?.(apId, Vec2.fromXY(svgCoords));
     });

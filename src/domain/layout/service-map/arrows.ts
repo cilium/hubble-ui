@@ -53,6 +53,7 @@ export class ServiceMapArrowStrategy extends ArrowStrategy {
 
   @action.bound
   private rebuildArrowsMap() {
+    // console.log(`ServiceMapArrowStrategy::rebuildArrowsMap`);
     this.arrows.clear();
     this.arrowsMap.forEach((arrow, arrowId) => {
       this.arrows.set(arrowId, arrow);
