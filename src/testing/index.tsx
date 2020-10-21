@@ -5,6 +5,7 @@ import { StoreProvider } from '~/store';
 import { RouteHistorySourceKind } from '~/store/stores/route';
 import { NotifierProvider } from '~/notifier';
 import * as data from './data';
+import * as helpers from './helpers';
 
 const AllProviders: FunctionComponent = ({ children }) => {
   return (
@@ -23,4 +24,4 @@ const customRender = (
 
 export * from '@testing-library/react';
 export { React, customRender as render };
-export { data };
+export { data, helpers };

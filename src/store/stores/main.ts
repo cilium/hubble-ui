@@ -118,17 +118,6 @@ export class Store {
   squashFrames() {
     if (this._frames.length <= 1) return;
 
-    // const target = this.mainFrame;
-    // this._frames.forEach((frame: StoreFrame, i: number) => {
-    //   if (i === 0) return; // Skip main frame
-
-    //   // NOTE: this methods implements move semantics, thus doesnt .clone()
-    //   frame.moveServices(target);
-    //   frame.moveServiceLinks(target);
-    // });
-
-    // console.log(target.services.cardsList.find(c => c.caption === 'kube-dns')?.accessPoints);
-    // this._frames.splice(1, this._frames.length);
     const squashed = this.mainFrame.cloneEmpty();
     this._frames.forEach(f => {
       squashed.applyFrame(f, this.controls.filters);
