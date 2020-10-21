@@ -132,7 +132,6 @@ export class StoreFrame {
 
   @action.bound
   applyFrame(rhs: StoreFrame, filters: Filters): this {
-    debugger;
     const allowedCardIds: Set<string> = new Set();
 
     const flows: Flow[] = [];
