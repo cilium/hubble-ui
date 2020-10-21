@@ -103,34 +103,36 @@ export class ServiceMapPlacementStrategy extends PlacementStrategy {
 
   @action
   private buildPlacement() {
-    // console.log(`ServiceMapPlacementStrategy::buildPlacement`);
     this.cardsPlacement.forEach((plcEntry: PlacementEntry, cardId: string) => {
       this.cardsXYs.set(cardId, plcEntry.geometry);
     });
   }
 
-  private cardsBBox(filterFn: PlacementFilter = _.identity): XYWH | null {
-    const bbox = geom.xywh(Infinity, Infinity);
+  @computed
+  private get cardsBBox(): (_: PlacementFilter) => XYWH | null {
+    return (filterFn: PlacementFilter = _.identity) => {
+      const bbox = geom.xywh(Infinity, Infinity);
 
-    this.cardsPlacement.forEach((e: PlacementEntry) => {
-      if (!filterFn(e)) return;
+      this.cardsPlacement.forEach((e: PlacementEntry) => {
+        if (!filterFn(e)) return;
 
-      const { x, y, w, h } = e.geometry;
+        const { x, y, w, h } = e.geometry;
 
-      bbox.x = Math.min(bbox.x, x);
-      bbox.y = Math.min(bbox.y, y);
+        bbox.x = Math.min(bbox.x, x);
+        bbox.y = Math.min(bbox.y, y);
 
-      // Temporarily store here maxX, maxY for a while
-      bbox.w = Math.max(bbox.w, x + w);
-      bbox.h = Math.max(bbox.h, y + h);
-    });
+        // Temporarily store here maxX, maxY for a while
+        bbox.w = Math.max(bbox.w, x + w);
+        bbox.h = Math.max(bbox.h, y + h);
+      });
 
-    if (!bbox.isFinite) return null;
+      if (!bbox.isFinite) return null;
 
-    bbox.w -= bbox.x;
-    bbox.h -= bbox.y;
+      bbox.w -= bbox.x;
+      bbox.h -= bbox.y;
 
-    return bbox;
+      return bbox;
+    };
   }
 
   @computed
