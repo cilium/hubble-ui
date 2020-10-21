@@ -226,7 +226,7 @@ describe('filterService', () => {
     });
 
     const stay = filterService(kubeDns, filters);
-    expect(stay).toBe(false);
+    expect(stay).toBe(true);
   });
 
   testFilterEntry(

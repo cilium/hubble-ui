@@ -1,6 +1,6 @@
 import { HubbleService, IPProtocol, Verdict } from '~/domain/hubble';
 import { Link } from '~/domain/link';
-import { Labels, ReservedLabel, SpecialLabel } from '~/domain/labels';
+import { Labels, ReservedLabel, SpecialLabel, KV } from '~/domain/labels';
 import { msToPbTimestamp } from '~/domain/helpers';
 
 const restOfService = {
@@ -57,4 +57,23 @@ export const kubeDNS: HubbleService = {
   labels: [Labels.toKV(SpecialLabel.KubeDNS)],
   dnsNames: [],
   ...restOfService,
+};
+
+const replaceNsLabel = (lbls: KV[], newNs = 'same-namespace') => {
+  return lbls
+    .filter(l => l.key != 'k8s:namespace')
+    .concat([{ key: 'k8s:namespace', value: newNs }]);
+};
+
+export const sameNamespace = {
+  regular: {
+    ...regular,
+    namespace: 'same-namespace',
+    labels: replaceNsLabel(regular.labels),
+  },
+  kubeDNS: {
+    ...kubeDNS,
+    namespace: 'same-namespace',
+    labels: replaceNsLabel(kubeDNS.labels),
+  },
 };

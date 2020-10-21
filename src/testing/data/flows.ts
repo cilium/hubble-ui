@@ -192,6 +192,16 @@ export const fromToKubeDNS: HubbleFlow = {
   } as Endpoint,
 };
 
+export const toKubsDNS53: HubbleFlow = {
+  ...toKubeDNS,
+  l4: {
+    udp: {
+      destinationPort: 53,
+      sourcePort: 56789,
+    },
+  },
+};
+
 export const fromHost: HubbleFlow = {
   ...hubbleOne,
   source: {

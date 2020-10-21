@@ -12,6 +12,7 @@ export default class ControlStore {
   @observable currentNamespace: string | null = null;
   @observable selectedTableFlow: Flow | null = null;
   @observable showCrossNamespaceActivity = true;
+
   @observable verdict: Verdict | null = null;
   @observable httpStatus: string | null = null;
   @observable flowFilters: FlowsFilterEntry[] = [];
@@ -138,6 +139,18 @@ export default class ControlStore {
   @action.bound
   toggleShowPrometheusApp(): boolean {
     return this.setShowPrometheusApp(!this.showPrometheusApp);
+  }
+
+  @action.bound
+  setFilters(f: Filters) {
+    this.currentNamespace = f.namespace ?? null;
+    this.verdict = f.verdict ?? null;
+    this.httpStatus = f.httpStatus ?? null;
+    this.flowFilters = f.filters || [];
+    this.showHost = !f.skipHost;
+    this.showKubeDns = !f.skipKubeDns;
+    this.showRemoteNode = !f.skipRemoteNode;
+    this.showPrometheusApp = !f.skipPrometheusApp;
   }
 
   @computed

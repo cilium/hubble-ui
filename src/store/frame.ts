@@ -16,10 +16,9 @@ import {
   filterService,
   filterLink,
 } from '~/domain/filtering';
-import { Link } from '~/domain/service-map';
 import { HubbleService, HubbleLink } from '~/domain/hubble';
 import { StateChange } from '~/domain/misc';
-import { ServiceCard } from '~/domain/service-map';
+import { ServiceCard, Link } from '~/domain/service-map';
 import { Flow } from '~/domain/flows';
 import { Vec2 } from '~/domain/geometry';
 
@@ -151,7 +150,6 @@ export class StoreFrame {
       allowedCardIds.add(card.id);
     });
 
-    console.log('allowedCardIds: ', allowedCardIds);
     const connections = rhs.interactions.connections;
     allowedCardIds.forEach(svcId => {
       const card = rhs.services.cardsMap.get(svcId);
@@ -161,7 +159,7 @@ export class StoreFrame {
       }
 
       const cloned = card.clone().dropAccessPoints();
-      let cardShouldBeSkipped = true;
+      let noIncomingLinks = true;
 
       const outgoings = connections.outgoings.get(svcId);
       const incomings = connections.incomings.get(svcId);
@@ -181,12 +179,11 @@ export class StoreFrame {
           // NOTE: only add AP to cloned (allowed) card
           cloned.addAccessPointFromLink(link);
           links.push(link.clone());
-          cardShouldBeSkipped = false;
+          noIncomingLinks = false;
         });
       });
 
-      if (cardShouldBeSkipped) return;
-      console.log('adding card to frame: ', cloned);
+      if (noIncomingLinks && cloned.isKubeDNS && filters.skipKubeDns) return;
       this.services.addNewCard(cloned);
 
       if (rhs.services.isCardActive(svcId)) {
