@@ -144,12 +144,23 @@ export class StoreFrame {
       flows.push(f.clone());
     });
 
+    const connections = rhs.interactions.connections;
     rhs.services.cardsList.forEach((card: ServiceCard) => {
       if (!filterService(card, filters)) return;
       allowedCardIds.add(card.id);
+
+      // NOTE: no matter why card.id is allowed, all services that related to it
+      // NOTE: are also allowed. This should probably exclude related services
+      // NOTE: that are out of current namespace (not done yet)
+      connections.incomings.get(card.id)?.forEach((_, senderId) => {
+        allowedCardIds.add(senderId);
+      });
+
+      connections.outgoings.get(card.id)?.forEach((_, receiverId) => {
+        allowedCardIds.add(receiverId);
+      });
     });
 
-    const connections = rhs.interactions.connections;
     allowedCardIds.forEach(svcId => {
       const card = rhs.services.cardsMap.get(svcId);
       if (card == null) {
