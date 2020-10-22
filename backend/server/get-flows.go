@@ -15,18 +15,19 @@ import (
 	dflow "github.com/cilium/hubble-ui/backend/domain/flow"
 )
 
-func (srv *UIServer) GetFlows(
-	req *ui.GetEventsRequest,
-	responses chan *ui.GetEventsResponse,
-	errors chan error,
-) (context.CancelFunc, error) {
+func (srv *UIServer) GetFlows(req *ui.GetEventsRequest) (
+	context.CancelFunc, chan *ui.GetEventsResponse, chan error,
+) {
 	// TODO: handle context cancellation
-	ctx, cancel := context.WithCancel(context.Background())
 	flowsRequest := extractFlowsRequest(req)
+	ctx, cancel := context.WithCancel(context.Background())
 
-	var flowStream FlowStream
-	err := srv.RetryIfGrpcUnavailable(func(attempt int) error {
-		if attempt > 0 {
+	responses := make(chan *ui.GetEventsResponse)
+	errors := make(chan error)
+
+	var flowStream FlowStream = nil
+	retry := func(attempt int) error {
+		if attempt > 1 {
 			log.Warnf("GetFlows: attempt #%d\n", attempt)
 		}
 
@@ -35,39 +36,54 @@ func (srv *UIServer) GetFlows(
 			return err
 		}
 
+		log.Infof("GetFlows: connection established\n")
 		flowStream = fs
 		return nil
-	})
-
-	if err != nil {
-		return nil, err
 	}
 
 	go func() {
 	F:
 		for {
+			if flowStream == nil {
+				err := srv.RetryIfGrpcUnavailable(ctx, retry)
+				if err != nil {
+					// NOTE: if err is not nil, then ctx is canceled
+					break F
+				}
+			}
+
+			flowResponse, err := flowStream.Recv()
+			if err != nil {
+				select {
+				case <-ctx.Done():
+					break F
+				case errors <- err:
+					flowStream = nil
+					continue F
+				}
+			}
+
+			pbFlow := flowResponse.GetFlow()
+			if pbFlow == nil {
+				continue F
+			}
+
+			f := dflow.FromProto(pbFlow)
+
 			select {
 			case <-ctx.Done():
 				break F
-			default:
-				flowResponse, err := flowStream.Recv()
-				if err != nil {
-					errors <- err
-					break F
-				}
-
-				pbFlow := flowResponse.GetFlow()
-				if pbFlow == nil {
-					continue F
-				}
-
-				f := dflow.FromProto(pbFlow)
-				responses <- eventResponseFromFlow(f)
+			case responses <- eventResponseFromFlow(f):
+				continue F
 			}
 		}
+
+		close(errors)
+		close(responses)
+		log.Infof("GetFlows: stream is canceled\n")
 	}()
 
-	return cancel, nil
+	return cancel, responses, errors
 }
 
 func extractFlowsRequest(req *ui.GetEventsRequest) *observer.GetFlowsRequest {
