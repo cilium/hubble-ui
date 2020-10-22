@@ -31,18 +31,14 @@ func (srv *UIServer) GetEvents(
 	cache := srv.dataCache.Empty()
 	flowsLimiter := flow.NewLimiter(500 * time.Millisecond)
 	eventsRequested := getFlagsWhichEventsRequested(req.EventTypes)
-	flowResponses := make(chan *ui.GetEventsResponse)
-	flowErrors := make(chan error)
+
+	var flowResponses chan *ui.GetEventsResponse
+	var flowErrors chan error
 	var flowCancel func()
 
 	if eventsRequested.FlowsRequired() {
-		cancel, err := srv.GetFlows(req, flowResponses, flowErrors)
-		if err != nil {
-			log.Errorf("failed to GetFlows: %v\n", err)
-			return err
-		}
-
-		flowCancel = cancel
+		flowCancel, flowResponses, flowErrors = srv.GetFlows(req)
+		defer flowCancel()
 	}
 
 	var nsSource chan *NSEvent
@@ -61,19 +57,15 @@ func (srv *UIServer) GetEvents(
 F:
 	for {
 		select {
+		case <-stream.Context().Done():
+			break F
 		case err := <-flowErrors:
+			log.Errorf("flow error: %v\n", err)
 			if !srv.IsGrpcUnavailable(err) {
+				flowCancel()
 				return err
 			}
 
-			flowCancel()
-			cancel, err := srv.GetFlows(req, flowResponses, flowErrors)
-			if err != nil {
-				log.Errorf("failed to GetFlows on retry: %v\n", err)
-				return err
-			}
-
-			flowCancel = cancel
 		case flows := <-flowsLimiter.Flushed:
 			flowsResponse := eventResponseFromRawFlows(flows)
 			if flowsResponse == nil {
@@ -120,6 +112,7 @@ F:
 		}
 	}
 
+	log.Infof("GetEvents: stream is canceled\n")
 	return nil
 }
 

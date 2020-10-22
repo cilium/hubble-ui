@@ -1,12 +1,12 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"time"
 
-	retries "github.com/cenkalti/backoff/v4"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/codes"
@@ -16,6 +16,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/cilium/cilium/api/v1/observer"
+	cilium_backoff "github.com/cilium/cilium/pkg/backoff"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 
 	"github.com/cilium/hubble-ui/backend/logger"
@@ -32,7 +33,6 @@ type UIServer struct {
 	relayConnParams *grpc.ConnectParams
 	hubbleClient    observer.ObserverClient
 	grpcConnection  *grpc.ClientConn
-	retryPolicy     retries.BackOff
 
 	k8s       kubernetes.Interface
 	dataCache *dataCache
@@ -51,21 +51,17 @@ func New(relayAddr string) *UIServer {
 			},
 			MinConnectTimeout: 5 * time.Second,
 		},
-		retryPolicy: newRetryPolicy(),
-		dataCache:   newDataCache(),
+		dataCache: newDataCache(),
 	}
 }
 
-func newRetryPolicy() retries.BackOff {
-	retryPolicy := retries.NewExponentialBackOff()
-
-	retryPolicy.InitialInterval = 1.0 * time.Second
-	retryPolicy.RandomizationFactor = 0.2
-	retryPolicy.Multiplier = 1.6
-	retryPolicy.MaxInterval = 7 * time.Second
-	retryPolicy.MaxElapsedTime = 0
-
-	return retryPolicy
+func (srv *UIServer) newRetries() *cilium_backoff.Exponential {
+	return &cilium_backoff.Exponential{
+		Min:    1.0 * time.Second,
+		Max:    7.0 * time.Second,
+		Factor: 1.6,
+		Jitter: true,
+	}
 }
 
 func (srv *UIServer) Run() error {
@@ -108,36 +104,32 @@ func (srv *UIServer) SetupGrpcClient() error {
 	return nil
 }
 
-func (srv *UIServer) RetryIfGrpcUnavailable(grpcOperation func(int) error) error {
-	var unretriableError error = nil
-	attempt := 0
+func (srv *UIServer) RetryIfGrpcUnavailable(
+	ctx context.Context,
+	grpcOperation func(int) error,
+) error {
+	attempt := 1
 
-	retryErr := retries.Retry(func() error {
-		defer func() {
-			attempt += 1
-		}()
-
-		err := grpcOperation(attempt)
-		if err == nil {
-			return nil
-		}
-		log.Errorf("grpc operation failed: %v\n", err)
-
-		if status.Code(err) == codes.Unavailable {
-			log.Errorf("grpc connectivity: %v\n", srv.grpcConnection.GetState())
+	retries := srv.newRetries()
+	for {
+		err := retries.Wait(ctx)
+		if err != nil {
 			return err
 		}
 
-		unretriableError = err
-		return nil
-	}, srv.retryPolicy)
+		err = grpcOperation(attempt)
+		if err == nil {
+			return nil
+		}
+		attempt += 1
 
-	// NOTE: case when max number of retries is set
-	if retryErr != nil {
-		return retryErr
+		if srv.IsGrpcUnavailable(err) {
+			log.Errorf("grpc: unavailable err: %v\n", srv.grpcConnection.GetState())
+			continue
+		}
+
+		return err
 	}
-
-	return unretriableError
 }
 
 func (srv *UIServer) IsGrpcUnavailable(err error) bool {
