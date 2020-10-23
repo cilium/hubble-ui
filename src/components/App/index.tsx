@@ -255,7 +255,6 @@ export const App: FunctionComponent<AppProps> = observer(props => {
   const arrowStrategy = store.currentFrame.arrows;
 
   const onAccessPointCoords = useCallback((apId: string, coords: Vec2) => {
-    // console.log(`App::setAccessPointCoords ${apId}`, coords);
     store.currentFrame.setAccessPointCoords(apId, coords);
   }, []);
 
@@ -277,13 +276,7 @@ export const App: FunctionComponent<AppProps> = observer(props => {
           card={card}
           onHeightChange={onHeightChange}
           onClick={onCardSelect}
-          onAccessPointCoords={(apId: string, coords: Vec2) => {
-            // console.log(
-            //   `App::setAccessPointCoords ${card.id} (${card.caption}): ${apId}`,
-            //   coords,
-            // );
-            onAccessPointCoords(apId, coords);
-          }}
+          onAccessPointCoords={onAccessPointCoords}
         />
       );
     },
