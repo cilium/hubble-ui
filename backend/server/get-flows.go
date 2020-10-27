@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"strconv"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 
 	dflow "github.com/cilium/hubble-ui/backend/domain/flow"
+	"github.com/cilium/hubble-ui/backend/domain/service"
 )
 
 func (srv *UIServer) GetFlows(req *ui.GetEventsRequest) (
@@ -66,6 +68,20 @@ func (srv *UIServer) GetFlows(req *ui.GetEventsRequest) (
 			pbFlow := flowResponse.GetFlow()
 			if pbFlow == nil {
 				continue F
+			}
+
+			sourceId, destId := service.IdsFromFlowProto(pbFlow)
+			if sourceId == "0" || destId == "0" {
+				log.Warnf("invalid (zero) identity in source / dest services\n")
+				serialized, err := json.Marshal(pbFlow)
+				if err != nil {
+					log.Errorf("failed to marshal flow to json: %v\n", err)
+				} else {
+					log.Warnf("flow json: %v\n", string(serialized))
+				}
+
+				continue F
+
 			}
 
 			f := dflow.FromProto(pbFlow)

@@ -6,6 +6,7 @@ import (
 	"github.com/cilium/cilium/api/v1/observer"
 	"github.com/cilium/hubble-ui/backend/domain/flow"
 	"github.com/cilium/hubble-ui/backend/domain/link"
+	"github.com/cilium/hubble-ui/backend/domain/service"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 )
 
@@ -146,20 +147,12 @@ func extractDerivedEvents(
 	if eventsRequested.Services {
 		senderSvc, receiverSvc := f.BuildServices()
 
-		flags := cache.UpsertService(senderSvc)
-		if flags.Changed() {
-			log.Infof("Service changed: %s", senderSvc)
-			senderEvent := eventResponseForService(senderSvc, flags)
-
-			svcResponses = append(svcResponses, senderEvent)
+		if resp := handleSvc(senderSvc, cache); resp != nil {
+			svcResponses = append(svcResponses, resp)
 		}
 
-		flags = cache.UpsertService(receiverSvc)
-		if flags.Changed() {
-			log.Infof("Service changed: %s", receiverSvc)
-			receiverEvent := eventResponseForService(receiverSvc, flags)
-
-			svcResponses = append(svcResponses, receiverEvent)
+		if resp := handleSvc(receiverSvc, cache); resp != nil {
+			svcResponses = append(svcResponses, resp)
 		}
 	}
 
@@ -180,4 +173,20 @@ func extractDerivedEvents(
 	}
 
 	return
+}
+
+func handleSvc(svc *service.Service, cache *dataCache) *ui.GetEventsResponse {
+	if svc.Id() == "0" {
+		log.Infof("%s svc identity == 0\n", svc.Side())
+		return nil
+	}
+
+	flags := cache.UpsertService(svc)
+	if !flags.Changed() {
+		return nil
+	}
+
+	log.Infof("Service changed: %s", svc)
+	return eventResponseForService(svc, flags)
+
 }
