@@ -52,6 +52,18 @@ func IdsFromFlowProto(f *pbFlow.Flow) (string, string) {
 }
 
 func (s *Service) String() string {
+	return fmt.Sprintf(
+		"<%s %p, id: '%v', name: '%v', namespace: '%v', from flow: %p>",
+		s.Side(),
+		s,
+		s.Id(),
+		s.Name(),
+		s.endpoint.Namespace,
+		s.flowRef,
+	)
+}
+
+func (s *Service) Side() string {
 	side := "Unknown"
 	if s.isSender {
 		side = "Sender"
@@ -61,15 +73,7 @@ func (s *Service) String() string {
 		side = "Receiver"
 	}
 
-	return fmt.Sprintf(
-		"<%s %p, id: '%v', name: '%v', namespace: '%v', from flow: %p>",
-		side,
-		s,
-		s.Id(),
-		s.Name(),
-		s.endpoint.Namespace,
-		s.flowRef,
-	)
+	return side
 }
 
 // TODO: its not ok to have this code here
