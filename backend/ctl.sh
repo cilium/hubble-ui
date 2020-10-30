@@ -80,6 +80,7 @@ function build_proto_inner() {
     GO_MAPPINGS+=",Mobserver/observer.proto=github.com/cilium/cilium/api/v1/observer"
     GO_MAPPINGS+=",Mrelay/relay.proto=github.com/cilium/cilium/api/v1/relay"
     GO_MAPPINGS+=",Mui/ui.proto=github.com/cilium/hubble-ui/backend/proto/ui"
+    GO_MAPPINGS+=",Mui/notifications.proto=github.com/cilium/hubble-ui/backend/proto/ui"
     GO_MAPPINGS+=",Mgoogle/protobuf/timestamp.proto=github.com/golang/protobuf/ptypes/timestamp"
 
     $PROTOC $PROTOC_GO_PLUGIN \
@@ -89,7 +90,7 @@ function build_proto_inner() {
         ./proto/flow/flow.proto \
         ./proto/observer/observer.proto \
         ./proto/relay/relay.proto \
-        ./proto/ui/ui.proto
+        ./proto/ui/*.proto
 
     $PROTOC $PROTOC_WEB_PLUGIN \
         -I ./proto \
@@ -99,7 +100,7 @@ function build_proto_inner() {
         ./proto/flow/flow.proto \
         ./proto/observer/observer.proto \
         ./proto/relay/relay.proto \
-        ./proto/ui/ui.proto
+        ./proto/ui/*.proto
 }
 
 function update_proto() {

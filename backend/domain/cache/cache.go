@@ -1,4 +1,4 @@
-package server
+package cache
 
 import (
 	"github.com/cilium/hubble-ui/backend/domain/link"
@@ -7,35 +7,35 @@ import (
 	"github.com/cilium/cilium/pkg/lock"
 )
 
-type dataCache struct {
+type DataCache struct {
 	lock.Mutex
 	services map[string]*service.Service
 	links    map[string]*link.Link
 }
 
-type cacheFlags struct {
+type CacheFlags struct {
 	Created bool
 	Updated bool
 	Deleted bool
 	Exists  bool
 }
 
-func newDataCache() *dataCache {
-	return &dataCache{
+func New() *DataCache {
+	return &DataCache{
 		services: make(map[string]*service.Service),
 		links:    make(map[string]*link.Link),
 	}
 }
 
-func (c *dataCache) Drop() {
+func (c *DataCache) Drop() {
 	c.Mutex.Lock()
 	defer c.Mutex.Unlock()
 	c.services = make(map[string]*service.Service)
 	c.links = make(map[string]*link.Link)
 }
 
-func (c *dataCache) UpsertService(svc *service.Service) *cacheFlags {
-	flags := new(cacheFlags)
+func (c *DataCache) UpsertService(svc *service.Service) *CacheFlags {
+	flags := new(CacheFlags)
 	svcId := svc.Id()
 
 	c.Mutex.Lock()
@@ -52,8 +52,8 @@ func (c *dataCache) UpsertService(svc *service.Service) *cacheFlags {
 	return flags
 }
 
-func (c *dataCache) UpsertServiceLink(newLink *link.Link) *cacheFlags {
-	flags := new(cacheFlags)
+func (c *DataCache) UpsertServiceLink(newLink *link.Link) *CacheFlags {
+	flags := new(CacheFlags)
 
 	c.Mutex.Lock()
 	defer c.Mutex.Unlock()
@@ -76,7 +76,7 @@ func (c *dataCache) UpsertServiceLink(newLink *link.Link) *cacheFlags {
 	return flags
 }
 
-func (c *dataCache) ForEachService(cb func(key string, svc *service.Service)) {
+func (c *DataCache) ForEachService(cb func(key string, svc *service.Service)) {
 	c.Lock()
 	defer c.Unlock()
 
@@ -85,7 +85,7 @@ func (c *dataCache) ForEachService(cb func(key string, svc *service.Service)) {
 	}
 }
 
-func (c *dataCache) ForEachLink(cb func(key string, link *link.Link)) {
+func (c *DataCache) ForEachLink(cb func(key string, link *link.Link)) {
 	c.Lock()
 	defer c.Unlock()
 
@@ -94,14 +94,14 @@ func (c *dataCache) ForEachLink(cb func(key string, link *link.Link)) {
 	}
 }
 
-func (cf *dataCache) Empty() *dataCache {
-	return newDataCache()
+func (cf *DataCache) Empty() *DataCache {
+	return New()
 }
 
-func (cf *cacheFlags) Changed() bool {
+func (cf *CacheFlags) Changed() bool {
 	return cf.Created || cf.Updated || cf.Deleted
 }
 
-func newExistFlags() *cacheFlags {
-	return &cacheFlags{false, false, false, true}
+func newExistFlags() *CacheFlags {
+	return &CacheFlags{false, false, false, true}
 }

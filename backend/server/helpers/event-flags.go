@@ -1,4 +1,6 @@
-package server
+package helpers
+
+import "github.com/cilium/hubble-ui/backend/proto/ui"
 
 type EventKind string
 
@@ -8,9 +10,15 @@ const (
 	Deleted  EventKind = "deleted"
 	Exists   EventKind = "exists"
 	Unknown  EventKind = "unknown"
+
+	FLOW_EVENT          = ui.EventType_FLOW
+	FLOWS_EVENT         = ui.EventType_FLOWS
+	NS_STATE_EVENT      = ui.EventType_K8S_NAMESPACE_STATE
+	SERVICE_STATE_EVENT = ui.EventType_SERVICE_STATE
+	SERVICE_LINK_EVENT  = ui.EventType_SERVICE_LINK_STATE
 )
 
-type eventFlags struct {
+type EventFlags struct {
 	Flow            bool
 	Flows           bool
 	Services        bool
@@ -19,6 +27,6 @@ type eventFlags struct {
 	NetworkPolicies bool
 }
 
-func (ef *eventFlags) FlowsRequired() bool {
+func (ef *EventFlags) FlowsRequired() bool {
 	return ef.Flow || ef.Flows || ef.Services || ef.ServiceLinks
 }

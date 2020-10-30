@@ -15,6 +15,7 @@ import (
 
 	dflow "github.com/cilium/hubble-ui/backend/domain/flow"
 	"github.com/cilium/hubble-ui/backend/domain/service"
+	"github.com/cilium/hubble-ui/backend/server/helpers"
 )
 
 func (srv *UIServer) GetFlows(req *ui.GetEventsRequest) (
@@ -89,7 +90,7 @@ func (srv *UIServer) GetFlows(req *ui.GetEventsRequest) (
 			select {
 			case <-ctx.Done():
 				break F
-			case responses <- eventResponseFromFlow(f):
+			case responses <- helpers.EventResponseFromFlow(f):
 				continue F
 			}
 		}

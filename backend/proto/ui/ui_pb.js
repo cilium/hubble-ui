@@ -16,6 +16,8 @@ var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/time
 goog.object.extend(proto, google_protobuf_timestamp_pb);
 var flow_flow_pb = require('../flow/flow_pb.js');
 goog.object.extend(proto, flow_flow_pb);
+var ui_notifications_pb = require('../ui/notifications_pb.js');
+goog.object.extend(proto, ui_notifications_pb);
 goog.exportSymbol('proto.ui.EventFilter', null, global);
 goog.exportSymbol('proto.ui.EventFilter.FilterCase', null, global);
 goog.exportSymbol('proto.ui.EventType', null, global);
@@ -607,7 +609,7 @@ proto.ui.GetEventsRequest.prototype.hasSince = function() {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.ui.GetEventsResponse.oneofGroups_ = [[3,4,5,6,7]];
+proto.ui.GetEventsResponse.oneofGroups_ = [[3,4,5,6,7,8]];
 
 /**
  * @enum {number}
@@ -618,7 +620,8 @@ proto.ui.GetEventsResponse.EventCase = {
   K8S_NAMESPACE_STATE: 4,
   SERVICE_STATE: 5,
   SERVICE_LINK_STATE: 6,
-  FLOWS: 7
+  FLOWS: 7,
+  NOTIFICATION: 8
 };
 
 /**
@@ -665,7 +668,8 @@ proto.ui.GetEventsResponse.toObject = function(includeInstance, msg) {
     k8sNamespaceState: (f = msg.getK8sNamespaceState()) && proto.ui.K8sNamespaceState.toObject(includeInstance, f),
     serviceState: (f = msg.getServiceState()) && proto.ui.ServiceState.toObject(includeInstance, f),
     serviceLinkState: (f = msg.getServiceLinkState()) && proto.ui.ServiceLinkState.toObject(includeInstance, f),
-    flows: (f = msg.getFlows()) && proto.ui.Flows.toObject(includeInstance, f)
+    flows: (f = msg.getFlows()) && proto.ui.Flows.toObject(includeInstance, f),
+    notification: (f = msg.getNotification()) && ui_notifications_pb.Notification.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -735,6 +739,11 @@ proto.ui.GetEventsResponse.deserializeBinaryFromReader = function(msg, reader) {
       var value = new proto.ui.Flows;
       reader.readMessage(value,proto.ui.Flows.deserializeBinaryFromReader);
       msg.setFlows(value);
+      break;
+    case 8:
+      var value = new ui_notifications_pb.Notification;
+      reader.readMessage(value,ui_notifications_pb.Notification.deserializeBinaryFromReader);
+      msg.setNotification(value);
       break;
     default:
       reader.skipField();
@@ -818,6 +827,14 @@ proto.ui.GetEventsResponse.serializeBinaryToWriter = function(message, writer) {
       7,
       f,
       proto.ui.Flows.serializeBinaryToWriter
+    );
+  }
+  f = message.getNotification();
+  if (f != null) {
+    writer.writeMessage(
+      8,
+      f,
+      ui_notifications_pb.Notification.serializeBinaryToWriter
     );
   }
 };
@@ -1060,6 +1077,43 @@ proto.ui.GetEventsResponse.prototype.clearFlows = function() {
  */
 proto.ui.GetEventsResponse.prototype.hasFlows = function() {
   return jspb.Message.getField(this, 7) != null;
+};
+
+
+/**
+ * optional Notification notification = 8;
+ * @return {?proto.ui.Notification}
+ */
+proto.ui.GetEventsResponse.prototype.getNotification = function() {
+  return /** @type{?proto.ui.Notification} */ (
+    jspb.Message.getWrapperField(this, ui_notifications_pb.Notification, 8));
+};
+
+
+/**
+ * @param {?proto.ui.Notification|undefined} value
+ * @return {!proto.ui.GetEventsResponse} returns this
+*/
+proto.ui.GetEventsResponse.prototype.setNotification = function(value) {
+  return jspb.Message.setOneofWrapperField(this, 8, proto.ui.GetEventsResponse.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.ui.GetEventsResponse} returns this
+ */
+proto.ui.GetEventsResponse.prototype.clearNotification = function() {
+  return this.setNotification(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.ui.GetEventsResponse.prototype.hasNotification = function() {
+  return jspb.Message.getField(this, 8) != null;
 };
 
 

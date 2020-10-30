@@ -4,18 +4,12 @@ import (
 	"time"
 
 	"github.com/cilium/cilium/api/v1/observer"
+	"github.com/cilium/hubble-ui/backend/domain/cache"
 	"github.com/cilium/hubble-ui/backend/domain/flow"
 	"github.com/cilium/hubble-ui/backend/domain/link"
 	"github.com/cilium/hubble-ui/backend/domain/service"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
-)
-
-const (
-	FLOW_EVENT          = ui.EventType_FLOW
-	FLOWS_EVENT         = ui.EventType_FLOWS
-	NS_STATE_EVENT      = ui.EventType_K8S_NAMESPACE_STATE
-	SERVICE_STATE_EVENT = ui.EventType_SERVICE_STATE
-	SERVICE_LINK_EVENT  = ui.EventType_SERVICE_LINK_STATE
+	"github.com/cilium/hubble-ui/backend/server/helpers"
 )
 
 type EventStream = ui.UI_GetEventsServer
@@ -29,9 +23,10 @@ func (srv *UIServer) GetEvents(
 		return nil
 	}
 
+	connState := helpers.NewGetEventsState()
 	cache := srv.dataCache.Empty()
 	flowsLimiter := flow.NewLimiter(500 * time.Millisecond)
-	eventsRequested := getFlagsWhichEventsRequested(req.EventTypes)
+	eventsRequested := helpers.GetFlagsWhichEventsRequested(req.EventTypes)
 
 	var flowResponses chan *ui.GetEventsResponse
 	var flowErrors chan error
@@ -67,8 +62,15 @@ F:
 				return err
 			}
 
+			// NOTE: We are here if GetFlows is reconnecting\
+			if evt := connState.ShouldNotifyOnReconnecting(); evt != nil {
+				if err := stream.Send(evt); err != nil {
+					log.Errorf("failed to send OnReconnecting: %v\n", err)
+					break F
+				}
+			}
 		case flows := <-flowsLimiter.Flushed:
-			flowsResponse := eventResponseFromRawFlows(flows)
+			flowsResponse := helpers.EventResponseFromRawFlows(flows)
 			if flowsResponse == nil {
 				continue
 			}
@@ -81,6 +83,13 @@ F:
 		case flowResponse := <-flowResponses:
 			if flowResponse == nil {
 				break F
+			}
+
+			if evt := connState.ShouldNotifyOnConnected(); evt != nil {
+				if err := stream.Send(evt); err != nil {
+					log.Errorf("failed to send OnConnected: %v\n", err)
+					break F
+				}
 			}
 
 			flowsLimiter.Push(flowResponse.GetFlow())
@@ -127,8 +136,8 @@ func handleNsEvents(src chan *NSEvent, drain chan *ui.GetEventsResponse) {
 
 func extractDerivedEvents(
 	flowResponse *ui.GetEventsResponse,
-	eventsRequested *eventFlags,
-	cache *dataCache,
+	eventsRequested *helpers.EventFlags,
+	cache *cache.DataCache,
 ) (
 	linkResponses []*ui.GetEventsResponse,
 	svcResponses []*ui.GetEventsResponse,
@@ -166,7 +175,7 @@ func extractDerivedEvents(
 		flags := cache.UpsertServiceLink(serviceLink)
 		if flags.Changed() {
 			log.Infof("Service link changed: %s", serviceLink)
-			linkEvent := eventResponseForLink(serviceLink, flags)
+			linkEvent := helpers.EventResponseForLink(serviceLink, flags)
 
 			linkResponses = append(linkResponses, linkEvent)
 		}
@@ -175,7 +184,7 @@ func extractDerivedEvents(
 	return
 }
 
-func handleSvc(svc *service.Service, cache *dataCache) *ui.GetEventsResponse {
+func handleSvc(svc *service.Service, cache *cache.DataCache) *ui.GetEventsResponse {
 	if svc.Id() == "0" {
 		log.Infof("%s svc identity == 0\n", svc.Side())
 		return nil
@@ -187,6 +196,6 @@ func handleSvc(svc *service.Service, cache *dataCache) *ui.GetEventsResponse {
 	}
 
 	log.Infof("Service changed: %s", svc)
-	return eventResponseForService(svc, flags)
+	return helpers.EventResponseForService(svc, flags)
 
 }
