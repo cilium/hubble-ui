@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package ui;
+
+message Notification {
+    oneof notification {
+        ConnectionState conn_state = 1;
+        DataState data_state = 2;
+    }
+
+}
+
+message ConnectionState {
+	// Backend is successfully connected to hubble-relay
+	bool connected = 1;
+
+	// Backend has lost the connection to hubble-relay and is reconnecting now
+	bool reconnecting = 2;
+}
+
+message DataState {
+	// No pods in selected namespace
+	bool no_activity = 1;
+}

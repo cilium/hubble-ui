@@ -1,15 +1,17 @@
-package server
+package helpers
 
 import (
 	pbFlow "github.com/cilium/cilium/api/v1/flow"
+	"github.com/cilium/hubble-ui/backend/domain/cache"
 	"github.com/cilium/hubble-ui/backend/domain/flow"
 	"github.com/cilium/hubble-ui/backend/domain/link"
 	"github.com/cilium/hubble-ui/backend/domain/service"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
+	"github.com/golang/protobuf/ptypes"
 )
 
-func getFlagsWhichEventsRequested(events []ui.EventType) *eventFlags {
-	flags := new(eventFlags)
+func GetFlagsWhichEventsRequested(events []ui.EventType) *EventFlags {
+	flags := new(EventFlags)
 
 	for _, event := range events {
 		if event == FLOW_EVENT {
@@ -36,12 +38,12 @@ func getFlagsWhichEventsRequested(events []ui.EventType) *eventFlags {
 	return flags
 }
 
-func eventResponseForService(
-	svc *service.Service, cflags *cacheFlags,
+func EventResponseForService(
+	svc *service.Service, cflags *cache.CacheFlags,
 ) *ui.GetEventsResponse {
 	sstate := &ui.ServiceState{
 		Service: svc.ToProto(),
-		Type:    stateChangeFromCacheFlags(cflags),
+		Type:    StateChangeFromCacheFlags(cflags),
 	}
 
 	f := svc.FlowRef()
@@ -53,13 +55,13 @@ func eventResponseForService(
 	}
 }
 
-func eventResponseForLink(
-	l *link.Link, cflags *cacheFlags,
+func EventResponseForLink(
+	l *link.Link, cflags *cache.CacheFlags,
 ) *ui.GetEventsResponse {
 	f := l.IntoFlow()
 	lstate := &ui.ServiceLinkState{
 		ServiceLink: l.ToProto(),
-		Type:        stateChangeFromCacheFlags(cflags),
+		Type:        StateChangeFromCacheFlags(cflags),
 	}
 
 	return &ui.GetEventsResponse{
@@ -69,7 +71,7 @@ func eventResponseForLink(
 	}
 }
 
-func eventResponseFromFlow(f *flow.Flow) *ui.GetEventsResponse {
+func EventResponseFromFlow(f *flow.Flow) *ui.GetEventsResponse {
 	ref := f.Ref()
 	return &ui.GetEventsResponse{
 		Node:      ref.NodeName,
@@ -78,7 +80,7 @@ func eventResponseFromFlow(f *flow.Flow) *ui.GetEventsResponse {
 	}
 }
 
-func eventResponseFromRawFlows(flows []*pbFlow.Flow) *ui.GetEventsResponse {
+func EventResponseFromRawFlows(flows []*pbFlow.Flow) *ui.GetEventsResponse {
 	n := len(flows)
 	if n == 0 {
 		return nil
@@ -96,7 +98,38 @@ func eventResponseFromRawFlows(flows []*pbFlow.Flow) *ui.GetEventsResponse {
 	}
 }
 
-func stateChangeFromCacheFlags(cflags *cacheFlags) ui.StateChange {
+func notificationConnState(connected, reconnecting bool) *ui.Notification {
+	return &ui.Notification{
+		Notification: &ui.Notification_ConnState{
+			ConnState: &ui.ConnectionState{
+				Connected:    connected,
+				Reconnecting: reconnecting,
+			},
+		},
+	}
+}
+
+func EventResponseReconnecting() *ui.GetEventsResponse {
+	return &ui.GetEventsResponse{
+		Node:      "backend",
+		Timestamp: ptypes.TimestampNow(),
+		Event: &ui.GetEventsResponse_Notification{
+			Notification: notificationConnState(false, true),
+		},
+	}
+}
+
+func EventResponseConnected() *ui.GetEventsResponse {
+	return &ui.GetEventsResponse{
+		Node:      "backend",
+		Timestamp: ptypes.TimestampNow(),
+		Event: &ui.GetEventsResponse_Notification{
+			Notification: notificationConnState(true, false),
+		},
+	}
+}
+
+func StateChangeFromCacheFlags(cflags *cache.CacheFlags) ui.StateChange {
 	if cflags.Exists {
 		return ui.StateChange_EXISTS
 	} else if cflags.Created {

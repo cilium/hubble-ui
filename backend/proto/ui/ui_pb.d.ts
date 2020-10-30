@@ -2,6 +2,7 @@ import * as jspb from "google-protobuf"
 
 import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb';
 import * as flow_flow_pb from '../flow/flow_pb';
+import * as ui_notifications_pb from '../ui/notifications_pb';
 
 export class GetEventsRequest extends jspb.Message {
   getEventTypesList(): Array<EventType>;
@@ -75,6 +76,11 @@ export class GetEventsResponse extends jspb.Message {
   hasFlows(): boolean;
   clearFlows(): GetEventsResponse;
 
+  getNotification(): ui_notifications_pb.Notification | undefined;
+  setNotification(value?: ui_notifications_pb.Notification): GetEventsResponse;
+  hasNotification(): boolean;
+  clearNotification(): GetEventsResponse;
+
   getEventCase(): GetEventsResponse.EventCase;
 
   serializeBinary(): Uint8Array;
@@ -94,6 +100,7 @@ export namespace GetEventsResponse {
     serviceState?: ServiceState.AsObject,
     serviceLinkState?: ServiceLinkState.AsObject,
     flows?: Flows.AsObject,
+    notification?: ui_notifications_pb.Notification.AsObject,
   }
 
   export enum EventCase { 
@@ -103,6 +110,7 @@ export namespace GetEventsResponse {
     SERVICE_STATE = 5,
     SERVICE_LINK_STATE = 6,
     FLOWS = 7,
+    NOTIFICATION = 8,
   }
 }
 

@@ -19,6 +19,7 @@ import (
 	cilium_backoff "github.com/cilium/cilium/pkg/backoff"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 
+	"github.com/cilium/hubble-ui/backend/domain/cache"
 	"github.com/cilium/hubble-ui/backend/logger"
 )
 
@@ -35,7 +36,7 @@ type UIServer struct {
 	grpcConnection  *grpc.ClientConn
 
 	k8s       kubernetes.Interface
-	dataCache *dataCache
+	dataCache *cache.DataCache
 }
 
 func New(relayAddr string) *UIServer {
@@ -51,7 +52,7 @@ func New(relayAddr string) *UIServer {
 			},
 			MinConnectTimeout: 5 * time.Second,
 		},
-		dataCache: newDataCache(),
+		dataCache: cache.New(),
 	}
 }
 

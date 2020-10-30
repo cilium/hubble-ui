@@ -19,6 +19,8 @@ grpc.web = require('grpc-web');
 var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/timestamp_pb.js')
 
 var flow_flow_pb = require('../flow/flow_pb.js')
+
+var ui_notifications_pb = require('../ui/notifications_pb.js')
 const proto = {};
 proto.ui = require('./ui_pb.js');
 

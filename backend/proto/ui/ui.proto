@@ -16,6 +16,7 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 import "flow/flow.proto";
+import "ui/notifications.proto";
 
 package ui;
 
@@ -49,6 +50,7 @@ message GetEventsResponse{
         // and the client can expire older links based on their timestamp.
         ServiceLinkState  service_link_state = 6;
         Flows flows = 7;
+        Notification notification = 8;
     }
 }
 
