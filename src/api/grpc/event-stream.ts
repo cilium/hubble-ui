@@ -12,6 +12,8 @@ import {
   Flows as PBFlows,
 } from '~backend/proto/ui/ui_pb';
 
+import { Notification as PBNotification } from '~backend/proto/ui/notifications_pb';
+
 import {
   Flow as PBFlow,
   FlowFilter,
@@ -352,6 +354,8 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
           return this.onLinkReceived(res.getServiceLinkState());
         case EventCase.K8S_NAMESPACE_STATE:
           return this.onNamespaceReceived(res.getK8sNamespaceState());
+        case EventCase.NOTIFICATION:
+          return this.onNotificationReceived(res.getNotification());
       }
     });
 
@@ -366,6 +370,18 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
     this.stream.on(GeneralStreamEventKind.End, () => {
       this.emit(GeneralStreamEventKind.End);
     });
+  }
+
+  private onNotificationReceived(notif: PBNotification | undefined) {
+    if (notif == null) return;
+
+    const notification = dataHelpers.notifications.fromPb(notif);
+    if (notification == null) {
+      console.error('invalid notification pb received: ', notif);
+      return;
+    }
+
+    this.emit(EventKind.Notification, notification);
   }
 
   private onFlowReceived(pbFlow: PBFlow | undefined) {

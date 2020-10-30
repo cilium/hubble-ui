@@ -36,6 +36,7 @@ export enum EventKind {
   Namespace = 'namespace',
   Service = 'service',
   ServiceLink = 'service-link',
+  Notification = 'notification',
 }
 
 export interface NamespaceChange {
@@ -53,12 +54,24 @@ export interface ServiceLinkChange {
   change: StateChange;
 }
 
+export interface Notification {
+  connState?: {
+    connected: boolean;
+    reconnecting: boolean;
+  };
+
+  dataState?: {
+    noActivity: boolean;
+  };
+}
+
 export type EventStreamHandlers = GeneralStreamEvents & {
   [EventKind.Flow]: (_: Flow) => void;
   [EventKind.Flows]: (_: Flow[]) => void;
   [EventKind.Namespace]: (_: NamespaceChange) => void;
   [EventKind.Service]: (_: ServiceChange) => void;
   [EventKind.ServiceLink]: (_: ServiceLinkChange) => void;
+  [EventKind.Notification]: (_: Notification) => void;
 };
 
 export interface IEventStream extends EventEmitter<EventStreamHandlers> {

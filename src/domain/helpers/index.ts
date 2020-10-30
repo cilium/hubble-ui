@@ -59,6 +59,9 @@ import { Flow } from '~/domain/flows';
 import * as verdictHelpers from './verdict';
 export * from './verdict';
 
+import * as notifications from './notifications';
+export { notifications };
+
 export const hubbleFlowFromPb = (flow: PBFlow): HubbleFlow => {
   let time: any = void 0;
 
