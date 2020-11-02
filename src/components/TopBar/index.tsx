@@ -7,12 +7,14 @@ import { FlowsFilterInput } from './FlowsFilterInput';
 import { VerdictFilterDropdown } from './VerdictFilterDropdown';
 import { VisualFiltersDropdown } from './VisualFiltersDropdown';
 import { NamespaceSelectorDropdown } from './NamespaceSelectorDropdown';
-import { StreamingIndicator } from './StreamingIndicator';
+import { ConnectionIndicator, ConnectionState } from './ConnectionIndicator';
 
 import css from './styles.scss';
 
+export { ConnectionState };
+
 export interface Props {
-  isStreaming: boolean;
+  connectionState: ConnectionState;
   namespaces: Array<string>;
   currentNamespace: string | null;
   onNamespaceChange?: (ns: string) => void;
@@ -73,7 +75,7 @@ export const TopBar = memo<Props>(function TopBar(props) {
       <div className={css.right}>
         <div className={css.spacer} />
         <div className={css.spacer} />
-        <StreamingIndicator isStreaming={props.isStreaming} />
+        <ConnectionIndicator state={props.connectionState} />
       </div>
     </div>
   );
