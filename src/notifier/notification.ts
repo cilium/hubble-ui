@@ -31,6 +31,7 @@ export class Notification {
 
   public show(): Notification | null {
     if (this.dismissed) return null;
+    if (this.notificationId != null) return this;
 
     this.notificationId = this.showAction((timeouted: boolean) => {
       this.runOnDismiss(timeouted);
@@ -80,6 +81,10 @@ export class Notification {
 
   public get id(): string | null {
     return this.notificationId;
+  }
+
+  public get isActive(): boolean {
+    return !this.dismissed && this.notificationId != null;
   }
 
   private get inactive(): boolean {
