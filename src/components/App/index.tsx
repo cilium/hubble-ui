@@ -11,7 +11,7 @@ import { IconNames } from '@blueprintjs/icons';
 import { RouteComponentProps } from '@reach/router';
 import { observer } from 'mobx-react';
 
-import { TopBar } from '~/components/TopBar';
+import { TopBar, ConnectionState } from '~/components/TopBar';
 import {
   DetailsPanel,
   ResizeProps as DetailsResizeProps,
@@ -56,9 +56,10 @@ export const App: FunctionComponent<AppProps> = observer(props => {
   const store = useStore();
 
   const onFlowsDiffCount = useRef<(diff: number) => void>();
-  const [isStreaming, setIsStreaming] = useState<boolean>(true);
+  const [isStreaming, setIsStreaming] = useState(true);
+  const [connState, setConnState] = useState(ConnectionState.Receiving);
   const [mapVisibleHeight, setMapVisibleHeight] = useState<number | null>(null);
-  const [mapWasDragged, setMapWasDragged] = useState<boolean>(false);
+  const [mapWasDragged, setMapWasDragged] = useState(false);
 
   const notifier = useNotifier();
   const dataManager = useMemo(() => {
@@ -75,6 +76,8 @@ export const App: FunctionComponent<AppProps> = observer(props => {
   useEffect(() => {
     const d1 = dataManager.on(DataManagerEvents.StreamError, () => {
       setIsStreaming(false);
+      setConnState(ConnectionState.Stopped);
+
       notifier.showError(
         `Failed to receive data from backend.
         Please make sure that your deployment is up and try again.`,
@@ -85,12 +88,16 @@ export const App: FunctionComponent<AppProps> = observer(props => {
     const d2 = dataManager.on(DataManagerEvents.Notification, notif => {
       console.log('backend notification: ', notif);
       if (notif.connState?.reconnecting) {
+        setConnState(ConnectionState.Reconnecting);
+
         notifier.showError(
           `Connection to hubble-relay has been lost.
           Reconnecting...`,
           { key: 'reconnecting-to-hubble-relay ' },
         );
       } else if (notif.connState?.connected) {
+        setConnState(ConnectionState.Receiving);
+
         notifier.showInfo(`Connection to hubble-relay has been established.`, {
           key: 'connected-to-hubble-relay',
         });
@@ -320,7 +327,7 @@ export const App: FunctionComponent<AppProps> = observer(props => {
 
   const RenderedTopBar = (
     <TopBar
-      isStreaming={isStreaming}
+      connectionState={connState}
       namespaces={store.controls.namespaces}
       currentNamespace={store.controls.currentNamespace}
       onNamespaceChange={onNamespaceChange}
