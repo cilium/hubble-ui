@@ -76,37 +76,28 @@ export const App: FunctionComponent<AppProps> = observer(props => {
     const d1 = dataManager.on(DataManagerEvents.StreamError, () => {
       setIsStreaming(false);
       notifier.showError(
-        `
-        Failed to receive data from backend.
-        Please make sure that your deployment is up and try again.
-      `,
+        `Failed to receive data from backend.
+        Please make sure that your deployment is up and try again.`,
         { key: 'backend-error' },
       );
     });
 
     const d2 = dataManager.on(DataManagerEvents.Notification, notif => {
+      console.log('backend notification: ', notif);
       if (notif.connState?.reconnecting) {
         notifier.showError(
-          `
-          Connection to hubble-relay has been lost.
-          Reconnecting...
-        `,
+          `Connection to hubble-relay has been lost.
+          Reconnecting...`,
           { key: 'reconnecting-to-hubble-relay ' },
         );
       } else if (notif.connState?.connected) {
-        notifier.showInfo(
-          `
-          Connection to hubble-relay has been established.
-        `,
-          { key: 'connected-to-hubble-relay' },
-        );
+        notifier.showInfo(`Connection to hubble-relay has been established.`, {
+          key: 'connected-to-hubble-relay',
+        });
       } else if (notif.dataState?.noActivity) {
-        notifier.showInfo(
-          `
-          There are no pods in this namespace.
-        `,
-          { key: 'no-activity' },
-        );
+        notifier.showInfo(`There are no pods in this namespace.`, {
+          key: 'no-activity',
+        });
       }
     });
 

@@ -45,18 +45,6 @@ export class Notifier {
     return { position, maxToasts };
   }
 
-  private static defaultOptions(
-    intent: Intent = Intent.PRIMARY,
-    icon: IconName = 'info-sign',
-  ): Options {
-    return {
-      intent,
-      icon,
-      key: void 0,
-      timeout: Notifier.timeout,
-    };
-  }
-
   private static optionsToData(
     opts: Options,
     message: Message,
@@ -100,35 +88,35 @@ export class Notifier {
   public simple(message: Message, opts?: Options): Notification {
     this.setupCheck();
 
-    opts = opts ?? Notifier.defaultOptions(Intent.NONE);
+    opts = this.ensureOptions(opts, Intent.NONE);
     return this.createNotification(message, opts);
   }
 
   public info(message: Message, opts?: Options): Notification {
     this.setupCheck();
 
-    opts = opts ?? Notifier.defaultOptions(Intent.PRIMARY);
+    opts = this.ensureOptions(opts, Intent.PRIMARY);
     return this.createNotification(message, opts);
   }
 
   public success(message: Message, opts?: Options): Notification {
     this.setupCheck();
 
-    opts = opts ?? Notifier.defaultOptions(Intent.SUCCESS, 'tick-circle');
+    opts = this.ensureOptions(opts, Intent.SUCCESS, 'tick-circle');
     return this.createNotification(message, opts);
   }
 
   public error(message: Message, opts?: Options): Notification {
     this.setupCheck();
 
-    opts = opts ?? Notifier.defaultOptions(Intent.DANGER, 'error');
+    opts = this.ensureOptions(opts, Intent.DANGER, 'error');
     return this.createNotification(message, opts);
   }
 
   public warning(message: Message, opts?: Options): Notification {
     this.setupCheck();
 
-    opts = opts ?? Notifier.defaultOptions(Intent.WARNING, 'warning-sign');
+    opts = this.ensureOptions(opts, Intent.WARNING, 'warning-sign');
     return this.createNotification(message, opts);
   }
 
@@ -178,6 +166,26 @@ export class Notifier {
     };
 
     return [show, dismiss, update];
+  }
+
+  private ensureOptions(
+    opts?: Options,
+    intent: Intent = Intent.PRIMARY,
+    icon: IconName = 'info-sign',
+  ): Options {
+    if (opts == null) {
+      return {
+        intent,
+        icon,
+        key: void 0,
+        timeout: Notifier.timeout,
+      };
+    }
+
+    opts.intent = intent;
+    opts.icon = icon;
+
+    return opts;
   }
 
   private setupCheck() {
