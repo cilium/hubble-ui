@@ -21,6 +21,7 @@ func (ges *GetEventsState) ShouldNotifyOnReconnecting() *ui.GetEventsResponse {
 
 	ges.Connected = false
 	ges.Connecting = true
+	ges.connectedEvent = nil
 	ges.reconnectingEvent = EventResponseReconnecting()
 
 	return ges.reconnectingEvent
@@ -33,6 +34,7 @@ func (ges *GetEventsState) ShouldNotifyOnConnected() *ui.GetEventsResponse {
 
 	ges.Connected = true
 	ges.Connecting = false
+	ges.reconnectingEvent = nil
 	ges.connectedEvent = EventResponseConnected()
 
 	return ges.connectedEvent
