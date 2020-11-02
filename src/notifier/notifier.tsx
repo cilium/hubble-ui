@@ -70,6 +70,7 @@ export class Notifier {
   }
 
   private toaster: IToaster | null = null;
+  private notificationsCache: Map<string, Notification> = new Map();
 
   public setBackend(toaster: IToaster) {
     this.toaster = toaster;
@@ -137,10 +138,24 @@ export class Notifier {
   }
 
   private createNotification(message: Message, opts: Options): Notification {
+    if (opts.key != null) {
+      const cached = this.notificationsCache.get(opts.key);
+      if (cached != null) return cached;
+    }
+
     const notificationData = Notifier.optionsToData(opts, message);
     const acts = this.createNotificationActions(notificationData);
+    const notification = new Notification(...acts);
 
-    return new Notification(...acts);
+    if (opts.key != null) {
+      this.notificationsCache.set(opts.key, notification);
+
+      notification.onDismiss(() => {
+        this.notificationsCache.delete(opts.key!);
+      });
+    }
+
+    return notification;
   }
 
   private createNotificationActions(d: NotificationData): Actions {
