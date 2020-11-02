@@ -4,7 +4,7 @@ Hubble UI is open source user interface for [Cilium Hubble](https://github.com/c
 
 ## Installation
 
-Hubble UI is installed as part of hubble, please see [Hubble Getting Started Guide](https://docs.cilium.io/en/latest/gettingstarted/hubble/#deploy-cilium-and-hubble) for details.
+Hubble UI is installed as part of hubble, please see [Hubble Getting Started Guide](https://docs.cilium.io/en/stable/gettingstarted/hubble/#deploy-cilium-and-hubble) for details.
 
 ## Why Hubble UI?
 
@@ -12,7 +12,7 @@ Troubleshooting microservices application connectivity is a challenging task. Si
 
 Hubble UI enables zero-effort automatic discovery of the service dependency graph for Kubernetes Clusters at L3/L4 and even L7, allowing user-friendly visualization and filtering of those dataflows as a Service Map.
 
-See [Hubble Getting Started Guide](https://docs.cilium.io/en/latest/gettingstarted/hubble/#deploy-cilium-and-hubble) for details.
+See [Hubble Getting Started Guide](https://docs.cilium.io/en/stable/gettingstarted/hubble/#deploy-cilium-and-hubble) for details.
 
 ![Service Map](promo/servicemap.png)
 
