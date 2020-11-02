@@ -2,6 +2,7 @@ import _ from 'lodash';
 import { API } from '~/api/general';
 import * as mockData from '~/api/__mocks__/data';
 import { GeneralStreamEventKind } from '~/api/general/stream';
+import { Notification } from '~/api/general/event-stream';
 
 import { HubbleFlow } from '~/domain/hubble';
 import { Filters, filterFlow } from '~/domain/filtering';
@@ -27,6 +28,7 @@ export enum EventKind {
   FlowsDiff = 'flows-diff',
   StoreMocked = 'store-mocked',
   NamespaceAdded = 'namespace-added',
+  Notification = 'notification',
 }
 
 type Events = {
@@ -35,6 +37,7 @@ type Events = {
   [EventKind.FlowsDiff]: (frame: StoreFrame, diff: number) => void;
   [EventKind.StoreMocked]: () => void;
   [EventKind.NamespaceAdded]: (namespace: string) => void;
+  [EventKind.Notification]: (notif: Notification) => void;
 };
 
 interface StreamDescriptor {
@@ -178,6 +181,10 @@ export class DataManager extends EventEmitter<Events> {
   }
 
   private setupGeneralEventHandlers(stream: IEventStream) {
+    stream.on(EventStreamEventKind.Notification, notif => {
+      this.emit(EventKind.Notification, notif);
+    });
+
     stream.on(GeneralStreamEventKind.Error, () => {
       this.emit(EventKind.StreamError);
     });

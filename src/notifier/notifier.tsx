@@ -18,6 +18,10 @@ interface NotificationData {
   icon: IconName;
 }
 
+type Options = Omit<Partial<NotificationData>, 'message'> & {
+  key?: string;
+};
+
 type Actions = [ShowAction, DismissAction, UpdateAction];
 type Message = React.ReactNode;
 
@@ -41,101 +45,90 @@ export class Notifier {
     return { position, maxToasts };
   }
 
+  private static defaultOptions(
+    intent: Intent = Intent.PRIMARY,
+    icon: IconName = 'info-sign',
+  ): Options {
+    return {
+      intent,
+      icon,
+      key: void 0,
+      timeout: Notifier.timeout,
+    };
+  }
+
+  private static optionsToData(
+    opts: Options,
+    message: Message,
+  ): NotificationData {
+    return {
+      timeout: opts.timeout ?? Notifier.timeout,
+      icon: opts.icon ?? 'info-sign',
+      intent: opts.intent ?? Intent.PRIMARY,
+      message,
+    };
+  }
+
   private toaster: IToaster | null = null;
 
   public setBackend(toaster: IToaster) {
     this.toaster = toaster;
   }
 
-  public showSimple(
-    message: Message,
-    timeout?: number,
-    icon?: IconName,
-  ): Notification {
-    return this.simple(message, timeout, icon).show()!;
+  public showSimple(message: Message, opts?: Options): Notification {
+    return this.simple(message, opts).show()!;
   }
 
-  public showInfo(
-    message: Message,
-    timeout?: number,
-    icon?: IconName,
-  ): Notification {
-    return this.info(message, timeout, icon).show()!;
+  public showInfo(message: Message, opts?: Options): Notification {
+    return this.info(message, opts).show()!;
   }
 
-  public showSuccess(
-    message: Message,
-    timeout?: number,
-    icon?: IconName,
-  ): Notification {
-    return this.success(message, timeout, icon).show()!;
+  public showSuccess(message: Message, opts?: Options): Notification {
+    return this.success(message, opts).show()!;
   }
 
-  public showError(
-    message: Message,
-    timeout?: number,
-    icon?: IconName,
-  ): Notification {
-    return this.error(message, timeout, icon).show()!;
+  public showError(message: Message, opts?: Options): Notification {
+    return this.error(message, opts).show()!;
   }
 
-  public showWarning(
-    message: Message,
-    timeout?: number,
-    icon?: IconName,
-  ): Notification {
-    return this.warning(message, timeout, icon).show()!;
+  public showWarning(message: Message, opts?: Options): Notification {
+    return this.warning(message, opts).show()!;
   }
 
   // These methods dont call show() on newly created notification
-  public simple(
-    message: Message,
-    timeout: number = Notifier.timeout,
-    icon: IconName = 'info-sign',
-  ): Notification {
+  public simple(message: Message, opts?: Options): Notification {
     this.setupCheck();
 
-    return this.createNotification(Intent.NONE, message, timeout, icon);
+    opts = opts ?? Notifier.defaultOptions(Intent.NONE);
+    return this.createNotification(message, opts);
   }
 
-  public info(
-    message: Message,
-    timeout: number = Notifier.timeout,
-    icon: IconName = 'info-sign',
-  ): Notification {
+  public info(message: Message, opts?: Options): Notification {
     this.setupCheck();
 
-    return this.createNotification(Intent.PRIMARY, message, timeout, icon);
+    opts = opts ?? Notifier.defaultOptions(Intent.PRIMARY);
+    return this.createNotification(message, opts);
   }
 
-  public success(
-    message: Message,
-    timeout: number = Notifier.timeout,
-    icon: IconName = 'tick-circle',
-  ): Notification {
+  public success(message: Message, opts?: Options): Notification {
     this.setupCheck();
 
-    return this.createNotification(Intent.SUCCESS, message, timeout, icon);
+    opts = opts ?? Notifier.defaultOptions(Intent.SUCCESS, 'tick-circle');
+    return this.createNotification(message, opts);
   }
 
-  public error(
-    message: Message,
-    timeout: number = Notifier.timeout,
-    icon: IconName = 'error',
-  ): Notification {
+  public error(message: Message, opts?: Options): Notification {
     this.setupCheck();
 
-    return this.createNotification(Intent.DANGER, message, timeout, icon);
+    opts = opts ?? Notifier.defaultOptions(Intent.DANGER, 'error');
+    return this.createNotification(message, opts);
   }
 
-  public warning(
-    message: Message,
-    timeout: number = Notifier.timeout,
-    icon: IconName = 'warning-sign',
-  ): Notification {
+  public warning(message: Message, opts?: Options): Notification {
     this.setupCheck();
 
-    return this.createNotification(Intent.WARNING, message, timeout, icon);
+    opts = opts ?? Notifier.defaultOptions(Intent.WARNING, 'warning-sign');
+    return this.createNotification(message, opts);
   }
 
   public dismissAll() {
@@ -143,16 +136,9 @@ export class Notifier {
     this.toaster!.clear();
   }
 
-  private createNotification(
-    intent: Intent,
-    message: Message,
-    timeout: number,
-    icon: IconName,
-  ): Notification {
-    const notificationData = { intent, message, timeout, icon };
-    const acts = this.createNotificationActions(
-      notificationData as NotificationData,
-    );
+  private createNotification(message: Message, opts: Options): Notification {
+    const notificationData = Notifier.optionsToData(opts, message);
+    const acts = this.createNotificationActions(notificationData);
 
     return new Notification(...acts);
   }

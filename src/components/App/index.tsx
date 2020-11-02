@@ -73,13 +73,35 @@ export const App: FunctionComponent<AppProps> = observer(props => {
   }, [dataManager]);
 
   useEffect(() => {
-    return dataManager.on(DataManagerEvents.StreamError, () => {
+    const d1 = dataManager.on(DataManagerEvents.StreamError, () => {
       setIsStreaming(false);
       notifier.showError(`
         Failed to receive data from backend.
         Please make sure that your deployment is up and try again.
       `);
     });
+
+    const d2 = dataManager.on(DataManagerEvents.Notification, notif => {
+      if (notif.connState?.reconnecting) {
+        notifier.showError(`
+          Connection to hubble-relay has been lost.
+          Reconnecting...
+        `);
+      } else if (notif.connState?.connected) {
+        notifier.showInfo(`
+          Connection to hubble-relay has been established.
+        `);
+      } else if (notif.dataState?.noActivity) {
+        notifier.showInfo(`
+          There are no pods in this namespace.
+        `);
+      }
+    });
+
+    return () => {
+      d1();
+      d2();
+    };
   }, [dataManager, notifier]);
 
   useEffect(() => {
@@ -107,7 +129,7 @@ export const App: FunctionComponent<AppProps> = observer(props => {
           Keep waiting for the data.
         `;
 
-        notifier.showWarning(message, 5000, IconNames.SEARCH_AROUND);
+        notifier.showWarning(message, { icon: IconNames.SEARCH_AROUND });
         storage.deleteLastNamespace();
       }, 2000),
     );
