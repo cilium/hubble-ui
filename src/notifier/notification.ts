@@ -12,7 +12,7 @@ export type DismissHandler = (timeouted: boolean) => void;
 
 export class Notification {
   private isDismissed: boolean;
-  private dismissHandler: DismissHandler | undefined;
+  private dismissHandlers: DismissHandler[];
   private notificationId: string | null;
 
   private dismissAction: DismissAction;
@@ -22,7 +22,7 @@ export class Notification {
   constructor(show: ShowAction, dismiss: DismissAction, update: UpdateAction) {
     this.notificationId = null;
     this.isDismissed = false;
-    this.dismissHandler = undefined;
+    this.dismissHandlers = [];
 
     this.showAction = show;
     this.updateAction = update;
@@ -32,7 +32,9 @@ export class Notification {
   public show(): Notification | null {
     if (this.dismissed) return null;
 
-    this.notificationId = this.showAction(this.dismissHandler);
+    this.notificationId = this.showAction((timeouted: boolean) => {
+      this.runOnDismiss(timeouted);
+    });
 
     return this;
   }
@@ -49,7 +51,7 @@ export class Notification {
   }
 
   public onDismiss(handler: DismissHandler) {
-    this.dismissHandler = handler;
+    this.dismissHandlers.push(handler);
   }
 
   public update(
@@ -61,6 +63,15 @@ export class Notification {
     this.updateAction(this.notificationId!, message, timeout);
 
     return this;
+  }
+
+  private runOnDismiss(timeouted: boolean) {
+    const handlers = this.dismissHandlers;
+    this.dismissHandlers = [];
+
+    handlers.forEach(handler => {
+      handler(timeouted);
+    });
   }
 
   public get dismissed() {
