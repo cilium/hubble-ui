@@ -1,9 +1,9 @@
 import _ from 'lodash';
 import { action, observable, computed } from 'mobx';
 
-import { Flow, FlowsFilterEntry, FlowsFilterKind } from '~/domain/flows';
+import { Flow } from '~/domain/flows';
 import { Verdict } from '~/domain/hubble';
-import { Filters } from '~/domain/filtering';
+import { Filters, FilterEntry, FilterKind } from '~/domain/filtering';
 
 // This store maintains data that is configured by control interfaces
 export default class ControlStore {
@@ -15,7 +15,7 @@ export default class ControlStore {
 
   @observable verdict: Verdict | null = null;
   @observable httpStatus: string | null = null;
-  @observable flowFilters: FlowsFilterEntry[] = [];
+  @observable flowFilters: FilterEntry[] = [];
   @observable showHost = false;
   @observable showKubeDns = false;
   @observable showRemoteNode = false;
@@ -89,7 +89,7 @@ export default class ControlStore {
   }
 
   @action.bound
-  setFlowFilters(ffs: FlowsFilterEntry[]) {
+  setFlowFilters(ffs: FilterEntry[]) {
     this.flowFilters = ffs;
   }
 
@@ -156,7 +156,7 @@ export default class ControlStore {
   @computed
   get activeCardFilter() {
     return this.flowFilters.find(f => {
-      return [FlowsFilterKind.Dns, FlowsFilterKind.Identity].includes(f.kind);
+      return [FilterKind.Dns, FilterKind.Identity].includes(f.kind);
     });
   }
 

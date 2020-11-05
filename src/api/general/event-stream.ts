@@ -2,7 +2,7 @@ import { EventEmitter } from '~/utils/emitter';
 import { GeneralStreamEvents } from './stream';
 
 import { Verdict, HubbleService, HubbleLink } from '~/domain/hubble';
-import { Flow, FlowsFilterEntry } from '~/domain/flows';
+import { Flow } from '~/domain/flows';
 import { StateChange } from '~/domain/misc';
 
 export interface EventParams {

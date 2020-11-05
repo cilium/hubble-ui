@@ -4,7 +4,8 @@ import { action, observable, computed } from 'mobx';
 import { AbstractCard } from '~/domain/cards';
 import { HubbleService } from '~/domain/hubble';
 import { Link } from '~/domain/link';
-import { Labels, LabelsProps } from '~/domain/labels';
+import { Labels, LabelsProps, ReservedLabel } from '~/domain/labels';
+import { FilterEntry, FilterKind, FilterDirection } from '~/domain/filtering';
 import { KV } from '~/domain/misc';
 
 import { ApplicationKind } from './types';
@@ -14,10 +15,13 @@ import { AccessPoint } from './access-point';
 export class ServiceCard extends AbstractCard {
   public static readonly AppLabel = 'k8s:app';
 
-  private _labelsProps: LabelsProps | null;
+  public static fromService(srvc: HubbleService): ServiceCard {
+    return new ServiceCard(srvc);
+  }
 
   @observable
   private _accessPoints: Map<string, AccessPoint>;
+  private _labelsProps: LabelsProps | null;
 
   public service: HubbleService;
 
@@ -27,19 +31,6 @@ export class ServiceCard extends AbstractCard {
     this.service = service;
     this._labelsProps = null;
     this._accessPoints = new Map();
-  }
-
-  public get id(): string {
-    return this.service.id;
-  }
-
-  @computed
-  public get accessPoints(): Map<string, AccessPoint> {
-    return new Map(this._accessPoints);
-  }
-
-  public static fromService(srvc: HubbleService): ServiceCard {
-    return new ServiceCard(srvc);
   }
 
   @action.bound
@@ -69,6 +60,31 @@ export class ServiceCard extends AbstractCard {
     });
 
     return card;
+  }
+
+  public get id(): string {
+    return this.service.id;
+  }
+
+  public get filterEntry(): FilterEntry {
+    let [kind, query] = [FilterKind.Identity, this.id];
+
+    if (this.isDNS) {
+      [kind, query] = [FilterKind.Dns, this.caption];
+    } else if (this.isWorld) {
+      [kind, query] = [FilterKind.Label, ReservedLabel.World];
+    }
+
+    return new FilterEntry({
+      kind,
+      query,
+      direction: FilterDirection.Both,
+    });
+  }
+
+  @computed
+  public get accessPoints(): Map<string, AccessPoint> {
+    return new Map(this._accessPoints);
   }
 
   public get appProtocol(): ApplicationKind | undefined {

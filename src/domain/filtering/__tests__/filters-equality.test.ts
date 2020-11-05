@@ -1,5 +1,4 @@
-import { Filters } from '~/domain/filtering';
-import { FlowsFilterEntry } from '~/domain/flows';
+import { Filters, FilterEntry } from '~/domain/filtering';
 import { Verdict } from '~/domain/hubble';
 
 import * as combinations from '~/utils/iter-tools/combinations';
@@ -30,17 +29,17 @@ const testCommonFiltersEquality = () => {
     '400',
   ];
 
-  const filters: Array<undefined | FlowsFilterEntry[]> = [
+  const filters: Array<undefined | FilterEntry[]> = [
     undefined,
     [
-      FlowsFilterEntry.parse('both:dns=google.com')!,
-      FlowsFilterEntry.parse('from:ip=255.255.255.255')!,
+      FilterEntry.parse('both:dns=google.com')!,
+      FilterEntry.parse('from:ip=255.255.255.255')!,
     ],
     [
-      FlowsFilterEntry.parse('to:label=k8s-app=core-api')!,
-      FlowsFilterEntry.parse('from:label=k8s-app=crawler')!,
+      FilterEntry.parse('to:label=k8s-app=core-api')!,
+      FilterEntry.parse('from:label=k8s-app=crawler')!,
     ],
-    [FlowsFilterEntry.parse('from:ip=158.183.221.43')!],
+    [FilterEntry.parse('from:ip=158.183.221.43')!],
   ];
 
   const skipHosts: Array<undefined | boolean> = [undefined, false, true];

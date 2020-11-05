@@ -3,11 +3,12 @@ import {
   FiltersObject,
   filterLink,
   filterLinkUsingBasicEntry,
+  FilterEntry,
 } from '~/domain/filtering';
 
 import { Verdict } from '~/domain/hubble';
 import { Link } from '~/domain/link';
-import { Flow, FlowsFilterEntry } from '~/domain/flows';
+import { Flow } from '~/domain/flows';
 import { Dictionary } from '~/domain/misc';
 import { links } from '~/testing/data';
 
@@ -31,7 +32,7 @@ const runUnusedFiltersTests = (
 
 const testFilterEntry = (
   captionFn: (linkName: string, testNum: number) => string,
-  entry: FlowsFilterEntry,
+  entry: FilterEntry,
   expected: boolean,
   links: Dictionary<Link>,
 ) => {
@@ -220,7 +221,7 @@ describe('filterLink', () => {
 
   testFilterEntry(
     (linkName: string, n: number) => `identity > to matches ${n} (${linkName})`,
-    FlowsFilterEntry.parse(`to:identity=dst-456`)!,
+    FilterEntry.parse(`to:identity=dst-456`)!,
     true,
     {
       tcpForwarded,
@@ -235,7 +236,7 @@ describe('filterLink', () => {
   testFilterEntry(
     (linkName: string, n: number) =>
       `identity > to doesnt match ${n} (${linkName})`,
-    FlowsFilterEntry.parse(`to:identity=dst-456-wrong`)!,
+    FilterEntry.parse(`to:identity=dst-456-wrong`)!,
     false,
     {
       tcpForwarded,
@@ -249,7 +250,7 @@ describe('filterLink', () => {
 
   testFilterEntry(
     (linkName: string, n: number) => `identity > to matches ${n} (${linkName})`,
-    FlowsFilterEntry.parse(`to:identity=src-123`)!,
+    FilterEntry.parse(`to:identity=src-123`)!,
     true,
     {
       tcpForwardedToItself,
@@ -260,7 +261,7 @@ describe('filterLink', () => {
   testFilterEntry(
     (linkName: string, n: number) =>
       `identity > to doesnt match ${n} (${linkName})`,
-    FlowsFilterEntry.parse(`to:identity=src-123-wrong`)!,
+    FilterEntry.parse(`to:identity=src-123-wrong`)!,
     false,
     {
       tcpForwardedToItself,
@@ -271,7 +272,7 @@ describe('filterLink', () => {
   testFilterEntry(
     (linkName: string, n: number) =>
       `identity > from matches ${n} (${linkName})`,
-    FlowsFilterEntry.parse(`from:identity=src-123`)!,
+    FilterEntry.parse(`from:identity=src-123`)!,
     true,
     {
       tcpForwarded,
@@ -288,7 +289,7 @@ describe('filterLink', () => {
   testFilterEntry(
     (linkName: string, n: number) =>
       `identity > from doesnt match ${n} (${linkName})`,
-    FlowsFilterEntry.parse(`from:identity=src-123-wrong`)!,
+    FilterEntry.parse(`from:identity=src-123-wrong`)!,
     false,
     {
       tcpForwarded,
@@ -305,7 +306,7 @@ describe('filterLink', () => {
   testFilterEntry(
     (linkName: string, n: number) =>
       `identity > both matches ${n} (${linkName})`,
-    FlowsFilterEntry.parse(`both:identity=src-123`)!,
+    FilterEntry.parse(`both:identity=src-123`)!,
     true,
     {
       tcpForwarded,
@@ -322,7 +323,7 @@ describe('filterLink', () => {
   testFilterEntry(
     (linkName: string, n: number) =>
       `identity > both doesnt match ${n} (${linkName})`,
-    FlowsFilterEntry.parse(`both:identity=src-123-wrong`)!,
+    FilterEntry.parse(`both:identity=src-123-wrong`)!,
     false,
     {
       tcpForwarded,
@@ -357,36 +358,36 @@ describe('filterLink', () => {
         httpStatus: '200',
       },
       {
-        filters: [FlowsFilterEntry.parse('from:dns=www.google.com')!],
+        filters: [FilterEntry.parse('from:dns=www.google.com')!],
       },
       {
-        filters: [FlowsFilterEntry.parse('to:dns=www.google.com')!],
+        filters: [FilterEntry.parse('to:dns=www.google.com')!],
       },
       {
-        filters: [FlowsFilterEntry.parse('both:dns=www.google.com')!],
+        filters: [FilterEntry.parse('both:dns=www.google.com')!],
       },
       {
-        filters: [FlowsFilterEntry.parse('from:label=k8s:k8s-app=random-app')!],
+        filters: [FilterEntry.parse('from:label=k8s:k8s-app=random-app')!],
       },
       {
-        filters: [FlowsFilterEntry.parse('to:label=k8s:k8s-app=random-app')!],
+        filters: [FilterEntry.parse('to:label=k8s:k8s-app=random-app')!],
       },
       {
-        filters: [FlowsFilterEntry.parse('both:label=k8s:k8s-app=random-app')!],
+        filters: [FilterEntry.parse('both:label=k8s:k8s-app=random-app')!],
       },
       {
-        filters: [FlowsFilterEntry.parse('from:ip=153.82.167.250')!],
+        filters: [FilterEntry.parse('from:ip=153.82.167.250')!],
       },
       {
-        filters: [FlowsFilterEntry.parse('to:ip=153.82.167.250')!],
+        filters: [FilterEntry.parse('to:ip=153.82.167.250')!],
       },
       {
-        filters: [FlowsFilterEntry.parse('both:ip=153.82.167.250')!],
+        filters: [FilterEntry.parse('both:ip=153.82.167.250')!],
       },
       {
         filters: [
-          FlowsFilterEntry.parse('from:ip=153.82.167.250')!,
-          FlowsFilterEntry.parse('to:label=k8s:k8s-app=random-app')!,
+          FilterEntry.parse('from:ip=153.82.167.250')!,
+          FilterEntry.parse('to:label=k8s:k8s-app=random-app')!,
         ],
       },
     ],

@@ -1,12 +1,8 @@
-import {
-  FlowsFilterEntry,
-  FlowsFilterKind,
-  FlowsFilterDirection,
-} from '~/domain/flows';
+import { FilterEntry, FilterKind, FilterDirection } from '~/domain/filtering';
 
 export const expectFilterEntry = (
-  entry: FlowsFilterEntry | null,
-  expecations: [FlowsFilterKind, FlowsFilterDirection, string],
+  entry: FilterEntry | null,
+  expecations: [FilterKind, FilterDirection, string],
 ) => {
   expect(entry).toBeTruthy();
 

@@ -8,7 +8,7 @@ import {
 import { action, computed, observable, runInAction } from 'mobx';
 import * as qs from 'query-string';
 
-import { FlowsFilterEntry } from '~/domain/flows';
+import { FilterEntry } from '~/domain/filtering';
 import { Verdict } from '~/domain/hubble';
 import { Dictionary } from '~/domain/misc';
 
@@ -107,7 +107,7 @@ export default class RouteStore {
     return statuses;
   }
 
-  @computed get flowFilters(): FlowsFilterEntry[] {
+  @computed get flowFilters(): FilterEntry[] {
     let filters = this.params['flows-filter'];
     if (filters == null) return [];
 
@@ -116,12 +116,12 @@ export default class RouteStore {
     }
 
     return filters.reduce((acc, filter) => {
-      const ff = FlowsFilterEntry.parse(filter);
+      const ff = FilterEntry.parse(filter);
       if (!ff) return acc;
 
       acc.push(ff);
       return acc;
-    }, [] as FlowsFilterEntry[]);
+    }, [] as FilterEntry[]);
   }
 
   @action.bound

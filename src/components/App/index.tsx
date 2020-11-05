@@ -28,8 +28,13 @@ import { WelcomeScreen } from './WelcomeScreen';
 import { Verdict, TCPFlagName } from '~/domain/hubble';
 import { ServiceCard } from '~/domain/service-map';
 import { Vec2 } from '~/domain/geometry';
-import { FlowsFilterEntry, FlowsFilterDirection } from '~/domain/flows';
 import { KV, Labels } from '~/domain/labels';
+import {
+  Filters,
+  FilterEntry,
+  FilterKind,
+  FilterDirection,
+} from '~/domain/filtering';
 
 import {
   ServiceMapPlacementStrategy,
@@ -46,7 +51,6 @@ import { DataManager, EventKind as DataManagerEvents } from './DataManager';
 import { Ticker } from '~/utils/ticker';
 import { sizes } from '~/ui/vars';
 import css from './styles.scss';
-import { Filters } from '~/domain/filtering';
 
 export interface AppProps extends RouteComponentProps {
   api: API;
@@ -217,64 +221,55 @@ export const App: FunctionComponent<AppProps> = observer(props => {
   }, []);
 
   const onSidebarTCPFlagClick = useCallback(
-    (flag?: TCPFlagName, dir?: FlowsFilterDirection) => {
+    (flag?: TCPFlagName, dir?: FilterDirection) => {
       if (!flag || !dir) return store.setFlowFilters([]);
 
-      store.setFlowFilters([
-        FlowsFilterEntry.newTCPFlag(flag!).setDirection(dir!),
-      ]);
+      store.setFlowFilters([FilterEntry.newTCPFlag(flag!).setDirection(dir!)]);
     },
     [],
   );
 
   const onSidebarLabelClick = useCallback(
-    (label?: KV, dir?: FlowsFilterDirection) => {
+    (label?: KV, dir?: FilterDirection) => {
       if (!label || !dir) return store.setFlowFilters([]);
       const labelStr = Labels.concatKV(label!);
 
-      store.setFlowFilters([
-        FlowsFilterEntry.newLabel(labelStr).setDirection(dir!),
-      ]);
+      store.setFlowFilters([FilterEntry.newLabel(labelStr).setDirection(dir!)]);
     },
     [],
   );
 
   const onSidebarPodClick = useCallback(
-    (podName?: string, dir?: FlowsFilterDirection) => {
+    (podName?: string, dir?: FilterDirection) => {
       if (!podName || !dir) return store.setFlowFilters([]);
 
-      store.setFlowFilters([
-        FlowsFilterEntry.newPod(podName!).setDirection(dir!),
-      ]);
+      store.setFlowFilters([FilterEntry.newPod(podName!).setDirection(dir!)]);
     },
     [],
   );
 
   const onSidebarIdentityClick = useCallback(
-    (identity?: string, dir?: FlowsFilterDirection) => {
+    (identity?: string, dir?: FilterDirection) => {
       if (identity == null || !dir) return store.setFlowFilters([]);
 
       store.setFlowFilters([
-        FlowsFilterEntry.newIdentity(identity!).setDirection(dir!),
+        FilterEntry.newIdentity(identity!).setDirection(dir!),
       ]);
     },
     [],
   );
 
-  const onSidebarIpClick = useCallback(
-    (ip?: string, dir?: FlowsFilterDirection) => {
-      if (ip == null || !dir) return store.setFlowFilters([]);
+  const onSidebarIpClick = useCallback((ip?: string, dir?: FilterDirection) => {
+    if (ip == null || !dir) return store.setFlowFilters([]);
 
-      store.setFlowFilters([FlowsFilterEntry.newIP(ip!).setDirection(dir!)]);
-    },
-    [],
-  );
+    store.setFlowFilters([FilterEntry.newIP(ip!).setDirection(dir!)]);
+  }, []);
 
   const onSidebarDnsClick = useCallback((dns?: string) => {
     if (dns == null) return store.setFlowFilters([]);
 
     store.setFlowFilters([
-      FlowsFilterEntry.newDNS(dns).setDirection(FlowsFilterDirection.Both),
+      FilterEntry.newDNS(dns).setDirection(FilterDirection.Both),
     ]);
   }, []);
 

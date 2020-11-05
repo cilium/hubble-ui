@@ -14,7 +14,6 @@ import {
 import { KV } from '~/domain/misc';
 import { memoize } from '~/utils/memoize';
 
-export * from './flows-filter-entry';
 export { HubbleFlow, Verdict };
 
 export class Flow {

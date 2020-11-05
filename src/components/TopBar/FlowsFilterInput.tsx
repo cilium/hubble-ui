@@ -4,21 +4,19 @@ import { trim } from 'lodash';
 import React, { useCallback, useState, memo } from 'react';
 import classnames from 'classnames';
 
-import {
-  FlowsFilterDirection,
-  FlowsFilterEntry,
-  FlowsFilterKind,
-} from '~/domain/flows';
+import { TagDirection } from './TagDirection';
 
-import css from './FlowsFilterInput.scss';
+import { FilterDirection, FilterEntry, FilterKind } from '~/domain/filtering';
 import { Labels } from '~/domain/labels';
 
+import css from './FlowsFilterInput.scss';
+
 interface Props {
-  filters: FlowsFilterEntry[];
-  onChange?: (filters: FlowsFilterEntry[]) => void;
+  filters: FilterEntry[];
+  onChange?: (filters: FilterEntry[]) => void;
 }
 
-const FilterMultiSelect = MultiSelect.ofType<FlowsFilterEntry | null>();
+const FilterMultiSelect = MultiSelect.ofType<FilterEntry | null>();
 
 export const FlowsFilterInput = (props: Props) => {
   const [userInput, setUserInput] = useState<string>('');
@@ -50,7 +48,7 @@ export const FlowsFilterInput = (props: Props) => {
   );
 
   const createNewItemFromQuery = (userInput: string) => {
-    const filter = FlowsFilterEntry.parse(userInput);
+    const filter = FilterEntry.parse(userInput);
     if (filter?.isLabel) {
       filter.prepareLabel();
     }
@@ -63,7 +61,7 @@ export const FlowsFilterInput = (props: Props) => {
   }, []);
 
   // prettier-ignore
-  const onItemSelect = useCallback((item: FlowsFilterEntry | null) => {
+  const onItemSelect = useCallback((item: FilterEntry | null) => {
     if (!item || trim(item.query).length === 0) return;
 
     props.onChange?.([...props.filters, item]);
@@ -73,7 +71,7 @@ export const FlowsFilterInput = (props: Props) => {
   // prettier-ignore
   const handleTagDelete = useCallback((val: string, idx: number) => {
     props.onChange?.(
-      props.filters.filter((_: FlowsFilterEntry, i: number) => i !== idx),
+      props.filters.filter((_: FilterEntry, i: number) => i !== idx),
     );
   }, [props.filters, props.onChange]);
 
@@ -114,15 +112,15 @@ export const FlowsFilterInput = (props: Props) => {
   );
 };
 
-const itemRenderer: ItemRenderer<FlowsFilterEntry | null> = () => {
+const itemRenderer: ItemRenderer<FilterEntry | null> = () => {
   return null;
 };
 
-function tagRenderer(item: FlowsFilterEntry | null) {
+function tagRenderer(item: FilterEntry | null) {
   if (!item) return null;
 
   const query =
-    item.kind === FlowsFilterKind.Label
+    item.kind === FilterKind.Label
       ? Labels.normalizeKey(item.query)
       : item.query;
 
@@ -138,40 +136,3 @@ function tagRenderer(item: FlowsFilterEntry | null) {
     </div>
   );
 }
-
-interface TagDirectionProps {
-  direction: FlowsFilterDirection;
-}
-
-const TagDirection = memo<TagDirectionProps>(function TagDirection(props) {
-  const className = classnames(css.direction, {
-    [css.from]: props.direction === FlowsFilterDirection.From,
-    [css.to]: props.direction === FlowsFilterDirection.To,
-    [css.both]: props.direction === FlowsFilterDirection.Both,
-  });
-
-  return (
-    <span className={className}>
-      {props.direction === FlowsFilterDirection.From && (
-        <>
-          <span className={classnames(css.label, css.from)}>from</span>
-          <Icon icon="arrow-left" iconSize={9} className={css.icon} />
-        </>
-      )}
-      {props.direction === FlowsFilterDirection.To && (
-        <>
-          <Icon icon="arrow-right" iconSize={9} className={css.icon} />
-          <span className={classnames(css.label, css.to)}>to</span>
-        </>
-      )}
-      {props.direction === FlowsFilterDirection.Both && (
-        <>
-          <span className={classnames(css.label, css.from)}>from</span>
-          <Icon icon="arrows-horizontal" iconSize={9} className={css.icon} />
-          <span className={classnames(css.label, css.to)}>to</span>
-        </>
-      )}
-      {/* <Icon icon={icon} iconSize={9} color={color} style={{ color }} /> */}
-    </span>
-  );
-});

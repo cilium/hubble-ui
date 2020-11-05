@@ -3,17 +3,15 @@ import {
   FiltersObject,
   filterService,
   filterServiceUsingBasicEntry,
+  FilterEntry,
+  FilterKind,
+  FilterDirection,
 } from '~/domain/filtering';
 
 import { ServiceCard } from '~/domain/service-map';
 import { Verdict } from '~/domain/hubble';
 import { Dictionary } from '~/domain/misc';
 import { services } from '~/testing/data';
-import {
-  FlowsFilterEntry,
-  FlowsFilterKind,
-  FlowsFilterDirection,
-} from '~/domain/flows';
 
 import { expectFilterEntry } from './general';
 
@@ -37,7 +35,7 @@ const runUnusedFiltersTests = (
 
 const testFilterEntry = (
   captionFn: (serviceName: string, testNum: number) => string,
-  entry: FlowsFilterEntry,
+  entry: FilterEntry,
   expected: boolean,
   services: Dictionary<ServiceCard>,
 ) => {
@@ -61,21 +59,19 @@ describe('filterService', () => {
   const kubeDns = ServiceCard.fromService(services.kubeDNS);
 
   const filterEntries = {
-    fromLabelRegular: FlowsFilterEntry.parse(
+    fromLabelRegular: FilterEntry.parse(
       `from:label=k8s:k8s-app=regular-service`,
     ),
-    toLabelRegular: FlowsFilterEntry.parse(
-      `to:label=k8s:k8s-app=regular-service`,
-    ),
-    bothLabelRegular: FlowsFilterEntry.parse(
+    toLabelRegular: FilterEntry.parse(`to:label=k8s:k8s-app=regular-service`),
+    bothLabelRegular: FilterEntry.parse(
       `both:label=k8s:k8s-app=regular-service`,
     ),
-    toDnsGoogle: FlowsFilterEntry.parse(`to:dns=www.google.com`),
-    fromDnsGoogle: FlowsFilterEntry.parse(`from:dns=www.google.com`),
-    bothDnsGoogle: FlowsFilterEntry.parse(`both:dns=www.google.com`),
-    fromIpRandom: FlowsFilterEntry.parse(`from:ip=153.82.167.250`),
-    toIpRandom: FlowsFilterEntry.parse(`to:ip=153.82.167.250`),
-    bothIpRandom: FlowsFilterEntry.parse(`both:ip=153.82.167.250`),
+    toDnsGoogle: FilterEntry.parse(`to:dns=www.google.com`),
+    fromDnsGoogle: FilterEntry.parse(`from:dns=www.google.com`),
+    bothDnsGoogle: FilterEntry.parse(`both:dns=www.google.com`),
+    fromIpRandom: FilterEntry.parse(`from:ip=153.82.167.250`),
+    toIpRandom: FilterEntry.parse(`to:ip=153.82.167.250`),
+    bothIpRandom: FilterEntry.parse(`both:ip=153.82.167.250`),
   };
 
   test('mock data sanity check', () => {
@@ -112,56 +108,56 @@ describe('filterService', () => {
 
   test('prepared filter entries sanity check', () => {
     expectFilterEntry(filterEntries.fromLabelRegular, [
-      FlowsFilterKind.Label,
-      FlowsFilterDirection.From,
+      FilterKind.Label,
+      FilterDirection.From,
       'k8s:k8s-app=regular-service',
     ]);
 
     expectFilterEntry(filterEntries.toLabelRegular, [
-      FlowsFilterKind.Label,
-      FlowsFilterDirection.To,
+      FilterKind.Label,
+      FilterDirection.To,
       'k8s:k8s-app=regular-service',
     ]);
 
     expectFilterEntry(filterEntries.bothLabelRegular, [
-      FlowsFilterKind.Label,
-      FlowsFilterDirection.Both,
+      FilterKind.Label,
+      FilterDirection.Both,
       'k8s:k8s-app=regular-service',
     ]);
 
     expectFilterEntry(filterEntries.fromDnsGoogle, [
-      FlowsFilterKind.Dns,
-      FlowsFilterDirection.From,
+      FilterKind.Dns,
+      FilterDirection.From,
       'www.google.com',
     ]);
 
     expectFilterEntry(filterEntries.toDnsGoogle, [
-      FlowsFilterKind.Dns,
-      FlowsFilterDirection.To,
+      FilterKind.Dns,
+      FilterDirection.To,
       'www.google.com',
     ]);
 
     expectFilterEntry(filterEntries.bothDnsGoogle, [
-      FlowsFilterKind.Dns,
-      FlowsFilterDirection.Both,
+      FilterKind.Dns,
+      FilterDirection.Both,
       'www.google.com',
     ]);
 
     expectFilterEntry(filterEntries.fromIpRandom, [
-      FlowsFilterKind.Ip,
-      FlowsFilterDirection.From,
+      FilterKind.Ip,
+      FilterDirection.From,
       '153.82.167.250',
     ]);
 
     expectFilterEntry(filterEntries.toIpRandom, [
-      FlowsFilterKind.Ip,
-      FlowsFilterDirection.To,
+      FilterKind.Ip,
+      FilterDirection.To,
       '153.82.167.250',
     ]);
 
     expectFilterEntry(filterEntries.bothIpRandom, [
-      FlowsFilterKind.Ip,
-      FlowsFilterDirection.Both,
+      FilterKind.Ip,
+      FilterDirection.Both,
       '153.82.167.250',
     ]);
   });
@@ -232,7 +228,7 @@ describe('filterService', () => {
   testFilterEntry(
     (svcName: string, tnum: number) =>
       `identity > to matches ${tnum} (${svcName})`,
-    FlowsFilterEntry.parse(`to:identity=${regular.id}`)!,
+    FilterEntry.parse(`to:identity=${regular.id}`)!,
     true,
     { regular },
   );
@@ -240,7 +236,7 @@ describe('filterService', () => {
   testFilterEntry(
     (svcName: string, tnum: number) =>
       `identity > to doesnt match ${tnum} (${svcName})`,
-    FlowsFilterEntry.parse(`to:identity=${regular.id}`)!,
+    FilterEntry.parse(`to:identity=${regular.id}`)!,
     false,
     {
       world,
@@ -253,7 +249,7 @@ describe('filterService', () => {
   testFilterEntry(
     (svcName: string, tnum: number) =>
       `identity > from matches ${tnum} (${svcName})`,
-    FlowsFilterEntry.parse(`from:identity=${regular.id}`)!,
+    FilterEntry.parse(`from:identity=${regular.id}`)!,
     true,
     { regular },
   );
@@ -261,7 +257,7 @@ describe('filterService', () => {
   testFilterEntry(
     (svcName: string, tnum: number) =>
       `identity > from doesnt match ${tnum} (${svcName})`,
-    FlowsFilterEntry.parse(`from:identity=${regular.id}`)!,
+    FilterEntry.parse(`from:identity=${regular.id}`)!,
     false,
     {
       world,
@@ -274,7 +270,7 @@ describe('filterService', () => {
   testFilterEntry(
     (svcName: string, tnum: number) =>
       `identity > both matches ${tnum} (${svcName})`,
-    FlowsFilterEntry.parse(`both:identity=${regular.id}`)!,
+    FilterEntry.parse(`both:identity=${regular.id}`)!,
     true,
     { regular },
   );
@@ -282,7 +278,7 @@ describe('filterService', () => {
   testFilterEntry(
     (svcName: string, tnum: number) =>
       `identity > both doesnt match ${tnum} (${svcName})`,
-    FlowsFilterEntry.parse(`both:identity=${regular.id}`)!,
+    FilterEntry.parse(`both:identity=${regular.id}`)!,
     false,
     {
       world,

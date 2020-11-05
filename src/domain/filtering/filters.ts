@@ -1,4 +1,5 @@
-import { FlowsFilterEntry, Verdict } from '~/domain/flows';
+import { Verdict } from '~/domain/flows';
+import { FilterEntry } from './filter-entry';
 
 const assignFilterProps = (to: FiltersObject, from: FiltersObject) => {
   Object.assign(to, {
@@ -19,7 +20,7 @@ export interface FiltersObject {
   namespace?: string | null;
   verdict?: Verdict | null;
   httpStatus?: string | null;
-  filters?: FlowsFilterEntry[];
+  filters?: FilterEntry[];
   skipHost?: boolean;
   skipKubeDns?: boolean;
   skipRemoteNode?: boolean;
@@ -41,7 +42,7 @@ export class Filters implements FiltersObject {
   public namespace?: string | null;
   public verdict?: Verdict | null;
   public httpStatus?: string | null;
-  public filters?: FlowsFilterEntry[];
+  public filters?: FilterEntry[];
   public skipHost?: boolean;
   public skipKubeDns?: boolean;
   public skipRemoteNode?: boolean;
@@ -51,8 +52,12 @@ export class Filters implements FiltersObject {
     return new Filters(obj);
   }
 
-  public static default(): FiltersObject {
+  public static defaultObject(): FiltersObject {
     return defaultFilters;
+  }
+
+  public static default(): Filters {
+    return new Filters(defaultFilters);
   }
 
   constructor(obj: FiltersObject) {
