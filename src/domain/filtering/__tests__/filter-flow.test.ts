@@ -2,23 +2,19 @@ import {
   Filters,
   filterFlow,
   filterFlowUsingBasicEntry,
+  FilterEntry,
 } from '~/domain/filtering';
 
 import { Dictionary } from '~/domain/misc';
 import { Verdict } from '~/domain/hubble';
-import {
-  Flow,
-  FlowsFilterEntry,
-  FlowsFilterKind,
-  FlowsFilterDirection,
-} from '~/domain/flows';
+import { Flow } from '~/domain/flows';
 
 import * as combinations from '~/utils/iter-tools/combinations';
 import { flows } from '~/testing/data';
 
 const testFilterEntry = (
   captionFn: (flowName: string, testNum: number) => string,
-  entry: FlowsFilterEntry,
+  entry: FilterEntry,
   expected: boolean,
   flows: Dictionary<Flow>,
 ) => {
@@ -402,7 +398,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `labels > from matches ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`from:label=namespace=SenderNs`)!,
+    FilterEntry.parse(`from:label=namespace=SenderNs`)!,
     true,
     {
       diffNsFlow,
@@ -422,7 +418,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `labels > from doesnt match ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`from:label=namespace=SenderNs`)!,
+    FilterEntry.parse(`from:label=namespace=SenderNs`)!,
     false,
     {
       sameNsFlow,
@@ -436,7 +432,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `labels > to matches ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`to:label=namespace=ReceiverNs`)!,
+    FilterEntry.parse(`to:label=namespace=ReceiverNs`)!,
     true,
     {
       diffNsFlow,
@@ -455,7 +451,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `labels > to doesnt match ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`to:label=namespace=SenderNs`)!,
+    FilterEntry.parse(`to:label=namespace=SenderNs`)!,
     false,
     {
       sameNsFlow,
@@ -470,7 +466,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `labels > both matches ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`both:label=namespace=SenderNs`)!,
+    FilterEntry.parse(`both:label=namespace=SenderNs`)!,
     true,
     {
       diffNsFlow,
@@ -489,7 +485,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `labels > both doesnt match ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`both:label=namespace=random-123987-ns`)!,
+    FilterEntry.parse(`both:label=namespace=random-123987-ns`)!,
     false,
     {
       diffNsFlow,
@@ -513,7 +509,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `dns > from matches ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`from:dns=www.google.com`)!,
+    FilterEntry.parse(`from:dns=www.google.com`)!,
     true,
     {
       fromGoogleFlow,
@@ -524,7 +520,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `dns > from doesnt match ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`from:dns=www.google.com`)!,
+    FilterEntry.parse(`from:dns=www.google.com`)!,
     false,
     {
       diffNsFlow,
@@ -546,7 +542,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `dns > to matches ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`to:dns=www.google.com`)!,
+    FilterEntry.parse(`to:dns=www.google.com`)!,
     true,
     {
       toGoogleFlow,
@@ -557,7 +553,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `dns > to doesnt match ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`to:dns=www.google.com`)!,
+    FilterEntry.parse(`to:dns=www.google.com`)!,
     false,
     {
       diffNsFlow,
@@ -579,7 +575,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `dns > both matches ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`both:dns=www.google.com`)!,
+    FilterEntry.parse(`both:dns=www.google.com`)!,
     true,
     {
       toGoogleFlow,
@@ -591,7 +587,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `dns > both doesnt match ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`both:dns=www.google.com`)!,
+    FilterEntry.parse(`both:dns=www.google.com`)!,
     false,
     {
       diffNsFlow,
@@ -612,7 +608,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `ip > from matches ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`from:ip=${sameIpsFlow.sourceIp}`)!,
+    FilterEntry.parse(`from:ip=${sameIpsFlow.sourceIp}`)!,
     true,
     {
       sameIpsFlow,
@@ -623,7 +619,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `ip > from doesnt match ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`from:ip=0.0.0.0`)!,
+    FilterEntry.parse(`from:ip=0.0.0.0`)!,
     false,
     {
       sameIpsFlow,
@@ -646,7 +642,7 @@ describe('filterFlow', () => {
 
   testFilterEntry(
     (flowName: string, tnum: number) => `ip > to matches ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`to:ip=${differentIpsFlow.destinationIp}`)!,
+    FilterEntry.parse(`to:ip=${differentIpsFlow.destinationIp}`)!,
     true,
     {
       differentIpsFlow,
@@ -656,7 +652,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `ip > to doesnt match ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`to:ip=${differentIpsFlow.destinationIp}`)!,
+    FilterEntry.parse(`to:ip=${differentIpsFlow.destinationIp}`)!,
     false,
     {
       sameIpsFlow,
@@ -679,7 +675,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `ip > both matches ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`both:ip=${differentIpsFlow.sourceIp}`)!,
+    FilterEntry.parse(`both:ip=${differentIpsFlow.sourceIp}`)!,
     true,
     {
       differentIpsFlow,
@@ -690,7 +686,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `ip > both doesnt match ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`both:ip=0.0.0.0`)!,
+    FilterEntry.parse(`both:ip=0.0.0.0`)!,
     false,
     {
       sameIpsFlow,
@@ -714,7 +710,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `identity > from matches ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`from:identity=0`)!,
+    FilterEntry.parse(`from:identity=0`)!,
     true,
     {
       normalOne: flows.normalOne,
@@ -739,7 +735,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `identity > from doesnt match ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`from:identity=1`)!,
+    FilterEntry.parse(`from:identity=1`)!,
     false,
     {
       normalOne: flows.normalOne,
@@ -764,7 +760,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `identity > to matches ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`to:identity=1`)!,
+    FilterEntry.parse(`to:identity=1`)!,
     true,
     {
       normalOne: flows.normalOne,
@@ -789,7 +785,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `identity > to doesnt match ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`to:identity=0`)!,
+    FilterEntry.parse(`to:identity=0`)!,
     false,
     {
       normalOne: flows.normalOne,
@@ -814,7 +810,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `identity > both matches ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`both:identity=0`)!,
+    FilterEntry.parse(`both:identity=0`)!,
     true,
     {
       normalOne: flows.normalOne,
@@ -839,7 +835,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `identity > both matches ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`both:identity=1`)!,
+    FilterEntry.parse(`both:identity=1`)!,
     true,
     {
       normalOne: flows.normalOne,
@@ -864,7 +860,7 @@ describe('filterFlow', () => {
   testFilterEntry(
     (flowName: string, tnum: number) =>
       `identity > both doesnt match ${tnum} (${flowName})`,
-    FlowsFilterEntry.parse(`both:identity=100500`)!,
+    FilterEntry.parse(`both:identity=100500`)!,
     false,
     {
       normalOne: flows.normalOne,

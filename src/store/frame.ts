@@ -131,14 +131,15 @@ export class StoreFrame {
   }
 
   @action.bound
-  applyFrame(rhs: StoreFrame, filters: Filters): this {
+  applyFrame(rhs: StoreFrame, filters?: Filters): this {
+    filters = filters ?? Filters.default();
     const allowedCardIds: Set<string> = new Set();
 
     const flows: Flow[] = [];
     const links: Link[] = [];
 
     rhs.interactions.flows.forEach(f => {
-      const passed = filterFlow(f, filters);
+      const passed = filterFlow(f, filters!);
       if (!passed) return;
 
       flows.push(f.clone());
@@ -146,7 +147,7 @@ export class StoreFrame {
 
     const connections = rhs.interactions.connections;
     rhs.services.cardsList.forEach((card: ServiceCard) => {
-      if (!filterService(card, filters)) return;
+      if (!filterService(card, filters!)) return;
       allowedCardIds.add(card.id);
 
       // NOTE: no matter why card.id is allowed, all services that related to it
@@ -180,10 +181,10 @@ export class StoreFrame {
         if (!allowedCardIds.has(senderId)) return;
 
         linkProps.forEach((link, apId) => {
-          if (filters.skipKubeDns && card.isKubeDNS && link.isDNSRequest)
+          if (filters!.skipKubeDns && card.isKubeDNS && link.isDNSRequest)
             return;
 
-          const passed = filterLink(link, filters);
+          const passed = filterLink(link, filters!);
           if (!passed) return;
 
           // NOTE: only add AP to cloned (allowed) card
@@ -193,7 +194,7 @@ export class StoreFrame {
         });
       });
 
-      if (noIncomingLinks && cloned.isKubeDNS && filters.skipKubeDns) return;
+      if (noIncomingLinks && cloned.isKubeDNS && filters!.skipKubeDns) return;
       this.services.addNewCard(cloned);
 
       if (rhs.services.isCardActive(svcId)) {
@@ -298,5 +299,13 @@ export class StoreFrame {
       new ServiceStore(),
       this.controls,
     );
+  }
+
+  public get amounts() {
+    return {
+      cards: this.services.cardsList.length,
+      flows: this.interactions.flows.length,
+      links: this.interactions.links.length,
+    };
   }
 }

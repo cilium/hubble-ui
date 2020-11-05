@@ -1,15 +1,15 @@
+import { Flow, Verdict } from '~/domain/flows';
 import {
-  FlowsFilterEntry,
-  FlowsFilterKind,
-  FlowsFilterDirection,
-  Flow,
-  Verdict,
-} from '~/domain/flows';
+  FilterEntry,
+  Kind as FilterKind,
+  Direction as FilterDirection,
+} from './filter-entry';
 
 import { Link, Service, ServiceCard } from '~/domain/service-map';
 import { Filters, FiltersObject } from './filters';
 
 export { Filters, FiltersObject };
+export { FilterEntry, FilterKind, FilterDirection };
 
 export const filterFlow = (flow: Flow, filters: Filters): boolean => {
   if (filters.namespace != null) {
@@ -37,7 +37,7 @@ export const filterFlow = (flow: Flow, filters: Filters): boolean => {
   }
 
   let ok = true;
-  filters.filters?.forEach((ff: FlowsFilterEntry) => {
+  filters.filters?.forEach((ff: FilterEntry) => {
     const passed = filterFlowUsingBasicEntry(flow, ff);
 
     ok = ok && passed;
@@ -52,7 +52,7 @@ export const filterLink = (link: Link, filters: Filters): boolean => {
   }
 
   let ok = true;
-  filters.filters?.forEach((ff: FlowsFilterEntry) => {
+  filters.filters?.forEach((ff: FilterEntry) => {
     const passed = filterLinkUsingBasicEntry(link, ff);
 
     ok = ok && passed;
@@ -68,7 +68,7 @@ export const filterService = (svc: ServiceCard, filters: Filters): boolean => {
   if (filters.skipRemoteNode && svc.isPrometheusApp) return false;
 
   let ok = true;
-  filters.filters?.forEach((ff: FlowsFilterEntry) => {
+  filters.filters?.forEach((ff: FilterEntry) => {
     const passed = filterServiceUsingBasicEntry(svc.service, ff);
 
     ok = ok && passed;
@@ -79,7 +79,7 @@ export const filterService = (svc: ServiceCard, filters: Filters): boolean => {
 
 export const filterServiceUsingBasicEntry = (
   service: Service,
-  e: FlowsFilterEntry,
+  e: FilterEntry,
 ): boolean => {
   if (e.isIdentity) return service.id === e.query;
 
@@ -98,35 +98,32 @@ export const filterServiceUsingBasicEntry = (
   return true;
 };
 
-export const filterLinkUsingBasicEntry = (
-  l: Link,
-  e: FlowsFilterEntry,
-): boolean => {
+export const filterLinkUsingBasicEntry = (l: Link, e: FilterEntry): boolean => {
   const sourceIdentityMatch = l.sourceId === e.query;
   const destIdentityMatch = l.destinationId === e.query;
 
   switch (e.direction) {
-    case FlowsFilterDirection.Both: {
+    case FilterDirection.Both: {
       switch (e.kind) {
-        case FlowsFilterKind.Identity: {
+        case FilterKind.Identity: {
           if (!sourceIdentityMatch && !destIdentityMatch) return false;
           break;
         }
       }
       break;
     }
-    case FlowsFilterDirection.To: {
+    case FilterDirection.To: {
       switch (e.kind) {
-        case FlowsFilterKind.Identity: {
+        case FilterKind.Identity: {
           if (!destIdentityMatch) return false;
           break;
         }
       }
       break;
     }
-    case FlowsFilterDirection.From: {
+    case FilterDirection.From: {
       switch (e.kind) {
-        case FlowsFilterKind.Identity: {
+        case FilterKind.Identity: {
           if (!sourceIdentityMatch) return false;
           break;
         }
@@ -140,7 +137,7 @@ export const filterLinkUsingBasicEntry = (
 
 export const filterFlowUsingBasicEntry = (
   flow: Flow,
-  filter: FlowsFilterEntry,
+  filter: FilterEntry,
 ): boolean => {
   const [key, value] = filter.labelKeyValue;
 
@@ -164,13 +161,13 @@ export const filterFlowUsingBasicEntry = (
   const tcpFlagMatch = flow.enabledTcpFlags.includes(filter.query as any);
 
   switch (filter.direction) {
-    case FlowsFilterDirection.Both: {
+    case FilterDirection.Both: {
       switch (filter.kind) {
-        case FlowsFilterKind.Label: {
+        case FilterKind.Label: {
           if (!sourceLabelMatch && !destLabelMatch) return false;
           break;
         }
-        case FlowsFilterKind.Ip: {
+        case FilterKind.Ip: {
           if (
             flow.sourceIp !== filter.query &&
             flow.destinationIp !== filter.query
@@ -179,77 +176,77 @@ export const filterFlowUsingBasicEntry = (
           }
           break;
         }
-        case FlowsFilterKind.Dns: {
+        case FilterKind.Dns: {
           if (!sourceDnsMatch && !destDnsMatch) return false;
           break;
         }
-        case FlowsFilterKind.Identity: {
+        case FilterKind.Identity: {
           if (!sourceIdentityMatch && !destIdentityMatch) return false;
           break;
         }
-        case FlowsFilterKind.TCPFlag: {
+        case FilterKind.TCPFlag: {
           if (!tcpFlagMatch) return false;
           break;
         }
-        case FlowsFilterKind.Pod: {
+        case FilterKind.Pod: {
           if (!sourcePodMatch && !destPodMatch) return false;
           break;
         }
       }
       break;
     }
-    case FlowsFilterDirection.From: {
+    case FilterDirection.From: {
       switch (filter.kind) {
-        case FlowsFilterKind.Label: {
+        case FilterKind.Label: {
           if (!sourceLabelMatch) return false;
           break;
         }
-        case FlowsFilterKind.Ip: {
+        case FilterKind.Ip: {
           if (flow.sourceIp !== filter.query) return false;
           break;
         }
-        case FlowsFilterKind.Dns: {
+        case FilterKind.Dns: {
           if (!sourceDnsMatch) return false;
           break;
         }
-        case FlowsFilterKind.Identity: {
+        case FilterKind.Identity: {
           if (!sourceIdentityMatch) return false;
           break;
         }
-        case FlowsFilterKind.TCPFlag: {
+        case FilterKind.TCPFlag: {
           if (!tcpFlagMatch) return false;
           break;
         }
-        case FlowsFilterKind.Pod: {
+        case FilterKind.Pod: {
           if (!sourcePodMatch) return false;
           break;
         }
       }
       break;
     }
-    case FlowsFilterDirection.To: {
+    case FilterDirection.To: {
       switch (filter.kind) {
-        case FlowsFilterKind.Label: {
+        case FilterKind.Label: {
           if (!destLabelMatch) return false;
           break;
         }
-        case FlowsFilterKind.Ip: {
+        case FilterKind.Ip: {
           if (flow.destinationIp !== filter.query) return false;
           break;
         }
-        case FlowsFilterKind.Dns: {
+        case FilterKind.Dns: {
           if (!destDnsMatch) return false;
           break;
         }
-        case FlowsFilterKind.Identity: {
+        case FilterKind.Identity: {
           if (!destIdentityMatch) return false;
           break;
         }
-        case FlowsFilterKind.TCPFlag: {
+        case FilterKind.TCPFlag: {
           if (!tcpFlagMatch) return false;
           break;
         }
-        case FlowsFilterKind.Pod: {
+        case FilterKind.Pod: {
           if (!destPodMatch) return false;
           break;
         }

@@ -1,19 +1,15 @@
-import {
-  FlowsFilterEntry,
-  FlowsFilterKind,
-  FlowsFilterDirection,
-} from '~/domain/flows';
+import { FilterEntry, FilterKind, FilterDirection } from '~/domain/filtering';
 
 const parse = (
   testName: string,
   s: string,
   notNull: boolean,
-  dir: FlowsFilterDirection,
-  kind: FlowsFilterKind,
+  dir: FilterDirection,
+  kind: FilterKind,
   query: string,
 ) => {
   test(testName, () => {
-    const e = FlowsFilterEntry.parse(s);
+    const e = FilterEntry.parse(s);
     if (!notNull) {
       expect(e).toBeNull();
     }
@@ -29,8 +25,8 @@ describe('correct strings parsing', () => {
     'correct 1',
     'both:ip=127.0.0.1',
     true,
-    FlowsFilterDirection.Both,
-    FlowsFilterKind.Ip,
+    FilterDirection.Both,
+    FilterKind.Ip,
     '127.0.0.1',
   );
 
@@ -38,8 +34,8 @@ describe('correct strings parsing', () => {
     'correct 2',
     'from:ip=127.0.0.1',
     true,
-    FlowsFilterDirection.From,
-    FlowsFilterKind.Ip,
+    FilterDirection.From,
+    FilterKind.Ip,
     '127.0.0.1',
   );
 
@@ -47,8 +43,8 @@ describe('correct strings parsing', () => {
     'correct 3',
     'to:ip=127.0.0.1',
     true,
-    FlowsFilterDirection.To,
-    FlowsFilterKind.Ip,
+    FilterDirection.To,
+    FilterKind.Ip,
     '127.0.0.1',
   );
 
@@ -56,8 +52,8 @@ describe('correct strings parsing', () => {
     'correct 4',
     'both:dns=google.com',
     true,
-    FlowsFilterDirection.Both,
-    FlowsFilterKind.Dns,
+    FilterDirection.Both,
+    FilterKind.Dns,
     'google.com',
   );
 
@@ -65,8 +61,8 @@ describe('correct strings parsing', () => {
     'correct 5',
     'both:label=app=name',
     true,
-    FlowsFilterDirection.Both,
-    FlowsFilterKind.Label,
+    FilterDirection.Both,
+    FilterKind.Label,
     'app=name',
   );
 
@@ -74,8 +70,8 @@ describe('correct strings parsing', () => {
     'correct 6',
     'from:label=app=name',
     true,
-    FlowsFilterDirection.From,
-    FlowsFilterKind.Label,
+    FilterDirection.From,
+    FilterKind.Label,
     'app=name',
   );
 
@@ -83,8 +79,8 @@ describe('correct strings parsing', () => {
     'correct 7',
     'to:label=app=name',
     true,
-    FlowsFilterDirection.To,
-    FlowsFilterKind.Label,
+    FilterDirection.To,
+    FilterKind.Label,
     'app=name',
   );
 
@@ -92,8 +88,8 @@ describe('correct strings parsing', () => {
     'correct 8',
     'from:dns=google.com',
     true,
-    FlowsFilterDirection.From,
-    FlowsFilterKind.Dns,
+    FilterDirection.From,
+    FilterKind.Dns,
     'google.com',
   );
 
@@ -101,8 +97,8 @@ describe('correct strings parsing', () => {
     'correct 9',
     'to:dns=127.0.0.1',
     true,
-    FlowsFilterDirection.To,
-    FlowsFilterKind.Dns,
+    FilterDirection.To,
+    FilterKind.Dns,
     '127.0.0.1',
   );
 
@@ -110,8 +106,8 @@ describe('correct strings parsing', () => {
     'correct 10',
     'ip=127.0.0.1',
     true,
-    FlowsFilterDirection.Both,
-    FlowsFilterKind.Ip,
+    FilterDirection.Both,
+    FilterKind.Ip,
     '127.0.0.1',
   );
 
@@ -119,8 +115,8 @@ describe('correct strings parsing', () => {
     'correct 11',
     'label=app=name',
     true,
-    FlowsFilterDirection.Both,
-    FlowsFilterKind.Label,
+    FilterDirection.Both,
+    FilterKind.Label,
     'app=name',
   );
 
@@ -128,8 +124,8 @@ describe('correct strings parsing', () => {
     'correct 12',
     'dns=google.com',
     true,
-    FlowsFilterDirection.Both,
-    FlowsFilterKind.Dns,
+    FilterDirection.Both,
+    FilterKind.Dns,
     'google.com',
   );
 
@@ -137,8 +133,8 @@ describe('correct strings parsing', () => {
     'correct 13',
     'app=name',
     true,
-    FlowsFilterDirection.Both,
-    FlowsFilterKind.Label,
+    FilterDirection.Both,
+    FilterKind.Label,
     'app=name',
   );
 
@@ -146,8 +142,8 @@ describe('correct strings parsing', () => {
     'correct 14',
     'identity=12345',
     true,
-    FlowsFilterDirection.Both,
-    FlowsFilterKind.Identity,
+    FilterDirection.Both,
+    FilterKind.Identity,
     '12345',
   );
 });

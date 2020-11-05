@@ -1,13 +1,8 @@
 import { Icon } from '@blueprintjs/core';
 import React, { memo, useCallback, useMemo, useEffect, useState } from 'react';
 
-import {
-  Flow,
-  FlowsFilterEntry,
-  FlowsFilterDirection,
-  Verdict,
-} from '~/domain/flows';
-import { Filters } from '~/domain/filtering';
+import { Flow, Verdict } from '~/domain/flows';
+import { Filters, FilterEntry, FilterDirection } from '~/domain/filtering';
 import { TCPFlagName } from '~/domain/hubble';
 import { KV, Labels } from '~/domain/labels';
 
@@ -28,24 +23,18 @@ export interface Props {
   filters: Filters;
   onClose?: () => void;
   onVerdictClick?: (verdict: Verdict | null) => void;
-  onTcpFlagClick?: (
-    flag?: TCPFlagName,
-    direction?: FlowsFilterDirection,
-  ) => void;
-  onLabelClick?: (label?: KV, direction?: FlowsFilterDirection) => void;
-  onPodClick?: (podName?: string, direction?: FlowsFilterDirection) => void;
-  onIdentityClick?: (
-    identity?: string,
-    direction?: FlowsFilterDirection,
-  ) => void;
-  onIpClick?: (ip?: string, direction?: FlowsFilterDirection) => void;
+  onTcpFlagClick?: (flag?: TCPFlagName, direction?: FilterDirection) => void;
+  onLabelClick?: (label?: KV, direction?: FilterDirection) => void;
+  onPodClick?: (podName?: string, direction?: FilterDirection) => void;
+  onIdentityClick?: (identity?: string, direction?: FilterDirection) => void;
+  onIpClick?: (ip?: string, direction?: FilterDirection) => void;
   onDnsClick?: (dns?: string) => void;
 }
 
 export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
   const { flow } = props;
 
-  const tcpFilterDirection = FlowsFilterDirection.From;
+  const tcpFilterDirection = FilterDirection.From;
   const isVerdictSelected = props.filters.verdict === flow.verdict;
 
   const onVerdictClick = useCallback(() => {
@@ -94,28 +83,28 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
     const sourceIp = props.flow.sourceIp;
     const destIp = props.flow.destinationIp;
 
-    const flowSourcePodEntry = FlowsFilterEntry.newPod(
-      sourcePodName!,
-    ).setDirection(FlowsFilterDirection.From);
-
-    const flowDestPodEntry = FlowsFilterEntry.newPod(destPodName!).setDirection(
-      FlowsFilterDirection.To,
+    const flowSourcePodEntry = FilterEntry.newPod(sourcePodName!).setDirection(
+      FilterDirection.From,
     );
 
-    const flowSourceIdtyEntry = FlowsFilterEntry.newIdentity(
+    const flowDestPodEntry = FilterEntry.newPod(destPodName!).setDirection(
+      FilterDirection.To,
+    );
+
+    const flowSourceIdtyEntry = FilterEntry.newIdentity(
       `${sourceIdentity!}`,
-    ).setDirection(FlowsFilterDirection.From);
+    ).setDirection(FilterDirection.From);
 
-    const flowDestIdtyEntry = FlowsFilterEntry.newIdentity(
+    const flowDestIdtyEntry = FilterEntry.newIdentity(
       `${destIdentity!}`,
-    ).setDirection(FlowsFilterDirection.To);
+    ).setDirection(FilterDirection.To);
 
-    const flowSourceIpEntry = FlowsFilterEntry.newIP(sourceIp!).setDirection(
-      FlowsFilterDirection.From,
+    const flowSourceIpEntry = FilterEntry.newIP(sourceIp!).setDirection(
+      FilterDirection.From,
     );
 
-    const flowDestIpEntry = FlowsFilterEntry.newIP(destIp!).setDirection(
-      FlowsFilterDirection.To,
+    const flowDestIpEntry = FilterEntry.newIP(destIp!).setDirection(
+      FilterDirection.To,
     );
 
     props.filters.filters?.forEach(filter => {
@@ -188,7 +177,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
         return props.onLabelClick?.();
       }
 
-      props.onLabelClick?.(label, FlowsFilterDirection.From);
+      props.onLabelClick?.(label, FilterDirection.From);
     },
     [props.onLabelClick, labelsSelection],
   );
@@ -202,7 +191,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
         return props.onLabelClick?.();
       }
 
-      props.onLabelClick?.(label, FlowsFilterDirection.To);
+      props.onLabelClick?.(label, FilterDirection.To);
     },
     [props.onLabelClick, labelsSelection],
   );
@@ -215,7 +204,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
         return props.onPodClick?.();
       }
 
-      props.onPodClick?.(podName, FlowsFilterDirection.From);
+      props.onPodClick?.(podName, FilterDirection.From);
     },
     [podSelection, props.flow, props.onPodClick],
   );
@@ -228,7 +217,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
         return props.onPodClick?.();
       }
 
-      props.onPodClick?.(podName, FlowsFilterDirection.To);
+      props.onPodClick?.(podName, FilterDirection.To);
     },
     [props.onPodClick, podSelection],
   );
@@ -241,7 +230,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
       return props.onIdentityClick?.();
     }
 
-    props.onIdentityClick?.(`${identity}`, FlowsFilterDirection.From);
+    props.onIdentityClick?.(`${identity}`, FilterDirection.From);
   }, [props.onIdentityClick, props.flow, identitySelection]);
 
   const onDestIdentityClick = useCallback(() => {
@@ -252,7 +241,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
       return props.onIdentityClick?.();
     }
 
-    props.onIdentityClick?.(`${identity}`, FlowsFilterDirection.To);
+    props.onIdentityClick?.(`${identity}`, FilterDirection.To);
   }, [props.onIdentityClick, props.flow, identitySelection]);
 
   const onSourceIpClick = useCallback(() => {
@@ -263,7 +252,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
       return props.onIpClick?.();
     }
 
-    props.onIpClick?.(ip, FlowsFilterDirection.From);
+    props.onIpClick?.(ip, FilterDirection.From);
   }, [props.onIpClick, props.flow, ipSelection]);
 
   const onDestIpClick = useCallback(() => {
@@ -274,7 +263,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
       return props.onIpClick?.();
     }
 
-    props.onIpClick?.(ip, FlowsFilterDirection.To);
+    props.onIpClick?.(ip, FilterDirection.To);
   }, [props.onIpClick, props.flow, ipSelection]);
 
   const onDnsClick = useCallback(() => {

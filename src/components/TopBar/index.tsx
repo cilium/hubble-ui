@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 
 import { Verdict } from '~/domain/hubble';
-import { FlowsFilterEntry } from '~/domain/flows';
+import { FilterEntry } from '~/domain/filtering';
 
 import { FlowsFilterInput } from './FlowsFilterInput';
 import { VerdictFilterDropdown } from './VerdictFilterDropdown';
@@ -22,8 +22,8 @@ export interface Props {
   onVerdictChange?: (verdict: Verdict | null) => void;
   selectedHttpStatus: string | null;
   onHttpStatusChange?: (httpStatus: string | null) => void;
-  flowFilters: FlowsFilterEntry[];
-  onChangeFlowFilters?: (filters: FlowsFilterEntry[]) => void;
+  flowFilters: FilterEntry[];
+  onChangeFlowFilters?: (filters: FilterEntry[]) => void;
   showHost: boolean;
   onShowHostToggle?: () => void;
   showKubeDns: boolean;

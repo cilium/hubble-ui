@@ -1,12 +1,8 @@
 import React, { memo, useCallback, useMemo } from 'react';
 import classnames from 'classnames';
 
-import {
-  FlowsFilterDirection,
-  FlowsFilterEntry,
-  FlowsFilterKind,
-  Flow,
-} from '~/domain/flows';
+import { Flow } from '~/domain/flows';
+import { FilterDirection, FilterEntry, FilterKind } from '~/domain/filtering';
 import { TCPFlags, TCPFlagName, Verdict } from '~/domain/hubble';
 import { KV } from '~/domain/misc';
 
@@ -14,7 +10,7 @@ import css from './styles.scss';
 import { Labels } from '~/domain/labels';
 
 export interface DirectionProps {
-  filterDirection?: FlowsFilterDirection;
+  filterDirection?: FilterDirection;
 }
 
 export interface LabelsEntryProps extends DirectionProps {
@@ -73,7 +69,7 @@ export const LabelsEntryItem = memo<LabelsEntryItemProps>(
 
 export interface TCPFlagsEntryProps {
   flags: Array<TCPFlagName>;
-  filterDirection?: FlowsFilterDirection;
+  filterDirection?: FilterDirection;
   selected?: Set<TCPFlagName>;
   onClick?: (flag: TCPFlagName) => void;
 }
@@ -105,7 +101,7 @@ export const TCPFlagsEntry = memo<TCPFlagsEntryProps>(
 
 export interface TCPFlagsItemProps extends DirectionProps {
   flag: TCPFlagName;
-  filterDirection?: FlowsFilterDirection;
+  filterDirection?: FilterDirection;
   isSelected: boolean;
   onClick?: () => void;
 }

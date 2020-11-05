@@ -7,12 +7,8 @@ import {
   autorun,
 } from 'mobx';
 
-import {
-  FlowsFilterEntry,
-  FlowsFilterKind,
-  FlowsFilterDirection,
-  Flow,
-} from '~/domain/flows';
+import { Flow } from '~/domain/flows';
+import { FilterEntry, FilterKind, FilterDirection } from '~/domain/filtering';
 
 import { Service } from '~/domain/service-map';
 import { StateChange } from '~/domain/misc';
@@ -120,7 +116,7 @@ export class Store {
 
     const squashed = this.mainFrame.cloneEmpty();
     this._frames.forEach(f => {
-      squashed.applyFrame(f, this.controls.filters);
+      squashed.applyFrame(f);
     });
 
     this._frames = [squashed];
@@ -199,7 +195,6 @@ export class Store {
       () => this.controls.currentNamespace,
       namespace => {
         if (!namespace) return;
-        storage.saveLastNamespace(namespace);
         this.route.setNamespace(namespace);
       },
     );
@@ -256,37 +251,20 @@ export class Store {
     if (!isActive) {
       return this.setFlowFilters([]);
     }
-    // pick first active card
+
     const card = this.currentFrame.services.byId(serviceId);
     if (card == null) return;
 
-    let kind = FlowsFilterKind.Identity;
-    let query = card.id;
-
-    if (card.isDNS) {
-      kind = FlowsFilterKind.Dns;
-      query = card.caption;
-    } else if (card.isWorld) {
-      kind = FlowsFilterKind.Label;
-      query = ReservedLabel.World;
-    }
-
-    const filter = new FlowsFilterEntry({
-      kind,
-      query,
-      direction: FlowsFilterDirection.Both,
-    });
-
-    this.setFlowFilters([filter]);
+    this.setFlowFilters([card.filterEntry]);
   }
 
   @action.bound
-  public setFlowFilters(filters: FlowsFilterEntry[]) {
+  public setFlowFilters(filters: FilterEntry[]) {
     const nextFilters = filters.map(filter => {
       // prettier-ignore
       const requiresMeta = [
-        FlowsFilterKind.Identity,
-        FlowsFilterKind.Dns,
+        FilterKind.Identity,
+        FilterKind.Dns,
       ].includes(filter.kind);
 
       if (!requiresMeta) return filter;
@@ -350,15 +328,9 @@ export class Store {
 
   @action.bound
   private restoreNamespace() {
-    if (this.route.namespace) {
-      this.controls.setCurrentNamespace(this.route.namespace);
-      return;
-    }
+    if (!this.route.namespace) return;
 
-    const lastNamespace = storage.getLastNamespace();
-    if (!lastNamespace) return;
-
-    this.controls.setCurrentNamespace(lastNamespace);
+    this.controls.setCurrentNamespace(this.route.namespace);
   }
 
   @action.bound

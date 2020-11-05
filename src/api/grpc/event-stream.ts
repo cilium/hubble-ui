@@ -21,10 +21,15 @@ import {
 } from '~backend/proto/flow/flow_pb';
 
 import { HubbleFlow } from '~/domain/hubble';
-import { FlowsFilterDirection, FlowsFilterKind, Flow } from '~/domain/flows';
+import { Flow } from '~/domain/flows';
 import { CiliumEventTypes } from '~/domain/cilium';
 import { ReservedLabel, SpecialLabel, Labels } from '~/domain/labels';
-import { filterFlow, Filters } from '~/domain/filtering';
+import {
+  filterFlow,
+  Filters,
+  FilterDirection,
+  FilterKind,
+} from '~/domain/filtering';
 import * as dataHelpers from '~/domain/helpers';
 
 import { EventEmitter } from '~/utils/emitter';
@@ -130,36 +135,36 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
 
     let shouldAddPodFilter = true;
     filters?.filters?.forEach(filter => {
-      if (filter.kind === FlowsFilterKind.Label) {
+      if (filter.kind === FilterKind.Label) {
         if (Labels.isReservedKey(filter.query)) {
           shouldAddPodFilter = false;
         }
       }
 
       switch (filter.direction) {
-        case FlowsFilterDirection.Both: {
+        case FilterDirection.Both: {
           switch (filter.kind) {
-            case FlowsFilterKind.Label: {
+            case FilterKind.Label: {
               wlSrcFilter.addSourceLabel(filter.query);
               wlDstFilter.addDestinationLabel(filter.query);
               break;
             }
-            case FlowsFilterKind.Ip: {
+            case FilterKind.Ip: {
               wlSrcFilter.addSourceIp(filter.query);
               wlDstFilter.addDestinationIp(filter.query);
               break;
             }
-            case FlowsFilterKind.Dns: {
+            case FilterKind.Dns: {
               wlSrcFilter.addSourceFqdn(filter.query);
               wlDstFilter.addDestinationFqdn(filter.query);
               break;
             }
-            case FlowsFilterKind.Identity: {
+            case FilterKind.Identity: {
               wlSrcFilter.addSourceIdentity(+filter.query);
               wlDstFilter.addDestinationIdentity(+filter.query);
               break;
             }
-            case FlowsFilterKind.Pod: {
+            case FilterKind.Pod: {
               wlSrcFilter.addSourcePod(`${namespace}/${filter.query}`);
               wlDstFilter.addDestinationPod(`${namespace}/${filter.query}`);
               shouldAddPodFilter = false;
@@ -168,29 +173,29 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
           }
           break;
         }
-        case FlowsFilterDirection.From: {
+        case FilterDirection.From: {
           switch (filter.kind) {
-            case FlowsFilterKind.Label: {
+            case FilterKind.Label: {
               wlSrcFilter.addSourceLabel(filter.query);
               wlDstFilter.addSourceLabel(filter.query);
               break;
             }
-            case FlowsFilterKind.Ip: {
+            case FilterKind.Ip: {
               wlSrcFilter.addSourceIp(filter.query);
               wlDstFilter.addSourceIp(filter.query);
               break;
             }
-            case FlowsFilterKind.Dns: {
+            case FilterKind.Dns: {
               wlSrcFilter.addSourceFqdn(filter.query);
               wlDstFilter.addSourceFqdn(filter.query);
               break;
             }
-            case FlowsFilterKind.Identity: {
+            case FilterKind.Identity: {
               wlSrcFilter.addSourceIdentity(+filter.query);
               wlDstFilter.addSourceIdentity(+filter.query);
               break;
             }
-            case FlowsFilterKind.Pod: {
+            case FilterKind.Pod: {
               wlSrcFilter.addSourcePod(`${namespace}/${filter.query}`);
               wlDstFilter.addSourcePod(`${namespace}/${filter.query}`);
               shouldAddPodFilter = false;
@@ -199,29 +204,29 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
           }
           break;
         }
-        case FlowsFilterDirection.To: {
+        case FilterDirection.To: {
           switch (filter.kind) {
-            case FlowsFilterKind.Label: {
+            case FilterKind.Label: {
               wlSrcFilter.addDestinationLabel(filter.query);
               wlDstFilter.addDestinationLabel(filter.query);
               break;
             }
-            case FlowsFilterKind.Ip: {
+            case FilterKind.Ip: {
               wlSrcFilter.addDestinationIp(filter.query);
               wlDstFilter.addDestinationIp(filter.query);
               break;
             }
-            case FlowsFilterKind.Dns: {
+            case FilterKind.Dns: {
               wlSrcFilter.addDestinationFqdn(filter.query);
               wlDstFilter.addDestinationFqdn(filter.query);
               break;
             }
-            case FlowsFilterKind.Identity: {
+            case FilterKind.Identity: {
               wlSrcFilter.addDestinationIdentity(+filter.query);
               wlDstFilter.addDestinationIdentity(+filter.query);
               break;
             }
-            case FlowsFilterKind.Pod: {
+            case FilterKind.Pod: {
               wlSrcFilter.addDestinationPod(`${namespace}/${filter.query}`);
               wlDstFilter.addDestinationPod(`${namespace}/${filter.query}`);
               shouldAddPodFilter = false;
