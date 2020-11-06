@@ -18,6 +18,8 @@ var flow_flow_pb = require('../flow/flow_pb.js');
 goog.object.extend(proto, flow_flow_pb);
 var ui_notifications_pb = require('../ui/notifications_pb.js');
 goog.object.extend(proto, ui_notifications_pb);
+var ui_status_pb = require('../ui/status_pb.js');
+goog.object.extend(proto, ui_status_pb);
 goog.exportSymbol('proto.ui.EventFilter', null, global);
 goog.exportSymbol('proto.ui.EventFilter.FilterCase', null, global);
 goog.exportSymbol('proto.ui.EventType', null, global);
@@ -331,7 +333,8 @@ proto.ui.GetEventsRequest.toObject = function(includeInstance, msg) {
     proto.ui.EventFilter.toObject, includeInstance),
     whitelistList: jspb.Message.toObjectList(msg.getWhitelistList(),
     proto.ui.EventFilter.toObject, includeInstance),
-    since: (f = msg.getSince()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f)
+    since: (f = msg.getSince()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
+    statusRequest: (f = msg.getStatusRequest()) && ui_status_pb.GetStatusRequest.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -386,6 +389,11 @@ proto.ui.GetEventsRequest.deserializeBinaryFromReader = function(msg, reader) {
       var value = new google_protobuf_timestamp_pb.Timestamp;
       reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
       msg.setSince(value);
+      break;
+    case 5:
+      var value = new ui_status_pb.GetStatusRequest;
+      reader.readMessage(value,ui_status_pb.GetStatusRequest.deserializeBinaryFromReader);
+      msg.setStatusRequest(value);
       break;
     default:
       reader.skipField();
@@ -445,6 +453,14 @@ proto.ui.GetEventsRequest.serializeBinaryToWriter = function(message, writer) {
       4,
       f,
       google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
+    );
+  }
+  f = message.getStatusRequest();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      ui_status_pb.GetStatusRequest.serializeBinaryToWriter
     );
   }
 };
@@ -597,6 +613,43 @@ proto.ui.GetEventsRequest.prototype.clearSince = function() {
  */
 proto.ui.GetEventsRequest.prototype.hasSince = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional GetStatusRequest status_request = 5;
+ * @return {?proto.ui.GetStatusRequest}
+ */
+proto.ui.GetEventsRequest.prototype.getStatusRequest = function() {
+  return /** @type{?proto.ui.GetStatusRequest} */ (
+    jspb.Message.getWrapperField(this, ui_status_pb.GetStatusRequest, 5));
+};
+
+
+/**
+ * @param {?proto.ui.GetStatusRequest|undefined} value
+ * @return {!proto.ui.GetEventsRequest} returns this
+*/
+proto.ui.GetEventsRequest.prototype.setStatusRequest = function(value) {
+  return jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.ui.GetEventsRequest} returns this
+ */
+proto.ui.GetEventsRequest.prototype.clearStatusRequest = function() {
+  return this.setStatusRequest(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.ui.GetEventsRequest.prototype.hasStatusRequest = function() {
+  return jspb.Message.getField(this, 5) != null;
 };
 
 
@@ -3503,7 +3556,8 @@ proto.ui.EventType = {
   K8S_NAMESPACE_STATE: 2,
   SERVICE_STATE: 3,
   SERVICE_LINK_STATE: 4,
-  FLOWS: 5
+  FLOWS: 5,
+  STATUS: 6
 };
 
 /**

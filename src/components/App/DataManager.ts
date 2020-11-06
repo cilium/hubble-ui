@@ -80,7 +80,13 @@ export class DataManager extends EventEmitter<Events> {
       .clone()
       .setNamespace(namespace);
 
-    const stream = this.api.v1.getEventStream(EventParamsSet.All, streamParams);
+    const stream = this.api.v1.getEventStream(
+      {
+        ...EventParamsSet.All,
+        status: true,
+      },
+      streamParams,
+    );
 
     this.setupGeneralEventHandlers(stream);
     this.setupNamespaceEventHandlers(stream);
@@ -125,7 +131,11 @@ export class DataManager extends EventEmitter<Events> {
   }
 
   public setupInitialStream() {
-    const stream = this.api.v1.getEventStream(EventParamsSet.Namespaces);
+    console.log('setting up initial stream');
+    const stream = this.api.v1.getEventStream({
+      ...EventParamsSet.Namespaces,
+      status: true,
+    });
 
     this.setupGeneralEventHandlers(stream);
     this.setupNamespaceEventHandlers(stream);
@@ -225,6 +235,10 @@ export class DataManager extends EventEmitter<Events> {
 
   public get hasFilteringStream(): boolean {
     return this.filteringStream != null;
+  }
+
+  public get hasInitialStream(): boolean {
+    return this.initialStream != null;
   }
 
   public get filtersChanged(): boolean {

@@ -61,7 +61,7 @@ export const App: FunctionComponent<AppProps> = observer(props => {
 
   const onFlowsDiffCount = useRef<(diff: number) => void>();
   const [isStreaming, setIsStreaming] = useState(true);
-  const [connState, setConnState] = useState(ConnectionState.Receiving);
+  const [connState, setConnState] = useState(ConnectionState.Idle);
   const [mapVisibleHeight, setMapVisibleHeight] = useState<number | null>(null);
   const [mapWasDragged, setMapWasDragged] = useState(false);
 
@@ -90,7 +90,6 @@ export const App: FunctionComponent<AppProps> = observer(props => {
     });
 
     const d2 = dataManager.on(DataManagerEvents.Notification, notif => {
-      console.log('backend notification: ', notif);
       if (notif.connState?.reconnecting) {
         setConnState(ConnectionState.Reconnecting);
 
@@ -109,6 +108,8 @@ export const App: FunctionComponent<AppProps> = observer(props => {
         notifier.showInfo(`There are no pods in this namespace.`, {
           key: 'no-activity',
         });
+      } else if (notif.status != null) {
+        store.controls.setStatus(notif.status);
       }
     });
 
@@ -131,10 +132,12 @@ export const App: FunctionComponent<AppProps> = observer(props => {
   }, [dataManager]);
 
   useEffect(() => {
+    const { currentNamespace } = store.controls;
+
     const unsubscribe = dataManager.on(
       DataManagerEvents.NamespaceAdded,
       _.debounce(() => {
-        const { namespaces, currentNamespace } = store.controls;
+        const { namespaces } = store.controls;
         if (currentNamespace == null) return;
         if (currentNamespace && namespaces.includes(currentNamespace)) return;
 
@@ -150,7 +153,7 @@ export const App: FunctionComponent<AppProps> = observer(props => {
 
     if (store.mocked) {
       dataManager.setupMock();
-    } else if (store.controls.currentNamespace == null) {
+    } else if (currentNamespace == null && !dataManager.hasInitialStream) {
       dataManager.setupInitialStream();
     }
 
@@ -179,6 +182,7 @@ export const App: FunctionComponent<AppProps> = observer(props => {
 
     if (dataManager.currentNamespace !== newNamespace) {
       dataManager.resetNamespace(newNamespace);
+      setConnState(ConnectionState.Receiving);
     }
 
     if (dataManager.hasFilteringStream) {
@@ -187,6 +191,7 @@ export const App: FunctionComponent<AppProps> = observer(props => {
 
     if (dataManager.filtersChanged && !store.controls.filters.isDefault) {
       dataManager.setupFilteringFrame(store.controls.currentNamespace);
+      setConnState(ConnectionState.Receiving);
     }
 
     setMapWasDragged(false);
@@ -323,6 +328,7 @@ export const App: FunctionComponent<AppProps> = observer(props => {
   const RenderedTopBar = (
     <TopBar
       connectionState={connState}
+      status={store.controls.lastStatus || undefined}
       namespaces={store.controls.namespaces}
       currentNamespace={store.controls.currentNamespace}
       onNamespaceChange={onNamespaceChange}

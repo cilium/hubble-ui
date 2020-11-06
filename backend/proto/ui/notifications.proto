@@ -1,11 +1,14 @@
 syntax = "proto3";
 
+import "ui/status.proto";
+
 package ui;
 
 message Notification {
     oneof notification {
         ConnectionState conn_state = 1;
         DataState data_state = 2;
+        GetStatusResponse status = 3;
     }
 
 }

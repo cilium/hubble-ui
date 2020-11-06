@@ -10,34 +10,6 @@ import (
 	"github.com/golang/protobuf/ptypes"
 )
 
-func GetFlagsWhichEventsRequested(events []ui.EventType) *EventFlags {
-	flags := new(EventFlags)
-
-	for _, event := range events {
-		if event == FLOW_EVENT {
-			flags.Flow = true
-		}
-
-		if event == FLOWS_EVENT {
-			flags.Flows = true
-		}
-
-		if event == SERVICE_STATE_EVENT {
-			flags.Services = true
-		}
-
-		if event == SERVICE_LINK_EVENT {
-			flags.ServiceLinks = true
-		}
-
-		if event == NS_STATE_EVENT {
-			flags.Namespaces = true
-		}
-	}
-
-	return flags
-}
-
 func EventResponseForService(
 	svc *service.Service, cflags *cache.CacheFlags,
 ) *ui.GetEventsResponse {
@@ -93,6 +65,20 @@ func EventResponseFromRawFlows(flows []*pbFlow.Flow) *ui.GetEventsResponse {
 		Event: &ui.GetEventsResponse_Flows{
 			Flows: &ui.Flows{
 				Flows: flows,
+			},
+		},
+	}
+}
+
+func EventResponseFromStatusResponse(
+	st *ui.GetStatusResponse,
+) *ui.GetEventsResponse {
+	return &ui.GetEventsResponse{
+		Node:      "backend",
+		Timestamp: ptypes.TimestampNow(),
+		Event: &ui.GetEventsResponse_Notification{
+			Notification: &ui.Notification{
+				Notification: &ui.Notification_Status{st},
 			},
 		},
 	}

@@ -81,6 +81,7 @@ function build_proto_inner() {
     GO_MAPPINGS+=",Mrelay/relay.proto=github.com/cilium/cilium/api/v1/relay"
     GO_MAPPINGS+=",Mui/ui.proto=github.com/cilium/hubble-ui/backend/proto/ui"
     GO_MAPPINGS+=",Mui/notifications.proto=github.com/cilium/hubble-ui/backend/proto/ui"
+    GO_MAPPINGS+=",Mui/status.proto=github.com/cilium/hubble-ui/backend/proto/ui"
     GO_MAPPINGS+=",Mgoogle/protobuf/timestamp.proto=github.com/golang/protobuf/ptypes/timestamp"
 
     $PROTOC $PROTOC_GO_PLUGIN \

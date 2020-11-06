@@ -4,6 +4,7 @@ import { GeneralStreamEvents } from './stream';
 import { Verdict, HubbleService, HubbleLink } from '~/domain/hubble';
 import { Flow } from '~/domain/flows';
 import { StateChange } from '~/domain/misc';
+import { Status } from '~/domain/status';
 
 export interface EventParams {
   flow?: boolean;
@@ -11,6 +12,7 @@ export interface EventParams {
   namespaces?: boolean;
   services?: boolean;
   serviceLinks?: boolean;
+  status?: boolean;
 }
 
 export const EventParamsSet = {
@@ -20,6 +22,7 @@ export const EventParamsSet = {
     namespaces: true,
     services: true,
     serviceLinks: true,
+    status: false,
   },
   Namespaces: {
     flow: false,
@@ -27,6 +30,7 @@ export const EventParamsSet = {
     namespaces: true,
     services: false,
     serviceLinks: false,
+    status: false,
   },
 };
 
@@ -63,6 +67,8 @@ export interface Notification {
   dataState?: {
     noActivity: boolean;
   };
+
+  status?: Status;
 }
 
 export type EventStreamHandlers = GeneralStreamEvents & {

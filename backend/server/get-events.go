@@ -45,6 +45,19 @@ func (srv *UIServer) GetEvents(
 		nsSource = watcherChan
 	}
 
+	var statuses chan *ui.GetEventsResponse
+	var statusErrors chan error
+	var statusCancel func()
+
+	if eventsRequested.Status {
+		log.Infof("running status checker\n")
+		statusCancel, statuses, statusErrors = srv.RunStatusChecker(
+			req.StatusRequest,
+		)
+
+		defer statusCancel()
+	}
+
 	nsDrain := make(chan *ui.GetEventsResponse)
 	go handleNsEvents(nsSource, nsDrain)
 
@@ -62,12 +75,17 @@ F:
 				return err
 			}
 
-			// NOTE: We are here if GetFlows is reconnecting\
+			// NOTE: We are here if someone is reconnecting to hubble-relay
 			if evt := connState.ShouldNotifyOnReconnecting(); evt != nil {
 				if err := stream.Send(evt); err != nil {
 					log.Errorf("failed to send OnReconnecting: %v\n", err)
 					break F
 				}
+			}
+		case err := <-statusErrors:
+			log.Errorf("status error: %v\n", err)
+			if !srv.IsGrpcUnavailable(err) {
+				return err
 			}
 		case flows := <-flowsLimiter.Flushed:
 			flowsResponse := helpers.EventResponseFromRawFlows(flows)
@@ -103,20 +121,25 @@ F:
 
 			for _, svcEvent := range svcs {
 				if err := stream.Send(svcEvent); err != nil {
-					log.Infof("failed to send svc response: %v\n", err)
+					log.Errorf("failed to send svc response: %v\n", err)
 					return err
 				}
 			}
 
 			for _, linkEvent := range links {
 				if err := stream.Send(linkEvent); err != nil {
-					log.Infof("failed to send link response: %v\n", err)
+					log.Errorf("failed to send link response: %v\n", err)
 					return err
 				}
 			}
 		case nsEvent := <-nsDrain:
 			if err := stream.Send(nsEvent); err != nil {
-				log.Infof("failed to send ns response: %v\n", err)
+				log.Errorf("failed to send ns response: %v\n", err)
+				return err
+			}
+		case statusEvent := <-statuses:
+			if err := stream.Send(statusEvent); err != nil {
+				log.Errorf("failed to send status response: %v\n", err)
 				return err
 			}
 		}

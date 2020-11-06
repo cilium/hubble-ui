@@ -4,11 +4,13 @@ import { action, observable, computed } from 'mobx';
 import { Flow } from '~/domain/flows';
 import { Verdict } from '~/domain/hubble';
 import { Filters, FilterEntry, FilterKind } from '~/domain/filtering';
+import { Status } from '~/domain/status';
 
 // This store maintains data that is configured by control interfaces
 export default class ControlStore {
   @observable private _namespaces: Array<string> = [];
 
+  @observable lastStatus: Status | null = null;
   @observable currentNamespace: string | null = null;
   @observable selectedTableFlow: Flow | null = null;
   @observable showCrossNamespaceActivity = true;
@@ -151,6 +153,11 @@ export default class ControlStore {
     this.showKubeDns = !f.skipKubeDns;
     this.showRemoteNode = !f.skipRemoteNode;
     this.showPrometheusApp = !f.skipPrometheusApp;
+  }
+
+  @action.bound
+  setStatus(st: Status) {
+    this.lastStatus = st;
   }
 
   @computed

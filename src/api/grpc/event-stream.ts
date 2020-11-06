@@ -83,6 +83,10 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
       req.addEventTypes(EventType.SERVICE_LINK_STATE);
     }
 
+    if (opts.status) {
+      req.addEventTypes(EventType.STATUS);
+    }
+
     const [wlFlowFilters, blFlowFilters] = EventStream.buildFlowFilters(
       filters,
     );

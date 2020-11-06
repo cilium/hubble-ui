@@ -1,5 +1,7 @@
 import * as jspb from "google-protobuf"
 
+import * as ui_status_pb from '../ui/status_pb';
+
 export class Notification extends jspb.Message {
   getConnState(): ConnectionState | undefined;
   setConnState(value?: ConnectionState): Notification;
@@ -10,6 +12,11 @@ export class Notification extends jspb.Message {
   setDataState(value?: DataState): Notification;
   hasDataState(): boolean;
   clearDataState(): Notification;
+
+  getStatus(): ui_status_pb.GetStatusResponse | undefined;
+  setStatus(value?: ui_status_pb.GetStatusResponse): Notification;
+  hasStatus(): boolean;
+  clearStatus(): Notification;
 
   getNotificationCase(): Notification.NotificationCase;
 
@@ -25,12 +32,14 @@ export namespace Notification {
   export type AsObject = {
     connState?: ConnectionState.AsObject,
     dataState?: DataState.AsObject,
+    status?: ui_status_pb.GetStatusResponse.AsObject,
   }
 
   export enum NotificationCase { 
     NOTIFICATION_NOT_SET = 0,
     CONN_STATE = 1,
     DATA_STATE = 2,
+    STATUS = 3,
   }
 }
 
