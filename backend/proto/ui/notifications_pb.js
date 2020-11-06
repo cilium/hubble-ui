@@ -12,6 +12,8 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
+var ui_status_pb = require('../ui/status_pb.js');
+goog.object.extend(proto, ui_status_pb);
 goog.exportSymbol('proto.ui.ConnectionState', null, global);
 goog.exportSymbol('proto.ui.DataState', null, global);
 goog.exportSymbol('proto.ui.Notification', null, global);
@@ -88,7 +90,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.ui.Notification.oneofGroups_ = [[1,2]];
+proto.ui.Notification.oneofGroups_ = [[1,2,3]];
 
 /**
  * @enum {number}
@@ -96,7 +98,8 @@ proto.ui.Notification.oneofGroups_ = [[1,2]];
 proto.ui.Notification.NotificationCase = {
   NOTIFICATION_NOT_SET: 0,
   CONN_STATE: 1,
-  DATA_STATE: 2
+  DATA_STATE: 2,
+  STATUS: 3
 };
 
 /**
@@ -138,7 +141,8 @@ proto.ui.Notification.prototype.toObject = function(opt_includeInstance) {
 proto.ui.Notification.toObject = function(includeInstance, msg) {
   var f, obj = {
     connState: (f = msg.getConnState()) && proto.ui.ConnectionState.toObject(includeInstance, f),
-    dataState: (f = msg.getDataState()) && proto.ui.DataState.toObject(includeInstance, f)
+    dataState: (f = msg.getDataState()) && proto.ui.DataState.toObject(includeInstance, f),
+    status: (f = msg.getStatus()) && ui_status_pb.GetStatusResponse.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -185,6 +189,11 @@ proto.ui.Notification.deserializeBinaryFromReader = function(msg, reader) {
       reader.readMessage(value,proto.ui.DataState.deserializeBinaryFromReader);
       msg.setDataState(value);
       break;
+    case 3:
+      var value = new ui_status_pb.GetStatusResponse;
+      reader.readMessage(value,ui_status_pb.GetStatusResponse.deserializeBinaryFromReader);
+      msg.setStatus(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -228,6 +237,14 @@ proto.ui.Notification.serializeBinaryToWriter = function(message, writer) {
       2,
       f,
       proto.ui.DataState.serializeBinaryToWriter
+    );
+  }
+  f = message.getStatus();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      ui_status_pb.GetStatusResponse.serializeBinaryToWriter
     );
   }
 };
@@ -304,6 +321,43 @@ proto.ui.Notification.prototype.clearDataState = function() {
  */
 proto.ui.Notification.prototype.hasDataState = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional GetStatusResponse status = 3;
+ * @return {?proto.ui.GetStatusResponse}
+ */
+proto.ui.Notification.prototype.getStatus = function() {
+  return /** @type{?proto.ui.GetStatusResponse} */ (
+    jspb.Message.getWrapperField(this, ui_status_pb.GetStatusResponse, 3));
+};
+
+
+/**
+ * @param {?proto.ui.GetStatusResponse|undefined} value
+ * @return {!proto.ui.Notification} returns this
+*/
+proto.ui.Notification.prototype.setStatus = function(value) {
+  return jspb.Message.setOneofWrapperField(this, 3, proto.ui.Notification.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.ui.Notification} returns this
+ */
+proto.ui.Notification.prototype.clearStatus = function() {
+  return this.setStatus(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.ui.Notification.prototype.hasStatus = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 
 import { Verdict } from '~/domain/hubble';
 import { FilterEntry } from '~/domain/filtering';
+import { Status } from '~/domain/status';
 
 import { FlowsFilterInput } from './FlowsFilterInput';
 import { VerdictFilterDropdown } from './VerdictFilterDropdown';
@@ -15,6 +16,7 @@ export { ConnectionState };
 
 export interface Props {
   connectionState: ConnectionState;
+  status?: Status;
   namespaces: Array<string>;
   currentNamespace: string | null;
   onNamespaceChange?: (ns: string) => void;
@@ -75,7 +77,11 @@ export const TopBar = memo<Props>(function TopBar(props) {
       <div className={css.right}>
         <div className={css.spacer} />
         <div className={css.spacer} />
-        <ConnectionIndicator state={props.connectionState} />
+
+        <ConnectionIndicator
+          state={props.connectionState}
+          status={props.status}
+        />
       </div>
     </div>
   );

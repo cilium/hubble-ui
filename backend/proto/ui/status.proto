@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package ui;
+
+message GetStatusRequest {}
+
+message GetStatusResponse {
+	repeated NodeStatus nodes = 1;
+	repeated DeployedComponent versions = 2;
+	FlowStats flows = 3;
+}
+
+message NodeStatus {
+	string name = 1;
+	bool is_available = 2;
+}
+
+message DeployedComponent {
+	string name = 1;
+	string version = 2;
+}
+
+message FlowStats {
+	float per_second = 1;
+}

@@ -1,3 +1,4 @@
+@import "~/styles/common/layout.scss";
 // Thanks to Martin Wolf for blinking css dots (https://martinwolf.org/before-2018/blog/2015/01/pure-css-savingloading-dots-animation/)
 
 @mixin setup-animation($name) {
@@ -7,47 +8,67 @@
   animation-fill-mode: both;
 }
 
+@mixin circle-color($cls, $clr) {
+  &#{$cls} {
+    .circle {
+      background-color: $clr;
+    }
+  }
+}
+
+$receiving-color: #71bd25;
+$reconnecting-color: #bd6225;
+$stopped-color: $reconnecting-color;
+$idle-color: #c7c7c7;
+
 .wrapper {
-  display: flex;
-  align-items: center;
+  @include row(flex-start, center);
 
   .circle {
-    width: 10px;
-    height: 10px;
-    margin-right: 7px;
-    border-radius: 10px;
+    @include exact-size(10px, 10px);
+    border-radius: 50%;
   }
 
   .label {
+    margin-left: 7px;
+
     font-size: 14px;
     font-weight: 500;
     color: #7c8389;
-  }
 
-  &.active {
-    .circle {
-      background-color: #71bd25;
-      @include setup-animation(streaming-indicator-circle);
-    }
-
-    .label {
-      span {
+    span.dots {
+      & > span {
         @include setup-animation(streaming-indicator-dot);
+      }
 
-        &:nth-child(2) {
-          animation-delay: 0.2s;
-        }
+      & > span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
 
-        &:nth-child(3) {
-          animation-delay: 0.4s;
-        }
+      & > span:nth-child(3) {
+        animation-delay: 0.4s;
       }
     }
+
+    .dotDivider {
+      margin-left: 8px;
+      margin-right: 8px;
+    }
+
+    .flowsLabel,
+    .nodesLabel {
+      color: #5c7080;
+    }
   }
 
-  &.inactive {
+  @include circle-color(".receiving", $receiving-color);
+  @include circle-color(".reconnecting", $reconnecting-color);
+  @include circle-color(".stopped", $stopped-color);
+  @include circle-color(".idle", $idle-color);
+
+  &.circleAnimated {
     .circle {
-      background-color: #bd6225;
+      @include setup-animation(streaming-indicator-circle);
     }
   }
 }

@@ -17,11 +17,13 @@ syntax = "proto3";
 import "google/protobuf/timestamp.proto";
 import "flow/flow.proto";
 import "ui/notifications.proto";
+import "ui/status.proto";
 
 package ui;
 
 service UI {
     rpc GetEvents(GetEventsRequest) returns (stream GetEventsResponse) {}
+    rpc GetStatus(GetStatusRequest) returns (GetStatusResponse) {}
 }
 
 // Here I didn't include "follow", "until", and "number". This request assumes follow,
@@ -34,6 +36,7 @@ message GetEventsRequest{
     repeated EventFilter blacklist = 2;
     repeated EventFilter whitelist = 3;
     google.protobuf.Timestamp since = 4;
+    GetStatusRequest status_request = 5;
 }
 
 message GetEventsResponse{
@@ -76,6 +79,7 @@ enum EventType {
     SERVICE_STATE = 3;
     SERVICE_LINK_STATE = 4;
     FLOWS = 5;
+    STATUS = 6;
 }
 
 message K8sNamespace {
