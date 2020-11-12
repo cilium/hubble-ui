@@ -99,7 +99,7 @@ func (srv *UIServer) SetupGrpcClient() error {
 		return err
 	}
 
-	log.Infof("hubble grpc client successfully created\n")
+	log.Infof("hubble grpc client successfully created (%s)\n", srv.relayAddr)
 	srv.hubbleClient = observer.NewObserverClient(conn)
 	srv.grpcConnection = conn
 
