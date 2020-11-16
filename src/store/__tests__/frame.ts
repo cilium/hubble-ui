@@ -128,9 +128,10 @@ describe('kube dns cases', () => {
     lhs.applyFrame(rhs, Filters.fromObject(filterObj));
 
     const { flows, links, svcs } = extractData(lhs);
+
     expect(flows.length).toBe(2);
     expect(links.length).toBe(0);
-    expect(svcs.length).toBe(1);
+    expect(svcs.length).toBe(0);
   });
 
   test('test 2 - kube dns 53 port link + another', () => {

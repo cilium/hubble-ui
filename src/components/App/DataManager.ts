@@ -75,6 +75,7 @@ export class DataManager extends EventEmitter<Events> {
   }
 
   public setupMainStream(namespace: string) {
+    console.log('setting up main stream');
     const store = this.store;
     const streamParams = store.controls.mainFilters
       .clone()
@@ -97,6 +98,7 @@ export class DataManager extends EventEmitter<Events> {
 
   public dropMainStream() {
     if (this.mainStream == null) return;
+    console.log('dropping main stream');
 
     this.mainStream.stream.stop();
     this.offAllStreamEvents(this.mainStream.stream);
@@ -106,6 +108,7 @@ export class DataManager extends EventEmitter<Events> {
   public setupFilteringFrame(namespace: string) {
     const store = this.store;
     const streamParams = store.controls.filters.clone().setNamespace(namespace);
+    console.log('setting up filtering stream: ', streamParams);
 
     const secondaryFrame = store
       .createFrame()
@@ -123,6 +126,7 @@ export class DataManager extends EventEmitter<Events> {
 
   public dropFilteringFrame() {
     if (this.filteringStream == null) return;
+    console.log('dropping filtering stream');
 
     this.filteringStream.stream.stop();
     this.offAllStreamEvents(this.filteringStream.stream);
@@ -145,6 +149,7 @@ export class DataManager extends EventEmitter<Events> {
 
   public dropInitialStream() {
     if (this.initialStream == null) return;
+    console.log('dropping initial stream');
 
     this.initialStream.stream.stop();
     this.offAllStreamEvents(this.initialStream.stream);
@@ -152,6 +157,7 @@ export class DataManager extends EventEmitter<Events> {
   }
 
   public resetNamespace(namespace: string) {
+    console.log('resetting namespace');
     if (this.mainStream) {
       this.dropMainStream();
       this.store.flush();
@@ -248,6 +254,14 @@ export class DataManager extends EventEmitter<Events> {
 
     if (this.mainStream != null && this.mainStream.filters) {
       return !this.store.controls.filters.equals(this.mainStream.filters);
+    }
+
+    return false;
+  }
+
+  public get filteringFiltersChanged(): boolean {
+    if (this.filteringStream != null && this.filteringStream.filters) {
+      return !this.store.controls.filters.equals(this.filteringStream.filters);
     }
 
     return false;

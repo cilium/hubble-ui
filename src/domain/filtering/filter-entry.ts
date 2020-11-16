@@ -262,6 +262,18 @@ export class FilterEntry {
     return this.kind === Kind.Pod;
   }
 
+  public get fromRequired(): boolean {
+    return [Direction.Both, Direction.From].includes(this.direction);
+  }
+
+  public get toRequired(): boolean {
+    return [Direction.Both, Direction.To].includes(this.direction);
+  }
+
+  public get bothRequired(): boolean {
+    return this.direction === Direction.Both;
+  }
+
   public get labelKeyValue(): [string, string] {
     const [key, ...rest] = this.query.split('=');
 

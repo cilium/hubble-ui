@@ -27,6 +27,7 @@ import { ReservedLabel, SpecialLabel, Labels } from '~/domain/labels';
 import {
   filterFlow,
   Filters,
+  FilterEntry,
   FilterDirection,
   FilterKind,
 } from '~/domain/filtering';
@@ -60,7 +61,7 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
   // TODO: add another params to handle filters
   public static buildRequest(
     opts: EventParams,
-    filters?: Filters,
+    filters: Filters,
   ): GetEventsRequest {
     const req = new GetEventsRequest();
     if (opts.flow) {
@@ -107,19 +108,14 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
     return req;
   }
 
-  // Taken from previous FlowStream class
-  public static buildFlowFilters(filters?: Filters): FlowFilters {
-    const namespace = filters?.namespace;
-
-    // *** whitelist filters section ***
-    const [wlSrcFilter, wlDstFilter] = [new FlowFilter(), new FlowFilter()];
+  public static baseWhitelistFilter(filters?: Filters): FlowFilter {
+    const wlFilter = new FlowFilter();
 
     const eventTypes: CiliumEventTypes[] = [];
     if (filters?.httpStatus) {
       // Filter by http status code allows only l7 event type
       eventTypes.push(CiliumEventTypes.L7);
-      wlSrcFilter.addHttpStatusCode(filters.httpStatus);
-      wlDstFilter.addHttpStatusCode(filters.httpStatus);
+      wlFilter.addHttpStatusCode(filters.httpStatus);
     } else {
       eventTypes.push(CiliumEventTypes.Drop, CiliumEventTypes.Trace);
     }
@@ -128,130 +124,18 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
       const eventTypeFilter = new EventTypeFilter();
       eventTypeFilter.setType(eventTypeNumber);
 
-      wlSrcFilter.addEventType(eventTypeFilter);
-      wlDstFilter.addEventType(eventTypeFilter);
+      wlFilter.addEventType(eventTypeFilter);
     });
 
     if (filters?.verdict) {
-      wlSrcFilter.addVerdict(dataHelpers.verdictToPb(filters.verdict));
-      wlDstFilter.addVerdict(dataHelpers.verdictToPb(filters.verdict));
+      wlFilter.addVerdict(dataHelpers.verdictToPb(filters.verdict));
     }
 
-    let shouldAddPodFilter = true;
-    filters?.filters?.forEach(filter => {
-      if (filter.kind === FilterKind.Label) {
-        if (Labels.isReservedKey(filter.query)) {
-          shouldAddPodFilter = false;
-        }
-      }
+    wlFilter.addReply(false);
+    return wlFilter;
+  }
 
-      switch (filter.direction) {
-        case FilterDirection.Both: {
-          switch (filter.kind) {
-            case FilterKind.Label: {
-              wlSrcFilter.addSourceLabel(filter.query);
-              wlDstFilter.addDestinationLabel(filter.query);
-              break;
-            }
-            case FilterKind.Ip: {
-              wlSrcFilter.addSourceIp(filter.query);
-              wlDstFilter.addDestinationIp(filter.query);
-              break;
-            }
-            case FilterKind.Dns: {
-              wlSrcFilter.addSourceFqdn(filter.query);
-              wlDstFilter.addDestinationFqdn(filter.query);
-              break;
-            }
-            case FilterKind.Identity: {
-              wlSrcFilter.addSourceIdentity(+filter.query);
-              wlDstFilter.addDestinationIdentity(+filter.query);
-              break;
-            }
-            case FilterKind.Pod: {
-              wlSrcFilter.addSourcePod(`${namespace}/${filter.query}`);
-              wlDstFilter.addDestinationPod(`${namespace}/${filter.query}`);
-              shouldAddPodFilter = false;
-              break;
-            }
-          }
-          break;
-        }
-        case FilterDirection.From: {
-          switch (filter.kind) {
-            case FilterKind.Label: {
-              wlSrcFilter.addSourceLabel(filter.query);
-              wlDstFilter.addSourceLabel(filter.query);
-              break;
-            }
-            case FilterKind.Ip: {
-              wlSrcFilter.addSourceIp(filter.query);
-              wlDstFilter.addSourceIp(filter.query);
-              break;
-            }
-            case FilterKind.Dns: {
-              wlSrcFilter.addSourceFqdn(filter.query);
-              wlDstFilter.addSourceFqdn(filter.query);
-              break;
-            }
-            case FilterKind.Identity: {
-              wlSrcFilter.addSourceIdentity(+filter.query);
-              wlDstFilter.addSourceIdentity(+filter.query);
-              break;
-            }
-            case FilterKind.Pod: {
-              wlSrcFilter.addSourcePod(`${namespace}/${filter.query}`);
-              wlDstFilter.addSourcePod(`${namespace}/${filter.query}`);
-              shouldAddPodFilter = false;
-              break;
-            }
-          }
-          break;
-        }
-        case FilterDirection.To: {
-          switch (filter.kind) {
-            case FilterKind.Label: {
-              wlSrcFilter.addDestinationLabel(filter.query);
-              wlDstFilter.addDestinationLabel(filter.query);
-              break;
-            }
-            case FilterKind.Ip: {
-              wlSrcFilter.addDestinationIp(filter.query);
-              wlDstFilter.addDestinationIp(filter.query);
-              break;
-            }
-            case FilterKind.Dns: {
-              wlSrcFilter.addDestinationFqdn(filter.query);
-              wlDstFilter.addDestinationFqdn(filter.query);
-              break;
-            }
-            case FilterKind.Identity: {
-              wlSrcFilter.addDestinationIdentity(+filter.query);
-              wlDstFilter.addDestinationIdentity(+filter.query);
-              break;
-            }
-            case FilterKind.Pod: {
-              wlSrcFilter.addDestinationPod(`${namespace}/${filter.query}`);
-              wlDstFilter.addDestinationPod(`${namespace}/${filter.query}`);
-              shouldAddPodFilter = false;
-              break;
-            }
-          }
-          break;
-        }
-      }
-    });
-
-    if (shouldAddPodFilter) {
-      wlSrcFilter.addSourcePod(`${namespace}/`);
-      wlDstFilter.addDestinationPod(`${namespace}/`);
-    }
-
-    wlSrcFilter.addReply(false);
-    wlDstFilter.addReply(false);
-    const wlFilters: FlowFilter[] = [wlSrcFilter, wlDstFilter];
-
-    // *** blacklist filters section ***
+  public static buildBlacklistFlowFilters(filters?: Filters): FlowFilter[] {
     const blFilters: FlowFilter[] = [];
 
     // filter out reserved:unknown
@@ -325,6 +209,134 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
     blICMPv4Filter.addProtocol('ICMPv4');
     blICMPv6Filter.addProtocol('ICMPv6');
     blFilters.push(blICMPv4Filter, blICMPv6Filter);
+
+    return blFilters;
+  }
+
+  public static filterEntryWhitelistFilters(
+    filters: Filters,
+    filter: FilterEntry,
+  ): FlowFilter[] {
+    const { kind, direction, query } = filter;
+    const wlFilters: FlowFilter[] = [];
+
+    const specificPodInNs = `${filters.namespace}/${filter.query}`;
+    const podsInNamespace = `${filters.namespace}/`;
+
+    if (filter.fromRequired) {
+      // NOTE: this makes possible to catch flows [outside of ns] -> [ns]
+      // NOTE: but flows [ns] -> [outside of ns] are lost...
+      const fromFilter = EventStream.baseWhitelistFilter();
+      fromFilter.addDestinationPod(podsInNamespace);
+
+      // NOTE: ...this filter fixes this last case
+      const fromInside = EventStream.baseWhitelistFilter();
+      fromInside.addSourcePod(podsInNamespace);
+
+      switch (kind) {
+        case FilterKind.Label: {
+          fromFilter.addSourceLabel(query);
+          fromInside.addSourceLabel(query);
+          break;
+        }
+        case FilterKind.Ip: {
+          fromFilter.addSourceIp(query);
+          fromInside.addSourceIp(query);
+          break;
+        }
+        case FilterKind.Dns: {
+          fromFilter.addSourceFqdn(query);
+          fromInside.addSourceFqdn(query);
+          break;
+        }
+        case FilterKind.Identity: {
+          fromFilter.addSourceIdentity(+query);
+          fromInside.addSourceIdentity(+query);
+          break;
+        }
+        case FilterKind.Pod: {
+          fromFilter.addSourcePod(specificPodInNs);
+          fromInside.addSourcePod(specificPodInNs);
+          break;
+        }
+      }
+
+      wlFilters.push(fromFilter, fromInside);
+    }
+
+    if (filter.toRequired) {
+      // NOTE: this makes possible to catch flows [ns] -> [outside of ns]
+      // NOTE: but flows [outside of ns] -> [ns] are lost...
+      const toFilter = EventStream.baseWhitelistFilter();
+      toFilter.addSourcePod(podsInNamespace);
+
+      // NOTE: ...this filter fixes this last case
+      const toFromOutside = EventStream.baseWhitelistFilter();
+      toFromOutside.addDestinationPod(podsInNamespace);
+
+      switch (kind) {
+        case FilterKind.Label: {
+          toFilter.addDestinationLabel(query);
+          toFromOutside.addDestinationLabel(query);
+          break;
+        }
+        case FilterKind.Ip: {
+          toFilter.addDestinationIp(query);
+          toFromOutside.addDestinationIp(query);
+          break;
+        }
+        case FilterKind.Dns: {
+          toFilter.addDestinationFqdn(query);
+          toFromOutside.addDestinationFqdn(query);
+          break;
+        }
+        case FilterKind.Identity: {
+          toFilter.addDestinationIdentity(+query);
+          toFromOutside.addDestinationIdentity(+query);
+          break;
+        }
+        case FilterKind.Pod: {
+          toFilter.addDestinationPod(specificPodInNs);
+          toFromOutside.addDestinationPod(specificPodInNs);
+          break;
+        }
+      }
+
+      wlFilters.push(toFilter, toFromOutside);
+    }
+
+    return wlFilters;
+  }
+
+  // Taken from previous FlowStream class
+  public static buildFlowFilters(filters: Filters): FlowFilters {
+    const namespace = filters?.namespace;
+
+    // const [wlSrcFilter, wlDstFilter] = [new FlowFilter(), new FlowFilter()];
+    const wlFilters: FlowFilter[] = [];
+    const blFilters = EventStream.buildBlacklistFlowFilters(filters);
+
+    const [wlSrcFilter, wlDstFilter] = [
+      EventStream.baseWhitelistFilter(filters),
+      EventStream.baseWhitelistFilter(filters),
+    ];
+
+    if (!filters.filters?.length) {
+      wlSrcFilter.addSourcePod(`${namespace}/`);
+      wlDstFilter.addDestinationPod(`${namespace}/`);
+
+      wlFilters.push(wlSrcFilter, wlDstFilter);
+      return [wlFilters, blFilters];
+    }
+
+    filters.filters.forEach(filter => {
+      const feWlFilters = EventStream.filterEntryWhitelistFilters(
+        filters,
+        filter,
+      );
+
+      wlFilters.push(...feWlFilters);
+    });
 
     return [wlFilters, blFilters];
   }
