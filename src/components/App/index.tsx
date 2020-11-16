@@ -179,17 +179,22 @@ export const App: FunctionComponent<AppProps> = observer(props => {
   useEffect(() => {
     if (!store.controls.currentNamespace || store.mocked) return;
     const newNamespace = store.controls.currentNamespace;
+    console.log('control filters changed: ', store.controls.filters.clone());
 
     if (dataManager.currentNamespace !== newNamespace) {
       dataManager.resetNamespace(newNamespace);
       setConnState(ConnectionState.Receiving);
     }
 
-    if (dataManager.hasFilteringStream) {
+    const filtersChanged =
+      dataManager.filtersChanged && !store.controls.filters.isDefault;
+
+    if (filtersChanged && dataManager.hasFilteringStream) {
       dataManager.dropFilteringFrame();
     }
 
-    if (dataManager.filtersChanged && !store.controls.filters.isDefault) {
+    console.log(dataManager.filtersChanged, !store.controls.filters.isDefault);
+    if (filtersChanged) {
       dataManager.setupFilteringFrame(store.controls.currentNamespace);
       setConnState(ConnectionState.Receiving);
     }

@@ -51,6 +51,8 @@ export const filterLink = (link: Link, filters: Filters): boolean => {
     return false;
   }
 
+  if (link.isDNSRequest && filters.skipKubeDns) return false;
+
   let ok = true;
   filters.filters?.forEach((ff: FilterEntry) => {
     const passed = filterLinkUsingBasicEntry(link, ff);

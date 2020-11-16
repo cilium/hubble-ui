@@ -131,15 +131,16 @@ export class StoreFrame {
   }
 
   @action.bound
-  applyFrame(rhs: StoreFrame, filters?: Filters): this {
-    filters = filters ?? Filters.default();
+  applyFrame(rhs: StoreFrame, fltrs?: Filters): this {
+    const filters = fltrs ?? Filters.default();
     const allowedCardIds: Set<string> = new Set();
+    const droppedLinkIds: Set<string> = new Set();
 
     const flows: Flow[] = [];
     const links: Link[] = [];
 
     rhs.interactions.flows.forEach(f => {
-      const passed = filterFlow(f, filters!);
+      const passed = filterFlow(f, filters);
       if (!passed) return;
 
       flows.push(f.clone());
@@ -147,17 +148,20 @@ export class StoreFrame {
 
     const connections = rhs.interactions.connections;
     rhs.services.cardsList.forEach((card: ServiceCard) => {
-      if (!filterService(card, filters!)) return;
+      if (!filterService(card, filters)) return;
       allowedCardIds.add(card.id);
 
       // NOTE: no matter why card.id is allowed, all services that related to it
       // NOTE: are also allowed. This should probably exclude related services
       // NOTE: that are out of current namespace (not done yet)
-      connections.incomings.get(card.id)?.forEach((_, senderId) => {
+      const incomings = connections.incomings.get(card.id);
+      const outgoings = connections.outgoings.get(card.id);
+
+      incomings?.forEach((links, senderId) => {
         allowedCardIds.add(senderId);
       });
 
-      connections.outgoings.get(card.id)?.forEach((_, receiverId) => {
+      outgoings?.forEach((links, receiverId) => {
         allowedCardIds.add(receiverId);
       });
     });
@@ -170,31 +174,48 @@ export class StoreFrame {
       }
 
       const cloned = card.clone().dropAccessPoints();
-      let noIncomingLinks = true;
+      // let receiverDegree = allowedCardDegrees.get(svcId)!;
 
       const outgoings = connections.outgoings.get(svcId);
       const incomings = connections.incomings.get(svcId);
+      let [inDegree, outDegree] = [0, 0];
 
-      // NOTE: iteratte only by incomings cz in the end of outer cycle
-      // NOTE: on allowedCardIds, all links will be traversed
+      // const skipCzKubeDNS = cloned.isKubeDNS && filters!.skipKubeDns;
       incomings?.forEach((linkProps, senderId) => {
         if (!allowedCardIds.has(senderId)) return;
 
+        inDegree += linkProps.size;
         linkProps.forEach((link, apId) => {
-          if (filters!.skipKubeDns && card.isKubeDNS && link.isDNSRequest)
-            return;
+          // if (skipCzKubeDNS && link.isDNSRequest) return;
 
-          const passed = filterLink(link, filters!);
-          if (!passed) return;
+          const passed =
+            !droppedLinkIds.has(link.id) && filterLink(link, filters);
+          if (!passed) {
+            droppedLinkIds.add(link.id);
+            inDegree -= 1;
+            return;
+          }
 
           // NOTE: only add AP to cloned (allowed) card
           cloned.addAccessPointFromLink(link);
           links.push(link.clone());
-          noIncomingLinks = false;
         });
       });
 
-      if (noIncomingLinks && cloned.isKubeDNS && filters!.skipKubeDns) return;
+      outgoings?.forEach((linkProps, receiverId) => {
+        if (!allowedCardIds.has(receiverId)) return;
+
+        outDegree += linkProps.size;
+        linkProps.forEach((link, apId) => {
+          const passed =
+            !droppedLinkIds.has(link.id) && filterLink(link, filters);
+          if (passed) return;
+
+          outDegree -= 1;
+        });
+      });
+
+      if (inDegree + outDegree === 0) return;
       this.services.addNewCard(cloned);
 
       if (rhs.services.isCardActive(svcId)) {

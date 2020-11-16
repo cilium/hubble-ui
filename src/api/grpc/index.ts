@@ -24,7 +24,8 @@ export class APIv1 implements CoreAPIv1 {
   }
 
   public getEventStream(params?: EventParams, filters?: Filters): IEventStream {
-    params = params || APIv1.defaultEventStreamParams;
+    params = params ?? APIv1.defaultEventStreamParams;
+    filters = filters ?? Filters.default();
 
     const request = EventStream.buildRequest(params, filters);
     const stream = this.client.getEvents(request);
