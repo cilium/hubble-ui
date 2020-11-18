@@ -121,6 +121,18 @@ export class Flow {
     return this.ref.destination?.podName ?? null;
   }
 
+  public get sourcePort() {
+    if (this.ref.l4?.tcp) {
+      return this.ref.l4.tcp.sourcePort;
+    }
+
+    if (this.ref.l4?.udp) {
+      return this.ref.l4.udp.sourcePort;
+    }
+
+    return null;
+  }
+
   public get destinationPort() {
     if (this.ref.l4?.tcp) {
       return this.ref.l4.tcp.destinationPort;
@@ -217,6 +229,22 @@ export class Flow {
 
   public get tcpFlags() {
     return this.ref.l4?.tcp?.flags ?? null;
+  }
+
+  public get isTCP(): boolean {
+    return !!this.ref.l4?.tcp;
+  }
+
+  public get isUDP(): boolean {
+    return !!this.ref.l4?.udp;
+  }
+
+  public get ICMPv4(): boolean {
+    return !!this.ref.l4?.icmpv4;
+  }
+
+  public get ICMPv6(): boolean {
+    return !!this.ref.l4?.icmpv6;
   }
 
   @memoize

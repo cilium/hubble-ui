@@ -2,16 +2,17 @@ import {
   Filters,
   FiltersObject,
   filterService,
-  filterServiceUsingBasicEntry,
+  filterServiceByEntry,
   FilterEntry,
   FilterKind,
   FilterDirection,
 } from '~/domain/filtering';
 
+import { Labels, ReservedLabel } from '~/domain/labels';
 import { ServiceCard } from '~/domain/service-map';
 import { Verdict } from '~/domain/hubble';
 import { Dictionary } from '~/domain/misc';
-import { services } from '~/testing/data';
+import { services, filterEntries } from '~/testing/data';
 
 import { expectFilterEntry } from './general';
 
@@ -44,7 +45,7 @@ const testFilterEntry = (
     const caption = captionFn(serviceName, lidx + 1);
 
     test(caption, () => {
-      const result = filterServiceUsingBasicEntry(service, entry);
+      const result = filterServiceByEntry(service, entry);
 
       expect(result).toBe(expected);
     });
@@ -57,22 +58,6 @@ describe('filterService', () => {
   const host = ServiceCard.fromService(services.host);
   const remoteNode = ServiceCard.fromService(services.remoteNode);
   const kubeDns = ServiceCard.fromService(services.kubeDNS);
-
-  const filterEntries = {
-    fromLabelRegular: FilterEntry.parse(
-      `from:label=k8s:k8s-app=regular-service`,
-    ),
-    toLabelRegular: FilterEntry.parse(`to:label=k8s:k8s-app=regular-service`),
-    bothLabelRegular: FilterEntry.parse(
-      `both:label=k8s:k8s-app=regular-service`,
-    ),
-    toDnsGoogle: FilterEntry.parse(`to:dns=www.google.com`),
-    fromDnsGoogle: FilterEntry.parse(`from:dns=www.google.com`),
-    bothDnsGoogle: FilterEntry.parse(`both:dns=www.google.com`),
-    fromIpRandom: FilterEntry.parse(`from:ip=153.82.167.250`),
-    toIpRandom: FilterEntry.parse(`to:ip=153.82.167.250`),
-    bothIpRandom: FilterEntry.parse(`both:ip=153.82.167.250`),
-  };
 
   test('mock data sanity check', () => {
     expect(regular.isWorld).toBe(false);
@@ -159,6 +144,24 @@ describe('filterService', () => {
       FilterKind.Ip,
       FilterDirection.Both,
       '153.82.167.250',
+    ]);
+
+    expectFilterEntry(filterEntries.fromLabelWorld, [
+      FilterKind.Label,
+      FilterDirection.From,
+      'reserved:world',
+    ]);
+
+    expectFilterEntry(filterEntries.toLabelWorld, [
+      FilterKind.Label,
+      FilterDirection.To,
+      'reserved:world',
+    ]);
+
+    expectFilterEntry(filterEntries.bothLabelWorld, [
+      FilterKind.Label,
+      FilterDirection.Both,
+      'reserved:world',
     ]);
   });
 
@@ -345,6 +348,69 @@ describe('filterService', () => {
     false,
     {
       world,
+      host,
+      remoteNode,
+      kubeDns,
+    },
+  );
+
+  testFilterEntry(
+    (svcName: string, tnum: number) =>
+      `label > from reserved world matches ${tnum} (${svcName})`,
+    filterEntries.fromLabelWorld!,
+    true,
+    { world },
+  );
+
+  testFilterEntry(
+    (svcName: string, tnum: number) =>
+      `label > from reserved world doesnt match ${tnum} (${svcName})`,
+    filterEntries.fromLabelWorld!,
+    false,
+    {
+      regular,
+      host,
+      remoteNode,
+      kubeDns,
+    },
+  );
+
+  testFilterEntry(
+    (svcName: string, tnum: number) =>
+      `label > to reserved world matches ${tnum} (${svcName})`,
+    filterEntries.toLabelWorld!,
+    true,
+    { world },
+  );
+
+  testFilterEntry(
+    (svcName: string, tnum: number) =>
+      `label > to reserved world doesnt match ${tnum} (${svcName})`,
+    filterEntries.toLabelWorld!,
+    false,
+    {
+      regular,
+      host,
+      remoteNode,
+      kubeDns,
+    },
+  );
+
+  testFilterEntry(
+    (svcName: string, tnum: number) =>
+      `label > both reserved world matches ${tnum} (${svcName})`,
+    filterEntries.bothLabelWorld!,
+    true,
+    { world },
+  );
+
+  testFilterEntry(
+    (svcName: string, tnum: number) =>
+      `label > both reserved world doesnt match ${tnum} (${svcName})`,
+    filterEntries.bothLabelWorld!,
+    false,
+    {
+      regular,
       host,
       remoteNode,
       kubeDns,

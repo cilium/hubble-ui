@@ -1,7 +1,7 @@
 import {
   Filters,
   filterFlow,
-  filterFlowUsingBasicEntry,
+  filterFlowByEntry,
   FilterEntry,
 } from '~/domain/filtering';
 
@@ -23,7 +23,7 @@ const testFilterEntry = (
     const caption = captionFn(flowName, lidx + 1);
 
     test(caption, () => {
-      const result = filterFlowUsingBasicEntry(flow, entry);
+      const result = filterFlowByEntry(flow, entry);
 
       expect(result).toBe(expected);
     });
@@ -347,7 +347,7 @@ describe('filterFlow', () => {
     });
 
     const stay = filterFlow(fromHostFlow, filters);
-    expect(stay).toBe(true);
+    expect(stay).toBe(false);
   });
 
   test('skip host > flow not skipped 4', () => {
@@ -365,7 +365,7 @@ describe('filterFlow', () => {
     });
 
     const stay = filterFlow(toHostFlow, filters);
-    expect(stay).toBe(true);
+    expect(stay).toBe(false);
   });
 
   test('skip host > flow not skipped 6', () => {
@@ -383,7 +383,7 @@ describe('filterFlow', () => {
     });
 
     const stay = filterFlow(bothHostFlow, filters);
-    expect(stay).toBe(true);
+    expect(stay).toBe(false);
   });
 
   test('skip host > flow not skipped 8', () => {

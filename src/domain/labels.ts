@@ -98,6 +98,18 @@ export class Labels {
     return label ? label.key.replace('reserved:', '') : null;
   }
 
+  public static findKVByString(labels: KV[], query: string): KV | null {
+    for (const label of labels) {
+      const { key, value } = label;
+      if (value.length === 0 && key === query) return label;
+
+      const labelStr = `${key}=${value}`;
+      if (labelStr === query) return label;
+    }
+
+    return null;
+  }
+
   public static haveReserved(labels: KV[], reserved: ReservedLabel): boolean {
     return labels.some(l => Labels.normalizeKey(l.key) === reserved);
   }
