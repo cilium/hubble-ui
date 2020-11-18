@@ -186,15 +186,11 @@ export const App: FunctionComponent<AppProps> = observer(props => {
       setConnState(ConnectionState.Receiving);
     }
 
-    const filtersChanged =
-      dataManager.filtersChanged && !store.controls.filters.isDefault;
-
-    if (filtersChanged && dataManager.hasFilteringStream) {
+    if (dataManager.filtersChanged && dataManager.hasFilteringStream) {
       dataManager.dropFilteringFrame();
     }
 
-    console.log(dataManager.filtersChanged, !store.controls.filters.isDefault);
-    if (filtersChanged) {
+    if (dataManager.filtersChanged) {
       dataManager.setupFilteringFrame(store.controls.currentNamespace);
       setConnState(ConnectionState.Receiving);
     }

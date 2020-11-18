@@ -6,256 +6,167 @@ import {
 } from './filter-entry';
 
 import { Link, Service, ServiceCard } from '~/domain/service-map';
+import { Connections } from '~/domain/interactions/links';
+import { Labels } from '~/domain/labels';
 import { Filters, FiltersObject } from './filters';
+
+import { filterFlow, filterFlowByEntry } from './filter-flow';
+import { filterLink, filterLinkByEntry } from './filter-link';
+import { filterService, filterServiceByEntry } from './filter-service';
 
 export { Filters, FiltersObject };
 export { FilterEntry, FilterKind, FilterDirection };
+export { filterFlow, filterFlowByEntry };
+export { filterLink, filterLinkByEntry };
+export { filterService, filterServiceByEntry };
 
-export const filterFlow = (flow: Flow, filters: Filters): boolean => {
-  if (filters.namespace != null) {
-    if (
-      flow.sourceNamespace !== filters.namespace &&
-      flow.destinationNamespace !== filters.namespace
-    )
-      return false;
-  }
-
-  if (filters.verdict != null && flow.verdict !== filters.verdict) {
-    return false;
-  }
-
-  if (filters.httpStatus != null) {
-    if (flow.httpStatus == null) return false;
-
-    const httpStatus = parseInt(filters.httpStatus);
-    const lastChar = filters.httpStatus.slice(-1);
-    const rangeSign = ['+', '-'].includes(lastChar) ? lastChar : undefined;
-
-    if (!rangeSign && flow.httpStatus !== httpStatus) return false;
-    if (rangeSign === '+' && flow.httpStatus < httpStatus) return false;
-    if (rangeSign === '-' && flow.httpStatus > httpStatus) return false;
-  }
-
-  let ok = true;
-  filters.filters?.forEach((ff: FilterEntry) => {
-    const passed = filterFlowUsingBasicEntry(flow, ff);
-
-    ok = ok && passed;
-  });
-
-  return ok;
+export type FilterResult = {
+  flows: Flow[];
+  links: Link[];
+  services: ServiceCard[];
 };
 
-export const filterLink = (link: Link, filters: Filters): boolean => {
-  if (filters.verdict != null && !link.verdicts.has(filters.verdict)) {
-    return false;
-  }
+// NOTE: some filtering cases explained:
+// NOTE: 1) given that we have filterEntry that keeps all flows from service A
+// NOTE: to service B. This means that we are not going to show response
+// NOTE: flows/links from service B to service A.
+export const filter = (
+  filters: Filters,
+  flows: Flow[],
+  cardsMap: Map<string, ServiceCard>,
+  connections: Connections,
+): FilterResult => {
+  const filteredFlows: Flow[] = [];
+  const filteredLinks: Link[] = [];
+  const services: ServiceCard[] = [];
 
-  if (link.isDNSRequest && filters.skipKubeDns) return false;
+  // NOTE: flows have enough information to be filtered separately
+  flows.forEach(f => {
+    const passed = filterFlow(f, filters);
+    if (!passed) return;
 
-  let ok = true;
-  filters.filters?.forEach((ff: FilterEntry) => {
-    const passed = filterLinkUsingBasicEntry(link, ff);
-
-    ok = ok && passed;
+    filteredFlows.push(f);
   });
 
-  return ok;
-};
+  const blacklistServices: Set<string> = new Set();
+  const blacklistLinks: Set<string> = new Set();
+  const newConnections: Map<string, Set<string>> = new Map();
 
-export const filterService = (svc: ServiceCard, filters: Filters): boolean => {
-  if (filters.skipHost && svc.isHost) return false;
-  // if (filters.skipKubeDns && svc.isKubeDNS) return false;
-  if (filters.skipRemoteNode && svc.isRemoteNode) return false;
-  if (filters.skipRemoteNode && svc.isPrometheusApp) return false;
+  // NOTE: services do not have that information as we have "direction" filters
+  // NOTE: we do not know if card interact with another one
+  cardsMap.forEach((card, id) => {
+    // NOTE: here we can only drop those cards, which surely not match
+    const passed = filterService(card, filters);
+    if (!passed) {
+      blacklistServices.add(id);
+      return;
+    }
 
-  let ok = true;
-  filters.filters?.forEach((ff: FilterEntry) => {
-    const passed = filterServiceUsingBasicEntry(svc.service, ff);
+    // NOTE: if there is no filterEntries then we should traverse all in/out
+    // NOTE: connections and use those senders/receivers, otherwise we should
+    // NOTE: use those services, who match filterEntries + related to them
+    let checkOutgoings = !filters.filters?.length;
+    let checkIncomings = checkOutgoings;
 
-    ok = ok && passed;
-  });
+    filters.filters?.forEach(filterEntry => {
+      if (!filterServiceByEntry(card.service, filterEntry)) return;
 
-  return ok;
-};
-
-export const filterServiceUsingBasicEntry = (
-  service: Service,
-  e: FilterEntry,
-): boolean => {
-  if (e.isIdentity) return service.id === e.query;
-
-  if (e.isLabel) {
-    const labels = service.labels.map(kv => {
-      if (!kv.value) return kv.key;
-      return `${kv.key}=${kv.value}`;
+      checkOutgoings = checkOutgoings || filterEntry.fromRequired;
+      checkIncomings = checkIncomings || filterEntry.toRequired;
     });
-    return labels.includes(e.query);
-  }
 
-  if (e.isDNS) {
-    return service.dnsNames.includes(e.query) || service.id === e.query;
-  }
+    // NOTE: this means that every filterEntry skiped current card, but this
+    // NOTE: card can be saved by another card if it is presented in their
+    // NOTE: incomings/outgoings map
+    if (!checkIncomings && !checkOutgoings) return;
 
-  return true;
+    const incomings = connections.incomings.get(id);
+    if (checkIncomings && incomings != null) {
+      incomings.forEach((links, senderId) => {
+        addSender(newConnections, id, senderId);
+      });
+    }
+
+    const outgoings = connections.outgoings.get(id);
+    if (checkOutgoings && outgoings != null) {
+      outgoings.forEach((links, receiverId) => {
+        addSender(newConnections, receiverId, id);
+      });
+    }
+  });
+
+  // NOTE: we need this second cycle, cz in the first one we do not know if
+  // NOTE: there are other cards connecting to particular one (current)
+
+  const clonedServices: Map<string, ServiceCard> = new Map();
+  newConnections.forEach((senderIds, receiverId) => {
+    if (blacklistServices.has(receiverId)) return;
+
+    const incomings = connections.incomings.get(receiverId);
+    if (incomings == null) return;
+
+    senderIds.forEach(senderId => {
+      if (blacklistServices.has(senderId)) return;
+
+      const links = incomings.get(senderId);
+      if (links == null) return;
+
+      links.forEach((link, apId) => {
+        if (blacklistLinks.has(link.id)) return;
+
+        const passed = filterLink(link, filters);
+        if (!passed) {
+          blacklistLinks.add(link.id);
+          return;
+        }
+
+        // NOTE: if we got to this point, then sender and receiver must exist
+        // NOTE: and their degrees are definitely !== 0
+        ensureService(clonedServices, cardsMap, senderId);
+        const receiver = ensureService(clonedServices, cardsMap, receiverId);
+        if (receiver == null) return;
+
+        receiver.addAccessPointFromLink(link);
+        filteredLinks.push(link);
+      });
+    });
+  });
+
+  return {
+    flows: filteredFlows,
+    links: filteredLinks,
+    services: [...clonedServices.values()],
+  };
 };
 
-export const filterLinkUsingBasicEntry = (l: Link, e: FilterEntry): boolean => {
-  const sourceIdentityMatch = l.sourceId === e.query;
-  const destIdentityMatch = l.destinationId === e.query;
-
-  switch (e.direction) {
-    case FilterDirection.Both: {
-      switch (e.kind) {
-        case FilterKind.Identity: {
-          if (!sourceIdentityMatch && !destIdentityMatch) return false;
-          break;
-        }
-      }
-      break;
-    }
-    case FilterDirection.To: {
-      switch (e.kind) {
-        case FilterKind.Identity: {
-          if (!destIdentityMatch) return false;
-          break;
-        }
-      }
-      break;
-    }
-    case FilterDirection.From: {
-      switch (e.kind) {
-        case FilterKind.Identity: {
-          if (!sourceIdentityMatch) return false;
-          break;
-        }
-      }
-      break;
-    }
+// NOTE: connections is { receiverId -> Set(of all sender IDs)
+const addSender = (
+  connections: Map<string, Set<string>>,
+  receiverId: string,
+  senderId: string,
+) => {
+  if (!connections.has(receiverId)) {
+    connections.set(receiverId, new Set());
   }
 
-  return true;
+  const senders = connections.get(receiverId)!;
+  senders.add(senderId);
 };
 
-export const filterFlowUsingBasicEntry = (
-  flow: Flow,
-  filter: FilterEntry,
-): boolean => {
-  const [key, value] = filter.labelKeyValue;
-
-  // TODO: improve performance: check only in appropriate switch/case
-  const sourceLabelMatch = flow.sourceLabels.some(
-    label => label.key === key && label.value === value,
-  );
-  const destLabelMatch = flow.destinationLabels.some(
-    label => label.key === key && label.value === value,
-  );
-
-  const sourceDnsMatch = flow.sourceNamesList.includes(filter.query);
-  const destDnsMatch = flow.destinationNamesList.includes(filter.query);
-
-  const sourceIdentityMatch = flow.sourceIdentity === +filter.query;
-  const destIdentityMatch = flow.destinationIdentity === +filter.query;
-
-  const sourcePodMatch = flow.sourcePodName === filter.query;
-  const destPodMatch = flow.destinationPodName === filter.query;
-
-  const tcpFlagMatch = flow.enabledTcpFlags.includes(filter.query as any);
-
-  switch (filter.direction) {
-    case FilterDirection.Both: {
-      switch (filter.kind) {
-        case FilterKind.Label: {
-          if (!sourceLabelMatch && !destLabelMatch) return false;
-          break;
-        }
-        case FilterKind.Ip: {
-          if (
-            flow.sourceIp !== filter.query &&
-            flow.destinationIp !== filter.query
-          ) {
-            return false;
-          }
-          break;
-        }
-        case FilterKind.Dns: {
-          if (!sourceDnsMatch && !destDnsMatch) return false;
-          break;
-        }
-        case FilterKind.Identity: {
-          if (!sourceIdentityMatch && !destIdentityMatch) return false;
-          break;
-        }
-        case FilterKind.TCPFlag: {
-          if (!tcpFlagMatch) return false;
-          break;
-        }
-        case FilterKind.Pod: {
-          if (!sourcePodMatch && !destPodMatch) return false;
-          break;
-        }
-      }
-      break;
-    }
-    case FilterDirection.From: {
-      switch (filter.kind) {
-        case FilterKind.Label: {
-          if (!sourceLabelMatch) return false;
-          break;
-        }
-        case FilterKind.Ip: {
-          if (flow.sourceIp !== filter.query) return false;
-          break;
-        }
-        case FilterKind.Dns: {
-          if (!sourceDnsMatch) return false;
-          break;
-        }
-        case FilterKind.Identity: {
-          if (!sourceIdentityMatch) return false;
-          break;
-        }
-        case FilterKind.TCPFlag: {
-          if (!tcpFlagMatch) return false;
-          break;
-        }
-        case FilterKind.Pod: {
-          if (!sourcePodMatch) return false;
-          break;
-        }
-      }
-      break;
-    }
-    case FilterDirection.To: {
-      switch (filter.kind) {
-        case FilterKind.Label: {
-          if (!destLabelMatch) return false;
-          break;
-        }
-        case FilterKind.Ip: {
-          if (flow.destinationIp !== filter.query) return false;
-          break;
-        }
-        case FilterKind.Dns: {
-          if (!destDnsMatch) return false;
-          break;
-        }
-        case FilterKind.Identity: {
-          if (!destIdentityMatch) return false;
-          break;
-        }
-        case FilterKind.TCPFlag: {
-          if (!tcpFlagMatch) return false;
-          break;
-        }
-        case FilterKind.Pod: {
-          if (!destPodMatch) return false;
-          break;
-        }
-      }
-      break;
-    }
+const ensureService = (
+  clonedServices: Map<string, ServiceCard>,
+  originalServices: Map<string, ServiceCard>,
+  serviceId: string,
+): ServiceCard | null => {
+  if (clonedServices.has(serviceId)) {
+    return clonedServices.get(serviceId)!;
   }
 
-  return true;
+  const original = originalServices.get(serviceId);
+  if (original == null) return null;
+
+  const cloned = original.clone().dropAccessPoints();
+  clonedServices.set(serviceId, cloned);
+
+  return cloned;
 };

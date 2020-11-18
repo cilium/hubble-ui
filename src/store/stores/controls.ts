@@ -194,15 +194,4 @@ export default class ControlStore {
       skipPrometheusApp: !this.showPrometheusApp,
     });
   }
-
-  @computed
-  get mainFilters(): Filters {
-    return Filters.fromObject({
-      namespace: this.currentNamespace,
-      skipHost: !this.showHost,
-      skipKubeDns: !this.showKubeDns,
-      skipRemoteNode: !this.showRemoteNode,
-      skipPrometheusApp: !this.showPrometheusApp,
-    });
-  }
 }

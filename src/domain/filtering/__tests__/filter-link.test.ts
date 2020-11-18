@@ -2,7 +2,7 @@ import {
   Filters,
   FiltersObject,
   filterLink,
-  filterLinkUsingBasicEntry,
+  filterLinkByEntry,
   FilterEntry,
 } from '~/domain/filtering';
 
@@ -41,7 +41,7 @@ const testFilterEntry = (
     const caption = captionFn(linkName, lidx + 1);
 
     test(caption, () => {
-      const result = filterLinkUsingBasicEntry(link, entry);
+      const result = filterLinkByEntry(link, entry);
 
       expect(result).toBe(expected);
     });

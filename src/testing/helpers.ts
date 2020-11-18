@@ -13,6 +13,8 @@ export interface FlowsBetween {
   fromBtoA: HubbleFlow;
 }
 
+let flowsTimeOffset = 0;
+
 export const flowsBetweenServices = (
   a: HubbleService,
   b: HubbleService,
@@ -47,11 +49,13 @@ export const flowsBetweenServices = (
     summary: '',
     type: FlowType.L34,
     time: {
-      seconds: Date.now() / 1000,
+      seconds: flowsTimeOffset + Date.now() / 1000,
       nanos: Date.now() * 1000000,
     },
     trafficDirection: TrafficDirection.Ingress,
   };
+
+  flowsTimeOffset += 1;
 
   const fromBtoA: HubbleFlow = {
     verdict: Verdict.Forwarded,
@@ -83,11 +87,13 @@ export const flowsBetweenServices = (
     summary: '',
     type: FlowType.L34,
     time: {
-      seconds: (Date.now() + 5) / 1000,
-      nanos: (Date.now() + 5) * 1000000,
+      seconds: flowsTimeOffset + Date.now() / 1000,
+      nanos: Date.now() * 1000000,
     },
     trafficDirection: TrafficDirection.Ingress,
   };
+
+  flowsTimeOffset += 1;
 
   return { fromAtoB, fromBtoA };
 };

@@ -7,14 +7,7 @@ import { ids } from '~/domain/ids';
 import { HubbleLink } from '~/domain/hubble';
 import { StateChange } from '~/domain/misc';
 import { flowFromRelay } from '~/domain/helpers';
-
-// { cardId -> { cardId -> { acessPointId : Link }  }
-export type ConnectionsMap = Map<string, Map<string, Map<string, Link>>>;
-
-export interface Connections {
-  readonly outgoings: ConnectionsMap;
-  readonly incomings: ConnectionsMap;
-}
+import { Connections, ConnectionsMap } from '~/domain/interactions/links';
 
 export interface CopyResult {
   newFlows: number;

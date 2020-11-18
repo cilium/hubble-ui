@@ -48,10 +48,12 @@ export class Store {
 
     this._frames = [];
 
-    this.createMainFrame();
-    this.setupReactions();
     this.restoreNamespace();
     this.restoreVisualFilters();
+
+    // NOTE: main frame should be initialized with all filters set up
+    this.createMainFrame();
+    this.setupReactions();
     this.setupDebugTools();
   }
 
@@ -115,8 +117,9 @@ export class Store {
     if (this._frames.length <= 1) return;
 
     const squashed = this.mainFrame.cloneEmpty();
+    console.log('squashing using filters: ', this.mainFrame.initialFilters);
     this._frames.forEach(f => {
-      squashed.applyFrame(f);
+      squashed.applyFrame(f, this.mainFrame.initialFilters);
     });
 
     this._frames = [squashed];

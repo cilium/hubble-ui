@@ -75,10 +75,9 @@ export class DataManager extends EventEmitter<Events> {
   }
 
   public setupMainStream(namespace: string) {
-    console.log('setting up main stream');
     const store = this.store;
-    const streamParams = store.controls.mainFilters
-      .clone()
+    const streamParams = store.controls.filters
+      .clone(true)
       .setNamespace(namespace);
 
     const stream = this.api.v1.getEventStream(
@@ -98,7 +97,6 @@ export class DataManager extends EventEmitter<Events> {
 
   public dropMainStream() {
     if (this.mainStream == null) return;
-    console.log('dropping main stream');
 
     this.mainStream.stream.stop();
     this.offAllStreamEvents(this.mainStream.stream);
@@ -108,7 +106,6 @@ export class DataManager extends EventEmitter<Events> {
   public setupFilteringFrame(namespace: string) {
     const store = this.store;
     const streamParams = store.controls.filters.clone().setNamespace(namespace);
-    console.log('setting up filtering stream: ', streamParams);
 
     const secondaryFrame = store
       .createFrame()
@@ -126,7 +123,6 @@ export class DataManager extends EventEmitter<Events> {
 
   public dropFilteringFrame() {
     if (this.filteringStream == null) return;
-    console.log('dropping filtering stream');
 
     this.filteringStream.stream.stop();
     this.offAllStreamEvents(this.filteringStream.stream);
@@ -135,7 +131,6 @@ export class DataManager extends EventEmitter<Events> {
   }
 
   public setupInitialStream() {
-    console.log('setting up initial stream');
     const stream = this.api.v1.getEventStream({
       ...EventParamsSet.Namespaces,
       status: true,
@@ -149,7 +144,6 @@ export class DataManager extends EventEmitter<Events> {
 
   public dropInitialStream() {
     if (this.initialStream == null) return;
-    console.log('dropping initial stream');
 
     this.initialStream.stream.stop();
     this.offAllStreamEvents(this.initialStream.stream);
@@ -157,7 +151,6 @@ export class DataManager extends EventEmitter<Events> {
   }
 
   public resetNamespace(namespace: string) {
-    console.log('resetting namespace');
     if (this.mainStream) {
       this.dropMainStream();
       this.store.flush();

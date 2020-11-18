@@ -10,12 +10,7 @@ import {
   ServiceMapArrowStrategy,
 } from '~/domain/layout/service-map';
 
-import {
-  Filters,
-  filterFlow,
-  filterService,
-  filterLink,
-} from '~/domain/filtering';
+import { Filters, filter } from '~/domain/filtering';
 import { HubbleService, HubbleLink } from '~/domain/hubble';
 import { StateChange } from '~/domain/misc';
 import { ServiceCard, Link } from '~/domain/service-map';
@@ -38,6 +33,8 @@ export class StoreFrame {
   @observable
   public arrows: ServiceMapArrowStrategy;
 
+  public initialFilters: Filters;
+
   public static empty(controls: ControlStore): StoreFrame {
     return new StoreFrame(new InteractionStore(), new ServiceStore(), controls);
   }
@@ -50,6 +47,8 @@ export class StoreFrame {
     this.interactions = interactions;
     this.services = services;
     this.controls = controls;
+
+    this.initialFilters = controls.filters.clone(true);
 
     this.placement = new ServiceMapPlacementStrategy(
       this.controls,
@@ -133,177 +132,37 @@ export class StoreFrame {
   @action.bound
   applyFrame(rhs: StoreFrame, fltrs?: Filters): this {
     const filters = fltrs ?? Filters.default();
-    const allowedCardIds: Set<string> = new Set();
-    const droppedLinkIds: Set<string> = new Set();
 
-    const flows: Flow[] = [];
-    const links: Link[] = [];
+    const { flows, links, services } = filter(
+      filters,
+      rhs.interactions.flows,
+      rhs.services.cardsMap,
+      rhs.interactions.connections,
+    );
 
-    rhs.interactions.flows.forEach(f => {
-      const passed = filterFlow(f, filters);
-      if (!passed) return;
-
-      flows.push(f.clone());
+    const filteredFlows: Flow[] = [];
+    flows.forEach(f => {
+      filteredFlows.push(f.clone());
     });
 
-    const connections = rhs.interactions.connections;
-    rhs.services.cardsList.forEach((card: ServiceCard) => {
-      if (!filterService(card, filters)) return;
-      allowedCardIds.add(card.id);
-
-      // NOTE: no matter why card.id is allowed, all services that related to it
-      // NOTE: are also allowed. This should probably exclude related services
-      // NOTE: that are out of current namespace (not done yet)
-      const incomings = connections.incomings.get(card.id);
-      const outgoings = connections.outgoings.get(card.id);
-
-      incomings?.forEach((links, senderId) => {
-        allowedCardIds.add(senderId);
-      });
-
-      outgoings?.forEach((links, receiverId) => {
-        allowedCardIds.add(receiverId);
-      });
+    const filteredLinks: Link[] = [];
+    links.forEach(l => {
+      filteredLinks.push(l.clone());
     });
 
-    allowedCardIds.forEach(svcId => {
-      const card = rhs.services.cardsMap.get(svcId);
-      if (card == null) {
-        allowedCardIds.delete(svcId);
-        return;
-      }
-
-      const cloned = card.clone().dropAccessPoints();
-      // let receiverDegree = allowedCardDegrees.get(svcId)!;
-
-      const outgoings = connections.outgoings.get(svcId);
-      const incomings = connections.incomings.get(svcId);
-      let [inDegree, outDegree] = [0, 0];
-
-      // const skipCzKubeDNS = cloned.isKubeDNS && filters!.skipKubeDns;
-      incomings?.forEach((linkProps, senderId) => {
-        if (!allowedCardIds.has(senderId)) return;
-
-        inDegree += linkProps.size;
-        linkProps.forEach((link, apId) => {
-          // if (skipCzKubeDNS && link.isDNSRequest) return;
-
-          const passed =
-            !droppedLinkIds.has(link.id) && filterLink(link, filters);
-          if (!passed) {
-            droppedLinkIds.add(link.id);
-            inDegree -= 1;
-            return;
-          }
-
-          // NOTE: only add AP to cloned (allowed) card
-          cloned.addAccessPointFromLink(link);
-          links.push(link.clone());
-        });
-      });
-
-      outgoings?.forEach((linkProps, receiverId) => {
-        if (!allowedCardIds.has(receiverId)) return;
-
-        outDegree += linkProps.size;
-        linkProps.forEach((link, apId) => {
-          const passed =
-            !droppedLinkIds.has(link.id) && filterLink(link, filters);
-          if (passed) return;
-
-          outDegree -= 1;
-        });
-      });
-
-      if (inDegree + outDegree === 0) return;
+    // NOTE: services is array of cloned service map cards
+    services.forEach(cloned => {
       this.services.addNewCard(cloned);
 
-      if (rhs.services.isCardActive(svcId)) {
-        this.services.setActive(svcId);
+      if (rhs.services.isCardActive(cloned.id)) {
+        this.services.setActive(cloned.id);
       }
     });
 
-    this.interactions.addFlows(flows);
-    this.interactions.addLinks(links);
+    this.interactions.addFlows(filteredFlows);
+    this.interactions.addLinks(filteredLinks);
 
     return this;
-  }
-
-  // TODO: consider this method to delete
-  @action.bound
-  filter(filters: Filters): StoreFrame {
-    const services = new ServiceStore();
-    const interactions = new InteractionStore();
-    const flows: Flow[] = [];
-    const links: Link[] = [];
-
-    const allowedServiceIds: Set<string> = new Set();
-    const allowedLinkIds: Set<string> = new Set();
-
-    const extractServiceAndLinks = (obj: Map<string, Map<string, Link>>) => {
-      obj.forEach((accessPointsMap, serviceId: string) => {
-        const svc = this.services.cardsMap.get(serviceId);
-        if (!svc) return;
-
-        if (filters.skipHost && svc.isHost) return;
-        // if (filters.skipKubeDns && svc.isKubeDNS) return;
-        if (filters.skipRemoteNode && svc.isRemoteNode) return;
-        if (filters.skipPrometheusApp && svc.isPrometheusApp) return;
-
-        let onlyKubeDNSLinks = true;
-        accessPointsMap.forEach((link: Link, accessPointId: string) => {
-          if (filters.skipKubeDns && svc.isKubeDNS && link.isDNSRequest) {
-            return;
-          }
-
-          onlyKubeDNSLinks = false;
-          allowedLinkIds.add(link.id);
-        });
-
-        if (onlyKubeDNSLinks && filters.skipKubeDns) return;
-        services.addNewCard(svc);
-      });
-    };
-
-    this.interactions.flows.forEach((f: Flow) => {
-      if (!filterFlow(f, filters)) return;
-
-      flows.push(f.clone());
-    });
-
-    const connections = this.interactions.connections;
-    this.services.cardsList.forEach((card: ServiceCard) => {
-      if (!filterService(card, filters)) return;
-      // NOTE: card.id might be not simple identity (number)
-      // services.addNewCard(card.clone());
-      allowedServiceIds.add(card.id);
-
-      if (this.services.isCardActive(card.id)) {
-        services.setActive(card.id);
-      }
-    });
-
-    // NOTE: tricky point here: if this loop is placed inside previous loop
-    // services and links that were skipped by filters can be saved :(
-    allowedServiceIds.forEach((svcId: string) => {
-      const outgoings = connections.outgoings.get(svcId);
-      const incomings = connections.incomings.get(svcId);
-
-      outgoings && extractServiceAndLinks(outgoings);
-      incomings && extractServiceAndLinks(incomings);
-    });
-
-    allowedLinkIds.forEach((linkId: string) => {
-      const link = this.interactions.linksMap.get(linkId);
-      if (!link) return;
-
-      links.push(link.clone());
-    });
-
-    interactions.setFlows(flows, { sort: true });
-    interactions.setLinks(links);
-
-    return new StoreFrame(interactions, services, this.controls);
   }
 
   clone() {
@@ -314,12 +173,15 @@ export class StoreFrame {
     );
   }
 
-  cloneEmpty() {
-    return new StoreFrame(
+  cloneEmpty(): StoreFrame {
+    const cloned = new StoreFrame(
       new InteractionStore(),
       new ServiceStore(),
       this.controls,
     );
+
+    cloned.initialFilters = this.initialFilters;
+    return cloned;
   }
 
   public get amounts() {
