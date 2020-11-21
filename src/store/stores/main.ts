@@ -8,7 +8,12 @@ import {
 } from 'mobx';
 
 import { Flow } from '~/domain/flows';
-import { FilterEntry, FilterKind, FilterDirection } from '~/domain/filtering';
+import {
+  Filters,
+  FilterEntry,
+  FilterKind,
+  FilterDirection,
+} from '~/domain/filtering';
 
 import { Service } from '~/domain/service-map';
 import { StateChange } from '~/domain/misc';
@@ -16,12 +21,17 @@ import { setupDebugProp } from '~/domain/misc';
 import { Vec2 } from '~/domain/geometry';
 import { HubbleService, HubbleLink, HubbleFlow } from '~/domain/hubble';
 
+import {
+  ServiceMapPlacementStrategy,
+  ServiceMapArrowStrategy,
+} from '~/domain/layout/service-map';
+
 import InteractionStore from './interaction';
 import RouteStore, { RouteHistorySourceKind, Route } from './route';
 import ServiceStore from './service';
 import ControlStore from './controls';
 
-import { StoreFrame } from '~/store/frame';
+import { StoreFrame, EventKind as FrameEvent } from '~/store/frame';
 import * as storage from '~/storage/local';
 import { ReservedLabel } from '~/domain/labels';
 
@@ -40,25 +50,45 @@ export class Store {
   public controls: ControlStore;
 
   @observable
-  private _frames: StoreFrame[];
+  public placement: ServiceMapPlacementStrategy;
+
+  @observable
+  public arrows: ServiceMapArrowStrategy;
+
+  @observable
+  public globalFrame: StoreFrame;
+
+  @observable
+  public currentFrame: StoreFrame;
 
   constructor(props: Props) {
     this.controls = new ControlStore();
     this.route = new RouteStore(props.historySource, props.routes);
 
-    this._frames = [];
+    this.globalFrame = StoreFrame.empty();
+    this.currentFrame = StoreFrame.empty();
+
+    this.placement = new ServiceMapPlacementStrategy(
+      this.controls,
+      this.currentFrame.interactions,
+      this.currentFrame.services,
+    );
+
+    this.arrows = new ServiceMapArrowStrategy(
+      this.controls,
+      this.currentFrame.interactions,
+      this.currentFrame.services,
+      this.placement,
+    );
 
     this.restoreNamespace();
     this.restoreVisualFilters();
 
     // NOTE: main frame should be initialized with all filters set up
-    this.createMainFrame();
+    // this.createMainFrame();
+    this.setupEventHandlers();
     this.setupReactions();
     this.setupDebugTools();
-  }
-
-  @computed get frames() {
-    return this._frames.slice();
   }
 
   @action.bound
@@ -78,20 +108,6 @@ export class Store {
   }
 
   @action.bound
-  createMainFrame() {
-    const frame = this.createFrame();
-
-    // Ensure frame to be the first in frames array
-    if (this._frames.length === 0) {
-      this._frames.push(frame);
-    } else {
-      this._frames.unshift(frame);
-    }
-
-    return frame;
-  }
-
-  @action.bound
   setNamespaces(nss: Array<string>) {
     this.controls.namespaces = nss;
 
@@ -100,34 +116,11 @@ export class Store {
     }
   }
 
-  createFrame(): StoreFrame {
-    const interactions = new InteractionStore();
-    const services = new ServiceStore();
-
-    const frame = new StoreFrame(interactions, services, this.controls);
-    return frame;
-  }
-
-  deriveFrame(): StoreFrame {
-    return this.mainFrame.clone();
-  }
-
   @action.bound
-  squashFrames() {
-    if (this._frames.length <= 1) return;
-
-    const squashed = this.mainFrame.cloneEmpty();
-    console.log('squashing using filters: ', this.mainFrame.initialFilters);
-    this._frames.forEach(f => {
-      squashed.applyFrame(f, this.mainFrame.initialFilters);
-    });
-
-    this._frames = [squashed];
-  }
-
-  @action.bound
-  pushFrame(frame: StoreFrame): number {
-    return this._frames.push(frame);
+  resetCurrentFrame(filters: Filters) {
+    this.currentFrame.flush();
+    this.placement.reset();
+    this.currentFrame.applyFrame(this.globalFrame, filters);
   }
 
   @action.bound
@@ -156,11 +149,6 @@ export class Store {
 
   @action.bound
   addFlows(flows: Flow[]) {
-    const res = this.mainFrame.addFlows(flows);
-    if (this.currentFrame == this.mainFrame) {
-      return res;
-    }
-
     return this.currentFrame.addFlows(flows);
   }
 
@@ -171,9 +159,35 @@ export class Store {
 
   @action.bound
   public flush() {
-    this._frames = [];
     this.controls.selectTableFlow(null);
-    this.createMainFrame();
+
+    this.globalFrame.flush();
+    this.currentFrame.flush();
+  }
+
+  @action.bound
+  private setupEventHandlers() {
+    const wrongChanges = [StateChange.Unknown, StateChange.Deleted];
+
+    this.currentFrame.on(FrameEvent.ServicesSet, svcs => {
+      this.globalFrame.setServices(svcs);
+    });
+
+    this.currentFrame.on(FrameEvent.FlowsAdded, flows => {
+      this.globalFrame.addFlows(flows);
+    });
+
+    this.currentFrame.on(FrameEvent.LinkChanged, (link, change) => {
+      if (wrongChanges.includes(change)) return;
+
+      this.globalFrame.applyServiceLinkChange(link, change);
+    });
+
+    this.currentFrame.on(FrameEvent.ServiceChange, (svc, change) => {
+      if (wrongChanges.includes(change)) return;
+
+      this.globalFrame.applyServiceChange(svc, change);
+    });
   }
 
   @action.bound
@@ -355,25 +369,13 @@ export class Store {
   @action.bound
   private printLayoutData() {
     const data = {
-      cardsBBoxes: this.currentFrame.placement.cardsBBoxes,
-      accessPointCoords: this.currentFrame.placement.accessPointCoords,
-      arrows: this.currentFrame.arrows.arrowsMap,
+      cardsBBoxes: this.placement.cardsBBoxes,
+      accessPointCoords: this.placement.accessPointCoords,
+      arrows: this.arrows.arrowsMap,
       connections: this.currentFrame.interactions.connections,
     };
 
     console.log(JSON.stringify(data, null, 2));
     console.log(data);
-  }
-
-  @computed
-  get mainFrame(): StoreFrame {
-    if (this._frames.length === 0) throw new Error('main frame is undefined');
-
-    return this._frames[0];
-  }
-
-  @computed
-  get currentFrame(): StoreFrame {
-    return this._frames[this._frames.length - 1];
   }
 }

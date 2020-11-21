@@ -35,7 +35,7 @@ const prepareFrame = (
     services.addNewCard(svc);
   });
 
-  return new StoreFrame(interaction, services, controls);
+  return new StoreFrame(interaction, services);
 };
 
 const extractData = (frame: StoreFrame) => {

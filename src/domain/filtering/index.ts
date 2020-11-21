@@ -6,7 +6,7 @@ import {
 } from './filter-entry';
 
 import { Link, Service, ServiceCard } from '~/domain/service-map';
-import { Connections } from '~/domain/interactions/links';
+import { Connections } from '~/domain/interactions/connections';
 import { Labels } from '~/domain/labels';
 import { Filters, FiltersObject } from './filters';
 
