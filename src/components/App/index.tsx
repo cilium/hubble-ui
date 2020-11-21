@@ -183,18 +183,12 @@ export const App: FunctionComponent<AppProps> = observer(props => {
 
     if (dataManager.currentNamespace !== newNamespace) {
       dataManager.resetNamespace(newNamespace);
-      setConnState(ConnectionState.Receiving);
+    } else {
+      dataManager.dropCurrentStream();
+      dataManager.setupCurrentStream(store.controls.currentNamespace);
     }
 
-    if (dataManager.filtersChanged && dataManager.hasFilteringStream) {
-      dataManager.dropFilteringFrame();
-    }
-
-    if (dataManager.filtersChanged) {
-      dataManager.setupFilteringFrame(store.controls.currentNamespace);
-      setConnState(ConnectionState.Receiving);
-    }
-
+    setConnState(ConnectionState.Receiving);
     setMapWasDragged(false);
   }, [store.controls.filters]);
 
@@ -284,20 +278,20 @@ export const App: FunctionComponent<AppProps> = observer(props => {
     return store.currentFrame.isCardActive(id);
   },[store.currentFrame.services.activeCardsList]);
 
-  const plcStrategy = store.currentFrame.placement;
-  const arrowStrategy = store.currentFrame.arrows;
-
-  const onAccessPointCoords = useCallback((apId: string, coords: Vec2) => {
-    store.currentFrame.setAccessPointCoords(apId, coords);
-  }, []);
+  const onAccessPointCoords = useCallback(
+    (apId: string, coords: Vec2) => {
+      store.placement.setAccessPointCoords(apId, coords);
+    },
+    [store.placement],
+  );
 
   const cardRenderer = useCallback(
     (card: ServiceCard) => {
-      const coords = plcStrategy.cardsBBoxes.get(card.id);
+      const coords = store.placement.cardsBBoxes.get(card.id);
       if (coords == null) return null;
 
       const onHeightChange = (h: number) => {
-        return store.currentFrame.setCardHeight(card.id, h);
+        return store.placement.setCardHeight(card.id, h);
       };
 
       return (
@@ -305,7 +299,7 @@ export const App: FunctionComponent<AppProps> = observer(props => {
           key={card.id}
           active={isCardActive(card.id)}
           coords={coords}
-          currentNamespace={store.currentFrame.controls.currentNamespace}
+          currentNamespace={store.controls.currentNamespace}
           card={card}
           onHeightChange={onHeightChange}
           onClick={onCardSelect}
@@ -314,10 +308,9 @@ export const App: FunctionComponent<AppProps> = observer(props => {
       );
     },
     [
-      plcStrategy,
-      plcStrategy.cardsBBoxes,
-      store.currentFrame,
-      store.currentFrame.controls.currentNamespace,
+      store.placement,
+      store.placement.cardsBBoxes,
+      store.controls.currentNamespace,
       onAccessPointCoords,
       isCardActive,
     ],
@@ -369,16 +362,16 @@ export const App: FunctionComponent<AppProps> = observer(props => {
       <div className={css.map}>
         {mapLoaded ? (
           <Map
-            namespace={store.currentFrame.controls.currentNamespace}
-            namespaceBBox={plcStrategy.namespaceBBox}
-            placement={plcStrategy}
-            arrows={arrowStrategy}
+            namespace={store.controls.currentNamespace}
+            namespaceBBox={store.placement.namespaceBBox}
+            placement={store.placement}
+            arrows={store.arrows}
             cards={store.currentFrame.services.cardsList}
             cardRenderer={cardRenderer}
             visibleHeight={mapVisibleHeight ?? 0}
             isCardActive={isCardActive}
             wasDragged={mapWasDragged}
-            onCardHeightChange={plcStrategy.setCardHeight}
+            onCardHeightChange={store.placement.setCardHeight}
             onMapDrag={onMapDrag}
           />
         ) : (
@@ -392,9 +385,9 @@ export const App: FunctionComponent<AppProps> = observer(props => {
       <DetailsPanel
         isStreaming={isStreaming}
         flows={store.currentFrame.interactions.flows}
-        filters={store.currentFrame.controls.filters}
-        selectedFlow={store.currentFrame.controls.selectedTableFlow}
-        onSelectFlow={store.currentFrame.controls.selectTableFlow}
+        filters={store.controls.filters}
+        selectedFlow={store.controls.selectedTableFlow}
+        onSelectFlow={store.controls.selectTableFlow}
         onCloseSidebar={onCloseFlowsTableSidebar}
         onSidebarVerdictClick={onSidebarVerdictClick}
         onSidebarTCPFlagClick={onSidebarTCPFlagClick}

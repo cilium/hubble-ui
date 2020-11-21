@@ -50,8 +50,7 @@ export class DataManager extends EventEmitter<Events> {
   private store: Store;
 
   private initialStream: StreamDescriptor | null = null;
-  private mainStream: StreamDescriptor | null = null;
-  private filteringStream: StreamDescriptor | null = null;
+  private currentStream: StreamDescriptor | null = null;
 
   constructor(api: API, store: Store) {
     super();
@@ -74,60 +73,26 @@ export class DataManager extends EventEmitter<Events> {
     this.emit(EventKind.StoreMocked);
   }
 
-  public setupMainStream(namespace: string) {
+  public setupCurrentStream(namespace: string) {
     const store = this.store;
-    const streamParams = store.controls.filters
-      .clone(true)
-      .setNamespace(namespace);
+    const filters = store.controls.filters.clone().setNamespace(namespace);
 
-    const stream = this.api.v1.getEventStream(
-      {
-        ...EventParamsSet.All,
-        status: true,
-      },
-      streamParams,
-    );
+    this.store.resetCurrentFrame(filters);
 
+    const stream = this.api.v1.getEventStream(EventParamsSet.All, filters);
     this.setupGeneralEventHandlers(stream);
     this.setupNamespaceEventHandlers(stream);
-    this.setupServicesEventHandlers(stream, store.mainFrame);
+    this.setupServicesEventHandlers(stream, store.currentFrame);
 
-    this.mainStream = { stream, filters: streamParams };
+    this.currentStream = { stream, filters };
   }
 
-  public dropMainStream() {
-    if (this.mainStream == null) return;
+  public dropCurrentStream() {
+    if (this.currentStream == null) return;
 
-    this.mainStream.stream.stop();
-    this.offAllStreamEvents(this.mainStream.stream);
-    this.mainStream = null;
-  }
-
-  public setupFilteringFrame(namespace: string) {
-    const store = this.store;
-    const streamParams = store.controls.filters.clone().setNamespace(namespace);
-
-    const secondaryFrame = store
-      .createFrame()
-      .applyFrame(store.currentFrame, streamParams);
-
-    store.pushFrame(secondaryFrame);
-
-    const stream = this.api.v1.getEventStream(EventParamsSet.All, streamParams);
-    this.setupGeneralEventHandlers(stream);
-    this.setupNamespaceEventHandlers(stream);
-    this.setupServicesEventHandlers(stream, secondaryFrame, streamParams);
-
-    this.filteringStream = { stream, filters: streamParams };
-  }
-
-  public dropFilteringFrame() {
-    if (this.filteringStream == null) return;
-
-    this.filteringStream.stream.stop();
-    this.offAllStreamEvents(this.filteringStream.stream);
-    this.filteringStream = null;
-    this.store.squashFrames();
+    this.currentStream.stream.stop();
+    this.offAllStreamEvents(this.currentStream.stream);
+    this.currentStream = null;
   }
 
   public setupInitialStream() {
@@ -151,13 +116,13 @@ export class DataManager extends EventEmitter<Events> {
   }
 
   public resetNamespace(namespace: string) {
-    if (this.mainStream) {
-      this.dropMainStream();
-      this.store.flush();
+    if (this.currentStream) {
+      this.dropCurrentStream();
     }
 
+    this.store.flush();
     this.dropInitialStream();
-    this.setupMainStream(namespace);
+    this.setupCurrentStream(namespace);
   }
 
   private setupNamespaceEventHandlers(stream: IEventStream) {
@@ -208,55 +173,34 @@ export class DataManager extends EventEmitter<Events> {
   }
 
   private stopAllStreams() {
-    if (this.mainStream) {
-      this.mainStream.stream.stop();
-      this.offAllStreamEvents(this.mainStream.stream);
-    }
-
     if (this.initialStream) {
       this.initialStream.stream.stop();
       this.offAllStreamEvents(this.initialStream.stream);
     }
 
-    if (this.filteringStream) {
-      this.filteringStream.stream.stop();
-      this.offAllStreamEvents(this.filteringStream.stream);
+    if (this.currentStream) {
+      this.currentStream.stream.stop();
+      this.offAllStreamEvents(this.currentStream.stream);
     }
   }
 
   public get flowsDelay(): number | undefined {
-    return this.mainStream?.stream.flowsDelay;
+    if (this.initialStream != null) {
+      return this.initialStream.stream.flowsDelay;
+    }
+
+    return this.currentStream?.stream.flowsDelay;
   }
 
   public get currentNamespace(): string | undefined {
-    return this.mainStream?.filters?.namespace || undefined;
+    return this.currentStream?.filters?.namespace || undefined;
   }
 
-  public get hasFilteringStream(): boolean {
-    return this.filteringStream != null;
+  public get hasCurrentStream(): boolean {
+    return this.currentStream != null;
   }
 
   public get hasInitialStream(): boolean {
     return this.initialStream != null;
-  }
-
-  public get filtersChanged(): boolean {
-    if (this.filteringStream != null && this.filteringStream.filters) {
-      return !this.store.controls.filters.equals(this.filteringStream.filters);
-    }
-
-    if (this.mainStream != null && this.mainStream.filters) {
-      return !this.store.controls.filters.equals(this.mainStream.filters);
-    }
-
-    return false;
-  }
-
-  public get filteringFiltersChanged(): boolean {
-    if (this.filteringStream != null && this.filteringStream.filters) {
-      return !this.store.controls.filters.equals(this.filteringStream.filters);
-    }
-
-    return false;
   }
 }

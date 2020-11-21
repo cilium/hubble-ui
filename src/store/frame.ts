@@ -5,63 +5,44 @@ import InteractionStore from '~/store/stores/interaction';
 import ServiceStore from '~/store/stores/service';
 import ControlStore from '~/store/stores/controls';
 
-import {
-  ServiceMapPlacementStrategy,
-  ServiceMapArrowStrategy,
-} from '~/domain/layout/service-map';
-
 import { Filters, filter } from '~/domain/filtering';
 import { HubbleService, HubbleLink } from '~/domain/hubble';
 import { StateChange } from '~/domain/misc';
 import { ServiceCard, Link } from '~/domain/service-map';
 import { Flow } from '~/domain/flows';
 import { Vec2 } from '~/domain/geometry';
+import { EventEmitter } from '~/utils/emitter';
 
-export class StoreFrame {
-  @observable
-  public controls: ControlStore;
+export enum EventKind {
+  FlowsAdded = 'flows-added',
+  LinkChanged = 'link-changed',
+  ServiceChange = 'services-changed',
+  ServicesSet = 'services-set',
+}
 
+type Events = {
+  [EventKind.FlowsAdded]: (_: Flow[]) => void;
+  [EventKind.LinkChanged]: (_: HubbleLink, ch: StateChange) => void;
+  [EventKind.ServiceChange]: (_: HubbleService, ch: StateChange) => void;
+  [EventKind.ServicesSet]: (_: HubbleService[]) => void;
+};
+
+export class StoreFrame extends EventEmitter<Events> {
   @observable
   public interactions: InteractionStore;
 
   @observable
   public services: ServiceStore;
 
-  @observable
-  public placement: ServiceMapPlacementStrategy;
-
-  @observable
-  public arrows: ServiceMapArrowStrategy;
-
-  public initialFilters: Filters;
-
-  public static empty(controls: ControlStore): StoreFrame {
-    return new StoreFrame(new InteractionStore(), new ServiceStore(), controls);
+  public static empty(): StoreFrame {
+    return new StoreFrame(new InteractionStore(), new ServiceStore());
   }
 
-  constructor(
-    interactions: InteractionStore,
-    services: ServiceStore,
-    controls: ControlStore,
-  ) {
+  constructor(interactions: InteractionStore, services: ServiceStore) {
+    super();
+
     this.interactions = interactions;
     this.services = services;
-    this.controls = controls;
-
-    this.initialFilters = controls.filters.clone(true);
-
-    this.placement = new ServiceMapPlacementStrategy(
-      this.controls,
-      this.interactions,
-      this.services,
-    );
-
-    this.arrows = new ServiceMapArrowStrategy(
-      this.controls,
-      this.interactions,
-      this.services,
-      this.placement,
-    );
   }
 
   getServiceById(id: string) {
@@ -69,39 +50,38 @@ export class StoreFrame {
   }
 
   @action.bound
+  flush() {
+    this.interactions.clear();
+    this.services.clear();
+  }
+
+  @action.bound
   applyServiceChange(svc: HubbleService, change: StateChange) {
+    this.emit(EventKind.ServiceChange, svc, change);
+
     this.services.applyServiceChange(svc, change);
   }
 
   @action.bound
-  addFlows(flows: Flow[]) {
-    return this.interactions.addFlows(flows);
-  }
-
-  @action.bound
   applyServiceLinkChange(link: HubbleLink, change: StateChange) {
+    this.emit(EventKind.LinkChanged, link, change);
+
     this.interactions.applyLinkChange(link, change);
     this.services.extractAccessPoint(link);
   }
 
   @action.bound
+  addFlows(flows: Flow[]) {
+    this.emit(EventKind.FlowsAdded, flows);
+
+    return this.interactions.addFlows(flows);
+  }
+
+  @action.bound
   setServices(services: HubbleService[]) {
     this.services.set(services);
-  }
 
-  @action.bound
-  setControls(controls: ControlStore) {
-    this.controls = controls;
-  }
-
-  @action.bound
-  setAccessPointCoords(apId: string, coords: Vec2) {
-    this.placement.setAccessPointCoords(apId, coords);
-  }
-
-  @action.bound
-  setCardHeight(cardId: string, height: number) {
-    this.placement.setCardHeight(cardId, height);
+    this.emit(EventKind.ServicesSet, services);
   }
 
   @action.bound
@@ -166,22 +146,11 @@ export class StoreFrame {
   }
 
   clone() {
-    return new StoreFrame(
-      this.interactions.clone(),
-      this.services.clone(),
-      this.controls,
-    );
+    return new StoreFrame(this.interactions.clone(), this.services.clone());
   }
 
   cloneEmpty(): StoreFrame {
-    const cloned = new StoreFrame(
-      new InteractionStore(),
-      new ServiceStore(),
-      this.controls,
-    );
-
-    cloned.initialFilters = this.initialFilters;
-    return cloned;
+    return new StoreFrame(new InteractionStore(), new ServiceStore());
   }
 
   public get amounts() {

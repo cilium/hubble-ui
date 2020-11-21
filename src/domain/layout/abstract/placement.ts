@@ -22,6 +22,13 @@ export abstract class PlacementStrategy {
   public abstract get bbox(): XYWH;
 
   @action.bound
+  public reset() {
+    this.cardsWHs.clear();
+    this.cardsXYs.clear();
+    this._accessPointCoords.clear();
+  }
+
+  @action.bound
   public getCardCoords(cardId: string): XY | null {
     return this.cardsXYs.get(cardId) || null;
   }
