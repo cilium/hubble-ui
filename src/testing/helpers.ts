@@ -98,6 +98,116 @@ export const flowsBetweenServices = (
   return { fromAtoB, fromBtoA };
 };
 
+export const flowsFromToService = (from: HubbleService, to: HubbleService) => {
+  const stage2Builder = (
+    ipProto: IPProtocol,
+    verdict: Verdict,
+    sourcePort: number,
+    destinationPort: number,
+  ): FlowsBetween => {
+    const l4 = { sourcePort, destinationPort };
+    const l4Reversed = {
+      sourcePort: destinationPort,
+      destinationPort: sourcePort,
+    };
+
+    const fromAtoB: HubbleFlow = {
+      verdict,
+      dropReason: 0,
+      l4: {
+        tcp: ipProto === IPProtocol.TCP ? l4 : undefined,
+        udp: ipProto === IPProtocol.UDP ? l4 : undefined,
+      },
+      source: {
+        id: 0,
+        identity: 0,
+        labelsList: from.labels.map(kv => `${kv.key}=${kv.value}`),
+        namespace: from.namespace,
+        podName: `sender-pod`,
+      },
+      destination: {
+        id: 1,
+        identity: 1,
+        labelsList: to.labels.map(kv => `${kv.key}=${kv.value}`),
+        namespace: to.namespace,
+        podName: `receiver-pod`,
+      },
+      sourceNamesList: [],
+      destinationNamesList: [],
+      nodeName: 'test-node',
+      reply: false,
+      summary: '',
+      type: FlowType.L34,
+      time: {
+        seconds: flowsTimeOffset + Date.now() / 1000,
+        nanos: Date.now() * 1000000,
+      },
+      trafficDirection: TrafficDirection.Ingress,
+    };
+
+    flowsTimeOffset += 1;
+
+    const fromBtoA: HubbleFlow = {
+      verdict,
+      dropReason: 0,
+      l4: {
+        tcp: ipProto === IPProtocol.TCP ? l4Reversed : undefined,
+        udp: ipProto === IPProtocol.UDP ? l4Reversed : undefined,
+      },
+      source: {
+        id: 1,
+        identity: 1,
+        labelsList: to.labels.map(kv => `${kv.key}=${kv.value}`),
+        namespace: to.namespace,
+        podName: `receiver-pod`,
+      },
+      destination: {
+        id: 0,
+        identity: 0,
+        labelsList: from.labels.map(kv => `${kv.key}=${kv.value}`),
+        namespace: from.namespace,
+        podName: `sender-pod`,
+      },
+      sourceNamesList: [],
+      destinationNamesList: [],
+      nodeName: 'test-node',
+      reply: true,
+      summary: '',
+      type: FlowType.L34,
+      time: {
+        seconds: flowsTimeOffset + Date.now() / 1000,
+        nanos: Date.now() * 1000000,
+      },
+      trafficDirection: TrafficDirection.Ingress,
+    };
+
+    flowsTimeOffset += 1;
+
+    return { fromAtoB, fromBtoA };
+  };
+
+  const stage1Builder = (ipProto: IPProtocol) => {
+    return (sourcePort: number, destinationPort: number) => {
+      return {
+        forwarded: () =>
+          stage2Builder(
+            ipProto,
+            Verdict.Forwarded,
+            sourcePort,
+            destinationPort,
+          ),
+        dropped: () =>
+          stage2Builder(ipProto, Verdict.Dropped, sourcePort, destinationPort),
+      };
+    };
+  };
+
+  return {
+    tcp: stage1Builder(IPProtocol.TCP),
+    udp: stage1Builder(IPProtocol.UDP),
+  };
+};
+
 export const linkFromToService = (from: HubbleService, to: HubbleService) => {
   const stage2Builder = (
     ipProto: IPProtocol,

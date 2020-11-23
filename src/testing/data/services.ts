@@ -23,6 +23,19 @@ export const regular: HubbleService = {
   ...restOfService,
 };
 
+export const regular1: HubbleService = {
+  id: 'regular1-service-id',
+  name: 'regular1-service',
+  namespace: 'service-ns',
+  labels: [
+    { key: 'k8s:k8s-app', value: 'regular1-service' },
+    { key: 'k8s:namespace', value: 'service-ns' },
+    { key: 'lbl-key', value: 'random-value' },
+  ],
+  dnsNames: [],
+  ...restOfService,
+};
+
 export const world: HubbleService = {
   id: 'world-service',
   name: 'world-service',
@@ -70,6 +83,11 @@ export const sameNamespace = {
     ...regular,
     namespace: 'same-namespace',
     labels: replaceNsLabel(regular.labels),
+  },
+  regular1: {
+    ...regular1,
+    namespace: 'same-namespace',
+    labels: replaceNsLabel(regular1.labels),
   },
   kubeDNS: {
     ...kubeDNS,
