@@ -90,17 +90,18 @@ describe('fill empty frame', () => {
   });
 });
 
-describe('skip kube dns flag', () => {
-  const { regular, kubeDNS } = tsvcs.sameNamespace;
+describe('KubeDNS', () => {
+  const { regular, regular1 } = tsvcs.sameNamespace;
+  const { kubeDNS } = tsvcs;
 
-  test('test 1 - only kube dns 53 port link', () => {
+  test('test 1 - regular to KubeDNS (UDP 53)', () => {
     const filterObj = {
       namespace: regular.namespace,
       verdict: null,
       httpStatus: null,
       filters: [],
       skipHost: false,
-      skipKubeDns: true,
+      skipKubeDns: false,
       skipRemoteNode: false,
       skipPrometheusApp: false,
     };
@@ -134,18 +135,264 @@ describe('skip kube dns flag', () => {
     const { flows, links, svcs } = extractData(lhs);
 
     expect(flows.length).toBe(2);
-    expect(links.length).toBe(0);
-    expect(svcs.length).toBe(0);
+    expect(links.length).toBe(1);
+    expect(svcs.length).toBe(2);
   });
 
-  test('test 2 - kube dns 53 port link + another', () => {
+  test('test 2 - two regular services to KubeDNS (UDP 53)', () => {
     const filterObj = {
       namespace: regular.namespace,
       verdict: null,
       httpStatus: null,
       filters: [],
       skipHost: false,
-      skipKubeDns: true,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: fromRtoKDNS,
+      fromBtoA: fromKDNStoR,
+    } = thelpers.flowsBetweenServices(regular, kubeDNS);
+
+    const {
+      fromAtoB: fromR1toKDNS,
+      fromBtoA: fromKDNStoR1,
+    } = thelpers.flowsBetweenServices(regular1, kubeDNS);
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .udp(53)
+      .forwarded();
+
+    const linkFromRegular1ToKubeDNS53 = thelpers
+      .linkFromToService(regular1, kubeDNS)
+      .udp(53)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(kubeDNS),
+      ],
+      [
+        new Flow(fromRtoKDNS),
+        new Flow(fromKDNStoR),
+        new Flow(fromR1toKDNS),
+        new Flow(fromKDNStoR1),
+      ],
+      [
+        Link.fromHubbleLink(linkFromRegularToKubeDNS53),
+        Link.fromHubbleLink(linkFromRegular1ToKubeDNS53),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(4);
+    expect(links.length).toBe(2);
+    expect(svcs.length).toBe(3);
+  });
+
+  test('test 3 - regular to KubeDNS (TCP 8765)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .tcp(8765)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [new ServiceCard(regular), new ServiceCard(kubeDNS)],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [Link.fromHubbleLink(linkFromRegularToKubeDNS53)],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(1);
+    expect(rhsData.svcs.length).toBe(2);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(1);
+    expect(svcs.length).toBe(2);
+  });
+
+  test('test 4 - two regular services to KubeDNS (UDP 53 + TCP 8080)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: fromRtoKDNS,
+      fromBtoA: fromKDNStoR,
+    } = thelpers.flowsBetweenServices(regular, kubeDNS);
+
+    const {
+      fromAtoB: fromR1toKDNS,
+      fromBtoA: fromKDNStoR1,
+    } = thelpers.flowsBetweenServices(regular1, kubeDNS);
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .udp(53)
+      .forwarded();
+
+    const linkFromRegular1ToKubeDNS53 = thelpers
+      .linkFromToService(regular1, kubeDNS)
+      .tcp(8080)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(kubeDNS),
+      ],
+      [
+        new Flow(fromRtoKDNS),
+        new Flow(fromKDNStoR),
+        new Flow(fromR1toKDNS),
+        new Flow(fromKDNStoR1),
+      ],
+      [
+        Link.fromHubbleLink(linkFromRegularToKubeDNS53),
+        Link.fromHubbleLink(linkFromRegular1ToKubeDNS53),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(4);
+    expect(links.length).toBe(2);
+    expect(svcs.length).toBe(3);
+  });
+
+  test('test 5 - two regular services to KubeDNS (TCP 8765)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: fromRtoKDNS,
+      fromBtoA: fromKDNStoR,
+    } = thelpers.flowsBetweenServices(regular, kubeDNS);
+
+    const {
+      fromAtoB: fromR1toKDNS,
+      fromBtoA: fromKDNStoR1,
+    } = thelpers.flowsBetweenServices(regular1, kubeDNS);
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .tcp(8765)
+      .forwarded();
+
+    const linkFromRegular1ToKubeDNS53 = thelpers
+      .linkFromToService(regular1, kubeDNS)
+      .tcp(8765)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(kubeDNS),
+      ],
+      [
+        new Flow(fromRtoKDNS),
+        new Flow(fromKDNStoR),
+        new Flow(fromR1toKDNS),
+        new Flow(fromKDNStoR1),
+      ],
+      [
+        Link.fromHubbleLink(linkFromRegularToKubeDNS53),
+        Link.fromHubbleLink(linkFromRegular1ToKubeDNS53),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(4);
+    expect(links.length).toBe(2);
+    expect(svcs.length).toBe(3);
+  });
+
+  test('test 6 - regular to KubeDNS (UDP 53 Dropped)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: false,
       skipRemoteNode: false,
       skipPrometheusApp: false,
     };
@@ -160,34 +407,1160 @@ describe('skip kube dns flag', () => {
     const linkFromRegularToKubeDNS53 = thelpers
       .linkFromToService(regular, kubeDNS)
       .udp(53)
-      .forwarded();
-
-    const linkFromRegularToKubeDNS = thelpers
-      .linkFromToService(regular, kubeDNS)
-      .tcp(8181)
-      .forwarded();
+      .dropped();
 
     const rhs = prepareFrame(
       [new ServiceCard(regular), new ServiceCard(kubeDNS)],
       [new Flow(fromAtoB), new Flow(fromBtoA)],
-      [
-        Link.fromHubbleLink(linkFromRegularToKubeDNS53),
-        Link.fromHubbleLink(linkFromRegularToKubeDNS),
-      ],
+      [Link.fromHubbleLink(linkFromRegularToKubeDNS53)],
       filterObj,
     );
 
     const rhsData = extractData(rhs);
     expect(rhsData.flows.length).toBe(2);
-    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.links.length).toBe(1);
     expect(rhsData.svcs.length).toBe(2);
 
     lhs.applyFrame(rhs, Filters.fromObject(filterObj));
 
     const { flows, links, svcs } = extractData(lhs);
+
     expect(flows.length).toBe(2);
     expect(links.length).toBe(1);
     expect(svcs.length).toBe(2);
+  });
+
+  test('test 7 - two regular services to KubeDNS (UDP 53 Dropped)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: fromRtoKDNS,
+      fromBtoA: fromKDNStoR,
+    } = thelpers.flowsBetweenServices(regular, kubeDNS);
+
+    const {
+      fromAtoB: fromR1toKDNS,
+      fromBtoA: fromKDNStoR1,
+    } = thelpers.flowsBetweenServices(regular1, kubeDNS);
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .udp(53)
+      .dropped();
+
+    const linkFromRegular1ToKubeDNS53 = thelpers
+      .linkFromToService(regular1, kubeDNS)
+      .udp(53)
+      .dropped();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(kubeDNS),
+      ],
+      [
+        new Flow(fromRtoKDNS),
+        new Flow(fromKDNStoR),
+        new Flow(fromR1toKDNS),
+        new Flow(fromKDNStoR1),
+      ],
+      [
+        Link.fromHubbleLink(linkFromRegularToKubeDNS53),
+        Link.fromHubbleLink(linkFromRegular1ToKubeDNS53),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(4);
+    expect(links.length).toBe(2);
+    expect(svcs.length).toBe(3);
+  });
+
+  test('test 8 - regular to KubeDNS (TCP 8765 Dropped)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .tcp(8765)
+      .dropped();
+
+    const rhs = prepareFrame(
+      [new ServiceCard(regular), new ServiceCard(kubeDNS)],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [Link.fromHubbleLink(linkFromRegularToKubeDNS53)],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(1);
+    expect(rhsData.svcs.length).toBe(2);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(1);
+    expect(svcs.length).toBe(2);
+  });
+
+  test('test 9 - two regular services to KubeDNS (UDP 53 Dropped + TCP 8080)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: fromRtoKDNS,
+      fromBtoA: fromKDNStoR,
+    } = thelpers.flowsBetweenServices(regular, kubeDNS);
+
+    const {
+      fromAtoB: fromR1toKDNS,
+      fromBtoA: fromKDNStoR1,
+    } = thelpers.flowsBetweenServices(regular1, kubeDNS);
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .udp(53)
+      .dropped();
+
+    const linkFromRegular1ToKubeDNS53 = thelpers
+      .linkFromToService(regular1, kubeDNS)
+      .tcp(8080)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(kubeDNS),
+      ],
+      [
+        new Flow(fromRtoKDNS),
+        new Flow(fromKDNStoR),
+        new Flow(fromR1toKDNS),
+        new Flow(fromKDNStoR1),
+      ],
+      [
+        Link.fromHubbleLink(linkFromRegularToKubeDNS53),
+        Link.fromHubbleLink(linkFromRegular1ToKubeDNS53),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(4);
+    expect(links.length).toBe(2);
+    expect(svcs.length).toBe(3);
+  });
+
+  test('test 10 - two regular services to KubeDNS (UDP 53 + TCP 8080 Dropped)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: fromRtoKDNS,
+      fromBtoA: fromKDNStoR,
+    } = thelpers.flowsBetweenServices(regular, kubeDNS);
+
+    const {
+      fromAtoB: fromR1toKDNS,
+      fromBtoA: fromKDNStoR1,
+    } = thelpers.flowsBetweenServices(regular1, kubeDNS);
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .udp(53)
+      .forwarded();
+
+    const linkFromRegular1ToKubeDNS53 = thelpers
+      .linkFromToService(regular1, kubeDNS)
+      .tcp(8080)
+      .dropped();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(kubeDNS),
+      ],
+      [
+        new Flow(fromRtoKDNS),
+        new Flow(fromKDNStoR),
+        new Flow(fromR1toKDNS),
+        new Flow(fromKDNStoR1),
+      ],
+      [
+        Link.fromHubbleLink(linkFromRegularToKubeDNS53),
+        Link.fromHubbleLink(linkFromRegular1ToKubeDNS53),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(4);
+    expect(links.length).toBe(2);
+    expect(svcs.length).toBe(3);
+  });
+
+  test('test 11 - two regular services to KubeDNS (UDP 53 Dropped + TCP 8080 Dropped)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: fromRtoKDNS,
+      fromBtoA: fromKDNStoR,
+    } = thelpers.flowsBetweenServices(regular, kubeDNS);
+
+    const {
+      fromAtoB: fromR1toKDNS,
+      fromBtoA: fromKDNStoR1,
+    } = thelpers.flowsBetweenServices(regular1, kubeDNS);
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .udp(53)
+      .dropped();
+
+    const linkFromRegular1ToKubeDNS53 = thelpers
+      .linkFromToService(regular1, kubeDNS)
+      .tcp(8080)
+      .dropped();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(kubeDNS),
+      ],
+      [
+        new Flow(fromRtoKDNS),
+        new Flow(fromKDNStoR),
+        new Flow(fromR1toKDNS),
+        new Flow(fromKDNStoR1),
+      ],
+      [
+        Link.fromHubbleLink(linkFromRegularToKubeDNS53),
+        Link.fromHubbleLink(linkFromRegular1ToKubeDNS53),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(4);
+    expect(links.length).toBe(2);
+    expect(svcs.length).toBe(3);
+  });
+
+  test('test 12 - two regular services to KubeDNS (TCP 8765 Dropped)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: fromRtoKDNS,
+      fromBtoA: fromKDNStoR,
+    } = thelpers.flowsBetweenServices(regular, kubeDNS);
+
+    const {
+      fromAtoB: fromR1toKDNS,
+      fromBtoA: fromKDNStoR1,
+    } = thelpers.flowsBetweenServices(regular1, kubeDNS);
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .tcp(8765)
+      .dropped();
+
+    const linkFromRegular1ToKubeDNS53 = thelpers
+      .linkFromToService(regular1, kubeDNS)
+      .tcp(8765)
+      .dropped();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(kubeDNS),
+      ],
+      [
+        new Flow(fromRtoKDNS),
+        new Flow(fromKDNStoR),
+        new Flow(fromR1toKDNS),
+        new Flow(fromKDNStoR1),
+      ],
+      [
+        Link.fromHubbleLink(linkFromRegularToKubeDNS53),
+        Link.fromHubbleLink(linkFromRegular1ToKubeDNS53),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(4);
+    expect(links.length).toBe(2);
+    expect(svcs.length).toBe(3);
+  });
+
+  test('test 13 - regular to KubeDNS (UDP 53, Skip Flag)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: true,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers
+      .flowsFromToService(regular, kubeDNS)
+      .udp(54000, 53)
+      .forwarded();
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .udp(53)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [new ServiceCard(regular), new ServiceCard(kubeDNS)],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [Link.fromHubbleLink(linkFromRegularToKubeDNS53)],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(1);
+    expect(rhsData.svcs.length).toBe(2);
+
+    console.log('target');
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(0);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 14 - two regular services to KubeDNS (UDP 53, Skip Flag)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: true,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: fromRtoKDNS,
+      fromBtoA: fromKDNStoR,
+    } = thelpers
+      .flowsFromToService(regular, kubeDNS)
+      .udp(54000, 53)
+      .forwarded();
+
+    const {
+      fromAtoB: fromR1toKDNS,
+      fromBtoA: fromKDNStoR1,
+    } = thelpers
+      .flowsFromToService(regular1, kubeDNS)
+      .udp(54001, 53)
+      .forwarded();
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .udp(53)
+      .forwarded();
+
+    const linkFromRegular1ToKubeDNS53 = thelpers
+      .linkFromToService(regular1, kubeDNS)
+      .udp(53)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(kubeDNS),
+      ],
+      [
+        new Flow(fromRtoKDNS),
+        new Flow(fromKDNStoR),
+        new Flow(fromR1toKDNS),
+        new Flow(fromKDNStoR1),
+      ],
+      [
+        Link.fromHubbleLink(linkFromRegularToKubeDNS53),
+        Link.fromHubbleLink(linkFromRegular1ToKubeDNS53),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(0);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 15 - regular to KubeDNS (TCP 8765, Skip Flag)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: true,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers
+      .flowsFromToService(regular, kubeDNS)
+      .tcp(54001, 8765)
+      .forwarded();
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .tcp(8765)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [new ServiceCard(regular), new ServiceCard(kubeDNS)],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [Link.fromHubbleLink(linkFromRegularToKubeDNS53)],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(1);
+    expect(rhsData.svcs.length).toBe(2);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(1);
+    expect(svcs.length).toBe(2);
+  });
+
+  test('test 16 - two regular services to KubeDNS (UDP 53 + TCP 8080, Skip Flag)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: true,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: fromRtoKDNS,
+      fromBtoA: fromKDNStoR,
+    } = thelpers
+      .flowsFromToService(regular, kubeDNS)
+      .udp(54000, 53)
+      .forwarded();
+
+    const {
+      fromAtoB: fromR1toKDNS,
+      fromBtoA: fromKDNStoR1,
+    } = thelpers
+      .flowsFromToService(regular1, kubeDNS)
+      .tcp(54001, 8080)
+      .forwarded();
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .udp(53)
+      .forwarded();
+
+    const linkFromRegular1ToKubeDNS53 = thelpers
+      .linkFromToService(regular1, kubeDNS)
+      .tcp(8080)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(kubeDNS),
+      ],
+      [
+        new Flow(fromRtoKDNS),
+        new Flow(fromKDNStoR),
+        new Flow(fromR1toKDNS),
+        new Flow(fromKDNStoR1),
+      ],
+      [
+        Link.fromHubbleLink(linkFromRegularToKubeDNS53),
+        Link.fromHubbleLink(linkFromRegular1ToKubeDNS53),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(1);
+    expect(svcs.length).toBe(2);
+  });
+
+  test('test 17 - two regular services to KubeDNS (TCP 8765, Skip Flag)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: true,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: fromRtoKDNS,
+      fromBtoA: fromKDNStoR,
+    } = thelpers
+      .flowsFromToService(regular, kubeDNS)
+      .tcp(54000, 8765)
+      .forwarded();
+
+    const {
+      fromAtoB: fromR1toKDNS,
+      fromBtoA: fromKDNStoR1,
+    } = thelpers
+      .flowsFromToService(regular1, kubeDNS)
+      .tcp(54001, 8765)
+      .forwarded();
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .tcp(8765)
+      .forwarded();
+
+    const linkFromRegular1ToKubeDNS53 = thelpers
+      .linkFromToService(regular1, kubeDNS)
+      .tcp(8765)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(kubeDNS),
+      ],
+      [
+        new Flow(fromRtoKDNS),
+        new Flow(fromKDNStoR),
+        new Flow(fromR1toKDNS),
+        new Flow(fromKDNStoR1),
+      ],
+      [
+        Link.fromHubbleLink(linkFromRegularToKubeDNS53),
+        Link.fromHubbleLink(linkFromRegular1ToKubeDNS53),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(4);
+    expect(links.length).toBe(2);
+    expect(svcs.length).toBe(3);
+  });
+
+  test('test 18 - regular to KubeDNS (UDP 53 Dropped, Skip Flag)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: true,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers
+      .flowsFromToService(regular, kubeDNS)
+      .udp(54000, 53)
+      .dropped();
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .udp(53)
+      .dropped();
+
+    const rhs = prepareFrame(
+      [new ServiceCard(regular), new ServiceCard(kubeDNS)],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [Link.fromHubbleLink(linkFromRegularToKubeDNS53)],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(1);
+    expect(rhsData.svcs.length).toBe(2);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(0);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 19 - two regular services to KubeDNS (UDP 53 Dropped, Skip flag)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: true,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: fromRtoKDNS,
+      fromBtoA: fromKDNStoR,
+    } = thelpers.flowsFromToService(regular, kubeDNS).udp(54000, 53).dropped();
+
+    const {
+      fromAtoB: fromR1toKDNS,
+      fromBtoA: fromKDNStoR1,
+    } = thelpers.flowsFromToService(regular1, kubeDNS).udp(54001, 53).dropped();
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .udp(53)
+      .dropped();
+
+    const linkFromRegular1ToKubeDNS53 = thelpers
+      .linkFromToService(regular1, kubeDNS)
+      .udp(53)
+      .dropped();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(kubeDNS),
+      ],
+      [
+        new Flow(fromRtoKDNS),
+        new Flow(fromKDNStoR),
+        new Flow(fromR1toKDNS),
+        new Flow(fromKDNStoR1),
+      ],
+      [
+        Link.fromHubbleLink(linkFromRegularToKubeDNS53),
+        Link.fromHubbleLink(linkFromRegular1ToKubeDNS53),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(0);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 20 - regular to KubeDNS (TCP 8765 Dropped, Skip Flag)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: true,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers
+      .flowsFromToService(regular, kubeDNS)
+      .tcp(54000, 8765)
+      .dropped();
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .tcp(8765)
+      .dropped();
+
+    const rhs = prepareFrame(
+      [new ServiceCard(regular), new ServiceCard(kubeDNS)],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [Link.fromHubbleLink(linkFromRegularToKubeDNS53)],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(1);
+    expect(rhsData.svcs.length).toBe(2);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(1);
+    expect(svcs.length).toBe(2);
+  });
+
+  test('test 21 - two regular services to KubeDNS (UDP 53 Dropped + TCP 8080, Skip Flag)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: true,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: fromRtoKDNS,
+      fromBtoA: fromKDNStoR,
+    } = thelpers.flowsFromToService(regular, kubeDNS).udp(54000, 53).dropped();
+
+    const {
+      fromAtoB: fromR1toKDNS,
+      fromBtoA: fromKDNStoR1,
+    } = thelpers
+      .flowsFromToService(regular1, kubeDNS)
+      .tcp(54001, 8080)
+      .forwarded();
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .udp(53)
+      .dropped();
+
+    const linkFromRegular1ToKubeDNS53 = thelpers
+      .linkFromToService(regular1, kubeDNS)
+      .tcp(8080)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(kubeDNS),
+      ],
+      [
+        new Flow(fromRtoKDNS),
+        new Flow(fromKDNStoR),
+        new Flow(fromR1toKDNS),
+        new Flow(fromKDNStoR1),
+      ],
+      [
+        Link.fromHubbleLink(linkFromRegularToKubeDNS53),
+        Link.fromHubbleLink(linkFromRegular1ToKubeDNS53),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(1);
+    expect(svcs.length).toBe(2);
+  });
+
+  test('test 22 - two regular services to KubeDNS (UDP 53 + TCP 8080 Dropped, Skip Flag)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: true,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: fromRtoKDNS,
+      fromBtoA: fromKDNStoR,
+    } = thelpers
+      .flowsFromToService(regular, kubeDNS)
+      .udp(54000, 53)
+      .forwarded();
+
+    const {
+      fromAtoB: fromR1toKDNS,
+      fromBtoA: fromKDNStoR1,
+    } = thelpers
+      .flowsFromToService(regular1, kubeDNS)
+      .tcp(54001, 8080)
+      .dropped();
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .udp(53)
+      .forwarded();
+
+    const linkFromRegular1ToKubeDNS53 = thelpers
+      .linkFromToService(regular1, kubeDNS)
+      .tcp(8080)
+      .dropped();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(kubeDNS),
+      ],
+      [
+        new Flow(fromRtoKDNS),
+        new Flow(fromKDNStoR),
+        new Flow(fromR1toKDNS),
+        new Flow(fromKDNStoR1),
+      ],
+      [
+        Link.fromHubbleLink(linkFromRegularToKubeDNS53),
+        Link.fromHubbleLink(linkFromRegular1ToKubeDNS53),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(1);
+    expect(svcs.length).toBe(2);
+  });
+
+  test('test 23 - two regular services to KubeDNS (UDP 53 Dropped + TCP 8080 Dropped, Skip Flag)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: true,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: fromRtoKDNS,
+      fromBtoA: fromKDNStoR,
+    } = thelpers.flowsFromToService(regular, kubeDNS).udp(54000, 53).dropped();
+
+    const {
+      fromAtoB: fromR1toKDNS,
+      fromBtoA: fromKDNStoR1,
+    } = thelpers
+      .flowsFromToService(regular1, kubeDNS)
+      .tcp(54001, 8080)
+      .dropped();
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .udp(53)
+      .dropped();
+
+    const linkFromRegular1ToKubeDNS53 = thelpers
+      .linkFromToService(regular1, kubeDNS)
+      .tcp(8080)
+      .dropped();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(kubeDNS),
+      ],
+      [
+        new Flow(fromRtoKDNS),
+        new Flow(fromKDNStoR),
+        new Flow(fromR1toKDNS),
+        new Flow(fromKDNStoR1),
+      ],
+      [
+        Link.fromHubbleLink(linkFromRegularToKubeDNS53),
+        Link.fromHubbleLink(linkFromRegular1ToKubeDNS53),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(1);
+    expect(svcs.length).toBe(2);
+  });
+
+  test('test 24 - two regular services to KubeDNS (TCP 8765 Dropped, Skip Flag)', () => {
+    const filterObj = {
+      namespace: regular.namespace,
+      verdict: null,
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: true,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: fromRtoKDNS,
+      fromBtoA: fromKDNStoR,
+    } = thelpers
+      .flowsFromToService(regular, kubeDNS)
+      .tcp(54000, 8765)
+      .forwarded();
+
+    const {
+      fromAtoB: fromR1toKDNS,
+      fromBtoA: fromKDNStoR1,
+    } = thelpers
+      .flowsFromToService(regular1, kubeDNS)
+      .tcp(54001, 8765)
+      .forwarded();
+
+    const linkFromRegularToKubeDNS53 = thelpers
+      .linkFromToService(regular, kubeDNS)
+      .tcp(8765)
+      .dropped();
+
+    const linkFromRegular1ToKubeDNS53 = thelpers
+      .linkFromToService(regular1, kubeDNS)
+      .tcp(8765)
+      .dropped();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(kubeDNS),
+      ],
+      [
+        new Flow(fromRtoKDNS),
+        new Flow(fromKDNStoR),
+        new Flow(fromR1toKDNS),
+        new Flow(fromKDNStoR1),
+      ],
+      [
+        Link.fromHubbleLink(linkFromRegularToKubeDNS53),
+        Link.fromHubbleLink(linkFromRegular1ToKubeDNS53),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(4);
+    expect(links.length).toBe(2);
+    expect(svcs.length).toBe(3);
   });
 });
 

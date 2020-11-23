@@ -121,7 +121,7 @@ export class Flow {
     return this.ref.destination?.podName ?? null;
   }
 
-  public get sourcePort() {
+  public get sourcePort(): number | null {
     if (this.ref.l4?.tcp) {
       return this.ref.l4.tcp.sourcePort;
     }
@@ -133,7 +133,7 @@ export class Flow {
     return null;
   }
 
-  public get destinationPort() {
+  public get destinationPort(): number | null {
     if (this.ref.l4?.tcp) {
       return this.ref.l4.tcp.destinationPort;
     }
