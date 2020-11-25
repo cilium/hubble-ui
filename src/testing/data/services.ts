@@ -45,6 +45,15 @@ export const world: HubbleService = {
   ...restOfService,
 };
 
+export const apiTwitter: HubbleService = {
+  id: 'api.twitter.com',
+  name: 'Twitter API',
+  namespace: '',
+  labels: [Labels.toKV(ReservedLabel.World)],
+  dnsNames: ['api.twitter.com'],
+  ...restOfService,
+};
+
 export const host: HubbleService = {
   id: 'host-service',
   name: 'host-service',

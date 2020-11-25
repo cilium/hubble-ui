@@ -846,7 +846,6 @@ describe('KubeDNS', () => {
     expect(rhsData.links.length).toBe(1);
     expect(rhsData.svcs.length).toBe(2);
 
-    console.log('target');
     lhs.applyFrame(rhs, Filters.fromObject(filterObj));
 
     const { flows, links, svcs } = extractData(lhs);
@@ -3993,5 +3992,977 @@ describe('filter entries > world', () => {
     expect(flows.length).toBe(2);
     expect(links.length).toBe(1);
     expect(svcs.length).toBe(2);
+  });
+});
+
+describe('filter entries > DNS', () => {
+  const { regular, regular1, kubeDNS, apiTwitter, world } = tsvcs;
+
+  test('test 1 - regular -> apiTwitter (to filter)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [filterEntries.toDnsTwitterApi!],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers
+      .flowsFromToService(regular, apiTwitter)
+      .tcp(54000, 8081)
+      .forwarded();
+
+    const linkRegularToTwitter = thelpers
+      .linkFromToService(regular, apiTwitter)
+      .tcp(8080)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [new ServiceCard(regular), new ServiceCard(apiTwitter)],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [Link.fromHubbleLink(linkRegularToTwitter)],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(1);
+    expect(rhsData.svcs.length).toBe(2);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(1);
+    expect(links.length).toBe(1);
+    expect(svcs.length).toBe(2);
+  });
+
+  test('test 2 - regular -> apiTwitter (from filter)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [filterEntries.fromDnsTwitterApi!],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers
+      .flowsFromToService(regular, apiTwitter)
+      .tcp(54000, 8081)
+      .forwarded();
+
+    const linkRegularToTwitter = thelpers
+      .linkFromToService(regular, apiTwitter)
+      .tcp(8080)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [new ServiceCard(regular), new ServiceCard(apiTwitter)],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [Link.fromHubbleLink(linkRegularToTwitter)],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(1);
+    expect(rhsData.svcs.length).toBe(2);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(1);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 3 - regular -> apiTwitter (both filter)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [filterEntries.bothDnsTwitterApi!],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers
+      .flowsFromToService(regular, apiTwitter)
+      .tcp(54000, 8081)
+      .forwarded();
+
+    const linkRegularToTwitter = thelpers
+      .linkFromToService(regular, apiTwitter)
+      .tcp(8080)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [new ServiceCard(regular), new ServiceCard(apiTwitter)],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [Link.fromHubbleLink(linkRegularToTwitter)],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(1);
+    expect(rhsData.svcs.length).toBe(2);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(1);
+    expect(svcs.length).toBe(2);
+  });
+
+  test('test 4 - regular -> apiTwitter (from + to filters)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [
+        filterEntries.fromDnsTwitterApi!,
+        filterEntries.toDnsTwitterApi!,
+      ],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers
+      .flowsFromToService(regular, apiTwitter)
+      .tcp(54000, 8081)
+      .forwarded();
+
+    const linkRegularToTwitter = thelpers
+      .linkFromToService(regular, apiTwitter)
+      .tcp(8080)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [new ServiceCard(regular), new ServiceCard(apiTwitter)],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [Link.fromHubbleLink(linkRegularToTwitter)],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(1);
+    expect(rhsData.svcs.length).toBe(2);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(1);
+    expect(svcs.length).toBe(2);
+  });
+
+  test('test 5 - regular <-> apiTwitter, apiTwitter <-> regular2 (to filter)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [filterEntries.toDnsTwitterApi!],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: regToTwitter,
+      fromBtoA: twitterToReg,
+    } = thelpers
+      .flowsFromToService(regular, apiTwitter)
+      .tcp(54000, 8081)
+      .forwarded();
+
+    const {
+      fromAtoB: reg1ToTwitter,
+      fromBtoA: twitterToReg1,
+    } = thelpers
+      .flowsFromToService(regular1, apiTwitter)
+      .tcp(54001, 8081)
+      .forwarded();
+
+    const linkRegularToTwitter = thelpers
+      .linkFromToService(regular, apiTwitter)
+      .tcp(8081)
+      .forwarded();
+
+    const linkRegular1ToTwitter = thelpers
+      .linkFromToService(regular1, apiTwitter)
+      .tcp(8081)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(apiTwitter),
+      ],
+      [
+        new Flow(regToTwitter),
+        new Flow(twitterToReg),
+        new Flow(reg1ToTwitter),
+        new Flow(twitterToReg1),
+      ],
+      [
+        Link.fromHubbleLink(linkRegularToTwitter),
+        Link.fromHubbleLink(linkRegular1ToTwitter),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(2);
+    expect(svcs.length).toBe(3);
+  });
+
+  test('test 6 - regular -> apiTwitter, apiTwitter -> regular2 (to filter)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [filterEntries.toDnsTwitterApi!],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: regToTwitter,
+      fromBtoA: twitterToReg,
+    } = thelpers
+      .flowsFromToService(regular, apiTwitter)
+      .tcp(54000, 8081)
+      .forwarded();
+
+    const {
+      fromAtoB: reg1ToTwitter,
+      fromBtoA: twitterToReg1,
+    } = thelpers
+      .flowsFromToService(regular1, apiTwitter)
+      .tcp(54001, 8081)
+      .forwarded();
+
+    const linkRegularToTwitter = thelpers
+      .linkFromToService(regular, apiTwitter)
+      .tcp(8081)
+      .forwarded();
+
+    const linkTwitterToRegular1 = thelpers
+      .linkFromToService(apiTwitter, regular1)
+      .tcp(54001)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(apiTwitter),
+      ],
+      [new Flow(regToTwitter), new Flow(twitterToReg1)],
+      [
+        Link.fromHubbleLink(linkRegularToTwitter),
+        Link.fromHubbleLink(linkTwitterToRegular1),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(1);
+    expect(links.length).toBe(1);
+    expect(svcs.length).toBe(2);
+  });
+
+  test('test 7 - regular <-> apiTwitter, apiTwitter <-> regular2 (from filter)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [filterEntries.fromDnsTwitterApi!],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: regToTwitter,
+      fromBtoA: twitterToReg,
+    } = thelpers
+      .flowsFromToService(regular, apiTwitter)
+      .tcp(54000, 8081)
+      .forwarded();
+
+    const {
+      fromAtoB: reg1ToTwitter,
+      fromBtoA: twitterToReg1,
+    } = thelpers
+      .flowsFromToService(regular1, apiTwitter)
+      .tcp(54001, 8081)
+      .forwarded();
+
+    const linkRegularToTwitter = thelpers
+      .linkFromToService(regular, apiTwitter)
+      .tcp(8081)
+      .forwarded();
+
+    const linkRegular1ToTwitter = thelpers
+      .linkFromToService(regular1, apiTwitter)
+      .tcp(8081)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(apiTwitter),
+      ],
+      [
+        new Flow(regToTwitter),
+        new Flow(twitterToReg),
+        new Flow(reg1ToTwitter),
+        new Flow(twitterToReg1),
+      ],
+      [
+        Link.fromHubbleLink(linkRegularToTwitter),
+        Link.fromHubbleLink(linkRegular1ToTwitter),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 8 - regular -> apiTwitter, apiTwitter -> regular2 (from filter)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [filterEntries.fromDnsTwitterApi!],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: regToTwitter,
+      fromBtoA: twitterToReg,
+    } = thelpers
+      .flowsFromToService(regular, apiTwitter)
+      .tcp(54000, 8081)
+      .forwarded();
+
+    const {
+      fromAtoB: reg1ToTwitter,
+      fromBtoA: twitterToReg1,
+    } = thelpers
+      .flowsFromToService(regular1, apiTwitter)
+      .tcp(54001, 8081)
+      .forwarded();
+
+    const linkRegularToTwitter = thelpers
+      .linkFromToService(regular, apiTwitter)
+      .tcp(8081)
+      .forwarded();
+
+    const linkTwitterToRegular1 = thelpers
+      .linkFromToService(apiTwitter, regular1)
+      .tcp(54001)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(apiTwitter),
+      ],
+      [new Flow(regToTwitter), new Flow(twitterToReg1)],
+      [
+        Link.fromHubbleLink(linkRegularToTwitter),
+        Link.fromHubbleLink(linkTwitterToRegular1),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(1);
+    expect(links.length).toBe(1);
+    expect(svcs.length).toBe(2);
+  });
+
+  test('test 9 - regular <-> apiTwitter, apiTwitter <-> regular2 (both filter)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [filterEntries.bothDnsTwitterApi!],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: regToTwitter,
+      fromBtoA: twitterToReg,
+    } = thelpers
+      .flowsFromToService(regular, apiTwitter)
+      .tcp(54000, 8081)
+      .forwarded();
+
+    const {
+      fromAtoB: reg1ToTwitter,
+      fromBtoA: twitterToReg1,
+    } = thelpers
+      .flowsFromToService(regular1, apiTwitter)
+      .tcp(54001, 8081)
+      .forwarded();
+
+    const linkRegularToTwitter = thelpers
+      .linkFromToService(regular, apiTwitter)
+      .tcp(8081)
+      .forwarded();
+
+    const linkRegular1ToTwitter = thelpers
+      .linkFromToService(regular1, apiTwitter)
+      .tcp(8081)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(apiTwitter),
+      ],
+      [
+        new Flow(regToTwitter),
+        new Flow(twitterToReg),
+        new Flow(reg1ToTwitter),
+        new Flow(twitterToReg1),
+      ],
+      [
+        Link.fromHubbleLink(linkRegularToTwitter),
+        Link.fromHubbleLink(linkRegular1ToTwitter),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(4);
+    expect(links.length).toBe(2);
+    expect(svcs.length).toBe(3);
+  });
+
+  test('test 10 - regular -> apiTwitter, apiTwitter -> regular2 (both filter)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [filterEntries.bothDnsTwitterApi!],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: regToTwitter,
+      fromBtoA: twitterToReg,
+    } = thelpers
+      .flowsFromToService(regular, apiTwitter)
+      .tcp(54000, 8081)
+      .forwarded();
+
+    const {
+      fromAtoB: reg1ToTwitter,
+      fromBtoA: twitterToReg1,
+    } = thelpers
+      .flowsFromToService(regular1, apiTwitter)
+      .tcp(54001, 8081)
+      .forwarded();
+
+    const linkRegularToTwitter = thelpers
+      .linkFromToService(regular, apiTwitter)
+      .tcp(8081)
+      .forwarded();
+
+    const linkTwitterToRegular1 = thelpers
+      .linkFromToService(apiTwitter, regular1)
+      .tcp(54001)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(apiTwitter),
+      ],
+      [new Flow(regToTwitter), new Flow(twitterToReg1)],
+      [
+        Link.fromHubbleLink(linkRegularToTwitter),
+        Link.fromHubbleLink(linkTwitterToRegular1),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(2);
+    expect(svcs.length).toBe(3);
+  });
+
+  test('test 10 - regular <-> apiTwitter, apiTwitter <-> regular2 (from + to filters)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [
+        filterEntries.fromDnsTwitterApi!,
+        filterEntries.toDnsTwitterApi!,
+      ],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: regToTwitter,
+      fromBtoA: twitterToReg,
+    } = thelpers
+      .flowsFromToService(regular, apiTwitter)
+      .tcp(54000, 8081)
+      .forwarded();
+
+    const {
+      fromAtoB: reg1ToTwitter,
+      fromBtoA: twitterToReg1,
+    } = thelpers
+      .flowsFromToService(regular1, apiTwitter)
+      .tcp(54001, 8081)
+      .forwarded();
+
+    const linkRegularToTwitter = thelpers
+      .linkFromToService(regular, apiTwitter)
+      .tcp(8081)
+      .forwarded();
+
+    const linkRegular1ToTwitter = thelpers
+      .linkFromToService(regular1, apiTwitter)
+      .tcp(8081)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(apiTwitter),
+      ],
+      [
+        new Flow(regToTwitter),
+        new Flow(twitterToReg),
+        new Flow(reg1ToTwitter),
+        new Flow(twitterToReg1),
+      ],
+      [
+        Link.fromHubbleLink(linkRegularToTwitter),
+        Link.fromHubbleLink(linkRegular1ToTwitter),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(4);
+    expect(links.length).toBe(2);
+    expect(svcs.length).toBe(3);
+  });
+
+  test('test 11 - regular -> apiTwitter, apiTwitter -> regular2 (from + to filters)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [
+        filterEntries.fromDnsTwitterApi!,
+        filterEntries.toDnsTwitterApi!,
+      ],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const {
+      fromAtoB: regToTwitter,
+      fromBtoA: twitterToReg,
+    } = thelpers
+      .flowsFromToService(regular, apiTwitter)
+      .tcp(54000, 8081)
+      .forwarded();
+
+    const {
+      fromAtoB: reg1ToTwitter,
+      fromBtoA: twitterToReg1,
+    } = thelpers
+      .flowsFromToService(regular1, apiTwitter)
+      .tcp(54001, 8081)
+      .forwarded();
+
+    const linkRegularToTwitter = thelpers
+      .linkFromToService(regular, apiTwitter)
+      .tcp(8081)
+      .forwarded();
+
+    const linkTwitterToRegular1 = thelpers
+      .linkFromToService(apiTwitter, regular1)
+      .tcp(54001)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [
+        new ServiceCard(regular),
+        new ServiceCard(regular1),
+        new ServiceCard(apiTwitter),
+      ],
+      [new Flow(regToTwitter), new Flow(twitterToReg1)],
+      [
+        Link.fromHubbleLink(linkRegularToTwitter),
+        Link.fromHubbleLink(linkTwitterToRegular1),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(3);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(2);
+    expect(svcs.length).toBe(3);
+  });
+
+  test('test 11 - regular <-> regular2 (to filters)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [filterEntries.toDnsTwitterApi!],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers
+      .flowsFromToService(regular, regular1)
+      .tcp(54000, 8081)
+      .forwarded();
+
+    const linkRegularToRegular1 = thelpers
+      .linkFromToService(regular, regular1)
+      .tcp(8081)
+      .forwarded();
+
+    const linkRegular1ToRegular = thelpers
+      .linkFromToService(regular1, regular)
+      .tcp(8081)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [new ServiceCard(regular), new ServiceCard(regular1)],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [
+        Link.fromHubbleLink(linkRegularToRegular1),
+        Link.fromHubbleLink(linkRegular1ToRegular),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(2);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(0);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 12 - regular <-> regular2 (from filters)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [filterEntries.fromDnsTwitterApi!],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers
+      .flowsFromToService(regular, regular1)
+      .tcp(54000, 8081)
+      .forwarded();
+
+    const linkRegularToRegular1 = thelpers
+      .linkFromToService(regular, regular1)
+      .tcp(8081)
+      .forwarded();
+
+    const linkRegular1ToRegular = thelpers
+      .linkFromToService(regular1, regular)
+      .tcp(8081)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [new ServiceCard(regular), new ServiceCard(regular1)],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [
+        Link.fromHubbleLink(linkRegularToRegular1),
+        Link.fromHubbleLink(linkRegular1ToRegular),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(2);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(0);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 13 - regular <-> regular2 (both filters)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [filterEntries.bothDnsTwitterApi!],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers
+      .flowsFromToService(regular, regular1)
+      .tcp(54000, 8081)
+      .forwarded();
+
+    const linkRegularToRegular1 = thelpers
+      .linkFromToService(regular, regular1)
+      .tcp(8081)
+      .forwarded();
+
+    const linkRegular1ToRegular = thelpers
+      .linkFromToService(regular1, regular)
+      .tcp(8081)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [new ServiceCard(regular), new ServiceCard(regular1)],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [
+        Link.fromHubbleLink(linkRegularToRegular1),
+        Link.fromHubbleLink(linkRegular1ToRegular),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(2);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(0);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 14 - regular <-> regular2 (from + to filters)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [
+        filterEntries.toDnsTwitterApi!,
+        filterEntries.fromDnsTwitterApi!,
+      ],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers
+      .flowsFromToService(regular, regular1)
+      .tcp(54000, 8081)
+      .forwarded();
+
+    const linkRegularToRegular1 = thelpers
+      .linkFromToService(regular, regular1)
+      .tcp(8081)
+      .forwarded();
+
+    const linkRegular1ToRegular = thelpers
+      .linkFromToService(regular1, regular)
+      .tcp(8081)
+      .forwarded();
+
+    const rhs = prepareFrame(
+      [new ServiceCard(regular), new ServiceCard(regular1)],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [
+        Link.fromHubbleLink(linkRegularToRegular1),
+        Link.fromHubbleLink(linkRegular1ToRegular),
+      ],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(2);
+    expect(rhsData.svcs.length).toBe(2);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(0);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
   });
 });

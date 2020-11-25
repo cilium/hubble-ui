@@ -163,6 +163,24 @@ describe('filterService', () => {
       FilterDirection.Both,
       'reserved:world',
     ]);
+
+    expectFilterEntry(filterEntries.toDnsTwitterApi, [
+      FilterKind.Dns,
+      FilterDirection.To,
+      'api.twitter.com',
+    ]);
+
+    expectFilterEntry(filterEntries.fromDnsTwitterApi, [
+      FilterKind.Dns,
+      FilterDirection.From,
+      'api.twitter.com',
+    ]);
+
+    expectFilterEntry(filterEntries.bothDnsTwitterApi, [
+      FilterKind.Dns,
+      FilterDirection.Both,
+      'api.twitter.com',
+    ]);
   });
 
   test('host > doesnt match (skipHost = true)', () => {
