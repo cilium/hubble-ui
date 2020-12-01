@@ -11,6 +11,7 @@ import { Flow } from '~/domain/flows';
 
 import * as combinations from '~/utils/iter-tools/combinations';
 import { flows } from '~/testing/data';
+import * as thelpers from '~/testing/helpers';
 
 const testFilterEntry = (
   captionFn: (flowName: string, testNum: number) => string,
@@ -48,6 +49,13 @@ describe('filterFlow', () => {
   const toHostFlow = new Flow(flows.toHost);
   const fromHostFlow = new Flow(flows.fromHost);
   const bothHostFlow = new Flow(flows.fromToHost);
+
+  const [senderPod, receiverPod] = ['sender-pod-12345', 'receiver-pod-54321'];
+  let temp = thelpers.flowsBetweenPods(senderPod, receiverPod);
+  const fromSenderToReceiverPod = new Flow(temp.fromAtoB);
+  const fromReceiverToSenderPod = new Flow(temp.fromBtoA);
+  temp = thelpers.flowsBetweenPods(senderPod, senderPod);
+  const fromSenderToSenderPod = new Flow(temp.fromAtoB);
 
   test('namespace > matches to source and destination', () => {
     const filters: Filters = Filters.fromObject({
@@ -879,6 +887,135 @@ describe('filterFlow', () => {
       fromHostFlow,
       toHostFlow,
       bothHostFlow,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) => {
+      return `pod > from sender pod matches ${flowName} ${tnum}`;
+    },
+    FilterEntry.parse(`from:pod=${senderPod}`)!,
+    true,
+    {
+      fromSenderToReceiverPod,
+      fromSenderToSenderPod,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) => {
+      return `pod > from sender pod doesnt match ${flowName} ${tnum}`;
+    },
+    FilterEntry.parse(`from:pod=${senderPod}`)!,
+    false,
+    {
+      fromReceiverToSenderPod,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) => {
+      return `pod > to sender pod matches ${flowName} ${tnum}`;
+    },
+    FilterEntry.parse(`to:pod=${senderPod}`)!,
+    true,
+    {
+      fromReceiverToSenderPod,
+      fromSenderToSenderPod,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) => {
+      return `pod > to sender pod doesnt match ${flowName} ${tnum}`;
+    },
+    FilterEntry.parse(`to:pod=${senderPod}`)!,
+    false,
+    {
+      fromSenderToReceiverPod,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) => {
+      return `pod > both sender pod matches ${flowName} ${tnum}`;
+    },
+    FilterEntry.parse(`both:pod=${senderPod}`)!,
+    true,
+    {
+      fromSenderToReceiverPod,
+      fromReceiverToSenderPod,
+      fromSenderToSenderPod,
+    },
+  );
+
+  // ---
+  testFilterEntry(
+    (flowName: string, tnum: number) => {
+      return `pod > from receiver pod matches ${flowName} ${tnum}`;
+    },
+    FilterEntry.parse(`from:pod=${receiverPod}`)!,
+    true,
+    {
+      fromReceiverToSenderPod,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) => {
+      return `pod > from receiver pod doesnt match ${flowName} ${tnum}`;
+    },
+    FilterEntry.parse(`from:pod=${receiverPod}`)!,
+    false,
+    {
+      fromSenderToReceiverPod,
+      fromSenderToSenderPod,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) => {
+      return `pod > to receiver pod matches ${flowName} ${tnum}`;
+    },
+    FilterEntry.parse(`to:pod=${receiverPod}`)!,
+    true,
+    {
+      fromSenderToReceiverPod,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) => {
+      return `pod > to receiver pod doesnt match ${flowName} ${tnum}`;
+    },
+    FilterEntry.parse(`to:pod=${receiverPod}`)!,
+    false,
+    {
+      fromReceiverToSenderPod,
+      fromSenderToSenderPod,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) => {
+      return `pod > both receiver pod matches ${flowName} ${tnum}`;
+    },
+    FilterEntry.parse(`both:pod=${receiverPod}`)!,
+    true,
+    {
+      fromSenderToReceiverPod,
+      fromReceiverToSenderPod,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) => {
+      return `pod > both receiver pod matches ${flowName} ${tnum}`;
+    },
+    FilterEntry.parse(`both:pod=${receiverPod}`)!,
+    false,
+    {
+      fromSenderToSenderPod,
     },
   );
 });

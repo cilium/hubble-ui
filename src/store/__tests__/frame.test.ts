@@ -6,7 +6,7 @@ import ControlStore from '~/store/stores/controls';
 import { Flow } from '~/domain/flows';
 import { Link } from '~/domain/link';
 import { ServiceCard } from '~/domain/service-map';
-import { filterFlow } from '~/domain/filtering';
+import { filterFlow, FilterEntry, FilterDirection } from '~/domain/filtering';
 
 import { Filters, FiltersObject } from '~/domain/filtering';
 import {
@@ -4962,6 +4962,1035 @@ describe('filter entries > DNS', () => {
     const { flows, links, svcs } = extractData(lhs);
 
     expect(flows.length).toBe(0);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+});
+
+describe('filter entries > pod (only flows)', () => {
+  const { regular, regular1, kubeDNS, apiTwitter, world } = tsvcs;
+  const [senderPod, receiverPod] = ['crawler-12345', 'service-54321'];
+
+  const fromSenderPod = FilterEntry.newPod(senderPod).setDirection(
+    FilterDirection.From,
+  );
+
+  const toSenderPod = FilterEntry.newPod(senderPod).setDirection(
+    FilterDirection.To,
+  );
+
+  const bothSenderPod = FilterEntry.newPod(senderPod).setDirection(
+    FilterDirection.Both,
+  );
+
+  const fromReceiverPod = FilterEntry.newPod(receiverPod).setDirection(
+    FilterDirection.From,
+  );
+
+  const toReceiverPod = FilterEntry.newPod(receiverPod).setDirection(
+    FilterDirection.To,
+  );
+
+  const bothReceiverPod = FilterEntry.newPod(receiverPod).setDirection(
+    FilterDirection.Both,
+  );
+
+  test('test 1 - from sender pod filter (flows from -> to)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [fromSenderPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const rhs = prepareFrame(
+      [],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(1);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 2 - from sender pod filter (one flow to -> from)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [fromSenderPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(1);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(0);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 3 - from sender pod filter (flows regular <-> world mixed in)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [fromSenderPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const {
+      fromAtoB: fromRegularToWorld,
+      fromBtoA: fromWorldToRegular,
+    } = thelpers.flowsBetweenServices(regular, world);
+
+    const rhs = prepareFrame(
+      [],
+      [
+        new Flow(fromAtoB),
+        new Flow(fromBtoA),
+        new Flow(fromRegularToWorld),
+        new Flow(fromWorldToRegular),
+      ],
+      [],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(1);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 4 - to sender pod filter (flows from -> to)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [toSenderPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const rhs = prepareFrame(
+      [],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(1);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 5 - to sender pod filter (one flow to -> from)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [toSenderPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(1);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(1);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 6 - to sender pod filter (flows regular <-> world mixed in)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [toSenderPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const {
+      fromAtoB: fromRegularToWorld,
+      fromBtoA: fromWorldToRegular,
+    } = thelpers.flowsBetweenServices(regular, world);
+
+    const rhs = prepareFrame(
+      [],
+      [
+        new Flow(fromAtoB),
+        new Flow(fromBtoA),
+        new Flow(fromRegularToWorld),
+        new Flow(fromWorldToRegular),
+      ],
+      [],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(1);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 7 - both sender pod filter (flows from <-> to)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [bothSenderPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const rhs = prepareFrame(
+      [],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 8 - both sender pod filter (one flow to <-> from)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [bothSenderPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(1);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(1);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 9 - both sender pod filter (flows regular <-> world mixed in)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [bothSenderPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const {
+      fromAtoB: fromRegularToWorld,
+      fromBtoA: fromWorldToRegular,
+    } = thelpers.flowsBetweenServices(regular, world);
+
+    const rhs = prepareFrame(
+      [],
+      [
+        new Flow(fromAtoB),
+        new Flow(fromBtoA),
+        new Flow(fromRegularToWorld),
+        new Flow(fromWorldToRegular),
+      ],
+      [],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 10 - from/to sender pod filter (flows from <-> to)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [fromSenderPod, toSenderPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const rhs = prepareFrame(
+      [],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 11 - from/to sender pod filter (one flow to <-> from)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [fromSenderPod, toSenderPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(1);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(1);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 12 - from/to sender pod filter (flows regular <-> world mixed in)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [fromSenderPod, toSenderPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const {
+      fromAtoB: fromRegularToWorld,
+      fromBtoA: fromWorldToRegular,
+    } = thelpers.flowsBetweenServices(regular, world);
+
+    const rhs = prepareFrame(
+      [],
+      [
+        new Flow(fromAtoB),
+        new Flow(fromBtoA),
+        new Flow(fromRegularToWorld),
+        new Flow(fromWorldToRegular),
+      ],
+      [],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 13 - from receiver pod filter (flows from -> to)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [fromReceiverPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const rhs = prepareFrame(
+      [],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(1);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 14 - from receiver pod filter (one flow to -> from)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [fromReceiverPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(1);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(1);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 15 - from receiver pod filter (flows regular <-> world mixed in)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [fromReceiverPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const {
+      fromAtoB: fromRegularToWorld,
+      fromBtoA: fromWorldToRegular,
+    } = thelpers.flowsBetweenServices(regular, world);
+
+    const rhs = prepareFrame(
+      [],
+      [
+        new Flow(fromAtoB),
+        new Flow(fromBtoA),
+        new Flow(fromRegularToWorld),
+        new Flow(fromWorldToRegular),
+      ],
+      [],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(1);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 16 - to receiver pod filter (flows from -> to)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [toReceiverPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const rhs = prepareFrame(
+      [],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(1);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 17 - to receiver pod filter (one flow to -> from)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [toReceiverPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(1);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(0);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 18 - to receiver pod filter (flows regular <-> world mixed in)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [toReceiverPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const {
+      fromAtoB: fromRegularToWorld,
+      fromBtoA: fromWorldToRegular,
+    } = thelpers.flowsBetweenServices(regular, world);
+
+    const rhs = prepareFrame(
+      [],
+      [
+        new Flow(fromAtoB),
+        new Flow(fromBtoA),
+        new Flow(fromRegularToWorld),
+        new Flow(fromWorldToRegular),
+      ],
+      [],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(1);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 19 - both receiver pod filter (flows from <-> to)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [bothReceiverPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const rhs = prepareFrame(
+      [],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 20 - both receiver pod filter (one flow to <-> from)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [bothReceiverPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(1);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(1);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 21 - both receiver pod filter (flows regular <-> world mixed in)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [bothReceiverPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const {
+      fromAtoB: fromRegularToWorld,
+      fromBtoA: fromWorldToRegular,
+    } = thelpers.flowsBetweenServices(regular, world);
+
+    const rhs = prepareFrame(
+      [],
+      [
+        new Flow(fromAtoB),
+        new Flow(fromBtoA),
+        new Flow(fromRegularToWorld),
+        new Flow(fromWorldToRegular),
+      ],
+      [],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 22 - from/to receiver pod filter (flows from <-> to)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [fromReceiverPod, toReceiverPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const rhs = prepareFrame(
+      [],
+      [new Flow(fromAtoB), new Flow(fromBtoA)],
+      [],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(2);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 23 - from/to receiver pod filter (one flow to <-> from)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [fromReceiverPod, toReceiverPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(1);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(1);
+    expect(links.length).toBe(0);
+    expect(svcs.length).toBe(0);
+  });
+
+  test('test 24 - from/to receiver pod filter (flows regular <-> world mixed in)', () => {
+    const filterObj = {
+      namespace: null,
+      verdict: null,
+      httpStatus: null,
+      filters: [fromReceiverPod, toReceiverPod],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
+
+    const lhs = prepareFrame([], [], [], filterObj);
+
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
+      senderPod,
+      receiverPod,
+    );
+
+    const {
+      fromAtoB: fromRegularToWorld,
+      fromBtoA: fromWorldToRegular,
+    } = thelpers.flowsBetweenServices(regular, world);
+
+    const rhs = prepareFrame(
+      [],
+      [
+        new Flow(fromAtoB),
+        new Flow(fromBtoA),
+        new Flow(fromRegularToWorld),
+        new Flow(fromWorldToRegular),
+      ],
+      [],
+      filterObj,
+    );
+
+    const rhsData = extractData(rhs);
+    expect(rhsData.flows.length).toBe(4);
+    expect(rhsData.links.length).toBe(0);
+    expect(rhsData.svcs.length).toBe(0);
+
+    lhs.applyFrame(rhs, Filters.fromObject(filterObj));
+
+    const { flows, links, svcs } = extractData(lhs);
+
+    expect(flows.length).toBe(2);
     expect(links.length).toBe(0);
     expect(svcs.length).toBe(0);
   });

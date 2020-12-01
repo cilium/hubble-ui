@@ -1,5 +1,6 @@
 import * as jspb from "google-protobuf"
 
+import * as google_protobuf_wrappers_pb from 'google-protobuf/google/protobuf/wrappers_pb';
 import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb';
 
 export class Flow extends jspb.Message {
@@ -87,6 +88,14 @@ export class Flow extends jspb.Message {
   getTraceObservationPoint(): TraceObservationPoint;
   setTraceObservationPoint(value: TraceObservationPoint): Flow;
 
+  getDropReasonDesc(): DropReason;
+  setDropReasonDesc(value: DropReason): Flow;
+
+  getIsReply(): google_protobuf_wrappers_pb.BoolValue | undefined;
+  setIsReply(value?: google_protobuf_wrappers_pb.BoolValue): Flow;
+  hasIsReply(): boolean;
+  clearIsReply(): Flow;
+
   getSummary(): string;
   setSummary(value: string): Flow;
 
@@ -120,6 +129,8 @@ export namespace Flow {
     trafficDirection: TrafficDirection,
     policyMatchType: number,
     traceObservationPoint: TraceObservationPoint,
+    dropReasonDesc: DropReason,
+    isReply?: google_protobuf_wrappers_pb.BoolValue.AsObject,
     summary: string,
   }
 }
@@ -602,6 +613,16 @@ export class FlowFilter extends jspb.Message {
   clearDestinationIdentityList(): FlowFilter;
   addDestinationIdentity(value: number, index?: number): FlowFilter;
 
+  getHttpMethodList(): Array<string>;
+  setHttpMethodList(value: Array<string>): FlowFilter;
+  clearHttpMethodList(): FlowFilter;
+  addHttpMethod(value: string, index?: number): FlowFilter;
+
+  getHttpPathList(): Array<string>;
+  setHttpPathList(value: Array<string>): FlowFilter;
+  clearHttpPathList(): FlowFilter;
+  addHttpPath(value: string, index?: number): FlowFilter;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): FlowFilter.AsObject;
   static toObject(includeInstance: boolean, msg: FlowFilter): FlowFilter.AsObject;
@@ -632,48 +653,8 @@ export namespace FlowFilter {
     dnsQueryList: Array<string>,
     sourceIdentityList: Array<number>,
     destinationIdentityList: Array<number>,
-  }
-}
-
-export class Payload extends jspb.Message {
-  getType(): EventType;
-  setType(value: EventType): Payload;
-
-  getCpu(): number;
-  setCpu(value: number): Payload;
-
-  getLost(): number;
-  setLost(value: number): Payload;
-
-  getData(): Uint8Array | string;
-  getData_asU8(): Uint8Array;
-  getData_asB64(): string;
-  setData(value: Uint8Array | string): Payload;
-
-  getTime(): google_protobuf_timestamp_pb.Timestamp | undefined;
-  setTime(value?: google_protobuf_timestamp_pb.Timestamp): Payload;
-  hasTime(): boolean;
-  clearTime(): Payload;
-
-  getHostName(): string;
-  setHostName(value: string): Payload;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): Payload.AsObject;
-  static toObject(includeInstance: boolean, msg: Payload): Payload.AsObject;
-  static serializeBinaryToWriter(message: Payload, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): Payload;
-  static deserializeBinaryFromReader(message: Payload, reader: jspb.BinaryReader): Payload;
-}
-
-export namespace Payload {
-  export type AsObject = {
-    type: EventType,
-    cpu: number,
-    lost: number,
-    data: Uint8Array | string,
-    time?: google_protobuf_timestamp_pb.Timestamp.AsObject,
-    hostName: string,
+    httpMethodList: Array<string>,
+    httpPathList: Array<string>,
   }
 }
 
@@ -845,6 +826,34 @@ export namespace Service {
   }
 }
 
+export class LostEvent extends jspb.Message {
+  getSource(): LostEventSource;
+  setSource(value: LostEventSource): LostEvent;
+
+  getNumEventsLost(): number;
+  setNumEventsLost(value: number): LostEvent;
+
+  getCpu(): google_protobuf_wrappers_pb.Int32Value | undefined;
+  setCpu(value?: google_protobuf_wrappers_pb.Int32Value): LostEvent;
+  hasCpu(): boolean;
+  clearCpu(): LostEvent;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): LostEvent.AsObject;
+  static toObject(includeInstance: boolean, msg: LostEvent): LostEvent.AsObject;
+  static serializeBinaryToWriter(message: LostEvent, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): LostEvent;
+  static deserializeBinaryFromReader(message: LostEvent, reader: jspb.BinaryReader): LostEvent;
+}
+
+export namespace LostEvent {
+  export type AsObject = {
+    source: LostEventSource,
+    numEventsLost: number,
+    cpu?: google_protobuf_wrappers_pb.Int32Value.AsObject,
+  }
+}
+
 export enum FlowType { 
   UNKNOWN_TYPE = 0,
   L3_L4 = 1,
@@ -882,6 +891,59 @@ export enum Verdict {
   DROPPED = 2,
   ERROR = 3,
 }
+export enum DropReason { 
+  DROP_REASON_UNKNOWN = 0,
+  INVALID_SOURCE_MAC = 130,
+  INVALID_DESTINATION_MAC = 131,
+  INVALID_SOURCE_IP = 132,
+  POLICY_DENIED = 133,
+  INVALID_PACKET_DROPPED = 134,
+  CT_TRUNCATED_OR_INVALID_HEADER = 135,
+  CT_MISSING_TCP_ACK_FLAG = 136,
+  CT_UNKNOWN_L4_PROTOCOL = 137,
+  CT_CANNOT_CREATE_ENTRY_FROM_PACKET = 138,
+  UNSUPPORTED_L3_PROTOCOL = 139,
+  MISSED_TAIL_CALL = 140,
+  ERROR_WRITING_TO_PACKET = 141,
+  UNKNOWN_L4_PROTOCOL = 142,
+  UNKNOWN_ICMPV4_CODE = 143,
+  UNKNOWN_ICMPV4_TYPE = 144,
+  UNKNOWN_ICMPV6_CODE = 145,
+  UNKNOWN_ICMPV6_TYPE = 146,
+  ERROR_RETRIEVING_TUNNEL_KEY = 147,
+  ERROR_RETRIEVING_TUNNEL_OPTIONS = 148,
+  INVALID_GENEVE_OPTION = 149,
+  UNKNOWN_L3_TARGET_ADDRESS = 150,
+  STALE_OR_UNROUTABLE_IP = 151,
+  NO_MATCHING_LOCAL_CONTAINER_FOUND = 152,
+  ERROR_WHILE_CORRECTING_L3_CHECKSUM = 153,
+  ERROR_WHILE_CORRECTING_L4_CHECKSUM = 154,
+  CT_MAP_INSERTION_FAILED = 155,
+  INVALID_IPV6_EXTENSION_HEADER = 156,
+  IP_FRAGMENTATION_NOT_SUPPORTED = 157,
+  SERVICE_BACKEND_NOT_FOUND = 158,
+  NO_TUNNEL_OR_ENCAPSULATION_ENDPOINT = 160,
+  FAILED_TO_INSERT_INTO_PROXYMAP = 161,
+  REACHED_EDT_RATE_LIMITING_DROP_HORIZON = 162,
+  UNKNOWN_CONNECTION_TRACKING_STATE = 163,
+  LOCAL_HOST_IS_UNREACHABLE = 164,
+  NO_CONFIGURATION_AVAILABLE_TO_PERFORM_POLICY_DECISION = 165,
+  UNSUPPORTED_L2_PROTOCOL = 166,
+  NO_MAPPING_FOR_NAT_MASQUERADE = 167,
+  UNSUPPORTED_PROTOCOL_FOR_NAT_MASQUERADE = 168,
+  FIB_LOOKUP_FAILED = 169,
+  ENCAPSULATION_TRAFFIC_IS_PROHIBITED = 170,
+  INVALID_IDENTITY = 171,
+  UNKNOWN_SENDER = 172,
+  NAT_NOT_NEEDED = 173,
+  IS_A_CLUSTERIP = 174,
+  FIRST_LOGICAL_DATAGRAM_FRAGMENT_NOT_FOUND = 175,
+  FORBIDDEN_ICMPV6_MESSAGE = 176,
+  DENIED_BY_LB_SRC_RANGE_CHECK = 177,
+  SOCKET_LOOKUP_FAILED = 178,
+  SOCKET_ASSIGN_FAILED = 179,
+  PROXY_REDIRECTION_NOT_SUPPORTED_FOR_PROTOCOL = 180,
+}
 export enum TrafficDirection { 
   TRAFFIC_DIRECTION_UNKNOWN = 0,
   INGRESS = 1,
@@ -891,4 +953,9 @@ export enum EventType {
   UNKNOWN = 0,
   EVENTSAMPLE = 9,
   RECORDLOST = 2,
+}
+export enum LostEventSource { 
+  UNKNOWN_LOST_EVENT_SOURCE = 0,
+  PERF_EVENT_RING_BUFFER = 1,
+  OBSERVER_EVENTS_QUEUE = 2,
 }

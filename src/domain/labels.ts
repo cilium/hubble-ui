@@ -110,6 +110,10 @@ export class Labels {
     return null;
   }
 
+  public static findKVByArray(labels: KV[], kv: [string, string]): KV | null {
+    return Labels.findKVByString(labels, `${kv[0]}=${kv[1]}`);
+  }
+
   public static haveReserved(labels: KV[], reserved: ReservedLabel): boolean {
     return labels.some(l => Labels.normalizeKey(l.key) === reserved);
   }

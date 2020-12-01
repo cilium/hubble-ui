@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import {
   HubbleService,
   HubbleFlow,
@@ -14,6 +15,90 @@ export interface FlowsBetween {
 }
 
 let flowsTimeOffset = 0;
+
+const nextFlowTimestamp = () => {
+  const obj = {
+    seconds: flowsTimeOffset + Date.now() / 1000,
+    nanos: Date.now() * 1000000,
+  };
+
+  flowsTimeOffset += 1;
+
+  return obj;
+};
+
+export const flowsBetweenPods = (
+  senderPod: string,
+  receiverPod: string,
+): FlowsBetween => {
+  const fromAtoB: HubbleFlow = {
+    verdict: Verdict.Forwarded,
+    dropReason: 0,
+    l4: {
+      tcp: {
+        destinationPort: 80,
+        sourcePort: 56789,
+      },
+    },
+    source: {
+      id: 0,
+      identity: 0,
+      labelsList: [],
+      namespace: 'sender-namespace',
+      podName: senderPod,
+    },
+    destination: {
+      id: 1,
+      identity: 1,
+      labelsList: [],
+      namespace: 'receiver-namespace',
+      podName: receiverPod,
+    },
+    sourceNamesList: [],
+    destinationNamesList: [],
+    nodeName: 'test-node',
+    reply: false,
+    summary: '',
+    type: FlowType.L34,
+    time: nextFlowTimestamp(),
+    trafficDirection: TrafficDirection.Ingress,
+  };
+
+  const fromBtoA: HubbleFlow = {
+    verdict: Verdict.Forwarded,
+    dropReason: 0,
+    l4: {
+      tcp: {
+        destinationPort: 56789,
+        sourcePort: 80,
+      },
+    },
+    source: {
+      id: 1,
+      identity: 1,
+      labelsList: [],
+      namespace: 'receiver-namespace',
+      podName: receiverPod,
+    },
+    destination: {
+      id: 0,
+      identity: 0,
+      labelsList: [],
+      namespace: 'sender-namespace',
+      podName: senderPod,
+    },
+    sourceNamesList: [],
+    destinationNamesList: [],
+    nodeName: 'test-node',
+    reply: true,
+    summary: '',
+    type: FlowType.L34,
+    time: nextFlowTimestamp(),
+    trafficDirection: TrafficDirection.Ingress,
+  };
+
+  return { fromAtoB, fromBtoA };
+};
 
 export const flowsBetweenServices = (
   a: HubbleService,
@@ -48,14 +133,9 @@ export const flowsBetweenServices = (
     reply: false,
     summary: '',
     type: FlowType.L34,
-    time: {
-      seconds: flowsTimeOffset + Date.now() / 1000,
-      nanos: Date.now() * 1000000,
-    },
+    time: nextFlowTimestamp(),
     trafficDirection: TrafficDirection.Ingress,
   };
-
-  flowsTimeOffset += 1;
 
   const fromBtoA: HubbleFlow = {
     verdict: Verdict.Forwarded,
@@ -86,14 +166,9 @@ export const flowsBetweenServices = (
     reply: true,
     summary: '',
     type: FlowType.L34,
-    time: {
-      seconds: flowsTimeOffset + Date.now() / 1000,
-      nanos: Date.now() * 1000000,
-    },
+    time: nextFlowTimestamp(),
     trafficDirection: TrafficDirection.Ingress,
   };
-
-  flowsTimeOffset += 1;
 
   return { fromAtoB, fromBtoA };
 };
@@ -138,14 +213,9 @@ export const flowsFromToService = (from: HubbleService, to: HubbleService) => {
       reply: false,
       summary: '',
       type: FlowType.L34,
-      time: {
-        seconds: flowsTimeOffset + Date.now() / 1000,
-        nanos: Date.now() * 1000000,
-      },
+      time: nextFlowTimestamp(),
       trafficDirection: TrafficDirection.Ingress,
     };
-
-    flowsTimeOffset += 1;
 
     const fromBtoA: HubbleFlow = {
       verdict,
@@ -174,14 +244,9 @@ export const flowsFromToService = (from: HubbleService, to: HubbleService) => {
       reply: true,
       summary: '',
       type: FlowType.L34,
-      time: {
-        seconds: flowsTimeOffset + Date.now() / 1000,
-        nanos: Date.now() * 1000000,
-      },
+      time: nextFlowTimestamp(),
       trafficDirection: TrafficDirection.Ingress,
     };
-
-    flowsTimeOffset += 1;
 
     return { fromAtoB, fromBtoA };
   };

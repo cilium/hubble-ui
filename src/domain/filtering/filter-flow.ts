@@ -1,3 +1,4 @@
+import { Labels } from '~/domain/labels';
 import { Flow, Verdict } from '~/domain/flows';
 import {
   FilterEntry,
@@ -61,141 +62,43 @@ export const filterFlow = (flow: Flow, filters: Filters): boolean => {
 
 export const filterFlowByEntry = (flow: Flow, filter: FilterEntry): boolean => {
   const [key, value] = filter.labelKeyValue;
+  let [fromOk, toOk] = [false, false];
 
-  switch (filter.direction) {
-    case FilterDirection.Both: {
-      switch (filter.kind) {
-        case FilterKind.Label: {
-          const sourceLabelMatch = flow.sourceLabels.some(
-            label => label.key === key && label.value === value,
-          );
-          const destLabelMatch = flow.destinationLabels.some(
-            label => label.key === key && label.value === value,
-          );
+  switch (filter.kind) {
+    case FilterKind.Label: {
+      if (filter.fromRequired) fromOk = flow.senderHasLabelArray([key, value]);
+      if (filter.toRequired) toOk = flow.receiverHasLabelArray([key, value]);
 
-          if (!sourceLabelMatch && !destLabelMatch) return false;
-          break;
-        }
-        case FilterKind.Ip: {
-          if (
-            flow.sourceIp !== filter.query &&
-            flow.destinationIp !== filter.query
-          ) {
-            return false;
-          }
-          break;
-        }
-        case FilterKind.Dns: {
-          const sourceDnsMatch = flow.sourceNamesList.includes(filter.query);
-          const destDnsMatch = flow.destinationNamesList.includes(filter.query);
-
-          if (!sourceDnsMatch && !destDnsMatch) return false;
-          break;
-        }
-        case FilterKind.Identity: {
-          const sourceIdentityMatch = flow.sourceIdentity === +filter.query;
-          const destIdentityMatch = flow.destinationIdentity === +filter.query;
-
-          if (!sourceIdentityMatch && !destIdentityMatch) return false;
-          break;
-        }
-        case FilterKind.TCPFlag: {
-          const tcpFlagMatch = flow.enabledTcpFlags.includes(
-            filter.query as any,
-          );
-
-          if (!tcpFlagMatch) return false;
-          break;
-        }
-        case FilterKind.Pod: {
-          const sourcePodMatch = flow.sourcePodName === filter.query;
-          const destPodMatch = flow.destinationPodName === filter.query;
-
-          if (!sourcePodMatch && !destPodMatch) return false;
-          break;
-        }
-      }
       break;
     }
-    case FilterDirection.From: {
-      switch (filter.kind) {
-        case FilterKind.Label: {
-          const sourceLabelMatch = flow.sourceLabels.some(
-            label => label.key === key && label.value === value,
-          );
+    case FilterKind.Ip: {
+      if (filter.fromRequired) fromOk = flow.senderHasIp(filter.query);
+      if (filter.toRequired) toOk = flow.receiverHasIp(filter.query);
 
-          if (!sourceLabelMatch) return false;
-          break;
-        }
-        case FilterKind.Ip: {
-          if (flow.sourceIp !== filter.query) return false;
-          break;
-        }
-        case FilterKind.Dns: {
-          const sourceDnsMatch = flow.sourceNamesList.includes(filter.query);
-          if (!sourceDnsMatch) return false;
-          break;
-        }
-        case FilterKind.Identity: {
-          const sourceIdentityMatch = flow.sourceIdentity === +filter.query;
-          if (!sourceIdentityMatch) return false;
-          break;
-        }
-        case FilterKind.TCPFlag: {
-          const tcpFlagMatch = flow.enabledTcpFlags.includes(
-            filter.query as any,
-          );
-          if (!tcpFlagMatch) return false;
-          break;
-        }
-        case FilterKind.Pod: {
-          const sourcePodMatch = flow.sourcePodName === filter.query;
-          if (!sourcePodMatch) return false;
-          break;
-        }
-      }
       break;
     }
-    case FilterDirection.To: {
-      switch (filter.kind) {
-        case FilterKind.Label: {
-          const destLabelMatch = flow.destinationLabels.some(
-            label => label.key === key && label.value === value,
-          );
-          if (!destLabelMatch) return false;
-          break;
-        }
-        case FilterKind.Ip: {
-          if (flow.destinationIp !== filter.query) return false;
-          break;
-        }
-        case FilterKind.Dns: {
-          const destDnsMatch = flow.destinationNamesList.includes(filter.query);
-          if (!destDnsMatch) return false;
-          break;
-        }
-        case FilterKind.Identity: {
-          const destIdentityMatch = flow.destinationIdentity === +filter.query;
-          if (!destIdentityMatch) return false;
-          break;
-        }
-        case FilterKind.TCPFlag: {
-          const tcpFlagMatch = flow.enabledTcpFlags.includes(
-            filter.query as any,
-          );
-          if (!tcpFlagMatch) return false;
-          break;
-        }
-        case FilterKind.Pod: {
-          const destPodMatch = flow.destinationPodName === filter.query;
+    case FilterKind.Dns: {
+      if (filter.fromRequired) fromOk = flow.senderHasDomain(filter.query);
+      if (filter.toRequired) toOk = flow.receiverHasDomain(filter.query);
 
-          if (!destPodMatch) return false;
-          break;
-        }
-      }
+      break;
+    }
+    case FilterKind.Identity: {
+      if (filter.fromRequired) fromOk = flow.senderHasIdentity(filter.query);
+      if (filter.toRequired) toOk = flow.receiverHasIdentity(filter.query);
+
+      break;
+    }
+    case FilterKind.TCPFlag: {
+      return flow.hasTCPFlag(filter.query.toLowerCase() as any);
+    }
+    case FilterKind.Pod: {
+      if (filter.fromRequired) fromOk = flow.senderPodIs(filter.query);
+      if (filter.toRequired) toOk = flow.receiverPodIs(filter.query);
+
       break;
     }
   }
 
-  return true;
+  return fromOk || toOk;
 };

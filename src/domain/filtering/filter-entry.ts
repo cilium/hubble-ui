@@ -1,4 +1,5 @@
 import { Labels } from '~/domain/labels';
+import { PodSelector } from '~/domain/hubble';
 
 export enum Kind {
   Label = 'label',
@@ -155,6 +156,10 @@ export class FilterEntry {
     });
   }
 
+  public static newPodSelector(ps: PodSelector): FilterEntry {
+    return FilterEntry.newPod(ps.pod).setMeta(ps.namespace || '');
+  }
+
   public static newIdentity(identity: string): FilterEntry {
     return new FilterEntry({
       kind: Kind.Identity,
@@ -194,9 +199,10 @@ export class FilterEntry {
   }
 
   public setMeta(meta: string): FilterEntry {
-    this.meta = meta;
+    const fe = this.clone();
+    fe.meta = meta;
 
-    return this;
+    return fe;
   }
 
   public setQuery(q: string): FilterEntry {
@@ -206,9 +212,10 @@ export class FilterEntry {
   }
 
   public setDirection(dir: Direction): FilterEntry {
-    this.direction = dir;
+    const fe = this.clone();
+    fe.direction = dir;
 
-    return this;
+    return fe;
   }
 
   public setKind(kind: Kind): FilterEntry {
@@ -274,10 +281,30 @@ export class FilterEntry {
     return this.direction === Direction.Both;
   }
 
+  public get isFrom(): boolean {
+    return this.direction === Direction.From;
+  }
+
+  public get isTo(): boolean {
+    return this.direction === Direction.To;
+  }
+
+  public get isBoth(): boolean {
+    return this.bothRequired;
+  }
+
   public get labelKeyValue(): [string, string] {
     const [key, ...rest] = this.query.split('=');
 
     return [key, rest.join('=')];
+  }
+
+  public get hasMeta(): boolean {
+    return this.meta != null && this.meta.length > 0;
+  }
+
+  public get podNamespace(): string | null {
+    return this.hasMeta ? this.meta! : null;
   }
 
   private ensureLabelPrefix() {

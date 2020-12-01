@@ -131,6 +131,9 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
       wlFilter.addVerdict(dataHelpers.verdictToPb(filters.verdict));
     }
 
+    // TODO: code for handling tcp flags should be here
+    // NOTE: 1.9.1 gets rid of that field, wait for the next release
+
     wlFilter.addReply(false);
     return wlFilter;
   }
@@ -220,89 +223,101 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
     const { kind, direction, query } = filter;
     const wlFilters: FlowFilter[] = [];
 
-    const specificPodInNs = `${filters.namespace}/${filter.query}`;
     const podsInNamespace = `${filters.namespace}/`;
+    const pod = filter.podNamespace
+      ? `${filter.podNamespace}/${filter.query}`
+      : `${filters.namespace}/${filter.query}`;
 
     if (filter.fromRequired) {
       // NOTE: this makes possible to catch flows [outside of ns] -> [ns]
       // NOTE: but flows [ns] -> [outside of ns] are lost...
-      const fromFilter = EventStream.baseWhitelistFilter();
-      fromFilter.addDestinationPod(podsInNamespace);
+      const toInside = EventStream.baseWhitelistFilter(filters);
+      toInside.addDestinationPod(podsInNamespace);
 
       // NOTE: ...this filter fixes this last case
-      const fromInside = EventStream.baseWhitelistFilter();
+      const fromInside = EventStream.baseWhitelistFilter(filters);
       fromInside.addSourcePod(podsInNamespace);
 
       switch (kind) {
         case FilterKind.Label: {
-          fromFilter.addSourceLabel(query);
+          toInside.addSourceLabel(query);
           fromInside.addSourceLabel(query);
           break;
         }
         case FilterKind.Ip: {
-          fromFilter.addSourceIp(query);
+          toInside.addSourceIp(query);
           fromInside.addSourceIp(query);
           break;
         }
         case FilterKind.Dns: {
-          fromFilter.addSourceFqdn(query);
+          toInside.addSourceFqdn(query);
           fromInside.addSourceFqdn(query);
           break;
         }
         case FilterKind.Identity: {
-          fromFilter.addSourceIdentity(+query);
+          toInside.addSourceIdentity(+query);
           fromInside.addSourceIdentity(+query);
           break;
         }
         case FilterKind.Pod: {
-          fromFilter.addSourcePod(specificPodInNs);
-          fromInside.addSourcePod(specificPodInNs);
+          toInside.addSourcePod(pod);
+          fromInside.clearSourcePodList();
+
+          if (!pod.startsWith(podsInNamespace)) {
+            fromInside.addDestinationPod(podsInNamespace);
+          }
+          fromInside.addSourcePod(pod);
           break;
         }
       }
 
-      wlFilters.push(fromFilter, fromInside);
+      wlFilters.push(toInside, fromInside);
     }
 
     if (filter.toRequired) {
       // NOTE: this makes possible to catch flows [ns] -> [outside of ns]
       // NOTE: but flows [outside of ns] -> [ns] are lost...
-      const toFilter = EventStream.baseWhitelistFilter();
-      toFilter.addSourcePod(podsInNamespace);
+      const fromInside = EventStream.baseWhitelistFilter(filters);
+      fromInside.addSourcePod(podsInNamespace);
 
       // NOTE: ...this filter fixes this last case
-      const toFromOutside = EventStream.baseWhitelistFilter();
-      toFromOutside.addDestinationPod(podsInNamespace);
+      const toInside = EventStream.baseWhitelistFilter(filters);
+      toInside.addDestinationPod(podsInNamespace);
 
       switch (kind) {
         case FilterKind.Label: {
-          toFilter.addDestinationLabel(query);
-          toFromOutside.addDestinationLabel(query);
+          fromInside.addDestinationLabel(query);
+          toInside.addDestinationLabel(query);
           break;
         }
         case FilterKind.Ip: {
-          toFilter.addDestinationIp(query);
-          toFromOutside.addDestinationIp(query);
+          fromInside.addDestinationIp(query);
+          toInside.addDestinationIp(query);
           break;
         }
         case FilterKind.Dns: {
-          toFilter.addDestinationFqdn(query);
-          toFromOutside.addDestinationFqdn(query);
+          fromInside.addDestinationFqdn(query);
+          toInside.addDestinationFqdn(query);
           break;
         }
         case FilterKind.Identity: {
-          toFilter.addDestinationIdentity(+query);
-          toFromOutside.addDestinationIdentity(+query);
+          fromInside.addDestinationIdentity(+query);
+          toInside.addDestinationIdentity(+query);
           break;
         }
         case FilterKind.Pod: {
-          toFilter.addDestinationPod(specificPodInNs);
-          toFromOutside.addDestinationPod(specificPodInNs);
+          fromInside.addDestinationPod(pod);
+          toInside.clearDestinationPodList();
+
+          if (!pod.startsWith(podsInNamespace)) {
+            toInside.addSourcePod(podsInNamespace);
+          }
+          toInside.addDestinationPod(pod);
           break;
         }
       }
 
-      wlFilters.push(toFilter, toFromOutside);
+      wlFilters.push(fromInside, toInside);
     }
 
     return wlFilters;
@@ -312,7 +327,6 @@ export class EventStream extends EventEmitter<EventStreamHandlers>
   public static buildFlowFilters(filters: Filters): FlowFilters {
     const namespace = filters?.namespace;
 
-    // const [wlSrcFilter, wlDstFilter] = [new FlowFilter(), new FlowFilter()];
     const wlFilters: FlowFilter[] = [];
     const blFilters = EventStream.buildBlacklistFlowFilters(filters);
 

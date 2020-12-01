@@ -7,7 +7,7 @@ const nextElem = (idx: number, arr: any[]) => {
   return arr[(idx + 1) % arr.length];
 };
 
-const testCommonFiltersEquality = () => {
+const testNullAndUndefinedAreNotEqualToSmth = () => {
   const namespaces: Array<undefined | null | string> = [
     undefined,
     null,
@@ -18,19 +18,96 @@ const testCommonFiltersEquality = () => {
     undefined,
     null,
     Verdict.Forwarded,
-    Verdict.Dropped,
   ];
 
   const httpStatuses: Array<undefined | null | string> = [
     undefined,
     null,
     '200',
-    '200+',
-    '400',
   ];
 
   const filters: Array<undefined | FilterEntry[]> = [
     undefined,
+    [FilterEntry.parse('from:ip=158.183.221.43')!],
+  ];
+
+  const skipHosts: Array<undefined | boolean> = [undefined, false, true];
+  const skipKubeDnss: Array<undefined | boolean> = [undefined, false, true];
+  const skipRemoteApps: Array<undefined | boolean> = [undefined, false, true];
+  const skipPrometheusApps = [undefined, false, true];
+
+  combinations
+    .arrays([
+      namespaces.length,
+      verdicts.length,
+      httpStatuses.length,
+      filters.length,
+      skipHosts.length,
+      skipKubeDnss.length,
+      skipRemoteApps.length,
+      skipPrometheusApps.length,
+    ])
+    .forEach((indices: number[], idx: number) => {
+      const [
+        nsIdx,
+        verdictIdx,
+        hsIdx,
+        filtersIdx,
+        shIdx,
+        skdIdx,
+        skrIdx,
+        skpaIdx,
+      ] = indices;
+
+      const aFilters: Filters = Filters.fromObject({
+        namespace: namespaces[nsIdx],
+        verdict: verdicts[verdictIdx],
+        httpStatus: httpStatuses[hsIdx],
+        filters: filters[filtersIdx],
+        skipHost: skipHosts[shIdx],
+        skipKubeDns: skipKubeDnss[skdIdx],
+        skipRemoteNode: skipRemoteApps[skrIdx],
+        skipPrometheusApp: skipPrometheusApps[skpaIdx],
+      });
+
+      const bFilters: Filters = Filters.fromObject({
+        namespace: nextElem(nsIdx, namespaces),
+        verdict: nextElem(verdictIdx, verdicts),
+        httpStatus: nextElem(hsIdx, httpStatuses),
+        filters: nextElem(filtersIdx, filters),
+        skipHost: nextElem(shIdx, skipHosts),
+        skipKubeDns: nextElem(skdIdx, skipKubeDnss),
+        skipRemoteNode: nextElem(skrIdx, skipRemoteApps),
+        skipPrometheusApp: nextElem(skpaIdx, skipPrometheusApps),
+      });
+
+      test(`testNullAndUndefinedAreNotEqualToSmth ${
+        idx * 2 + 1
+      } > self-equality`, () => {
+        const sameFilters = aFilters.clone();
+        expect(aFilters.equals(sameFilters)).toBe(true);
+      });
+
+      test(`testNullAndUndefinedAreNotEqualToSmth ${
+        idx * 2 + 2
+      } > inequality`, () => {
+        expect(aFilters.equals(bFilters)).toBe(false);
+      });
+    });
+};
+
+const testCommonFiltersEquality = () => {
+  const namespaces: Array<undefined | null | string> = ['random'];
+
+  const verdicts: Array<Verdict | undefined | null> = [
+    Verdict.Forwarded,
+    Verdict.Dropped,
+  ];
+
+  const httpStatuses: Array<undefined | null | string> = ['200', '200+', '400'];
+
+  const filters: Array<undefined | FilterEntry[]> = [
+    [],
     [
       FilterEntry.parse('both:dns=google.com')!,
       FilterEntry.parse('from:ip=255.255.255.255')!,
@@ -42,10 +119,10 @@ const testCommonFiltersEquality = () => {
     [FilterEntry.parse('from:ip=158.183.221.43')!],
   ];
 
-  const skipHosts: Array<undefined | boolean> = [undefined, false, true];
-  const skipKubeDnss: Array<undefined | boolean> = [undefined, false, true];
-  const skipRemoteApps: Array<undefined | boolean> = [undefined, false, true];
-  const skipPrometheusApps = [undefined, false, true];
+  const skipHosts: Array<undefined | boolean> = [false, true];
+  const skipKubeDnss: Array<undefined | boolean> = [false, true];
+  const skipRemoteApps: Array<undefined | boolean> = [false, true];
+  const skipPrometheusApps = [false, true];
 
   combinations
     .arrays([
@@ -104,5 +181,6 @@ const testCommonFiltersEquality = () => {
 };
 
 describe('filters equality check tests', () => {
+  testNullAndUndefinedAreNotEqualToSmth();
   testCommonFiltersEquality();
 });

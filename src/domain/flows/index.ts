@@ -5,6 +5,7 @@ import {
   Verdict,
   TrafficDirection,
   TCPFlags,
+  PodSelector,
 } from '~/domain/hubble';
 import { Labels, LabelsProps } from '~/domain/labels';
 import {
@@ -25,6 +26,62 @@ export class Flow {
 
   public clone(): Flow {
     return new Flow(_.cloneDeep(this.ref));
+  }
+
+  public senderHasLabelArray(label: [string, string]): boolean {
+    return !!Labels.findKVByArray(this.sourceLabels, label);
+  }
+
+  public receiverHasLabelArray(label: [string, string]): boolean {
+    return !!Labels.findKVByArray(this.destinationLabels, label);
+  }
+
+  public senderHasIp(ip: string): boolean {
+    return this.sourceIp === ip;
+  }
+
+  public receiverHasIp(ip: string): boolean {
+    return this.destinationIp === ip;
+  }
+
+  public senderHasDomain(domain: string): boolean {
+    return this.sourceNamesList.includes(domain);
+  }
+
+  public receiverHasDomain(domain: string): boolean {
+    return this.destinationNamesList.includes(domain);
+  }
+
+  public hasTCPFlag(flag: keyof TCPFlags): boolean {
+    return this.enabledTcpFlags.includes(flag);
+  }
+
+  public senderHasIdentity(identity: string | number): boolean {
+    const num = +identity;
+    if (Number.isNaN(num)) {
+      console.error('flow: senderHasIdentity check with value: ', identity);
+      return false;
+    }
+
+    return this.sourceIdentity === num;
+  }
+
+  public receiverHasIdentity(identity: string): boolean {
+    const num = +identity;
+    if (Number.isNaN(num)) {
+      console.error('flow: receiverHasIdentity check with value: ', identity);
+      return false;
+    }
+
+    return this.destinationIdentity === num;
+  }
+
+  public senderPodIs(podName: string): boolean {
+    return this.sourcePodName === podName;
+  }
+
+  public receiverPodIs(podName: string): boolean {
+    return this.destinationPodName === podName;
   }
 
   @memoize
@@ -117,8 +174,22 @@ export class Flow {
     return this.ref.source?.podName ?? null;
   }
 
+  public get sourcePodSelector(): PodSelector {
+    return {
+      pod: this.sourcePodName!,
+      namespace: this.ref.source?.namespace,
+    };
+  }
+
   public get destinationPodName() {
     return this.ref.destination?.podName ?? null;
+  }
+
+  public get destinationPodSelector(): PodSelector {
+    return {
+      pod: this.destinationPodName!,
+      namespace: this.ref.destination?.namespace,
+    };
   }
 
   public get sourcePort(): number | null {

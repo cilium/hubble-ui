@@ -25,7 +25,7 @@ import { ServiceMapCard } from '~/components/ServiceMapCard';
 import { CardComponent } from '~/components/Card';
 import { WelcomeScreen } from './WelcomeScreen';
 
-import { Verdict, TCPFlagName } from '~/domain/hubble';
+import { Verdict, TCPFlagName, PodSelector } from '~/domain/hubble';
 import { ServiceCard } from '~/domain/service-map';
 import { Vec2 } from '~/domain/geometry';
 import { KV, Labels } from '~/domain/labels';
@@ -50,6 +50,7 @@ import { DataManager, EventKind as DataManagerEvents } from './DataManager';
 
 import { Ticker } from '~/utils/ticker';
 import { sizes } from '~/ui/vars';
+import { usePrevious } from '~/ui/hooks';
 import css from './styles.scss';
 
 export interface AppProps extends RouteComponentProps {
@@ -64,6 +65,7 @@ export const App: FunctionComponent<AppProps> = observer(props => {
   const [connState, setConnState] = useState(ConnectionState.Idle);
   const [mapVisibleHeight, setMapVisibleHeight] = useState<number | null>(null);
   const [mapWasDragged, setMapWasDragged] = useState(false);
+  const previousFilters = usePrevious(store.controls.filters);
 
   const notifier = useNotifier();
   const dataManager = useMemo(() => {
@@ -181,11 +183,19 @@ export const App: FunctionComponent<AppProps> = observer(props => {
     const newNamespace = store.controls.currentNamespace;
     console.log('control filters changed: ', store.controls.filters.clone());
 
+    const changes = Filters.diff(previousFilters, store.controls.filters);
+    const flushRequired = changes.podFiltersChanged;
+    console.log('data flush required: ', flushRequired);
+
     if (dataManager.currentNamespace !== newNamespace) {
       dataManager.resetNamespace(newNamespace);
     } else {
       dataManager.dropCurrentStream();
       dataManager.setupCurrentStream(store.controls.currentNamespace);
+
+      if (flushRequired) {
+        store.flush();
+      }
     }
 
     setConnState(ConnectionState.Receiving);
@@ -240,10 +250,12 @@ export const App: FunctionComponent<AppProps> = observer(props => {
   );
 
   const onSidebarPodClick = useCallback(
-    (podName?: string, dir?: FilterDirection) => {
-      if (!podName || !dir) return store.setFlowFilters([]);
+    (podSelector?: PodSelector, dir?: FilterDirection) => {
+      if (!podSelector || !dir) return store.setFlowFilters([]);
 
-      store.setFlowFilters([FilterEntry.newPod(podName!).setDirection(dir!)]);
+      store.setFlowFilters([
+        FilterEntry.newPodSelector(podSelector!).setDirection(dir!),
+      ]);
     },
     [],
   );

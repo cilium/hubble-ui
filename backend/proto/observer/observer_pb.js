@@ -12,6 +12,8 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
+var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
+goog.object.extend(proto, google_protobuf_wrappers_pb);
 var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/timestamp_pb.js');
 goog.object.extend(proto, google_protobuf_timestamp_pb);
 var flow_flow_pb = require('../flow/flow_pb.js');
@@ -55,7 +57,7 @@ if (goog.DEBUG && !COMPILED) {
  * @constructor
  */
 proto.observer.ServerStatusResponse = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.observer.ServerStatusResponse.repeatedFields_, null);
 };
 goog.inherits(proto.observer.ServerStatusResponse, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -209,6 +211,13 @@ proto.observer.ServerStatusRequest.serializeBinaryToWriter = function(message, w
 
 
 
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.observer.ServerStatusResponse.repeatedFields_ = [7];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -243,7 +252,10 @@ proto.observer.ServerStatusResponse.toObject = function(includeInstance, msg) {
     numFlows: jspb.Message.getFieldWithDefault(msg, 1, 0),
     maxFlows: jspb.Message.getFieldWithDefault(msg, 2, 0),
     seenFlows: jspb.Message.getFieldWithDefault(msg, 3, 0),
-    uptimeNs: jspb.Message.getFieldWithDefault(msg, 4, 0)
+    uptimeNs: jspb.Message.getFieldWithDefault(msg, 4, 0),
+    numConnectedNodes: (f = msg.getNumConnectedNodes()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
+    numUnavailableNodes: (f = msg.getNumUnavailableNodes()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
+    unavailableNodesList: (f = jspb.Message.getRepeatedField(msg, 7)) == null ? undefined : f
   };
 
   if (includeInstance) {
@@ -295,6 +307,20 @@ proto.observer.ServerStatusResponse.deserializeBinaryFromReader = function(msg, 
     case 4:
       var value = /** @type {number} */ (reader.readUint64());
       msg.setUptimeNs(value);
+      break;
+    case 5:
+      var value = new google_protobuf_wrappers_pb.UInt32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
+      msg.setNumConnectedNodes(value);
+      break;
+    case 6:
+      var value = new google_protobuf_wrappers_pb.UInt32Value;
+      reader.readMessage(value,google_protobuf_wrappers_pb.UInt32Value.deserializeBinaryFromReader);
+      msg.setNumUnavailableNodes(value);
+      break;
+    case 7:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addUnavailableNodes(value);
       break;
     default:
       reader.skipField();
@@ -350,6 +376,29 @@ proto.observer.ServerStatusResponse.serializeBinaryToWriter = function(message, 
   if (f !== 0) {
     writer.writeUint64(
       4,
+      f
+    );
+  }
+  f = message.getNumConnectedNodes();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
+    );
+  }
+  f = message.getNumUnavailableNodes();
+  if (f != null) {
+    writer.writeMessage(
+      6,
+      f,
+      google_protobuf_wrappers_pb.UInt32Value.serializeBinaryToWriter
+    );
+  }
+  f = message.getUnavailableNodesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      7,
       f
     );
   }
@@ -425,6 +474,117 @@ proto.observer.ServerStatusResponse.prototype.getUptimeNs = function() {
  */
 proto.observer.ServerStatusResponse.prototype.setUptimeNs = function(value) {
   return jspb.Message.setProto3IntField(this, 4, value);
+};
+
+
+/**
+ * optional google.protobuf.UInt32Value num_connected_nodes = 5;
+ * @return {?proto.google.protobuf.UInt32Value}
+ */
+proto.observer.ServerStatusResponse.prototype.getNumConnectedNodes = function() {
+  return /** @type{?proto.google.protobuf.UInt32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt32Value, 5));
+};
+
+
+/**
+ * @param {?proto.google.protobuf.UInt32Value|undefined} value
+ * @return {!proto.observer.ServerStatusResponse} returns this
+*/
+proto.observer.ServerStatusResponse.prototype.setNumConnectedNodes = function(value) {
+  return jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.observer.ServerStatusResponse} returns this
+ */
+proto.observer.ServerStatusResponse.prototype.clearNumConnectedNodes = function() {
+  return this.setNumConnectedNodes(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.observer.ServerStatusResponse.prototype.hasNumConnectedNodes = function() {
+  return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional google.protobuf.UInt32Value num_unavailable_nodes = 6;
+ * @return {?proto.google.protobuf.UInt32Value}
+ */
+proto.observer.ServerStatusResponse.prototype.getNumUnavailableNodes = function() {
+  return /** @type{?proto.google.protobuf.UInt32Value} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.UInt32Value, 6));
+};
+
+
+/**
+ * @param {?proto.google.protobuf.UInt32Value|undefined} value
+ * @return {!proto.observer.ServerStatusResponse} returns this
+*/
+proto.observer.ServerStatusResponse.prototype.setNumUnavailableNodes = function(value) {
+  return jspb.Message.setWrapperField(this, 6, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.observer.ServerStatusResponse} returns this
+ */
+proto.observer.ServerStatusResponse.prototype.clearNumUnavailableNodes = function() {
+  return this.setNumUnavailableNodes(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.observer.ServerStatusResponse.prototype.hasNumUnavailableNodes = function() {
+  return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * repeated string unavailable_nodes = 7;
+ * @return {!Array<string>}
+ */
+proto.observer.ServerStatusResponse.prototype.getUnavailableNodesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 7));
+};
+
+
+/**
+ * @param {!Array<string>} value
+ * @return {!proto.observer.ServerStatusResponse} returns this
+ */
+proto.observer.ServerStatusResponse.prototype.setUnavailableNodesList = function(value) {
+  return jspb.Message.setField(this, 7, value || []);
+};
+
+
+/**
+ * @param {string} value
+ * @param {number=} opt_index
+ * @return {!proto.observer.ServerStatusResponse} returns this
+ */
+proto.observer.ServerStatusResponse.prototype.addUnavailableNodes = function(value, opt_index) {
+  return jspb.Message.addToRepeatedField(this, 7, value, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.observer.ServerStatusResponse} returns this
+ */
+proto.observer.ServerStatusResponse.prototype.clearUnavailableNodesList = function() {
+  return this.setUnavailableNodesList([]);
 };
 
 
@@ -812,7 +972,7 @@ proto.observer.GetFlowsRequest.prototype.hasUntil = function() {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.observer.GetFlowsResponse.oneofGroups_ = [[1,2]];
+proto.observer.GetFlowsResponse.oneofGroups_ = [[1,2,3]];
 
 /**
  * @enum {number}
@@ -820,7 +980,8 @@ proto.observer.GetFlowsResponse.oneofGroups_ = [[1,2]];
 proto.observer.GetFlowsResponse.ResponseTypesCase = {
   RESPONSE_TYPES_NOT_SET: 0,
   FLOW: 1,
-  NODE_STATUS: 2
+  NODE_STATUS: 2,
+  LOST_EVENTS: 3
 };
 
 /**
@@ -863,6 +1024,7 @@ proto.observer.GetFlowsResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
     flow: (f = msg.getFlow()) && flow_flow_pb.Flow.toObject(includeInstance, f),
     nodeStatus: (f = msg.getNodeStatus()) && relay_relay_pb.NodeStatusEvent.toObject(includeInstance, f),
+    lostEvents: (f = msg.getLostEvents()) && flow_flow_pb.LostEvent.toObject(includeInstance, f),
     nodeName: jspb.Message.getFieldWithDefault(msg, 1000, ""),
     time: (f = msg.getTime()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f)
   };
@@ -910,6 +1072,11 @@ proto.observer.GetFlowsResponse.deserializeBinaryFromReader = function(msg, read
       var value = new relay_relay_pb.NodeStatusEvent;
       reader.readMessage(value,relay_relay_pb.NodeStatusEvent.deserializeBinaryFromReader);
       msg.setNodeStatus(value);
+      break;
+    case 3:
+      var value = new flow_flow_pb.LostEvent;
+      reader.readMessage(value,flow_flow_pb.LostEvent.deserializeBinaryFromReader);
+      msg.setLostEvents(value);
       break;
     case 1000:
       var value = /** @type {string} */ (reader.readString());
@@ -963,6 +1130,14 @@ proto.observer.GetFlowsResponse.serializeBinaryToWriter = function(message, writ
       2,
       f,
       relay_relay_pb.NodeStatusEvent.serializeBinaryToWriter
+    );
+  }
+  f = message.getLostEvents();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      flow_flow_pb.LostEvent.serializeBinaryToWriter
     );
   }
   f = message.getNodeName();
@@ -1054,6 +1229,43 @@ proto.observer.GetFlowsResponse.prototype.clearNodeStatus = function() {
  */
 proto.observer.GetFlowsResponse.prototype.hasNodeStatus = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional flow.LostEvent lost_events = 3;
+ * @return {?proto.flow.LostEvent}
+ */
+proto.observer.GetFlowsResponse.prototype.getLostEvents = function() {
+  return /** @type{?proto.flow.LostEvent} */ (
+    jspb.Message.getWrapperField(this, flow_flow_pb.LostEvent, 3));
+};
+
+
+/**
+ * @param {?proto.flow.LostEvent|undefined} value
+ * @return {!proto.observer.GetFlowsResponse} returns this
+*/
+proto.observer.GetFlowsResponse.prototype.setLostEvents = function(value) {
+  return jspb.Message.setOneofWrapperField(this, 3, proto.observer.GetFlowsResponse.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.observer.GetFlowsResponse} returns this
+ */
+proto.observer.GetFlowsResponse.prototype.clearLostEvents = function() {
+  return this.setLostEvents(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.observer.GetFlowsResponse.prototype.hasLostEvents = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

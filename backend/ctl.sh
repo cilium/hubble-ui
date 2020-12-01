@@ -2,13 +2,8 @@
 set -e
 
 CWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-CILIUM_VERSION="v1.8.2"
-CILIUM_API="$GOPATH/pkg/mod/github.com/cilium/cilium@$CILIUM_VERSION/api/v1"
-if [ ! -d "$CILIUM_API" ]; then
-    CILIUM_API="$GOPATH/src/github.com/cilium/cilium@$CILIUM_VERSION/api/v1"
-fi
 
-CILIUM_MOD_VERSION="$(go list -m all | grep cilium/cilium | awk '{print $2}')"
+CILIUM_DIR=$(go list -f "{{ .Dir }}" -m github.com/cilium/cilium)
 
 PROTOC_GEN_GRPC_WEB_PATH="${CWD}/../node_modules/.bin/protoc-gen-grpc-web"
 PROTOC_GO_PLUGIN="--plugin $GOPATH/bin/protoc-gen-go"
@@ -65,14 +60,14 @@ function check_outer_dependencies() {
         exit 1
     fi
 
-    if [ "$CILIUM_MOD_VERSION" != "$CILIUM_VERSION" ]; then
-        go mod download
-    fi
+    go mod download
 }
 
 function build_proto_inner() {
     mkdir -p proto
-    cp -R $CILIUM_API/{observer,flow,relay,external} ./proto
+    rm -rf ./proto/{observer,flow,relay}
+
+    cp -R $CILIUM_DIR/api/v1/{observer,flow,relay} ./proto
     chmod +w -R ./proto
     rm -rf ./proto/{observer,flow,relay,ui}/*.go
 
@@ -86,8 +81,7 @@ function build_proto_inner() {
 
     $PROTOC $PROTOC_GO_PLUGIN \
         -I ./proto \
-        -I ./proto/external \
-        --go_out=plugins=grpc,$GO_MAPPINGS:./proto \
+        --go_out=plugins=grpc,paths=source_relative,$GO_MAPPINGS:./proto \
         ./proto/flow/flow.proto \
         ./proto/observer/observer.proto \
         ./proto/relay/relay.proto \
@@ -95,13 +89,14 @@ function build_proto_inner() {
 
     $PROTOC $PROTOC_WEB_PLUGIN \
         -I ./proto \
-        -I ./proto/external \
         --js_out="import_style=commonjs,binary:./proto" \
         --grpc-web_out="import_style=commonjs+dts,mode=grpcwebtext:./proto" \
         ./proto/flow/flow.proto \
         ./proto/observer/observer.proto \
         ./proto/relay/relay.proto \
         ./proto/ui/*.proto
+
+    chmod +w -R ./proto
 }
 
 function update_proto() {
