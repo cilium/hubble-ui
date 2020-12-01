@@ -8,17 +8,19 @@ import {
 import { Link, Service, ServiceCard } from '~/domain/service-map';
 import { Connections } from '~/domain/interactions/connections';
 import { Labels } from '~/domain/labels';
-import { Filters, FiltersObject } from './filters';
+import { Filters, FiltersObject, FiltersKey } from './filters';
 
 import { filterFlow, filterFlowByEntry } from './filter-flow';
 import { filterLink, filterLinkByEntry } from './filter-link';
 import { filterService, filterServiceByEntry } from './filter-service';
+import { diffFilters, FiltersDiff } from './filters-diff';
 
-export { Filters, FiltersObject };
+export { Filters, FiltersObject, FiltersKey };
 export { FilterEntry, FilterKind, FilterDirection };
 export { filterFlow, filterFlowByEntry };
 export { filterLink, filterLinkByEntry };
 export { filterService, filterServiceByEntry };
+export { diffFilters, FiltersDiff };
 
 export type FilterResult = {
   flows: Flow[];

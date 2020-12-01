@@ -3,7 +3,7 @@ import classnames from 'classnames';
 
 import { Flow } from '~/domain/flows';
 import { FilterDirection, FilterEntry, FilterKind } from '~/domain/filtering';
-import { TCPFlags, TCPFlagName, Verdict } from '~/domain/hubble';
+import { TCPFlags, TCPFlagName, Verdict, PodSelector } from '~/domain/hubble';
 import { KV } from '~/domain/misc';
 
 import css from './styles.scss';
@@ -228,17 +228,17 @@ export const IdentityEntry = memo<IdentityItemProps>(
 );
 
 export interface PodItemProps {
-  pod: string;
+  podSelector: PodSelector;
   isSelected: boolean;
-  onClick?: (podName: string) => void;
+  onClick?: (_: PodSelector) => void;
 }
 
 export const PodEntry = memo<PodItemProps>(function FlowsTableSidebarPodEntry(
   props,
 ) {
   const onClick = useCallback(() => {
-    props.onClick?.(props.pod);
-  }, [props.pod, props.onClick]);
+    props.onClick?.(props.podSelector);
+  }, [props.podSelector, props.onClick]);
 
   const className = classnames(css.podd, {
     [css.clickable]: !!props.onClick,
@@ -247,7 +247,7 @@ export const PodEntry = memo<PodItemProps>(function FlowsTableSidebarPodEntry(
 
   return (
     <span className={className} onClick={onClick}>
-      {props.pod}
+      {props.podSelector.pod}
     </span>
   );
 });

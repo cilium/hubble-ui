@@ -146,4 +146,40 @@ describe('correct strings parsing', () => {
     FilterKind.Identity,
     '12345',
   );
+
+  parse(
+    'correct 15',
+    'from:pod=random',
+    true,
+    FilterDirection.From,
+    FilterKind.Pod,
+    'random',
+  );
+
+  parse(
+    'correct 16',
+    'to:pod=random',
+    true,
+    FilterDirection.To,
+    FilterKind.Pod,
+    'random',
+  );
+
+  parse(
+    'correct 17',
+    'both:pod=random',
+    true,
+    FilterDirection.Both,
+    FilterKind.Pod,
+    'random',
+  );
+
+  parse(
+    'correct 19',
+    'pod=random',
+    true,
+    FilterDirection.Both,
+    FilterKind.Pod,
+    'random',
+  );
 });

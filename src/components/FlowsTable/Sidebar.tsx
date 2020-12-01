@@ -3,7 +3,7 @@ import React, { memo, useCallback, useMemo, useEffect, useState } from 'react';
 
 import { Flow, Verdict } from '~/domain/flows';
 import { Filters, FilterEntry, FilterDirection } from '~/domain/filtering';
-import { TCPFlagName } from '~/domain/hubble';
+import { TCPFlagName, PodSelector } from '~/domain/hubble';
 import { KV, Labels } from '~/domain/labels';
 
 import {
@@ -25,7 +25,7 @@ export interface Props {
   onVerdictClick?: (verdict: Verdict | null) => void;
   onTcpFlagClick?: (flag?: TCPFlagName, direction?: FilterDirection) => void;
   onLabelClick?: (label?: KV, direction?: FilterDirection) => void;
-  onPodClick?: (podName?: string, direction?: FilterDirection) => void;
+  onPodClick?: (podSelector?: PodSelector, direction?: FilterDirection) => void;
   onIdentityClick?: (identity?: string, direction?: FilterDirection) => void;
   onIpClick?: (ip?: string, direction?: FilterDirection) => void;
   onDnsClick?: (dns?: string) => void;
@@ -197,27 +197,27 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
   );
 
   const onSourcePodNameClick = useCallback(
-    (podName: string) => {
-      const isSelected = podSelection.has(podName);
+    (podSelector: PodSelector) => {
+      const isSelected = podSelection.has(podSelector.pod);
 
       if (isSelected) {
         return props.onPodClick?.();
       }
 
-      props.onPodClick?.(podName, FilterDirection.From);
+      props.onPodClick?.(podSelector, FilterDirection.From);
     },
     [podSelection, props.flow, props.onPodClick],
   );
 
   const onDestPodNameClick = useCallback(
-    (podName: string) => {
-      const isSelected = podSelection.has(podName);
+    (podSelector: PodSelector) => {
+      const isSelected = podSelection.has(podSelector.pod);
 
       if (isSelected) {
         return props.onPodClick?.();
       }
 
-      props.onPodClick?.(podName, FilterDirection.To);
+      props.onPodClick?.(podSelector, FilterDirection.To);
     },
     [props.onPodClick, podSelection],
   );
@@ -329,7 +329,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
           <span className={css.title}>Source pod</span>
           <div className={css.body}>
             <PodEntry
-              pod={flow.sourcePodName}
+              podSelector={flow.sourcePodSelector}
               isSelected={podSelection.has(flow.sourcePodName)}
               onClick={onSourcePodNameClick}
             />
@@ -378,7 +378,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
           <span className={css.title}>Destination pod</span>
           <div className={css.body}>
             <PodEntry
-              pod={flow.destinationPodName}
+              podSelector={flow.destinationPodSelector}
               isSelected={podSelection.has(flow.destinationPodName)}
               onClick={onDestPodNameClick}
             />

@@ -17,4 +17,7 @@ export const filterEntries = {
   fromLabelWorld: FilterEntry.parse(`from:label=${ReservedLabel.World}`),
   toLabelWorld: FilterEntry.parse(`to:label=${ReservedLabel.World}`),
   bothLabelWorld: FilterEntry.parse(`both:label=${ReservedLabel.World}`),
+  fromPodCrawler: FilterEntry.parse(`from:pod=crawler-864b5f8656-np5jj`),
+  toPodCrawler: FilterEntry.parse(`to:pod=crawler-864b5f8656-np5jj`),
+  bothPodCrawler: FilterEntry.parse(`both:pod=crawler-864b5f8656-np5jj`),
 };

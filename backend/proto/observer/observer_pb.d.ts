@@ -1,5 +1,6 @@
 import * as jspb from "google-protobuf"
 
+import * as google_protobuf_wrappers_pb from 'google-protobuf/google/protobuf/wrappers_pb';
 import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb';
 import * as flow_flow_pb from '../flow/flow_pb';
 import * as relay_relay_pb from '../relay/relay_pb';
@@ -31,6 +32,21 @@ export class ServerStatusResponse extends jspb.Message {
   getUptimeNs(): number;
   setUptimeNs(value: number): ServerStatusResponse;
 
+  getNumConnectedNodes(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+  setNumConnectedNodes(value?: google_protobuf_wrappers_pb.UInt32Value): ServerStatusResponse;
+  hasNumConnectedNodes(): boolean;
+  clearNumConnectedNodes(): ServerStatusResponse;
+
+  getNumUnavailableNodes(): google_protobuf_wrappers_pb.UInt32Value | undefined;
+  setNumUnavailableNodes(value?: google_protobuf_wrappers_pb.UInt32Value): ServerStatusResponse;
+  hasNumUnavailableNodes(): boolean;
+  clearNumUnavailableNodes(): ServerStatusResponse;
+
+  getUnavailableNodesList(): Array<string>;
+  setUnavailableNodesList(value: Array<string>): ServerStatusResponse;
+  clearUnavailableNodesList(): ServerStatusResponse;
+  addUnavailableNodes(value: string, index?: number): ServerStatusResponse;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ServerStatusResponse.AsObject;
   static toObject(includeInstance: boolean, msg: ServerStatusResponse): ServerStatusResponse.AsObject;
@@ -45,6 +61,9 @@ export namespace ServerStatusResponse {
     maxFlows: number,
     seenFlows: number,
     uptimeNs: number,
+    numConnectedNodes?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+    numUnavailableNodes?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
+    unavailableNodesList: Array<string>,
   }
 }
 
@@ -105,6 +124,11 @@ export class GetFlowsResponse extends jspb.Message {
   hasNodeStatus(): boolean;
   clearNodeStatus(): GetFlowsResponse;
 
+  getLostEvents(): flow_flow_pb.LostEvent | undefined;
+  setLostEvents(value?: flow_flow_pb.LostEvent): GetFlowsResponse;
+  hasLostEvents(): boolean;
+  clearLostEvents(): GetFlowsResponse;
+
   getNodeName(): string;
   setNodeName(value: string): GetFlowsResponse;
 
@@ -127,6 +151,7 @@ export namespace GetFlowsResponse {
   export type AsObject = {
     flow?: flow_flow_pb.Flow.AsObject,
     nodeStatus?: relay_relay_pb.NodeStatusEvent.AsObject,
+    lostEvents?: flow_flow_pb.LostEvent.AsObject,
     nodeName: string,
     time?: google_protobuf_timestamp_pb.Timestamp.AsObject,
   }
@@ -135,6 +160,7 @@ export namespace GetFlowsResponse {
     RESPONSE_TYPES_NOT_SET = 0,
     FLOW = 1,
     NODE_STATUS = 2,
+    LOST_EVENTS = 3,
   }
 }
 

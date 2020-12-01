@@ -1,5 +1,6 @@
 import { Verdict } from '~/domain/flows';
 import { FilterEntry } from './filter-entry';
+import { diffFilters, FiltersDiff } from './filters-diff';
 
 const assignFilterProps = (to: FiltersObject, from: FiltersObject) => {
   Object.assign(to, {
@@ -27,15 +28,17 @@ export interface FiltersObject {
   skipPrometheusApp?: boolean;
 }
 
+export type FiltersKey = keyof FiltersObject;
+
 const defaultFilters: FiltersObject = Object.freeze({
   namespace: null,
   verdict: null,
   httpStatus: null,
   filters: [],
-  skipHost: true,
-  skipKubeDns: true,
-  skipRemoteNode: true,
-  skipPrometheusApp: true,
+  skipHost: false,
+  skipKubeDns: false,
+  skipRemoteNode: false,
+  skipPrometheusApp: false,
 });
 
 export class Filters implements FiltersObject {
@@ -58,6 +61,10 @@ export class Filters implements FiltersObject {
 
   public static default(): Filters {
     return new Filters(defaultFilters);
+  }
+
+  public static diff(lhs?: Filters | null, rhs?: Filters | null): FiltersDiff {
+    return diffFilters(lhs, rhs);
   }
 
   constructor(obj: FiltersObject) {
@@ -114,17 +121,5 @@ export class Filters implements FiltersObject {
     }
 
     return Filters.fromObject(shallowObj);
-  }
-
-  public get isDefault(): boolean {
-    return (
-      this.verdict == defaultFilters.verdict &&
-      this.httpStatus == defaultFilters.httpStatus &&
-      (this.filters == null || this.filters.length === 0) &&
-      !!this.skipHost === defaultFilters.skipHost &&
-      !!this.skipKubeDns === defaultFilters.skipKubeDns &&
-      !!this.skipRemoteNode === defaultFilters.skipRemoteNode &&
-      !!this.skipPrometheusApp === defaultFilters.skipPrometheusApp
-    );
   }
 }

@@ -168,6 +168,11 @@ export interface Service {
   namespace: string;
 }
 
+export interface PodSelector {
+  pod: string;
+  namespace?: string;
+}
+
 export enum Verdict {
   Unknown = 0,
   Forwarded = 1,
