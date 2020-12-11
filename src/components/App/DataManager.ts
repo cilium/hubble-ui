@@ -96,10 +96,7 @@ export class DataManager extends EventEmitter<Events> {
   }
 
   public setupInitialStream() {
-    const stream = this.api.v1.getEventStream({
-      ...EventParamsSet.Namespaces,
-      status: true,
-    });
+    const stream = this.api.v1.getEventStream(EventParamsSet.Namespaces);
 
     this.setupGeneralEventHandlers(stream);
     this.setupNamespaceEventHandlers(stream);

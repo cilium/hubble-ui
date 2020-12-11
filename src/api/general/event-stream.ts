@@ -22,7 +22,7 @@ export const EventParamsSet = {
     namespaces: true,
     services: true,
     serviceLinks: true,
-    status: false,
+    status: true,
   },
   Namespaces: {
     flow: false,
@@ -30,7 +30,7 @@ export const EventParamsSet = {
     namespaces: true,
     services: false,
     serviceLinks: false,
-    status: false,
+    status: true,
   },
 };
 
