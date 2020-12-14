@@ -66,26 +66,6 @@ export abstract class PlacementStrategy {
   }
 
   @action.bound
-  public initUninitializedCard(cardId: string) {
-    // const defaults = PlacementStrategy.defaultCardXYWH();
-    const defaults = this.defaultCardXYWH();
-
-    if (!this.cardsXYs.has(cardId)) {
-      this.cardsXYs.set(cardId, {
-        x: defaults.x,
-        y: defaults.y,
-      });
-    }
-
-    if (!this.cardsWHs.has(cardId)) {
-      this.cardsWHs.set(cardId, {
-        w: defaults.w,
-        h: defaults.h,
-      });
-    }
-  }
-
-  @action.bound
   public defaultCardXYWH(): XYWH {
     return new XYWH(0, 0, this.defaultCardW, this.defaultCardH);
   }
@@ -134,8 +114,8 @@ export abstract class PlacementStrategy {
   get cardsBBoxes(): Map<string, XYWH> {
     const bboxes = new Map();
 
-    this.cardsDimensions.forEach((dims: WH, cardId: string) => {
-      const coords = this.cardsCoords.get(cardId);
+    this.cardsWHs.forEach((dims: WH, cardId: string) => {
+      const coords = this.cardsXYs.get(cardId);
       if (coords == null) return;
 
       bboxes.set(cardId, XYWH.fromParts(coords, dims));

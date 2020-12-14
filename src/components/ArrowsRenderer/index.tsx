@@ -3,6 +3,7 @@ import _ from 'lodash';
 import { observer } from 'mobx-react';
 import React, { FunctionComponent, useEffect, useRef } from 'react';
 
+import { tooSmall } from '~/domain/misc';
 import { Line2, utils as gutils, Vec2 } from '~/domain/geometry';
 import {
   Arrow,
@@ -173,7 +174,7 @@ const startPlatesUpdate = (update: any) => {
   });
 };
 
-const arrowTriangle = (handle: [Vec2, Vec2] | null): string => {
+export const arrowTriangle = (handle: [Vec2, Vec2] | null): string => {
   if (handle == null) return '';
 
   const [start, end] = handle;
@@ -185,8 +186,7 @@ const arrowTriangle = (handle: [Vec2, Vec2] | null): string => {
   const baseA = start.add(side);
   const baseB = start.sub(side);
 
-  const criteria = (baseA.x - baseB.x) * (end.y - start.y);
-  const sweep = criteria <= 0 ? 0 : 1;
+  const sweep = gutils.pointSideOfLine(start, end, baseA) > 0 ? 0 : 1;
 
   const r = 2;
   const [ar1, ar2] = gutils.roundCorner(r, [start, baseA, end]);

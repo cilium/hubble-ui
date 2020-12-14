@@ -64,8 +64,11 @@ func (srv *UIServer) RunStatusChecker(req *ui.GetStatusRequest) (
 		}
 	F:
 		for {
+			var lastError error = nil
+
 			select {
 			case <-ctx.Done():
+				log.Infof("hubble status checker: stopped\n")
 				break F
 			case <-ticker:
 				if time.Since(lastCheck) < delay {
@@ -74,12 +77,42 @@ func (srv *UIServer) RunStatusChecker(req *ui.GetStatusRequest) (
 
 				resp, err := srv.GetStatus(ctx, req)
 				if err != nil {
+					lastError = err
 					sendError(err)
-					continue F
+					break
 				}
 
 				sendResponse(resp)
 				lastCheck = time.Now()
+
+				continue F
+			}
+
+			retries := srv.newRetries()
+			for {
+				if !srv.IsGrpcUnavailable(lastError) {
+					break F
+				}
+
+				err := retries.Wait(ctx)
+				if err != nil {
+					continue F
+				}
+
+				resp, err := srv.GetStatus(ctx, req)
+				if err != nil {
+					sendError(err)
+					lastError = err
+					continue
+				}
+
+				lastCheck = time.Now()
+				log.Infof("hubble status checker: connection to hubble-relay established\n")
+				if resp != nil {
+					sendResponse(resp)
+				}
+
+				continue F
 			}
 		}
 

@@ -3,27 +3,23 @@ import React, { memo, useCallback } from 'react';
 
 import { usePopover } from '~/ui/hooks/usePopover';
 
-import {
-  CommonProps,
-  FlowsTableColumnKey,
-  FLOWS_TABLE_COLUMNS,
-  getFlowsTableColumnLabel,
-} from './general';
+import { CommonProps, Column, columnKeys, getColumnLabel } from './general';
 
 export interface Props extends CommonProps {
-  toggleColumn: (column: FlowsTableColumnKey) => void;
+  visibleColumns: Set<Column>;
+  onToggleColumn?: (column: Column) => void;
 }
 
 export const FlowsTableColumnsSelector = memo<Props>(
   function FlowsTableColumnsSelector(props) {
     const popover = usePopover();
 
-    const menuItems = FLOWS_TABLE_COLUMNS.map(column => (
+    const menuItems = Object.values(Column).map(column => (
       <Item
         key={column}
         column={column}
-        checked={props.isVisibleColumn?.(column) ?? false}
-        onChange={props.toggleColumn}
+        checked={props.visibleColumns.has(column)}
+        onChange={c => props.onToggleColumn?.(c)}
       />
     ));
 
@@ -42,14 +38,14 @@ export const FlowsTableColumnsSelector = memo<Props>(
 );
 
 interface ItemProps {
-  column: FlowsTableColumnKey;
+  column: Column;
   checked: boolean;
-  onChange: (column: FlowsTableColumnKey) => void;
+  onChange?: (column: Column) => void;
 }
 
 const Item = memo<ItemProps>(function ColumnsSelectorItem(props) {
   const onChange = useCallback(() => {
-    props.onChange(props.column);
+    props.onChange?.(props.column);
   }, [props.onChange]);
 
   return (
@@ -57,7 +53,7 @@ const Item = memo<ItemProps>(function ColumnsSelectorItem(props) {
       shouldDismissPopover={false}
       text={
         <Checkbox
-          label={getFlowsTableColumnLabel(props.column)}
+          label={getColumnLabel(props.column)}
           checked={props.checked}
           onChange={onChange}
         />

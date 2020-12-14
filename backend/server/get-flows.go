@@ -30,16 +30,15 @@ func (srv *UIServer) GetFlows(req *ui.GetEventsRequest) (
 
 	var flowStream FlowStream = nil
 	retry := func(attempt int) error {
-		if attempt > 1 {
-			log.Warnf("GetFlows: attempt #%d\n", attempt)
-		}
+		log.Infof("fetching hubble flows: connecting to hubble-relay (attempt #%d)\n", attempt)
 
 		fs, err := srv.hubbleClient.GetFlows(ctx, flowsRequest)
 		if err != nil {
+			log.Errorf("fetching hubble flows: connecting to hubble-relay (attempt #%d) failed: %v\n", attempt, err)
 			return err
 		}
 
-		log.Infof("GetFlows: connection established\n")
+		log.Infof("fetching hubble flows: connection to hubble-relay established\n")
 		flowStream = fs
 		return nil
 	}
@@ -97,7 +96,7 @@ func (srv *UIServer) GetFlows(req *ui.GetEventsRequest) (
 
 		close(errors)
 		close(responses)
-		log.Infof("GetFlows: stream is canceled\n")
+		log.Infof("fetching hubble flows: stream (ui backend <-> hubble-relay) is closed\n")
 	}()
 
 	return cancel, responses, errors

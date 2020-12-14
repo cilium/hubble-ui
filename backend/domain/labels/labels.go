@@ -1,6 +1,8 @@
 package labels
 
-import "strings"
+import (
+	"strings"
+)
 
 type ReservedLabel string
 type SpecialLabel string

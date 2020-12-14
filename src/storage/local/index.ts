@@ -1,4 +1,4 @@
-import { FlowsTableColumnKey } from '~/components/FlowsTable/general';
+import { Column as FlowsTableColumn } from '~/components/FlowsTable/general';
 
 const LAST_NAMESPACE_KEY = '@hubble-ui/namespace';
 const FLOWS_TABLE_VISIBLE_COLUMNS_KEY = '@hubble-ui/flowstable-visible-columns';
@@ -20,13 +20,17 @@ export function deleteLastNamespace() {
   localStorage.removeItem(LAST_NAMESPACE_KEY);
 }
 
-export function getFlowsTableVisibleColumns(): Set<FlowsTableColumnKey> | null {
+export function getFlowsTableVisibleColumns(): Set<FlowsTableColumn> | null {
   const val = localStorage.getItem(FLOWS_TABLE_VISIBLE_COLUMNS_KEY);
   if (!val) return null;
-  return new Set<FlowsTableColumnKey>(JSON.parse(val));
+
+  const arr = JSON.parse(val);
+  if (!Array.isArray(arr)) return null;
+
+  return new Set<FlowsTableColumn>(arr);
 }
 
-export function saveFlowsTableVisibleColumns(clmns: Set<FlowsTableColumnKey>) {
+export function saveFlowsTableVisibleColumns(clmns: Set<FlowsTableColumn>) {
   localStorage.setItem(
     FLOWS_TABLE_VISIBLE_COLUMNS_KEY,
     JSON.stringify(Array.from(clmns)),

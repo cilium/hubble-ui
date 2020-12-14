@@ -58,3 +58,15 @@ export const roundCorner = (
 
   return [roundStart, roundEnd, angle];
 };
+
+// NOTE: this function returns 0 if point is on line [start, end]
+// 1 if point is on right side relative to direction from start to end
+// -1 otherwise
+export const pointSideOfLine = (start: XY, end: XY, point: XY): -1 | 0 | 1 => {
+  const a = (end.x - start.x) * (point.y - start.y);
+  const b = (end.y - start.y) * (point.x - start.x);
+  const result = a - b;
+
+  // NOTE: this strange check is for case when -0 === 0
+  return Math.sign(result === 0 ? 0 : result) as -1 | 0 | 1;
+};

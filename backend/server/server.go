@@ -99,7 +99,7 @@ func (srv *UIServer) SetupGrpcClient() error {
 		return err
 	}
 
-	log.Infof("hubble grpc client successfully created (%s)\n", srv.relayAddr)
+	log.Infof("hubble-relay grpc client created, relayAddr: %s\n", srv.relayAddr)
 	srv.hubbleClient = observer.NewObserverClient(conn)
 	srv.grpcConnection = conn
 
@@ -114,23 +114,20 @@ func (srv *UIServer) RetryIfGrpcUnavailable(
 
 	retries := srv.newRetries()
 	for {
-		err := retries.Wait(ctx)
-		if err != nil {
-			return err
-		}
-
-		err = grpcOperation(attempt)
+		err := grpcOperation(attempt)
 		if err == nil {
 			return nil
 		}
-		attempt += 1
 
-		if srv.IsGrpcUnavailable(err) {
-			log.Errorf("grpc: unavailable err: %v\n", srv.grpcConnection.GetState())
-			continue
+		if !srv.IsGrpcUnavailable(err) {
+			return err
 		}
 
-		return err
+		attempt += 1
+		err = retries.Wait(ctx)
+		if err != nil {
+			return err
+		}
 	}
 }
 

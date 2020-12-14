@@ -8,6 +8,7 @@ import {
   OnFlowsDiffCount,
   TickerEvents,
   DEFAULT_TS_UPDATE_DELAY,
+  Column,
 } from '~/components/FlowsTable';
 
 import {
@@ -15,7 +16,6 @@ import {
   Props as SidebarProps,
 } from '~/components/FlowsTable/Sidebar';
 
-import { useFlowsTableColumns } from '~/components/FlowsTable/hooks/useColumns';
 import { LoadingOverlay } from '~/components/Misc/LoadingOverlay';
 
 import { usePanelResize, ResizeProps } from './hooks/usePanelResize';
@@ -26,11 +26,13 @@ export { DEFAULT_TS_UPDATE_DELAY, TickerEvents, OnFlowsDiffCount };
 
 interface PanelProps {
   isStreaming: boolean;
+  flowsTableVisibleColumns: Set<Column>;
   onPanelResize?: (resizeProps: ResizeProps) => void;
   onStreamStop?: () => void;
+  onFlowsTableColumnToggle?: (_: Column) => void;
 }
 
-type TableProps = Omit<FlowsTableProps, 'isVisibleColumn'>;
+type TableProps = Omit<FlowsTableProps, 'visibleColumns'>;
 
 export type Props = PanelProps &
   TableProps & {
@@ -47,7 +49,7 @@ export type Props = PanelProps &
 
 export const DetailsPanelComponent = function (props: Props) {
   const panelResize = usePanelResize();
-  const flowsTableColumns = useFlowsTableColumns();
+  // const flowsTableColumns = useFlowsTableColumns();
 
   const onStreamStop = useCallback(() => {
     props.onStreamStop?.();
@@ -63,8 +65,8 @@ export const DetailsPanelComponent = function (props: Props) {
     <div className={css.panel} ref={panelResize.ref} style={panelResize.style}>
       <div className={css.dragPanel}>
         <DragPanel
-          isVisibleFlowsTableColumn={flowsTableColumns.isVisibleColumn}
-          toggleFlowsTableColumn={flowsTableColumns.toggleColumn}
+          flowsTableVisibleColumns={props.flowsTableVisibleColumns}
+          onToggleFlowsTableColumn={props.onFlowsTableColumnToggle}
           onResize={panelResize.onResize}
           onStreamStop={onStreamStop}
         />
@@ -74,7 +76,7 @@ export const DetailsPanelComponent = function (props: Props) {
         {tableLoaded ? (
           <FlowsTable
             flows={props.flows}
-            isVisibleColumn={flowsTableColumns.isVisibleColumn}
+            visibleColumns={props.flowsTableVisibleColumns}
             selectedFlow={props.selectedFlow}
             onSelectFlow={props.onSelectFlow}
             onFlowsDiffCount={props.onFlowsDiffCount}

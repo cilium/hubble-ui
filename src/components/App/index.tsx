@@ -22,6 +22,7 @@ import {
 import { Map } from '~/components/Map';
 import { LoadingOverlay } from '~/components/Misc/LoadingOverlay';
 import { ServiceMapCard } from '~/components/ServiceMapCard';
+import { CardComponentProps } from '~/components/Card';
 import { CardComponent } from '~/components/Card';
 import { WelcomeScreen } from './WelcomeScreen';
 
@@ -36,11 +37,6 @@ import {
   FilterDirection,
 } from '~/domain/filtering';
 
-import {
-  ServiceMapPlacementStrategy,
-  ServiceMapArrowStrategy,
-} from '~/domain/layout/service-map';
-
 import { useStore } from '~/store';
 import { useNotifier } from '~/notifier';
 
@@ -51,6 +47,7 @@ import { DataManager, EventKind as DataManagerEvents } from './DataManager';
 import { Ticker } from '~/utils/ticker';
 import { sizes } from '~/ui/vars';
 import { usePrevious } from '~/ui/hooks';
+import { useFlowsTableColumns } from './hooks/useColumns';
 import css from './styles.scss';
 
 export interface AppProps extends RouteComponentProps {
@@ -66,6 +63,7 @@ export const App: FunctionComponent<AppProps> = observer(props => {
   const [mapVisibleHeight, setMapVisibleHeight] = useState<number | null>(null);
   const [mapWasDragged, setMapWasDragged] = useState(false);
   const previousFilters = usePrevious(store.controls.filters);
+  const flowsTableColumns = useFlowsTableColumns();
 
   const notifier = useNotifier();
   const dataManager = useMemo(() => {
@@ -86,8 +84,8 @@ export const App: FunctionComponent<AppProps> = observer(props => {
 
       notifier.showError(
         `Failed to receive data from backend.
-        Please make sure that your deployment is up and try again.`,
-        { key: 'backend-error' },
+        Please make sure that your deployment is up and refresh this page.`,
+        { key: 'backend-error', timeout: 0 },
       );
     });
 
@@ -106,12 +104,40 @@ export const App: FunctionComponent<AppProps> = observer(props => {
         notifier.showInfo(`Connection to hubble-relay has been established.`, {
           key: 'connected-to-hubble-relay',
         });
+      } else if (notif.connState?.k8sConnected) {
+        const unavailableNotif = notifier.cached('k8s-unavailable');
+        unavailableNotif?.hide();
+
+        notifier.showInfo(`Connection to Kubernetes has been established.`);
+      } else if (notif.connState?.k8sUnavailable) {
+        notifier.showError(
+          `Connection to Kubernetes has been lost. Check your deployment and ` +
+            `refresh this page.`,
+          { timeout: 0, key: 'k8s-unavailable' },
+        );
       } else if (notif.dataState?.noActivity) {
         notifier.showInfo(`There are no pods in this namespace.`, {
           key: 'no-activity',
         });
       } else if (notif.status != null) {
         store.controls.setStatus(notif.status);
+      } else if (notif.noPermission != null) {
+        const { error, resource } = notif.noPermission;
+
+        let notifText =
+          `hubble-ui unable to watch over ${resource} resource. ` +
+          `You will not be provided with this kind of resource. `;
+
+        if (error.length > 0) {
+          notifText += `Check out developer console to discover the internal error`;
+          console.warn(notifText);
+          console.warn(
+            `Here is why we can't provide ${resource} data: `,
+            error,
+          );
+        }
+
+        notifier.showWarning(notifText, { key: resource, timeout: 0 });
       }
     });
 
@@ -181,7 +207,6 @@ export const App: FunctionComponent<AppProps> = observer(props => {
   useEffect(() => {
     if (!store.controls.currentNamespace || store.mocked) return;
     const newNamespace = store.controls.currentNamespace;
-    console.log('control filters changed: ', store.controls.filters.clone());
 
     const changes = Filters.diff(previousFilters, store.controls.filters);
     const flushRequired = changes.podFiltersChanged;
@@ -211,6 +236,10 @@ export const App: FunctionComponent<AppProps> = observer(props => {
   const onCardSelect = useCallback((srvc: ServiceCard) => {
     const isActive = store.toggleActiveService(srvc.id);
     store.setFlowFiltersForActiveCard(srvc.id, isActive);
+
+    store.runAfterFrameReset(() => {
+      store.setActiveServiceState(srvc.id, isActive);
+    });
   }, []);
 
   const onCloseFlowsTableSidebar = useCallback(() => {
@@ -298,21 +327,18 @@ export const App: FunctionComponent<AppProps> = observer(props => {
   );
 
   const cardRenderer = useCallback(
-    (card: ServiceCard) => {
-      const coords = store.placement.cardsBBoxes.get(card.id);
-      if (coords == null) return null;
-
+    (props: CardComponentProps<ServiceCard>) => {
       const onHeightChange = (h: number) => {
-        return store.placement.setCardHeight(card.id, h);
+        return store.placement.setCardHeight(props.card.id, h);
       };
 
       return (
         <ServiceMapCard
-          key={card.id}
-          active={isCardActive(card.id)}
-          coords={coords}
+          key={props.card.id}
+          active={isCardActive(props.card.id)}
+          coords={props.coords}
           currentNamespace={store.controls.currentNamespace}
-          card={card}
+          card={props.card}
           onHeightChange={onHeightChange}
           onClick={onCardSelect}
           onAccessPointCoords={onAccessPointCoords}
@@ -397,6 +423,7 @@ export const App: FunctionComponent<AppProps> = observer(props => {
       <DetailsPanel
         isStreaming={isStreaming}
         flows={store.currentFrame.interactions.flows}
+        flowsTableVisibleColumns={flowsTableColumns.visible}
         filters={store.controls.filters}
         selectedFlow={store.controls.selectedTableFlow}
         onSelectFlow={store.controls.selectTableFlow}
@@ -411,6 +438,7 @@ export const App: FunctionComponent<AppProps> = observer(props => {
         ticker={ticker}
         onPanelResize={onPanelResize}
         onFlowsDiffCount={onFlowsDiffCount}
+        onFlowsTableColumnToggle={flowsTableColumns.toggle}
       />
     </div>
   );

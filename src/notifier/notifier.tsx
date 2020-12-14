@@ -120,6 +120,10 @@ export class Notifier {
     return this.createNotification(message, opts);
   }
 
+  public cached(key: string): Notification | null {
+    return this.notificationsCache.get(key) ?? null;
+  }
+
   public dismissAll() {
     this.setupCheck();
     this.toaster!.clear();

@@ -2,14 +2,16 @@ import React, { memo } from 'react';
 import { animated } from 'react-spring';
 import { useDrag } from 'react-use-gesture';
 
-import { FlowsTableColumnsSelector } from '~/components/FlowsTable/ColumnsSelector';
-import { FlowsTableColumnKey } from '~/components/FlowsTable/general';
+import {
+  FlowsTableColumnsSelector,
+  Props as FlowsTableColumnsSelectorProps,
+} from '~/components/FlowsTable/ColumnsSelector';
 
 import css from './styles.scss';
 
 export interface Props {
-  isVisibleFlowsTableColumn: (column: FlowsTableColumnKey) => boolean;
-  toggleFlowsTableColumn: (column: FlowsTableColumnKey) => void;
+  flowsTableVisibleColumns: FlowsTableColumnsSelectorProps['visibleColumns'];
+  onToggleFlowsTableColumn: FlowsTableColumnsSelectorProps['onToggleColumn'];
   onResize?: (dy: number) => void;
   onStreamStop?: () => void;
 }
@@ -24,8 +26,8 @@ export const Component = function DragPanelComponent(props: Props) {
     <animated.div {...bind()} className={css.dragPanel}>
       <div className={css.left}>
         <FlowsTableColumnsSelector
-          isVisibleColumn={props.isVisibleFlowsTableColumn}
-          toggleColumn={props.toggleFlowsTableColumn}
+          visibleColumns={props.flowsTableVisibleColumns}
+          onToggleColumn={props.onToggleFlowsTableColumn}
         />
       </div>
       <div className={css.center} />

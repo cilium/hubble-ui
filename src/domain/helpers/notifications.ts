@@ -1,8 +1,12 @@
-import { Notification as PBNotification } from '~backend/proto/ui/notifications_pb';
+import {
+  Notification as PBNotification,
+  NoPermission as PBNoPermission,
+} from '~backend/proto/ui/notifications_pb';
 import { GetStatusResponse as PBStatusResponse } from '~backend/proto/ui/status_pb';
 
 import { Notification } from '~/api/general/event-stream';
 import { Status, FlowStats, NodeStatus } from '~/domain/status';
+import { NoPermission } from '~/domain/notifications';
 
 export const fromPb = (notif: PBNotification): Notification | null => {
   if (notif.hasConnState()) {
@@ -29,6 +33,12 @@ export const fromPb = (notif: PBNotification): Notification | null => {
     };
   }
 
+  if (notif.hasNoPermission()) {
+    const noPermission = noPermissionFromPb(notif.getNoPermission()!);
+
+    return { noPermission };
+  }
+
   return null;
 };
 
@@ -51,5 +61,12 @@ export const statusFromPb = (status: PBStatusResponse): Status | null => {
     nodes,
     flows,
     versions: [],
+  };
+};
+
+export const noPermissionFromPb = (noPerms: PBNoPermission): NoPermission => {
+  return {
+    resource: noPerms.getResource(),
+    error: noPerms.getError(),
   };
 };

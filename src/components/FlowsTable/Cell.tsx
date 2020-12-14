@@ -4,20 +4,20 @@ import React, { memo } from 'react';
 import { Flow, Verdict } from '~/domain/flows';
 import { Ticker } from '~/utils/ticker';
 
-import { FlowsTableColumn, TickerEvents } from './general';
+import { Column, TickerEvents } from './general';
 import { useWhenOccured } from './hooks/useWhenOccured';
 
 import css from './styles.scss';
 
 export interface CellProps {
   flow: Flow;
-  kind: FlowsTableColumn;
+  kind: Column;
   ticker?: Ticker<TickerEvents>;
 }
 
 export const Cell = memo<CellProps>(function FlowsTableCell(props) {
   switch (props.kind) {
-    case FlowsTableColumn.SrcPod: {
+    case Column.SrcPod: {
       return (
         <div className={css.cell}>
           {props.flow.sourcePodName || (
@@ -26,10 +26,10 @@ export const Cell = memo<CellProps>(function FlowsTableCell(props) {
         </div>
       );
     }
-    case FlowsTableColumn.SrcIp: {
+    case Column.SrcIp: {
       return <div className={css.cell}>{props.flow.sourceIp}</div>;
     }
-    case FlowsTableColumn.SrcService: {
+    case Column.SrcService: {
       const appName = props.flow.sourceAppName ?? 'No app name';
       const subtitle = props.flow.sourceNamespace ? (
         <span className={css.subtitle}>{props.flow.sourceNamespace}</span>
@@ -40,7 +40,7 @@ export const Cell = memo<CellProps>(function FlowsTableCell(props) {
       const title = <>{appName} {subtitle}</>;
       return <div className={css.cell}>{title}</div>;
     }
-    case FlowsTableColumn.DstPod: {
+    case Column.DstPod: {
       return (
         <div className={css.cell}>
           {props.flow.destinationPodName || (
@@ -49,10 +49,10 @@ export const Cell = memo<CellProps>(function FlowsTableCell(props) {
         </div>
       );
     }
-    case FlowsTableColumn.DstIp: {
+    case Column.DstIp: {
       return <div className={css.cell}>{props.flow.destinationIp}</div>;
     }
-    case FlowsTableColumn.DstService: {
+    case Column.DstService: {
       const appName = props.flow.destinationDns
         ? props.flow.destinationDns
         : props.flow.destinationAppName ?? '—';
@@ -70,25 +70,25 @@ export const Cell = memo<CellProps>(function FlowsTableCell(props) {
       const title = <>{appName} {subtitle}</>;
       return <div className={css.cell}>{title}</div>;
     }
-    case FlowsTableColumn.DstPort: {
+    case Column.DstPort: {
       const className = classnames(css.cell, css.dstPort);
       return <div className={className}>{props.flow.destinationPort}</div>;
     }
-    case FlowsTableColumn.Verdict: {
+    case Column.Verdict: {
       const className = classnames(css.cell, css.verdict, {
         [css.forwardedVerdict]: props.flow.verdict === Verdict.Forwarded,
         [css.droppedVerdict]: props.flow.verdict === Verdict.Dropped,
       });
       return <div className={className}>{props.flow.verdictLabel}</div>;
     }
-    case FlowsTableColumn.TcpFlags: {
+    case Column.TcpFlags: {
       return (
         <div className={classnames(css.cell, css.tcpFlags)}>
           {props.flow.joinedTcpFlags}
         </div>
       );
     }
-    case FlowsTableColumn.Timestamp: {
+    case Column.Timestamp: {
       const ts = props.flow.millisecondsTimestamp;
       const timestamp = useWhenOccured(props.ticker, ts);
       const title = props.flow.isoTimestamp || undefined;

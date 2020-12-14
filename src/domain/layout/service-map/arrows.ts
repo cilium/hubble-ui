@@ -1,4 +1,4 @@
-import { action, computed, observable, reaction } from 'mobx';
+import { action, computed, observable, reaction, trace } from 'mobx';
 
 import { StoreFrame } from '~/store/frame';
 
@@ -48,7 +48,18 @@ export class ServiceMapArrowStrategy extends ArrowStrategy {
     this.services = services;
     this.placement = placement;
 
-    reaction(() => [this.arrowsMap], this.rebuildArrowsMap);
+    reaction(
+      () => this.arrowsMap,
+      (_, r) => {
+        this.rebuildArrowsMap();
+      },
+      { delay: 10 },
+    );
+  }
+
+  @action.bound
+  public reset() {
+    this.arrows.clear();
   }
 
   @action.bound

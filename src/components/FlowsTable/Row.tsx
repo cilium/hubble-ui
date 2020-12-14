@@ -5,7 +5,7 @@ import classnames from 'classnames';
 import { Flow } from '~/domain/flows';
 import { Ticker } from '~/utils/ticker';
 
-import { CommonProps, TickerEvents, FlowsTableColumn } from './general';
+import { CommonProps, TickerEvents, Column } from './general';
 import { Cell } from './Cell';
 
 import css from './styles.scss';
@@ -21,7 +21,7 @@ export interface RowProps extends CommonProps {
 export interface RowRendererData {
   flows: Flow[];
   selectedFlow: Flow | null;
-  isVisibleColumn: CommonProps['isVisibleColumn'];
+  visibleColumns: CommonProps['visibleColumns'];
   onSelectFlow?: RowProps['onSelect'];
   ticker?: RowProps['ticker'];
 }
@@ -33,7 +33,7 @@ export function RowRenderer({ index, style, data }: ListChildComponentProps) {
     <Row
       style={style}
       flow={flow}
-      isVisibleColumn={props.isVisibleColumn}
+      visibleColumns={props.visibleColumns}
       isSelected={props.selectedFlow?.id === flow.id}
       onSelect={props.onSelectFlow}
       ticker={props.ticker}
@@ -53,39 +53,35 @@ export const Row = memo<RowProps>(function FlowsTableRow(props) {
 
   return (
     <div className={className} style={props.style} onClick={onClick}>
-      {props.isVisibleColumn?.('SrcPod') && (
-        <Cell flow={props.flow} kind={FlowsTableColumn.SrcPod} />
+      {props.visibleColumns.has(Column.SrcPod) && (
+        <Cell flow={props.flow} kind={Column.SrcPod} />
       )}
-      {props.isVisibleColumn?.('SrcIp') && (
-        <Cell flow={props.flow} kind={FlowsTableColumn.SrcIp} />
+      {props.visibleColumns.has(Column.SrcIp) && (
+        <Cell flow={props.flow} kind={Column.SrcIp} />
       )}
-      {props.isVisibleColumn?.('SrcService') && (
-        <Cell flow={props.flow} kind={FlowsTableColumn.SrcService} />
+      {props.visibleColumns.has(Column.SrcService) && (
+        <Cell flow={props.flow} kind={Column.SrcService} />
       )}
-      {props.isVisibleColumn?.('DstPod') && (
-        <Cell flow={props.flow} kind={FlowsTableColumn.DstPod} />
+      {props.visibleColumns.has(Column.DstPod) && (
+        <Cell flow={props.flow} kind={Column.DstPod} />
       )}
-      {props.isVisibleColumn?.('DstIp') && (
-        <Cell flow={props.flow} kind={FlowsTableColumn.DstIp} />
+      {props.visibleColumns.has(Column.DstIp) && (
+        <Cell flow={props.flow} kind={Column.DstIp} />
       )}
-      {props.isVisibleColumn?.('DstService') && (
-        <Cell flow={props.flow} kind={FlowsTableColumn.DstService} />
+      {props.visibleColumns.has(Column.DstService) && (
+        <Cell flow={props.flow} kind={Column.DstService} />
       )}
-      {props.isVisibleColumn?.('DstPort') && (
-        <Cell flow={props.flow} kind={FlowsTableColumn.DstPort} />
+      {props.visibleColumns.has(Column.DstPort) && (
+        <Cell flow={props.flow} kind={Column.DstPort} />
       )}
-      {props.isVisibleColumn?.('Verdict') && (
-        <Cell flow={props.flow} kind={FlowsTableColumn.Verdict} />
+      {props.visibleColumns.has(Column.Verdict) && (
+        <Cell flow={props.flow} kind={Column.Verdict} />
       )}
-      {props.isVisibleColumn?.('TcpFlags') && (
-        <Cell flow={props.flow} kind={FlowsTableColumn.TcpFlags} />
+      {props.visibleColumns.has(Column.TcpFlags) && (
+        <Cell flow={props.flow} kind={Column.TcpFlags} />
       )}
-      {props.isVisibleColumn?.('Timestamp') && (
-        <Cell
-          flow={props.flow}
-          kind={FlowsTableColumn.Timestamp}
-          ticker={props.ticker}
-        />
+      {props.visibleColumns.has(Column.Timestamp) && (
+        <Cell flow={props.flow} kind={Column.Timestamp} ticker={props.ticker} />
       )}
     </div>
   );

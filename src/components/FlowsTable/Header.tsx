@@ -1,49 +1,49 @@
 import React, { memo } from 'react';
 import classnames from 'classnames';
 
-import { CommonProps, getFlowsTableColumnLabel } from './general';
+import { CommonProps, getColumnLabel, Column } from './general';
 
 import css from './styles.scss';
 
 export const Header = memo<CommonProps>(function FlowsTableHeader(props) {
   return (
     <div className={classnames(css.row, css.head)}>
-      {props.isVisibleColumn?.('SrcPod') && (
-        <div className={css.cell}>{getFlowsTableColumnLabel('SrcPod')}</div>
+      {props.visibleColumns.has(Column.SrcPod) && (
+        <div className={css.cell}>{getColumnLabel(Column.SrcPod)}</div>
       )}
-      {props.isVisibleColumn?.('SrcIp') && (
-        <div className={css.cell}>{getFlowsTableColumnLabel('SrcIp')}</div>
+      {props.visibleColumns.has(Column.SrcIp) && (
+        <div className={css.cell}>{getColumnLabel(Column.SrcIp)}</div>
       )}
-      {props.isVisibleColumn?.('SrcService') && (
-        <div className={css.cell}>{getFlowsTableColumnLabel('SrcService')}</div>
+      {props.visibleColumns.has(Column.SrcService) && (
+        <div className={css.cell}>{getColumnLabel(Column.SrcService)}</div>
       )}
-      {props.isVisibleColumn?.('DstPod') && (
-        <div className={css.cell}>{getFlowsTableColumnLabel('DstPod')}</div>
+      {props.visibleColumns.has(Column.DstPod) && (
+        <div className={css.cell}>{getColumnLabel(Column.DstPod)}</div>
       )}
-      {props.isVisibleColumn?.('DstIp') && (
-        <div className={css.cell}>{getFlowsTableColumnLabel('DstIp')}</div>
+      {props.visibleColumns.has(Column.DstIp) && (
+        <div className={css.cell}>{getColumnLabel(Column.DstIp)}</div>
       )}
-      {props.isVisibleColumn?.('DstService') && (
-        <div className={css.cell}>{getFlowsTableColumnLabel('DstService')}</div>
+      {props.visibleColumns.has(Column.DstService) && (
+        <div className={css.cell}>{getColumnLabel(Column.DstService)}</div>
       )}
-      {props.isVisibleColumn?.('DstPort') && (
+      {props.visibleColumns.has(Column.DstPort) && (
         <div className={classnames(css.cell, css.dstPort)}>
-          {getFlowsTableColumnLabel('DstPort')}
+          {getColumnLabel(Column.DstPort)}
         </div>
       )}
-      {props.isVisibleColumn?.('Verdict') && (
+      {props.visibleColumns.has(Column.Verdict) && (
         <div className={classnames(css.cell, css.verdict)}>
-          {getFlowsTableColumnLabel('Verdict')}
+          {getColumnLabel(Column.Verdict)}
         </div>
       )}
-      {props.isVisibleColumn?.('TcpFlags') && (
+      {props.visibleColumns.has(Column.TcpFlags) && (
         <div className={classnames(css.cell, css.tcpFlags)}>
-          {getFlowsTableColumnLabel('TcpFlags')}
+          {getColumnLabel(Column.TcpFlags)}
         </div>
       )}
-      {props.isVisibleColumn?.('Timestamp') && (
+      {props.visibleColumns.has(Column.Timestamp) && (
         <div className={classnames(css.cell, css.timestamp)}>
-          {getFlowsTableColumnLabel('Timestamp')}
+          {getColumnLabel(Column.Timestamp)}
         </div>
       )}
     </div>

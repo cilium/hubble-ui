@@ -116,10 +116,13 @@ export default class RouteStore {
     }
 
     return filters.reduce((acc, filter) => {
-      const ff = FilterEntry.parse(filter);
-      if (!ff) return acc;
+      filter.split(',').forEach(part => {
+        const ff = FilterEntry.parse(part);
+        if (!ff) return;
 
-      acc.push(ff);
+        acc.push(ff);
+      });
+
       return acc;
     }, [] as FilterEntry[]);
   }
@@ -217,7 +220,7 @@ export default class RouteStore {
 
   @computed
   get hash() {
-    return this.location.hash.slice(1);
+    return (this.location.hash || '').slice(1);
   }
 
   @computed
