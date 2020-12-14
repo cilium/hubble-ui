@@ -6,7 +6,7 @@ import { Vec2, XYWH } from '~/domain/geometry';
 import { ArrowStrategy, PlacementStrategy } from '~/domain/layout';
 
 import { ArrowsRenderer } from '~/components/ArrowsRenderer';
-import { Card as BaseCard } from '~/components/Card';
+import { Card as BaseCard, CardComponentProps } from '~/components/Card';
 import { NamespaceBackplate } from './NamespaceBackplate';
 
 import { useMapZoom } from './hooks/useMapZoom';
@@ -22,7 +22,7 @@ export interface Props<C extends AbstractCard> {
   wasDragged: boolean;
   visibleHeight: number;
   arrows?: ArrowStrategy;
-  cardRenderer: (card: C) => ReactNode;
+  cardRenderer: (cardProps: CardComponentProps<C>) => ReactNode;
   isCardActive?: (id: string) => boolean;
   onCardHeightChange?: (id: string, height: number) => void;
   onMapDrag?: (val: boolean) => void;
@@ -31,12 +31,6 @@ export interface Props<C extends AbstractCard> {
 export const MapElements = observer(function MapElements<
   C extends AbstractCard
 >(props: Props<C>) {
-  useEffect(() => {
-    props.cards.forEach(c => {
-      props.placement.initUninitializedCard(c.id);
-    });
-  }, [props.cards, props.placement]);
-
   const isCardActive = useCallback(
     (cardId: string): boolean => {
       return props.isCardActive ? props.isCardActive(cardId) : false;
@@ -44,17 +38,19 @@ export const MapElements = observer(function MapElements<
     [props.isCardActive],
   );
 
-  const [backplates, cards] = useMemo(() => {
+  const [backplates, cards, unsizedCards] = useMemo(() => {
     const backplates: ReactNode[] = [];
     const cards: ReactNode[] = [];
+    const unsizedCards: ReactNode[] = [];
 
     props.cards.forEach(card => {
       const coords = props.placement.cardsBBoxes.get(card.id);
-      if (coords == null) return;
+      if (coords == null) {
+        const coords = props.placement.defaultCardXYWH();
+        unsizedCards.push(props.cardRenderer({ card, coords }));
 
-      const onHeightChange = (h: number) => {
-        return props.onCardHeightChange?.(card.id, h);
-      };
+        return;
+      }
 
       backplates.push(
         <BaseCard
@@ -62,14 +58,13 @@ export const MapElements = observer(function MapElements<
           coords={coords}
           active={isCardActive(card.id)}
           isBackplate={true}
-          onHeightChange={onHeightChange}
         />,
       );
 
-      cards.push(props.cardRenderer(card));
+      cards.push(props.cardRenderer({ card, coords }));
     });
 
-    return [backplates, cards];
+    return [backplates, cards, unsizedCards];
   }, [
     props.cardRenderer,
     props.cards,
@@ -88,10 +83,10 @@ export const MapElements = observer(function MapElements<
       )}
 
       {backplates}
-
       {props.arrows && <ArrowsRenderer arrows={props.arrows.paths} />}
-
       {cards}
+
+      <g visibility="hidden">{unsizedCards}</g>
     </>
   );
 });

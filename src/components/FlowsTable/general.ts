@@ -1,10 +1,10 @@
 import { Filters } from '~/domain/filtering';
 
 export interface CommonProps {
-  isVisibleColumn?: (column: FlowsTableColumnKey) => boolean;
+  visibleColumns: Set<Column>;
 }
 
-export enum FlowsTableColumn {
+export enum Column {
   SrcPod = 'Source Pod',
   SrcIp = 'Source IP',
   SrcService = 'Source Service',
@@ -21,16 +21,26 @@ export enum TickerEvents {
   TimestampUpdate = 'timestamp-update',
 }
 
-export type FlowsTableColumnKey = keyof typeof FlowsTableColumn;
+export type ColumnKey = keyof typeof Column;
 
-export const FLOWS_TABLE_COLUMNS = Object.keys(
-  FlowsTableColumn,
-) as FlowsTableColumnKey[];
+export const columnKeys = Object.keys(Column) as ColumnKey[];
 
-export const DEFAULT_FLOWS_TABLE_VISIBLE_COLUMNS = new Set<FlowsTableColumnKey>(
-  ['SrcService', 'DstService', 'DstPort', 'Verdict', 'Timestamp'],
-);
+export const columnMap = new Map(
+  Object.entries(Column).map(pair => pair.reverse() as [Column, ColumnKey]),
+) as Map<Column, ColumnKey>;
 
-export function getFlowsTableColumnLabel(column: FlowsTableColumnKey) {
-  return FlowsTableColumn[column];
+export const getColumnKey = (col: Column): ColumnKey => {
+  return columnMap.get(col)!;
+};
+
+export const defaultVisibleColumns = new Set<Column>([
+  Column.SrcService,
+  Column.DstService,
+  Column.DstPort,
+  Column.Verdict,
+  Column.Timestamp,
+]);
+
+export function getColumnLabel(column: Column) {
+  return column;
 }

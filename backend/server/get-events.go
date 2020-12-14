@@ -19,7 +19,7 @@ func (srv *UIServer) GetEvents(
 	req *ui.GetEventsRequest, stream EventStream,
 ) error {
 	if len(req.EventTypes) == 0 {
-		log.Infof("no events specified, aborted.\n")
+		log.Infof("no events requested, aborted.\n")
 		return nil
 	}
 
@@ -37,11 +37,13 @@ func (srv *UIServer) GetEvents(
 		defer flowCancel()
 	}
 
-	var nsSource chan *NSEvent
+	var nsSource chan *helpers.NSEvent
+	var nsErrors chan error
 	if eventsRequested.Namespaces {
-		watcherChan, stop := srv.RunNSWatcher()
+		watcherChan, errors, stop := srv.RunNSWatcher()
 		defer close(stop)
 
+		nsErrors = errors
 		nsSource = watcherChan
 	}
 
@@ -50,18 +52,13 @@ func (srv *UIServer) GetEvents(
 	var statusCancel func()
 
 	if eventsRequested.Status {
-		log.Infof("running status checker\n")
+		log.Infof("running hubble status checker\n")
 		statusCancel, statuses, statusErrors = srv.RunStatusChecker(
 			req.StatusRequest,
 		)
 
 		defer statusCancel()
 	}
-
-	nsDrain := make(chan *ui.GetEventsResponse)
-	go handleNsEvents(nsSource, nsDrain)
-
-	defer close(nsDrain)
 
 F:
 	for {
@@ -78,13 +75,36 @@ F:
 			// NOTE: We are here if someone is reconnecting to hubble-relay
 			if evt := connState.ShouldNotifyOnReconnecting(); evt != nil {
 				if err := stream.Send(evt); err != nil {
-					log.Errorf("failed to send OnReconnecting: %v\n", err)
+					log.Errorf("failed to send connection state (OnReconnecting) to client: %v\n", err)
 					break F
 				}
 			}
 		case err := <-statusErrors:
-			log.Errorf("status error: %v\n", err)
 			if !srv.IsGrpcUnavailable(err) {
+				log.Errorf("hubble status checker: critical error: %v\n", err)
+				return err
+			}
+
+			log.Errorf("hubble status checker: failed to connect to hubble-relay: %v\n", err)
+		case err := <-nsErrors:
+			if helpers.IsTimeout(err) {
+				log.Warnf("fetching namespaces failed, k8s timeout error: %v\n", err)
+				break
+			}
+
+			if !helpers.IsServiceUnavailable(err) {
+				log.Errorf("fetching namespaces unknown error: %v\n", err)
+			}
+
+			log.Errorf("fetching namespaces failed, k8s api is unavailable: %v\n", err)
+
+			k8sUnavailableEvt := connState.ShouldNotifyOnK8sUnavailable()
+			if k8sUnavailableEvt == nil {
+				break
+			}
+
+			if err := stream.Send(k8sUnavailableEvt); err != nil {
+				log.Errorf("failed to send k8s unavailable notification: %v\n", err)
 				return err
 			}
 		case flows := <-flowsLimiter.Flushed:
@@ -93,9 +113,25 @@ F:
 				continue
 			}
 
-			log.Infof("sending bunch of flows: %v\n", len(flows))
 			if err := stream.Send(flowsResponse); err != nil {
-				log.Errorf("failed to send buffered flows response: %v\n", err)
+				log.Errorf("failed to send bunch of flows to client: %v\n", err)
+				return err
+			}
+		case nsEvent := <-nsSource:
+			resp := helpers.EventResponseFromNSEvent(nsEvent)
+
+			if err := stream.Send(resp); err != nil {
+				log.Errorf("failed to send namespaces event to client: %v\n", err)
+				return err
+			}
+
+			k8sConnectedEvt := connState.ShouldNotifyOnK8sConnected()
+			if k8sConnectedEvt == nil {
+				break
+			}
+
+			if err := stream.Send(k8sConnectedEvt); err != nil {
+				log.Errorf("failed to send k8s connected notification: %v\n", err)
 				return err
 			}
 		case flowResponse := <-flowResponses:
@@ -105,7 +141,7 @@ F:
 
 			if evt := connState.ShouldNotifyOnConnected(); evt != nil {
 				if err := stream.Send(evt); err != nil {
-					log.Errorf("failed to send OnConnected: %v\n", err)
+					log.Errorf("failed to send connection state (OnConnected) to client: %v\n", err)
 					break F
 				}
 			}
@@ -121,40 +157,29 @@ F:
 
 			for _, svcEvent := range svcs {
 				if err := stream.Send(svcEvent); err != nil {
-					log.Errorf("failed to send svc response: %v\n", err)
+					log.Errorf("failed to send service event to client: %v\n", err)
 					return err
 				}
 			}
 
 			for _, linkEvent := range links {
 				if err := stream.Send(linkEvent); err != nil {
-					log.Errorf("failed to send link response: %v\n", err)
+					log.Errorf("failed to send link event to client: %v\n", err)
 					return err
 				}
 			}
-		case nsEvent := <-nsDrain:
-			if err := stream.Send(nsEvent); err != nil {
-				log.Errorf("failed to send ns response: %v\n", err)
-				return err
-			}
 		case statusEvent := <-statuses:
 			if err := stream.Send(statusEvent); err != nil {
-				log.Errorf("failed to send status response: %v\n", err)
+				log.Errorf("failed to send hubble status update to client: %v\n", err)
 				return err
 			}
+		default:
+			break
 		}
 	}
 
-	log.Infof("GetEvents: stream is canceled\n")
+	log.Infof("stream (ui client <-> ui backend) is closed\n")
 	return nil
-}
-
-func handleNsEvents(src chan *NSEvent, drain chan *ui.GetEventsResponse) {
-	for e := range src {
-		resp := respFromNSEvent(e)
-
-		drain <- resp
-	}
 }
 
 func extractDerivedEvents(
@@ -197,7 +222,7 @@ func extractDerivedEvents(
 
 		flags := cache.UpsertServiceLink(serviceLink)
 		if flags.Changed() {
-			log.Infof("Service link changed: %s", serviceLink)
+			log.Infof("link between services changed: %s", serviceLink)
 			linkEvent := helpers.EventResponseForLink(serviceLink, flags)
 
 			linkResponses = append(linkResponses, linkEvent)
@@ -209,7 +234,7 @@ func extractDerivedEvents(
 
 func handleSvc(svc *service.Service, cache *cache.DataCache) *ui.GetEventsResponse {
 	if svc.Id() == "0" {
-		log.Infof("%s svc identity == 0\n", svc.Side())
+		log.Warnf("%s svc identity == 0. Skipping.\n", svc.Side())
 		return nil
 	}
 

@@ -5,6 +5,7 @@ import { Verdict, HubbleService, HubbleLink } from '~/domain/hubble';
 import { Flow } from '~/domain/flows';
 import { StateChange } from '~/domain/misc';
 import { Status } from '~/domain/status';
+import { NoPermission } from '~/domain/notifications';
 
 export interface EventParams {
   flow?: boolean;
@@ -62,6 +63,8 @@ export interface Notification {
   connState?: {
     connected: boolean;
     reconnecting: boolean;
+    k8sUnavailable: boolean;
+    k8sConnected: boolean;
   };
 
   dataState?: {
@@ -69,6 +72,7 @@ export interface Notification {
   };
 
   status?: Status;
+  noPermission?: NoPermission;
 }
 
 export type EventStreamHandlers = GeneralStreamEvents & {

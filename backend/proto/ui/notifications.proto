@@ -9,6 +9,7 @@ message Notification {
         ConnectionState conn_state = 1;
         DataState data_state = 2;
         GetStatusResponse status = 3;
+        NoPermission no_permission = 4;
     }
 
 }
@@ -19,9 +20,20 @@ message ConnectionState {
 
 	// Backend has lost the connection to hubble-relay and is reconnecting now
 	bool reconnecting = 2;
+
+	// Backend has lost the connection to kubernetes and is reconnecting
+	bool k8s_unavailable = 3;
+
+	// Backend has established connection to k8s
+	bool k8s_connected = 4;
 }
 
 message DataState {
 	// No pods in selected namespace
 	bool no_activity = 1;
+}
+
+message NoPermission {
+	string resource = 1;
+	string error = 2;
 }

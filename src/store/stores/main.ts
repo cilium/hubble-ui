@@ -61,6 +61,8 @@ export class Store {
   @observable
   public currentFrame: StoreFrame;
 
+  private afterResetCallbacks: Array<() => void> = [];
+
   constructor(props: Props) {
     this.controls = new ControlStore();
     this.route = new RouteStore(props.historySource, props.routes);
@@ -120,20 +122,19 @@ export class Store {
   resetCurrentFrame(filters: Filters) {
     this.currentFrame.flush();
     this.placement.reset();
+    this.arrows.reset();
     this.currentFrame.applyFrame(this.globalFrame, filters);
+
+    this.runAfterResetCallbacks();
   }
 
   @action.bound
   applyServiceChange(svc: Service, change: StateChange) {
-    // console.log('service change: ', svc, change);
-
     this.currentFrame.applyServiceChange(svc, change);
   }
 
   @action.bound
   applyServiceLinkChange(hubbleLink: HubbleLink, change: StateChange) {
-    // console.log('service link change: ', link, change);
-
     this.currentFrame.applyServiceLinkChange(hubbleLink, change);
   }
 
@@ -150,6 +151,21 @@ export class Store {
   @action.bound
   addFlows(flows: Flow[]) {
     return this.currentFrame.addFlows(flows);
+  }
+
+  @action.bound
+  public runAfterFrameReset(cb: () => void) {
+    this.afterResetCallbacks.push(cb);
+  }
+
+  @action.bound
+  private runAfterResetCallbacks() {
+    const n = this.afterResetCallbacks.length;
+    const cbs = this.afterResetCallbacks.splice(0, n);
+
+    cbs.forEach(cb => {
+      cb();
+    });
   }
 
   @computed
@@ -261,6 +277,11 @@ export class Store {
   @action.bound
   public toggleActiveService(id: string) {
     return this.currentFrame.toggleActiveService(id);
+  }
+
+  @action.bound
+  public setActiveServiceState(id: string, state: boolean) {
+    this.currentFrame.services.setActiveState(id, state);
   }
 
   @action.bound

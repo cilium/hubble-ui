@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { action, observable, computed } from 'mobx';
+import { action, observable, computed, reaction } from 'mobx';
 
 import { HubbleLink, HubbleService } from '~/domain/hubble';
 import { ServiceCard, Link, AccessPoint } from '~/domain/service-map';
@@ -61,11 +61,11 @@ export default class ServiceStore {
 
   @action.bound
   toggleActive(id: string, single = true): boolean {
-    const current = this.activeCardsSet.has(id);
+    const isActive = this.activeCardsSet.has(id);
     if (single) this.activeCardsSet.clear();
 
-    current ? this.activeCardsSet.delete(id) : this.activeCardsSet.add(id);
-    return !current;
+    isActive ? this.activeCardsSet.delete(id) : this.activeCardsSet.add(id);
+    return !isActive;
   }
 
   @action.bound
@@ -77,6 +77,13 @@ export default class ServiceStore {
     this.activeCardsSet.add(id);
 
     return true;
+  }
+
+  @action.bound
+  setActiveState(id: string, state: boolean, single = true) {
+    if (single && !state) this.activeCardsSet.clear();
+
+    state ? this.activeCardsSet.add(id) : this.activeCardsSet.delete(id);
   }
 
   @action.bound

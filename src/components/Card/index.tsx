@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import classnames from 'classnames';
 import React, {
   FunctionComponent,
@@ -5,6 +6,7 @@ import React, {
   useCallback,
   useEffect,
   useRef,
+  useMemo,
 } from 'react';
 
 import { XY } from '~/domain/geometry';
@@ -52,9 +54,9 @@ export const Card: FunctionComponent<BaseCardProps> = memo(function Card(
     // TODO: consider using throttling/debounce/fastdom
     const elemHeight = divRef.current.offsetHeight;
 
-    if (tooSmall(elemHeight - h)) return;
+    if (tooSmall(elemHeight - props.coords.h)) return;
     props.onHeightChange(elemHeight);
-  }, [props.onHeightChange, divRef]);
+  }, [props.onHeightChange, divRef, props.coords]);
 
   const onCardClick = useCallback(() => {
     props.onClick?.();

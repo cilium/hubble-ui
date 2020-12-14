@@ -13,6 +13,7 @@ import { RowRenderer, RowRendererData } from './Row';
 
 import css from './styles.scss';
 
+export { Column, defaultVisibleColumns } from './general';
 export const DEFAULT_TS_UPDATE_DELAY = 2500;
 export { TickerEvents, OnFlowsDiffCount };
 
@@ -30,14 +31,14 @@ export const FlowsTable = memo<Props>(function FlowsTable(props: Props) {
   const itemData = useMemo((): RowRendererData => {
     return {
       flows: props.flows,
-      isVisibleColumn: props.isVisibleColumn,
+      visibleColumns: props.visibleColumns,
       selectedFlow: props.selectedFlow,
       onSelectFlow: props.onSelectFlow,
       ticker: props.ticker,
     };
   }, [
     props.flows,
-    props.isVisibleColumn,
+    props.visibleColumns,
     props.selectedFlow,
     props.onSelectFlow,
     props.ticker,
@@ -45,7 +46,7 @@ export const FlowsTable = memo<Props>(function FlowsTable(props: Props) {
 
   return (
     <div className={css.wrapper}>
-      <Header isVisibleColumn={itemData.isVisibleColumn} />
+      <Header visibleColumns={itemData.visibleColumns} />
       <AutoSizer>
         {({ width, height }) => (
           <FixedSizeList

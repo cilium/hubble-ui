@@ -1,3 +1,4 @@
+// helpers/helpers.go
 package helpers
 
 import (
@@ -6,8 +7,13 @@ import (
 	"github.com/cilium/hubble-ui/backend/domain/flow"
 	"github.com/cilium/hubble-ui/backend/domain/link"
 	"github.com/cilium/hubble-ui/backend/domain/service"
+	"github.com/cilium/hubble-ui/backend/logger"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 	"github.com/golang/protobuf/ptypes"
+)
+
+var (
+	log = logger.DefaultLogger
 )
 
 func EventResponseForService(
@@ -84,12 +90,19 @@ func EventResponseFromStatusResponse(
 	}
 }
 
-func notificationConnState(connected, reconnecting bool) *ui.Notification {
+func notificationConnState(
+	connected,
+	reconnecting,
+	k8sUnavailable,
+	k8sConnected bool,
+) *ui.Notification {
 	return &ui.Notification{
 		Notification: &ui.Notification_ConnState{
 			ConnState: &ui.ConnectionState{
-				Connected:    connected,
-				Reconnecting: reconnecting,
+				Connected:      connected,
+				Reconnecting:   reconnecting,
+				K8SUnavailable: k8sUnavailable,
+				K8SConnected:   k8sConnected,
 			},
 		},
 	}
@@ -100,7 +113,7 @@ func EventResponseReconnecting() *ui.GetEventsResponse {
 		Node:      "backend",
 		Timestamp: ptypes.TimestampNow(),
 		Event: &ui.GetEventsResponse_Notification{
-			Notification: notificationConnState(false, true),
+			Notification: notificationConnState(false, true, false, false),
 		},
 	}
 }
@@ -110,7 +123,46 @@ func EventResponseConnected() *ui.GetEventsResponse {
 		Node:      "backend",
 		Timestamp: ptypes.TimestampNow(),
 		Event: &ui.GetEventsResponse_Notification{
-			Notification: notificationConnState(true, false),
+			Notification: notificationConnState(true, false, false, false),
+		},
+	}
+}
+
+func EventResponseK8sUnavailable() *ui.GetEventsResponse {
+	return &ui.GetEventsResponse{
+		Node:      "backend",
+		Timestamp: ptypes.TimestampNow(),
+		Event: &ui.GetEventsResponse_Notification{
+			Notification: notificationConnState(false, false, true, false),
+		},
+	}
+}
+
+func EventResponseK8sConnected() *ui.GetEventsResponse {
+	return &ui.GetEventsResponse{
+		Node:      "backend",
+		Timestamp: ptypes.TimestampNow(),
+		Event: &ui.GetEventsResponse_Notification{
+			Notification: notificationConnState(false, false, false, true),
+		},
+	}
+}
+
+func EventResponseNoPermission(resource string, error string) *ui.GetEventsResponse {
+	notif := &ui.Notification{
+		Notification: &ui.Notification_NoPermission{
+			NoPermission: &ui.NoPermission{
+				Resource: resource,
+				Error:    error,
+			},
+		},
+	}
+
+	return &ui.GetEventsResponse{
+		Node:      "backend",
+		Timestamp: ptypes.TimestampNow(),
+		Event: &ui.GetEventsResponse_Notification{
+			Notification: notif,
 		},
 	}
 }

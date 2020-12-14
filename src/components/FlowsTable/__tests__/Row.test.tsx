@@ -1,5 +1,6 @@
 import { act, React, render, data, fireEvent } from '~/testing';
 import { Row } from '~/components/FlowsTable/Row';
+import { Column } from '~/components/FlowsTable';
 
 import { Flow } from '~/domain/flows';
 import { HubbleFlow } from '~/domain/hubble';
@@ -94,7 +95,7 @@ const runTest = (ntest: number, hf: HubbleFlow, exps: Expectations) => {
         row = renderRow(
           <Row
             flow={flow}
-            isVisibleColumn={() => true}
+            visibleColumns={new Set(Object.values(Column))}
             isSelected={selected}
             onSelect={onSelect}
           ></Row>,
