@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/cilium/hubble-ui/backend/client"
+	"github.com/cilium/hubble-ui/backend/internal/msg"
 	"github.com/cilium/hubble-ui/backend/logger"
 	"github.com/cilium/hubble-ui/backend/server"
 )
@@ -27,7 +28,7 @@ func getServerAddr() string {
 	port, ok := os.LookupEnv("EVENTS_SERVER_PORT")
 	if !ok {
 		port = fmt.Sprintf("%d", EVENTS_SERVER_DEFAULT_PORT)
-		log.Warnf("server port is set to default (%s)\n", port)
+		log.Warnf(msg.ServerSetupUsingDefPort, port)
 	}
 
 	return fmt.Sprintf("0.0.0.0:%s", port)
@@ -35,14 +36,13 @@ func getServerAddr() string {
 
 func setupListener() net.Listener {
 	addr := getServerAddr()
-	log.Infof("listening at: %s\n", addr)
-
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
-		log.Errorf("failed to listen: %v", err)
+		log.Errorf(msg.ServerSetupListenError, err)
 		os.Exit(1)
 	}
 
+	log.Infof(msg.ServerSetupListeningAt, addr)
 	return listener
 }
 
@@ -50,7 +50,7 @@ func getObserverAddr() string {
 	observerAddr, ok := os.LookupEnv("FLOWS_API_ADDR")
 	if !ok {
 		observerAddr = "0.0.0.0:50051"
-		log.Warnf("observer addr is set to default (%s)\n", observerAddr)
+		log.Warnf(msg.ServerSetupUsingDefRelayAddr, observerAddr)
 	}
 
 	return observerAddr
@@ -61,7 +61,7 @@ func runServer() {
 	srv := server.New(observerAddr)
 
 	if err := srv.Run(); err != nil {
-		log.Errorf("failed to run server: %v\n", err)
+		log.Errorf(msg.ServerSetupRunError, err)
 		os.Exit(1)
 	}
 

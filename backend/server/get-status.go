@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cilium/cilium/api/v1/observer"
+	"github.com/cilium/hubble-ui/backend/internal/msg"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 	"github.com/cilium/hubble-ui/backend/server/helpers"
 )
@@ -68,7 +69,7 @@ func (srv *UIServer) RunStatusChecker(req *ui.GetStatusRequest) (
 
 			select {
 			case <-ctx.Done():
-				log.Infof("hubble status checker: stopped\n")
+				log.Infof(msg.HubbleStatusCheckerIsStopped)
 				break F
 			case <-ticker:
 				if time.Since(lastCheck) < delay {
@@ -107,7 +108,7 @@ func (srv *UIServer) RunStatusChecker(req *ui.GetStatusRequest) (
 				}
 
 				lastCheck = time.Now()
-				log.Infof("hubble status checker: connection to hubble-relay established\n")
+				log.Infof(msg.HubbleStatusCheckerRelayConnected)
 				if resp != nil {
 					sendResponse(resp)
 				}
