@@ -15,6 +15,7 @@ import (
 
 	dflow "github.com/cilium/hubble-ui/backend/domain/flow"
 	"github.com/cilium/hubble-ui/backend/domain/service"
+	"github.com/cilium/hubble-ui/backend/internal/msg"
 	"github.com/cilium/hubble-ui/backend/server/helpers"
 )
 
@@ -30,15 +31,15 @@ func (srv *UIServer) GetFlows(req *ui.GetEventsRequest) (
 
 	var flowStream FlowStream = nil
 	retry := func(attempt int) error {
-		log.Infof("fetching hubble flows: connecting to hubble-relay (attempt #%d)\n", attempt)
+		log.Infof(msg.GetFlowsConnectingToRelay, attempt)
 
 		fs, err := srv.hubbleClient.GetFlows(ctx, flowsRequest)
 		if err != nil {
-			log.Errorf("fetching hubble flows: connecting to hubble-relay (attempt #%d) failed: %v\n", attempt, err)
+			log.Errorf(msg.GetFlowsConnectionAttemptError, attempt, err)
 			return err
 		}
 
-		log.Infof("fetching hubble flows: connection to hubble-relay established\n")
+		log.Infof(msg.GetFlowsConnectedToRelay)
 		flowStream = fs
 		return nil
 	}
@@ -72,13 +73,8 @@ func (srv *UIServer) GetFlows(req *ui.GetEventsRequest) (
 
 			sourceId, destId := service.IdsFromFlowProto(pbFlow)
 			if sourceId == "0" || destId == "0" {
-				log.Warnf("invalid (zero) identity in source / dest services\n")
-				serialized, err := json.Marshal(pbFlow)
-				if err != nil {
-					log.Errorf("failed to marshal flow to json: %v\n", err)
-				} else {
-					log.Warnf("flow json: %v\n", string(serialized))
-				}
+				log.Warnf(msg.ZeroIdentityInSourceOrDest)
+				printPBFlowJson(pbFlow)
 
 				continue F
 
@@ -96,10 +92,20 @@ func (srv *UIServer) GetFlows(req *ui.GetEventsRequest) (
 
 		close(errors)
 		close(responses)
-		log.Infof("fetching hubble flows: stream (ui backend <-> hubble-relay) is closed\n")
+		log.Infof(msg.GetFlowsUIStreamisClosed)
 	}()
 
 	return cancel, responses, errors
+}
+
+func printPBFlowJson(pbFlow *flow.Flow) {
+	serialized, err := json.Marshal(pbFlow)
+	if err != nil {
+		log.Errorf("failed to marshal flow to json: %v\n", err)
+		return
+	}
+
+	log.Warnf(msg.PrintZeroIdentityFlowJson, string(serialized))
 }
 
 func extractFlowsRequest(req *ui.GetEventsRequest) *observer.GetFlowsRequest {
@@ -146,7 +152,7 @@ func extractFlowsRequest(req *ui.GetEventsRequest) *observer.GetFlowsRequest {
 		request.Number = 10000
 	} else {
 		if getFlowsLastNumber, err = strconv.Atoi(getFlowsLast); err != nil {
-			log.Errorf("failed to convert GET_FLOWS_LAST to int, falling back to default value (10000): %v\n", err)
+			log.Errorf(msg.GetFlowsLastParseError, err)
 			request.Number = 10000
 		} else {
 			request.Number = uint64(getFlowsLastNumber)
@@ -156,11 +162,11 @@ func extractFlowsRequest(req *ui.GetEventsRequest) *observer.GetFlowsRequest {
 	getFlowsSince, isGetSinceSet := os.LookupEnv("GET_FLOWS_SINCE")
 	if isGetSinceSet {
 		if getFlowsSinceTime, err = hubbleTime.FromString(getFlowsSince); err != nil {
-			log.Errorf("failed to parse GET_FLOWS_SINCE: %v\n", err)
+			log.Errorf(msg.GetFlowsSinceParseError, err)
 		} else {
 			request.Since, err = ptypes.TimestampProto(getFlowsSinceTime)
 			if err != nil {
-				log.Errorf("failed to use GET_FLOWS_SINCE: %v\n", err)
+				log.Errorf(msg.GetFlowsSinceUseError, err)
 			}
 		}
 	}

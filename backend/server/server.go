@@ -21,6 +21,7 @@ import (
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 
 	"github.com/cilium/hubble-ui/backend/domain/cache"
+	"github.com/cilium/hubble-ui/backend/internal/msg"
 	"github.com/cilium/hubble-ui/backend/logger"
 )
 
@@ -41,7 +42,6 @@ type UIServer struct {
 }
 
 func New(relayAddr string) *UIServer {
-
 	return &UIServer{
 		relayAddr: relayAddr,
 		relayConnParams: &grpc.ConnectParams{
@@ -69,13 +69,13 @@ func (srv *UIServer) newRetries() *cilium_backoff.Exponential {
 func (srv *UIServer) Run() error {
 	err := srv.SetupGrpcClient()
 	if err != nil {
-		log.Errorf("failed to setup grpc client: %v\n", err)
+		log.Errorf(msg.ServerSetupGRPCClientError, err)
 		os.Exit(1)
 	}
 
 	k8s, err := createClientset()
 	if err != nil {
-		log.Errorf("failed to create clientset: %v\n", err)
+		log.Errorf(msg.ServerSetupK8sClientsetError, err)
 		os.Exit(1)
 	}
 
@@ -86,7 +86,7 @@ func (srv *UIServer) Run() error {
 
 func (srv *UIServer) SetupGrpcClient() error {
 	if len(srv.relayAddr) == 0 {
-		return fmt.Errorf("relayAddr is empty, flows broadcasting aborted.\n")
+		return fmt.Errorf(msg.ServerSetupNoRelayAddrError)
 	}
 
 	conn, err := grpc.Dial(
@@ -99,7 +99,7 @@ func (srv *UIServer) SetupGrpcClient() error {
 		return err
 	}
 
-	log.Infof("hubble-relay grpc client created, relayAddr: %s\n", srv.relayAddr)
+	log.Infof(msg.ServerSetupRelayClientReady, srv.relayAddr)
 	srv.hubbleClient = observer.NewObserverClient(conn)
 	srv.grpcConnection = conn
 
