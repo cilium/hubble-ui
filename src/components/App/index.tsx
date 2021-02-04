@@ -368,7 +368,7 @@ export const App: FunctionComponent<AppProps> = observer(props => {
       onVerdictChange={store.controls.setVerdict}
       selectedHttpStatus={store.controls.httpStatus}
       onHttpStatusChange={store.controls.setHttpStatus}
-      flowFilters={store.controls.flowFilters}
+      flowFilters={store.controls.correctFlowFilters}
       onChangeFlowFilters={store.setFlowFilters}
       showHost={store.controls.showHost}
       onShowHostToggle={store.toggleShowHost}

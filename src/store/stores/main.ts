@@ -298,22 +298,26 @@ export class Store {
 
   @action.bound
   public setFlowFilters(filters: FilterEntry[]) {
-    const nextFilters = filters.map(filter => {
-      // prettier-ignore
-      const requiresMeta = [
-        FilterKind.Identity,
-        FilterKind.Dns,
-      ].includes(filter.kind);
+    const nextFilters: FilterEntry[] = [];
 
-      if (!requiresMeta) return filter;
+    filters.forEach(filter => {
+      if (filter.isTCPFlag) return;
+
+      const requiresMeta = filter.isIdentity || filter.isDNS;
+      if (!requiresMeta) {
+        nextFilters.push(filter);
+        return;
+      }
 
       // TODO: change search by card `id` to explicit `identity`
       // when `identity` field is available in grpc schema.
       // For now we use identity for `id` - so it works
       const card = this.currentFrame.services.byId(filter.query);
-      if (card == null) return filter;
+      if (card != null) {
+        filter = filter.clone().setMeta(card.caption);
+      }
 
-      return filter.clone().setMeta(card.caption);
+      nextFilters.push(filter);
     });
 
     this.controls.setFlowFilters(nextFilters);
