@@ -177,8 +177,8 @@ export default class ControlStore {
   }
 
   @computed
-  get fastFlowFilters() {
-    return this.flowFilters.slice();
+  get correctFlowFilters() {
+    return this.flowFilters.filter(f => !f.isTCPFlag);
   }
 
   @computed
