@@ -44,6 +44,12 @@ To build the docker image run:
 
 Learn more about [Cilium Community](https://github.com/cilium/cilium#community)
 
+## Perform a release
+
+Push a tag into GitHub and ping a maintainer of the project to [accept the
+GitHub action run](https://github.com/cilium/hubble-ui/actions) which will
+push the images built into the official repositories.
+
 ## License
 
 Hubble UI is [Apache License, Version 2.0](https://github.com/cilium/hubble-ui/blob/master/LICENSE)
