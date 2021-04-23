@@ -8,6 +8,8 @@ import (
 	// "github.com/cilium/cilium/pkg/logging"
 	// "github.com/cilium/cilium/pkg/logging/logfields"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
+	gops "github.com/google/gops/agent"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
 	"github.com/cilium/hubble-ui/backend/client"
@@ -90,6 +92,21 @@ func getMode() string {
 }
 
 func main() {
+	gopsPort := "0"
+	if gopsPortEnv := os.Getenv("GOPS_PORT"); gopsPortEnv != "" {
+		gopsPort = gopsPortEnv
+	}
+	// Open socket for using gops to get stacktraces of the agent.
+	addr := fmt.Sprintf("127.0.0.1:%s", gopsPort)
+	addrField := logrus.Fields{"address": addr}
+	if err := gops.Listen(gops.Options{
+		Addr:                   addr,
+		ReuseSocketAddrAndPort: true,
+	}); err != nil {
+		log.WithError(err).WithFields(addrField).Fatal("Cannot start gops server")
+	}
+	log.WithFields(addrField).Info("Started gops server")
+
 	if mode := getMode(); mode == "server" {
 		runServer()
 	} else {
