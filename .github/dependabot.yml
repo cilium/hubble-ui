@@ -1,0 +1,24 @@
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: ./backend
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 1
+    rebase-strategy: "disabled"
+    ignore:
+        # cannot be updated until the etcd library is updated
+      - dependency-name: "google.golang.org/grpc"
+    labels:
+    - kind/enhancement
+    - release-note/misc
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 1
+    rebase-strategy: "disabled"
+    labels:
+    - kind/enhancement
+    - release-note/misc
