@@ -1,0 +1,5 @@
+# The following filepaths should be sorted so that more specific paths occur
+# after the less specific paths, otherwise the ownership for the specific paths
+# is not properly picked up in Github.
+* @cilium/hubble-ui
+/.github/workflows/ @cilium/maintainers
