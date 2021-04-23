@@ -28,11 +28,17 @@ Otherwise, if you want to change something in Go backend there are additional st
 2. In another terminal go to server directory with envoy config `cd ./server` and execute `envoy -c ./envoy.yaml` (envoy must be installed)
 3. In another terminal do port forward to hubble-relay `kubectl port-forward -n kube-system deployment/hubble-relay 50051:4245`
 
+To build the docker image run:
+1. `make hubble-ui-backend`
+
 #### Frontend
 
 1. Install deps `npm install`
 2. Start development server `npm run watch`
 3. Open [http://localhost:8080](http://localhost:8080)
+
+To build the docker image run:
+1. `make hubble-ui`
 
 ## Community
 
