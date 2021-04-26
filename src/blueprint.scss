@@ -1,12 +1,12 @@
-@import "~@blueprintjs/core/lib/scss/variables.scss";
+@import '~@blueprintjs/core/lib/scss/variables.scss';
 
 // $pt-button-height: 26px;
 // $pt-input-height: 26px;
 // $pt-border-radius: 3px;
 
-@import "~@blueprintjs/core/src/blueprint.scss";
-@import "~@blueprintjs/datetime/src/blueprint-datetime.scss";
-@import "~@blueprintjs/select/src/blueprint-select.scss";
+@import '~@blueprintjs/core/src/blueprint.scss';
+@import '~@blueprintjs/datetime/src/blueprint-datetime.scss';
+@import '~@blueprintjs/select/src/blueprint-select.scss';
 
 .bp3-control {
   margin-bottom: 0;

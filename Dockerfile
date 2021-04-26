@@ -6,13 +6,14 @@
 # BUILDPLATFORM is an automatic platform ARG enabled by Docker BuildKit.
 # Represents the plataform where the build is happening, do not mix with
 # TARGETARCH
-FROM --platform=${BUILDPLATFORM} docker.io/library/node:14.4.0-alpine@sha256:c247e6ad0a4a40ca7b83ef6de8af3be3e43c05e458370054c3a17e8fcae50aa8 as stage1
+FROM --platform=${BUILDPLATFORM} docker.io/library/node:15.14.0-alpine3.13@sha256:01adde22c684b850fc66d9ad2211ff280b303a3d194edf7edba8ab0870bb9b1e as stage1
 RUN apk add bash
 WORKDIR /app
 
 COPY package.json package.json
 COPY package-lock.json package-lock.json
 COPY scripts/ scripts/
+COPY patches/ patches/
 
 RUN npm set unsafe-perm true
 # TARGETOS is an automatic platform ARG enabled by Docker BuildKit.

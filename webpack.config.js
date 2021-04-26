@@ -2,36 +2,42 @@
 const autoprefixer = require('autoprefixer');
 const path = require('path');
 const webpack = require('webpack');
+const inliner = require('@vgrid/sass-inline-svg');
+const packageImporter = require('node-sass-package-importer');
 
 const Dotenv = require('dotenv-webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
-const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 /* eslint-enable @typescript-eslint/no-var-requires */
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isDevelopment = process.env.NODE_ENV === 'development';
 
-const stylesLoaders = sassEnabled => {
+const stylesLoaders = ({ enableSass, enableModules }) => {
   const sassOpts = {
-    modules: {
-      mode: 'local',
-      localIdentName: '[name]_[local]_[hash:base64:5]',
-    },
+    modules: enableModules
+      ? {
+          mode: 'local',
+          localIdentName: '[name]_[local]_[hash:base64:5]',
+        }
+      : false,
     importLoaders: 2,
     localsConvention: 'camelCase',
     sourceMap: true,
   };
 
   const cssOpts = {
-    modules: false,
+    modules: enableModules
+      ? {
+          mode: 'local',
+          localIdentName: '[name]_[local]_[hash:base64:5]',
+        }
+      : false,
     importLoaders: 1,
     localsConvention: 'camelCase',
     sourceMap: true,
   };
-
-  const cssLoaderOpts = sassEnabled ? sassOpts : cssOpts;
 
   return [
     {
@@ -43,7 +49,7 @@ const stylesLoaders = sassEnabled => {
     },
     {
       loader: 'css-loader',
-      options: cssLoaderOpts,
+      options: enableSass ? sassOpts : cssOpts,
     },
     {
       loader: 'postcss-loader',
@@ -53,12 +59,26 @@ const stylesLoaders = sassEnabled => {
       },
     },
   ].concat(
-    sassEnabled
+    enableSass
       ? [
           {
             loader: 'sass-loader',
             options: {
               sourceMap: true,
+              implementation: require('sass'),
+              sassOptions: {
+                importer: packageImporter(),
+                functions: {
+                  ...require('@vgrid/sass-inline-svg'),
+                  'svg-icon($path, $selectors: null)': inliner(
+                    path.join(__dirname, 'src/icons/blueprint'),
+                    {
+                      optimize: true,
+                      encodingFormat: 'uri',
+                    },
+                  ),
+                },
+              },
             },
           },
         ]
@@ -97,36 +117,44 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.ts(x?)$/,
-        exclude: /node_modules/,
-        use: ['babel-loader', 'ts-loader'],
-      },
-      {
-        enforce: 'pre',
-        test: /\.(js|jsx|mjs|ts|tsx)$/,
-        loader: 'source-map-loader',
-        include: path.resolve(__dirname, 'src'),
-      },
-      {
-        test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
-        loader: 'url-loader',
-        options: {
-          limit: 10000,
-          name: 'static/media/[name].[hash:8].[ext]',
-        },
-      },
-      {
-        test: /\.svg$/,
-        exclude: /node_modules/,
-        use: ['svg-react-loader'],
-      },
-      {
-        test: /\.css$/,
-        use: stylesLoaders(false),
-      },
-      {
-        test: /\.s[ac]ss$/,
-        use: stylesLoaders(true),
+        oneOf: [
+          {
+            test: /\.ts(x?)$/,
+            exclude: /node_modules/,
+            use: ['babel-loader', 'ts-loader'],
+          },
+          {
+            enforce: 'pre',
+            test: /\.(js|jsx|mjs|ts|tsx)$/,
+            loader: 'source-map-loader',
+            include: path.resolve(__dirname, 'src'),
+          },
+          {
+            test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
+            loader: 'url-loader',
+            options: {
+              limit: 10000,
+              name: 'static/media/[name].[hash:8].[ext]',
+            },
+          },
+          {
+            test: /\.svg$/,
+            exclude: /node_modules/,
+            use: ['svg-react-loader'],
+          },
+          {
+            test: /\.css$/,
+            use: stylesLoaders({ enableSass: false, enableModules: false }),
+          },
+          {
+            test: /.blueprint\.scss$/,
+            use: stylesLoaders({ enableSass: true, enableModules: false }),
+          },
+          {
+            test: /\.s[ac]ss$/,
+            use: stylesLoaders({ enableSass: true, enableModules: true }),
+          },
+        ],
       },
     ],
   },
@@ -154,21 +182,5 @@ module.exports = {
       chunksSortMode: 'auto',
       minify: true,
     }),
-  ].concat(
-    isDevelopment
-      ? []
-      : [
-          new OptimizeCSSAssetsPlugin({
-            cssProcessorOptions: {
-              map: {
-                inline: false,
-                annotation: true,
-              },
-            },
-            cssProcessorPluginOptions: {
-              preset: ['default', { discardComments: { removeAll: true } }],
-            },
-          }),
-        ],
-  ),
+  ],
 };
