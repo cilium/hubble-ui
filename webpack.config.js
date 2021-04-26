@@ -76,7 +76,9 @@ module.exports = {
   devtool: isProduction ? 'source-map' : 'inline-source-map',
   output: {
     path: path.resolve(__dirname, './server/public'),
-    filename: 'bundle.js',
+    filename: isProduction
+      ? 'bundle.[name].[contenthash].js'
+      : 'bundle.[name].js',
     publicPath: '/',
     devtoolModuleFilenameTemplate: isProduction
       ? undefined
@@ -140,8 +142,8 @@ module.exports = {
       'process.env.BLUEPRINT_NAMESPACE': JSON.stringify('bp3'),
     }),
     new MiniCssExtractPlugin({
-      filename: 'bundle.css',
-      chunkFilename: '[id].chunk.bundle.css',
+      filename: 'bundle.[name].[contenthash].css',
+      chunkFilename: '[id].chunk.bundle.[name].[contenthash].css',
     }),
     new Dotenv({
       path: `.env${isProduction ? '.production' : '.development'}`,
