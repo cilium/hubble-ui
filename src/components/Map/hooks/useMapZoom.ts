@@ -40,9 +40,9 @@ export function useMapZoom(args: Args): MapZoom {
     const zoom = d3
       .zoom()
       .scaleExtent([0.1, 1.5])
-      .on('zoom', () => {
-        setTransform(d3.event.transform);
-        if (d3.event.transform.programmatic) return;
+      .on('zoom', event => {
+        setTransform(event.transform);
+        if (event.transform.programmatic) return;
 
         args.onMapDrag?.(movesCount.current++ > 1);
       });
