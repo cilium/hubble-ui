@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Router } from '@reach/router';
 
-import './blueprint.css';
+import './blueprint.scss';
 import './index.scss';
 
 import { App } from './components/App';
