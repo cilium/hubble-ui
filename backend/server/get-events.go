@@ -174,8 +174,6 @@ F:
 				log.Errorf(msg.SendHubbleStatusError, err)
 				return err
 			}
-		default:
-			break
 		}
 	}
 
