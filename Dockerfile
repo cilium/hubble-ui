@@ -6,7 +6,7 @@
 # BUILDPLATFORM is an automatic platform ARG enabled by Docker BuildKit.
 # Represents the plataform where the build is happening, do not mix with
 # TARGETARCH
-FROM --platform=${BUILDPLATFORM} docker.io/library/node:15.14.0-alpine3.13@sha256:01adde22c684b850fc66d9ad2211ff280b303a3d194edf7edba8ab0870bb9b1e as stage1
+FROM --platform=${BUILDPLATFORM} docker.io/library/node:15.14.0-alpine3.12@sha256:0b0c5112216cdbacf8a2e55b075c411ef1c726eb6913796b4bfc72237aa5ac58 as stage1
 RUN apk add bash
 WORKDIR /app
 
