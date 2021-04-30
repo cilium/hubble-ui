@@ -6,6 +6,8 @@
 # BUILDPLATFORM is an automatic platform ARG enabled by Docker BuildKit.
 # Represents the plataform where the build is happening, do not mix with
 # TARGETARCH
+# Do not upgrade to alpine 3.13 as its nslookup tool returns 1, instead of 0
+# for domain name lookups.
 FROM --platform=${BUILDPLATFORM} docker.io/library/node:15.14.0-alpine3.12@sha256:0b0c5112216cdbacf8a2e55b075c411ef1c726eb6913796b4bfc72237aa5ac58 as stage1
 RUN apk add bash
 WORKDIR /app
