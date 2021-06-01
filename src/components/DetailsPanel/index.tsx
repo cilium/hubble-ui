@@ -25,7 +25,9 @@ import css from './styles.scss';
 export { DEFAULT_TS_UPDATE_DELAY, TickerEvents, OnFlowsDiffCount };
 
 interface PanelProps {
+  namespace: string;
   isStreaming: boolean;
+  flowsWaitTimeout: boolean;
   flowsTableVisibleColumns: Set<Column>;
   onPanelResize?: (resizeProps: ResizeProps) => void;
   onStreamStop?: () => void;
@@ -83,7 +85,14 @@ export const DetailsPanelComponent = function (props: Props) {
             ticker={props.ticker}
           />
         ) : (
-          <LoadingOverlay text="Waiting for table data…" />
+          <LoadingOverlay
+            text={
+              props.flowsWaitTimeout
+                ? `No flows found for ${props.namespace} namespace. Will continue to monitor for new flows…`
+                : 'Waiting for flows to show flows table…'
+            }
+            spinnerIntent={props.flowsWaitTimeout ? 'none' : 'success'}
+          />
         )}
       </div>
 
