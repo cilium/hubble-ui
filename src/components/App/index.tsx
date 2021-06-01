@@ -64,6 +64,7 @@ export const App: FunctionComponent<AppProps> = observer(props => {
   const [mapWasDragged, setMapWasDragged] = useState(false);
   const previousFilters = usePrevious(store.controls.filters);
   const flowsTableColumns = useFlowsTableColumns();
+  const [flowsWaitTimeout, setFlowsWaitTimeout] = useState<boolean>(false);
 
   const notifier = useNotifier();
   const dataManager = useMemo(() => {
@@ -76,6 +77,15 @@ export const App: FunctionComponent<AppProps> = observer(props => {
 
     return ticker;
   }, [dataManager]);
+
+  useEffect(() => {
+    if (!store.controls.currentNamespace) return;
+    setFlowsWaitTimeout(false);
+    const stop = setTimeout(() => {
+      setFlowsWaitTimeout(true);
+    }, 5000);
+    return () => clearTimeout(stop);
+  }, [store.controls.currentNamespace]);
 
   useEffect(() => {
     const d1 = dataManager.on(DataManagerEvents.StreamError, () => {
@@ -415,13 +425,20 @@ export const App: FunctionComponent<AppProps> = observer(props => {
         ) : (
           <LoadingOverlay
             height={mapVisibleHeight ?? '50%'}
-            text="Waiting for service map data…"
+            text={
+              flowsWaitTimeout
+                ? `No flows found for ${store.controls.currentNamespace} namespace. Will continue to monitor for new flows…`
+                : 'Waiting for flows to show on service map…'
+            }
+            spinnerIntent={flowsWaitTimeout ? 'none' : 'success'}
           />
         )}
       </div>
 
       <DetailsPanel
+        namespace={store.controls.currentNamespace}
         isStreaming={isStreaming}
+        flowsWaitTimeout={flowsWaitTimeout}
         flows={store.currentFrame.interactions.flows}
         flowsTableVisibleColumns={flowsTableColumns.visible}
         filters={store.controls.filters}
