@@ -14,7 +14,22 @@ import (
 func (srv *UIServer) GetStatus(ctx context.Context, _ *ui.GetStatusRequest) (
 	*ui.GetStatusResponse, error,
 ) {
-	ss, err := srv.hubbleClient.ServerStatus(
+	var client *HubbleClient = nil
+	parentClient := ctx.Value("hubbleClient")
+
+	if parentClient != nil {
+		client = parentClient.(*HubbleClient)
+	} else {
+		cl, err := srv.GetHubbleClientFromContext(ctx)
+		if err != nil {
+			log.Errorf(msg.ServerSetupRelayClientError, err)
+			return nil, err
+		}
+
+		client = cl
+	}
+
+	ss, err := client.hubble.ServerStatus(
 		ctx,
 		&observer.ServerStatusRequest{},
 	)
@@ -63,6 +78,15 @@ func (srv *UIServer) RunStatusChecker(req *ui.GetStatusRequest) (
 				return
 			}
 		}
+
+		client, err := srv.GetHubbleClientFromContext(ctx)
+		if err != nil {
+			log.Errorf(msg.ServerSetupRelayClientError, err)
+			sendError(err)
+			return
+		}
+
+		ctx = context.WithValue(ctx, "hubbleClient", client)
 	F:
 		for {
 			var lastError error = nil
