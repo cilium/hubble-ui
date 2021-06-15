@@ -19,7 +19,9 @@ import (
 	"github.com/cilium/hubble-ui/backend/server/helpers"
 )
 
-func (srv *UIServer) GetFlows(req *ui.GetEventsRequest) (
+func (srv *UIServer) GetFlows(
+	streamContext context.Context, req *ui.GetEventsRequest,
+) (
 	context.CancelFunc, chan *ui.GetEventsResponse, chan error,
 ) {
 	// TODO: handle context cancellation
@@ -33,7 +35,13 @@ func (srv *UIServer) GetFlows(req *ui.GetEventsRequest) (
 	retry := func(attempt int) error {
 		log.Infof(msg.GetFlowsConnectingToRelay, attempt)
 
-		fs, err := srv.hubbleClient.GetFlows(ctx, flowsRequest)
+		client, err := srv.GetHubbleClientFromContext(streamContext)
+		if err != nil {
+			log.Errorf(msg.ServerSetupRelayClientError, err)
+			return err
+		}
+
+		fs, err := client.hubble.GetFlows(ctx, flowsRequest)
 		if err != nil {
 			log.Errorf(msg.GetFlowsConnectionAttemptError, attempt, err)
 			return err

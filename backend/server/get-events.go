@@ -34,7 +34,7 @@ func (srv *UIServer) GetEvents(
 	var flowCancel func()
 
 	if eventsRequested.FlowsRequired() {
-		flowCancel, flowResponses, flowErrors = srv.GetFlows(req)
+		flowCancel, flowResponses, flowErrors = srv.GetFlows(stream.Context(), req)
 		defer flowCancel()
 	}
 

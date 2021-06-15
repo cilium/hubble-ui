@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 
 	// "github.com/cilium/cilium/pkg/logging"
 	// "github.com/cilium/cilium/pkg/logging/logfields"
@@ -13,8 +14,9 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/cilium/hubble-ui/backend/client"
+	"github.com/cilium/hubble-ui/backend/internal/config"
 	"github.com/cilium/hubble-ui/backend/internal/msg"
-	"github.com/cilium/hubble-ui/backend/logger"
+	"github.com/cilium/hubble-ui/backend/pkg/logger"
 	"github.com/cilium/hubble-ui/backend/server"
 )
 
@@ -48,19 +50,9 @@ func setupListener() net.Listener {
 	return listener
 }
 
-func getObserverAddr() string {
-	observerAddr, ok := os.LookupEnv("FLOWS_API_ADDR")
-	if !ok {
-		observerAddr = "0.0.0.0:50051"
-		log.Warnf(msg.ServerSetupUsingDefRelayAddr, observerAddr)
-	}
-
-	return observerAddr
-}
-
-func runServer() {
-	observerAddr := getObserverAddr()
-	srv := server.New(observerAddr)
+func runServer(cfg *config.Config) {
+	// observerAddr := getObserverAddr()
+	srv := server.New(cfg)
 
 	if err := srv.Run(); err != nil {
 		log.Errorf(msg.ServerSetupRunError, err)
@@ -74,8 +66,8 @@ func runServer() {
 	grpcServer.Serve(listener)
 }
 
-func runClient() {
-	addr := getServerAddr()
+func runClient(cfg *config.Config) {
+	addr := cfg.UIServerListenAddr()
 	log.Infof("connecting to server: %s\n", addr)
 
 	cl := client.New(addr)
@@ -91,7 +83,11 @@ func getMode() string {
 	return "server"
 }
 
-func main() {
+func runGops() {
+	if enabled, _ := strconv.ParseBool(os.Getenv("GOPS_ENABLED")); !enabled {
+		return
+	}
+
 	gopsPort := "0"
 	if gopsPortEnv := os.Getenv("GOPS_PORT"); gopsPortEnv != "" {
 		gopsPort = gopsPortEnv
@@ -99,17 +95,29 @@ func main() {
 	// Open socket for using gops to get stacktraces of the agent.
 	addr := fmt.Sprintf("127.0.0.1:%s", gopsPort)
 	addrField := logrus.Fields{"address": addr}
+
 	if err := gops.Listen(gops.Options{
 		Addr:                   addr,
 		ReuseSocketAddrAndPort: true,
 	}); err != nil {
 		log.WithError(err).WithFields(addrField).Fatal("Cannot start gops server")
 	}
+
 	log.WithFields(addrField).Info("Started gops server")
+}
+
+func main() {
+	runGops()
+
+	cfg, err := config.Init()
+	if err != nil {
+		log.Errorf(msg.ServerSetupConfigInitError, err.Error())
+		os.Exit(1)
+	}
 
 	if mode := getMode(); mode == "server" {
-		runServer()
+		runServer(cfg)
 	} else {
-		runClient()
+		runClient(cfg)
 	}
 }

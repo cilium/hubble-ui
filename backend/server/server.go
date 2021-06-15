@@ -18,11 +18,13 @@ import (
 
 	"github.com/cilium/cilium/api/v1/observer"
 	cilium_backoff "github.com/cilium/cilium/pkg/backoff"
+	grpc_helpers "github.com/cilium/hubble-ui/backend/internal/grpc"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 
 	"github.com/cilium/hubble-ui/backend/domain/cache"
+	"github.com/cilium/hubble-ui/backend/internal/config"
 	"github.com/cilium/hubble-ui/backend/internal/msg"
-	"github.com/cilium/hubble-ui/backend/logger"
+	"github.com/cilium/hubble-ui/backend/pkg/logger"
 )
 
 var (
@@ -32,18 +34,21 @@ var (
 type UIServer struct {
 	ui.UnimplementedUIServer
 
-	relayAddr       string
+	cfg             *config.Config
 	relayConnParams *grpc.ConnectParams
-	hubbleClient    observer.ObserverClient
-	grpcConnection  *grpc.ClientConn
 
 	k8s       kubernetes.Interface
 	dataCache *cache.DataCache
 }
 
-func New(relayAddr string) *UIServer {
+type HubbleClient struct {
+	hubble         observer.ObserverClient
+	grpcConnection *grpc.ClientConn
+}
+
+func New(cfg *config.Config) *UIServer {
 	return &UIServer{
-		relayAddr: relayAddr,
+		cfg: cfg,
 		relayConnParams: &grpc.ConnectParams{
 			Backoff: backoff.Config{
 				BaseDelay:  1.0 * time.Second,
@@ -67,12 +72,6 @@ func (srv *UIServer) newRetries() *cilium_backoff.Exponential {
 }
 
 func (srv *UIServer) Run() error {
-	err := srv.SetupGrpcClient()
-	if err != nil {
-		log.Errorf(msg.ServerSetupGRPCClientError, err)
-		os.Exit(1)
-	}
-
 	k8s, err := createClientset()
 	if err != nil {
 		log.Errorf(msg.ServerSetupK8sClientsetError, err)
@@ -84,26 +83,35 @@ func (srv *UIServer) Run() error {
 	return nil
 }
 
-func (srv *UIServer) SetupGrpcClient() error {
-	if len(srv.relayAddr) == 0 {
-		return fmt.Errorf(msg.ServerSetupNoRelayAddrError)
+func (srv *UIServer) GetHubbleClientFromContext(ctx context.Context) (
+	*HubbleClient, error,
+) {
+	relayAddr := srv.cfg.RelayAddr
+	if len(relayAddr) == 0 {
+		return nil, fmt.Errorf(msg.ServerSetupNoRelayAddrError)
 	}
 
-	conn, err := grpc.Dial(
-		srv.relayAddr,
-		grpc.WithInsecure(),
-		grpc.WithConnectParams(*srv.relayConnParams),
-	)
-
+	transportDialOpt, err := grpc_helpers.TransportSecurityToRelay(srv.cfg)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	log.Infof(msg.ServerSetupRelayClientReady, srv.relayAddr)
-	srv.hubbleClient = observer.NewObserverClient(conn)
-	srv.grpcConnection = conn
+	dialOpts := []grpc.DialOption{
+		transportDialOpt,
+		grpc.WithConnectParams(*srv.relayConnParams),
+	}
 
-	return nil
+	conn, err := grpc.Dial(relayAddr, dialOpts...)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Infof(msg.ServerSetupRelayClientReady, relayAddr)
+
+	return &HubbleClient{
+		hubble:         observer.NewObserverClient(conn),
+		grpcConnection: conn,
+	}, nil
 }
 
 func (srv *UIServer) RetryIfGrpcUnavailable(

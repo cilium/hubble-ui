@@ -7,7 +7,7 @@ import (
 	"github.com/cilium/hubble-ui/backend/domain/flow"
 	"github.com/cilium/hubble-ui/backend/domain/link"
 	"github.com/cilium/hubble-ui/backend/domain/service"
-	"github.com/cilium/hubble-ui/backend/logger"
+	"github.com/cilium/hubble-ui/backend/pkg/logger"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 	"github.com/golang/protobuf/ptypes"
 )

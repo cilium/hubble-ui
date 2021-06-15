@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/cilium/cilium/api/v1/flow"
-	"github.com/cilium/hubble-ui/backend/logger"
+	"github.com/cilium/hubble-ui/backend/pkg/logger"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 )
 
