@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "test": "jest",
+    "prepare": "husky install",
     "postinstall": "patch-package && bash ./scripts/post-install.sh",
     "watch:server": "servor ./server/public index.html 8080",
     "watch:client": "NODE_ENV=development webpack --progress",
@@ -21,11 +22,6 @@
     "./src/**/*.scss": [
       "npm run --silent lint:scss:fix"
     ]
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
   },
   "dependencies": {
     "@babel/runtime": "7.10.4",
@@ -93,7 +89,7 @@
     "file-loader": "6.0.0",
     "fs-extra": "9.0.1",
     "html-webpack-plugin": "4.3.0",
-    "husky": "4.2.5",
+    "husky": "7.0.2",
     "identity-obj-proxy": "3.0.0",
     "jest": "26.1.0",
     "lint-staged": "10.2.11",
