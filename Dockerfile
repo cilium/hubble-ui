@@ -8,7 +8,7 @@
 # TARGETARCH
 # Do not upgrade to alpine 3.13 as its nslookup tool returns 1, instead of 0
 # for domain name lookups.
-FROM --platform=${BUILDPLATFORM} docker.io/library/node:15.14.0-alpine3.12@sha256:0b0c5112216cdbacf8a2e55b075c411ef1c726eb6913796b4bfc72237aa5ac58 as stage1
+FROM --platform=${BUILDPLATFORM} docker.io/library/node:16.10.0-alpine3.12@sha256:9db3972145e7e6df84d52680a465dadc3269a728db6bf369dc4178e8bdc56506 as stage1
 RUN apk add bash
 WORKDIR /app
 
@@ -30,6 +30,6 @@ COPY . .
 ARG NODE_ENV=production
 RUN npm run build
 
-FROM docker.io/nginxinc/nginx-unprivileged:1.20.0-alpine@sha256:662f1691b70555829c845b1849e5eece9041a5405cb4206f7eada4da76143374
+FROM docker.io/nginxinc/nginx-unprivileged:1.21.3-alpine@sha256:0271d3f7ca8935104f85e35ea7590ad61df2d629086cea96929ac06fef9571c8
 COPY --from=stage1 /app/server/public /app
 COPY --from=stage1 /app/server/nginx-hubble-ui-frontend.conf /etc/nginx/conf.d/default.conf
