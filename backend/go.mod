@@ -9,7 +9,7 @@ require (
 	github.com/go-logr/logr v1.1.0 // indirect
 	github.com/golang/protobuf v1.5.2
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/google/gops v0.3.20
+	github.com/google/gops v0.3.21
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
