@@ -6,8 +6,14 @@ import * as flow_flow_pb from '../flow/flow_pb';
 import * as relay_relay_pb from '../relay/relay_pb';
 
 import {
+  GetAgentEventsRequest,
+  GetAgentEventsResponse,
+  GetDebugEventsRequest,
+  GetDebugEventsResponse,
   GetFlowsRequest,
   GetFlowsResponse,
+  GetNodesRequest,
+  GetNodesResponse,
   ServerStatusRequest,
   ServerStatusResponse} from './observer_pb';
 
@@ -20,6 +26,23 @@ export class ObserverClient {
     request: GetFlowsRequest,
     metadata?: grpcWeb.Metadata
   ): grpcWeb.ClientReadableStream<GetFlowsResponse>;
+
+  getAgentEvents(
+    request: GetAgentEventsRequest,
+    metadata?: grpcWeb.Metadata
+  ): grpcWeb.ClientReadableStream<GetAgentEventsResponse>;
+
+  getDebugEvents(
+    request: GetDebugEventsRequest,
+    metadata?: grpcWeb.Metadata
+  ): grpcWeb.ClientReadableStream<GetDebugEventsResponse>;
+
+  getNodes(
+    request: GetNodesRequest,
+    metadata: grpcWeb.Metadata | undefined,
+    callback: (err: grpcWeb.Error,
+               response: GetNodesResponse) => void
+  ): grpcWeb.ClientReadableStream<GetNodesResponse>;
 
   serverStatus(
     request: ServerStatusRequest,
@@ -39,6 +62,21 @@ export class ObserverPromiseClient {
     request: GetFlowsRequest,
     metadata?: grpcWeb.Metadata
   ): grpcWeb.ClientReadableStream<GetFlowsResponse>;
+
+  getAgentEvents(
+    request: GetAgentEventsRequest,
+    metadata?: grpcWeb.Metadata
+  ): grpcWeb.ClientReadableStream<GetAgentEventsResponse>;
+
+  getDebugEvents(
+    request: GetDebugEventsRequest,
+    metadata?: grpcWeb.Metadata
+  ): grpcWeb.ClientReadableStream<GetDebugEventsResponse>;
+
+  getNodes(
+    request: GetNodesRequest,
+    metadata?: grpcWeb.Metadata
+  ): Promise<GetNodesResponse>;
 
   serverStatus(
     request: ServerStatusRequest,
