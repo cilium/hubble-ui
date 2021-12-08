@@ -1,5 +1,15 @@
 version: 2
 updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 1
+    rebase-strategy: "disabled"
+    labels:
+    - kind/enhancement
+    - release-note/misc
+
   - package-ecosystem: gomod
     directory: ./backend
     schedule:
