@@ -3,10 +3,11 @@ set -e
 
 CWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-CILIUM_DIR=$(go list -f "{{ .Dir }}" -m github.com/cilium/cilium)
+CILIUM_DIR="${CWD}/vendor/github.com/cilium/cilium"
 
+PROTOC_GEN_GO_PLUGIN="--plugin ${CWD}/vendor/google.golang.org/protobuf/cmd/protoc-gen-go/protoc-gen-go"
+PROTOC_GEN_GO_GRPC_PLUGIN="--plugin ${CWD}/vendor/google.golang.org/grpc/cmd/protoc-gen-go-grpc/protoc-gen-go-grpc"
 PROTOC_GEN_GRPC_WEB_PATH="${CWD}/../node_modules/.bin/protoc-gen-grpc-web"
-PROTOC_GO_PLUGIN="--plugin $GOPATH/bin/protoc-gen-go"
 PROTOC_WEB_PLUGIN="--plugin $PROTOC_GEN_GRPC_WEB_PATH"
 PROTOC="$CWD/../node_modules/.bin/protoc/bin/protoc"
 
@@ -48,10 +49,9 @@ function unknown_command() {
     show_usage
 }
 
-function install_go_prerequisites() {
-    if [ ! -f $GOPATH/bin/protoc-gen-go ]; then
-        go get -u github.com/golang/protobuf/protoc-gen-go
-    fi
+function build_protoc_gen_go() {
+    (cd ./vendor/google.golang.org/grpc/cmd/protoc-gen-go-grpc && go build)
+    (cd ./vendor/google.golang.org/protobuf/cmd/protoc-gen-go && go build)
 }
 
 function check_outer_dependencies() {
@@ -79,13 +79,15 @@ function build_proto_inner() {
     GO_MAPPINGS+=",Mui/status.proto=github.com/cilium/hubble-ui/backend/proto/ui"
     GO_MAPPINGS+=",Mgoogle/protobuf/timestamp.proto=github.com/golang/protobuf/ptypes/timestamp"
 
-    $PROTOC $PROTOC_GO_PLUGIN \
-        -I ./proto \
-        --go_out=plugins=grpc,paths=source_relative,$GO_MAPPINGS:./proto \
-        ./proto/flow/flow.proto \
-        ./proto/observer/observer.proto \
-        ./proto/relay/relay.proto \
-        ./proto/ui/*.proto
+    $PROTOC $PROTOC_GEN_GO_PLUGIN $PROTOC_GEN_GO_GRPC_PLUGIN \
+        --proto_path ./proto \
+        --go_out=./proto \
+        --go_opt=paths=source_relative,$GO_MAPPINGS \
+        --go-grpc_out=./proto \
+        --go-grpc_opt=paths=source_relative,$GO_MAPPINGS \
+        ./proto/ui/notifications.proto \
+        ./proto/ui/status.proto \
+        ./proto/ui/ui.proto
 
     $PROTOC $PROTOC_WEB_PLUGIN \
         -I ./proto \
@@ -94,14 +96,16 @@ function build_proto_inner() {
         ./proto/flow/flow.proto \
         ./proto/observer/observer.proto \
         ./proto/relay/relay.proto \
-        ./proto/ui/*.proto
+        ./proto/ui/notifications.proto \
+        ./proto/ui/status.proto \
+        ./proto/ui/ui.proto
 
     chmod +w -R ./proto
 }
 
 function update_proto() {
     check_outer_dependencies
-    install_go_prerequisites
+    build_protoc_gen_go
 
     build_proto_inner
 }
