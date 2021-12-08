@@ -38,3 +38,14 @@ jobs:
           go mod vendor
           go mod verify
           test -z "$(git status --porcelain)" || (echo "please run 'go mod tidy && go mod vendor', and submit your changes"; exit 1)
+      - name: Setup Node.js
+        uses: actions/setup-node@v2.5.0
+        with:
+          node-version: '16.x'
+      - name: Install NPM dependencies
+        run: npm install
+      - name: Check proto files
+        working-directory: ./backend
+        run: |
+          ./ctl.sh update-proto
+          test -z "$(git status --porcelain)" || (echo "please run './ctl.sh update-proto', and submit your changes"; exit 1)
