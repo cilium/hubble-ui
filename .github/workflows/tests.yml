@@ -1,7 +1,14 @@
-name: Run tests
-on: push
+name: tests
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
 jobs:
-  testing:
+  frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
@@ -15,3 +22,19 @@ jobs:
         run: npm install
       - name: Run tests
         run: npm test
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2.3.4
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '^1.17'
+      - name: Check Go module vendoring
+        working-directory: ./backend
+        run: |
+          go mod tidy
+          go mod vendor
+          go mod verify
+          test -z "$(git status --porcelain)" || (echo "please run 'go mod tidy && go mod vendor', and submit your changes"; exit 1)
