@@ -82,7 +82,7 @@
     "css-loader": "3.6.0",
     "dotenv-webpack": "2.0.0",
     "download": "8.0.0",
-    "eslint": "7.4.0",
+    "eslint": "^7.32.0",
     "eslint-config-prettier": "6.11.0",
     "eslint-plugin-prettier": "3.1.4",
     "eslint-plugin-react": "7.20.3",
@@ -96,11 +96,10 @@
     "mini-css-extract-plugin": "0.9.0",
     "node-sass-package-importer": "5.3.2",
     "npm-run-all": "4.1.5",
-    "optimize-css-assets-webpack-plugin": "5.0.3",
+    "optimize-css-assets-webpack-plugin": "^6.0.1",
     "patch-package": "6.4.7",
     "postcss-loader": "3.0.0",
     "prettier": "2.0.5",
-    "react-dev-utils": "11.0.4",
     "react-test-renderer": "16.13.1",
     "sass": "1.32.11",
     "sass-loader": "9.0.2",
@@ -108,7 +107,7 @@
     "source-map-explorer": "2.4.2",
     "source-map-loader": "1.0.1",
     "style-loader": "1.2.1",
-    "stylelint": "13.6.1",
+    "stylelint": "^13.13.1",
     "stylelint-config-css-modules": "2.2.0",
     "stylelint-config-standard": "20.0.0",
     "stylelint-scss": "3.18.0",
@@ -120,7 +119,7 @@
     "unzipper": "0.10.11",
     "url-loader": "4.1.0",
     "webpack": "4.43.0",
-    "webpack-cli": "3.3.12",
-    "webpack-dev-server": "3.11.0"
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.6.0"
   }
 }
