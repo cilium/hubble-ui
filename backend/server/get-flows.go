@@ -11,7 +11,7 @@ import (
 	"github.com/cilium/cilium/api/v1/observer"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 	hubbleTime "github.com/cilium/hubble/pkg/time"
-	"github.com/golang/protobuf/ptypes"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	dflow "github.com/cilium/hubble-ui/backend/domain/flow"
 	"github.com/cilium/hubble-ui/backend/domain/service"
@@ -172,10 +172,7 @@ func extractFlowsRequest(req *ui.GetEventsRequest) *observer.GetFlowsRequest {
 		if getFlowsSinceTime, err = hubbleTime.FromString(getFlowsSince); err != nil {
 			log.Errorf(msg.GetFlowsSinceParseError, err)
 		} else {
-			request.Since, err = ptypes.TimestampProto(getFlowsSinceTime)
-			if err != nil {
-				log.Errorf(msg.GetFlowsSinceUseError, err)
-			}
+			request.Since = timestamppb.New(getFlowsSinceTime)
 		}
 	}
 

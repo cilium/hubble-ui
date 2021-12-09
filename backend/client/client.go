@@ -2,11 +2,11 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/cilium/cilium/api/v1/flow"
 	"github.com/cilium/hubble-ui/backend/pkg/logger"
@@ -48,8 +48,6 @@ func (cl *Client) RunStream(uiClient ui.UIClient) {
 		os.Exit(1)
 	}
 
-	m := jsonpb.Marshaler{}
-
 	for {
 		data, err := stream.Recv()
 		if err != nil {
@@ -57,12 +55,11 @@ func (cl *Client) RunStream(uiClient ui.UIClient) {
 			os.Exit(1)
 		}
 
-		result, err := m.MarshalToString(data)
-
+		bs, err := json.Marshal(data)
 		if err != nil {
 			log.Errorf("failed to make json from message: %v\n", err)
 		} else {
-			log.Infof("received event message: %s\n", result)
+			log.Infof("received event message: %s\n", string(bs))
 		}
 	}
 }
@@ -77,7 +74,7 @@ func prepareRequest() *ui.GetEventsRequest {
 			ui.EventType_SERVICE_LINK_STATE,
 			ui.EventType_K8S_NAMESPACE_STATE,
 		},
-		Since: ptypes.TimestampNow(),
+		Since: timestamppb.Now(),
 		Whitelist: []*ui.EventFilter{
 			{
 				Filter: &ui.EventFilter_FlowFilter{flowFilter},

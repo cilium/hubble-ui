@@ -3,26 +3,26 @@ package service
 import (
 	"fmt"
 
-	pbFlow "github.com/cilium/cilium/api/v1/flow"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
+	flowpb "github.com/cilium/cilium/api/v1/flow"
 	"github.com/cilium/hubble-ui/backend/domain/labels"
 	pbUi "github.com/cilium/hubble-ui/backend/proto/ui"
-
-	"github.com/golang/protobuf/ptypes"
 )
 
 type Service struct {
 	LabelProps *labels.LabelProps
 
-	flowRef    *pbFlow.Flow
-	endpoint   *pbFlow.Endpoint
+	flowRef    *flowpb.Flow
+	endpoint   *flowpb.Endpoint
 	dnsNames   []string
 	isSender   bool
 	isReceiver bool
 }
 
 func FromEndpointProtoAndDns(
-	f *pbFlow.Flow,
-	ep *pbFlow.Endpoint,
+	f *flowpb.Flow,
+	ep *flowpb.Endpoint,
 	dnsNames []string,
 ) *Service {
 	svc := new(Service)
@@ -35,7 +35,7 @@ func FromEndpointProtoAndDns(
 	return svc
 }
 
-func IdsFromFlowProto(f *pbFlow.Flow) (string, string) {
+func IdsFromFlowProto(f *flowpb.Flow) (string, string) {
 	sourceProps := labels.Props(f.Source.Labels)
 	destProps := labels.Props(f.Destination.Labels)
 
@@ -86,7 +86,7 @@ func (s *Service) ToProto() *pbUi.Service {
 		EgressPolicyEnforced:   false,
 		IngressPolicyEnforced:  false,
 		VisibilityPolicyStatus: "",
-		CreationTimestamp:      ptypes.TimestampNow(),
+		CreationTimestamp:      timestamppb.Now(),
 	}
 }
 
@@ -112,12 +112,12 @@ func (s *Service) Id() string {
 	return getServiceId(s.endpoint, s.dnsNames, s.LabelProps, s.isReceiver)
 }
 
-func (s *Service) FlowRef() *pbFlow.Flow {
+func (s *Service) FlowRef() *flowpb.Flow {
 	return s.flowRef
 }
 
 func getServiceId(
-	ep *pbFlow.Endpoint,
+	ep *flowpb.Endpoint,
 	dnsNames []string,
 	lblProps *labels.LabelProps,
 	isWorldReceiver bool,
