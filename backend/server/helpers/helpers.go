@@ -8,7 +8,7 @@ import (
 	"github.com/cilium/hubble-ui/backend/domain/link"
 	"github.com/cilium/hubble-ui/backend/domain/service"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
-	"github.com/golang/protobuf/ptypes"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func EventResponseForService(
@@ -76,7 +76,7 @@ func EventResponseFromStatusResponse(
 ) *ui.GetEventsResponse {
 	return &ui.GetEventsResponse{
 		Node:      "backend",
-		Timestamp: ptypes.TimestampNow(),
+		Timestamp: timestamppb.Now(),
 		Event: &ui.GetEventsResponse_Notification{
 			Notification: &ui.Notification{
 				Notification: &ui.Notification_Status{st},
@@ -106,7 +106,7 @@ func notificationConnState(
 func EventResponseReconnecting() *ui.GetEventsResponse {
 	return &ui.GetEventsResponse{
 		Node:      "backend",
-		Timestamp: ptypes.TimestampNow(),
+		Timestamp: timestamppb.Now(),
 		Event: &ui.GetEventsResponse_Notification{
 			Notification: notificationConnState(false, true, false, false),
 		},
@@ -116,7 +116,7 @@ func EventResponseReconnecting() *ui.GetEventsResponse {
 func EventResponseConnected() *ui.GetEventsResponse {
 	return &ui.GetEventsResponse{
 		Node:      "backend",
-		Timestamp: ptypes.TimestampNow(),
+		Timestamp: timestamppb.Now(),
 		Event: &ui.GetEventsResponse_Notification{
 			Notification: notificationConnState(true, false, false, false),
 		},
@@ -126,7 +126,7 @@ func EventResponseConnected() *ui.GetEventsResponse {
 func EventResponseK8sUnavailable() *ui.GetEventsResponse {
 	return &ui.GetEventsResponse{
 		Node:      "backend",
-		Timestamp: ptypes.TimestampNow(),
+		Timestamp: timestamppb.Now(),
 		Event: &ui.GetEventsResponse_Notification{
 			Notification: notificationConnState(false, false, true, false),
 		},
@@ -136,7 +136,7 @@ func EventResponseK8sUnavailable() *ui.GetEventsResponse {
 func EventResponseK8sConnected() *ui.GetEventsResponse {
 	return &ui.GetEventsResponse{
 		Node:      "backend",
-		Timestamp: ptypes.TimestampNow(),
+		Timestamp: timestamppb.Now(),
 		Event: &ui.GetEventsResponse_Notification{
 			Notification: notificationConnState(false, false, false, true),
 		},
@@ -155,7 +155,7 @@ func EventResponseNoPermission(resource string, error string) *ui.GetEventsRespo
 
 	return &ui.GetEventsResponse{
 		Node:      "backend",
-		Timestamp: ptypes.TimestampNow(),
+		Timestamp: timestamppb.Now(),
 		Event: &ui.GetEventsResponse_Notification{
 			Notification: notif,
 		},

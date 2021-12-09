@@ -2,7 +2,7 @@ package helpers
 
 import (
 	"github.com/cilium/hubble-ui/backend/proto/ui"
-	"github.com/golang/protobuf/ptypes"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	v1 "k8s.io/api/core/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -27,15 +27,8 @@ func EventResponseFromNSEvent(e *NSEvent) *ui.GetEventsResponse {
 		stateChange = ui.StateChange_DELETED
 	}
 
-	creationTimestamp, err := ptypes.TimestampProto(ns.CreationTimestamp.Time)
-	if err != nil {
-		log.Errorf("failed to convert timestamp from k8s to pb: %v\n", err)
-	}
-
-	eventTimestamp, err := ptypes.TimestampProto(ts.Time)
-	if err != nil {
-		log.Errorf("failed to convert timestamp from k8s to pb: %v\n", err)
-	}
+	creationTimestamp := timestamppb.New(ns.CreationTimestamp.Time)
+	eventTimestamp := timestamppb.New(ts.Time)
 
 	state := &ui.K8SNamespaceState{
 		Namespace: &ui.K8SNamespace{
