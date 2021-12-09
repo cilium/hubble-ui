@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const autoprefixer = require('autoprefixer');
 const path = require('path');
 const webpack = require('webpack');
-const inliner = require('@vgrid/sass-inline-svg');
+const inliner = require('@geakstr/sass-inline-svg');
 const packageImporter = require('node-sass-package-importer');
 
 const Dotenv = require('dotenv-webpack');
@@ -20,10 +19,10 @@ const stylesLoaders = ({ enableSass, enableModules }) => {
       ? {
           mode: 'local',
           localIdentName: '[name]_[local]_[hash:base64:5]',
+          exportLocalsConvention: 'camelCase',
         }
       : false,
     importLoaders: 2,
-    localsConvention: 'camelCase',
     sourceMap: true,
   };
 
@@ -32,31 +31,20 @@ const stylesLoaders = ({ enableSass, enableModules }) => {
       ? {
           mode: 'local',
           localIdentName: '[name]_[local]_[hash:base64:5]',
+          exportLocalsConvention: 'camelCase',
         }
       : false,
     importLoaders: 1,
-    localsConvention: 'camelCase',
     sourceMap: true,
   };
 
   return [
     {
       loader: MiniCssExtractPlugin.loader,
-      options: {
-        hmr: isDevelopment,
-        sourceMap: true,
-      },
     },
     {
       loader: 'css-loader',
       options: enableSass ? sassOpts : cssOpts,
-    },
-    {
-      loader: 'postcss-loader',
-      options: {
-        sourceMap: true,
-        plugins: [autoprefixer()],
-      },
     },
   ].concat(
     enableSass
@@ -69,7 +57,7 @@ const stylesLoaders = ({ enableSass, enableModules }) => {
               sassOptions: {
                 importer: packageImporter(),
                 functions: {
-                  ...require('@vgrid/sass-inline-svg'),
+                  ...require('@geakstr/sass-inline-svg'),
                   'svg-icon($path, $selectors: null)': inliner(
                     path.join(__dirname, 'src/icons/blueprint'),
                     {
