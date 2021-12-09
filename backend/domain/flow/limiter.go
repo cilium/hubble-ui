@@ -29,11 +29,11 @@ func (fl *FlowLimiter) Push(f *pbFlow.Flow) {
 }
 
 func (fl *FlowLimiter) run() {
-	ticker := time.Tick(fl.flushTimeout)
-
 	go func() {
+		ticker := time.NewTicker(fl.flushTimeout)
+		defer ticker.Stop()
 		lastFlush := time.Now()
-		for range ticker {
+		for range ticker.C {
 			if time.Since(lastFlush) < fl.flushTimeout {
 				continue
 			}
