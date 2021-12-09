@@ -101,7 +101,3 @@ func (cf *DataCache) Empty() *DataCache {
 func (cf *CacheFlags) Changed() bool {
 	return cf.Created || cf.Updated || cf.Deleted
 }
-
-func newExistFlags() *CacheFlags {
-	return &CacheFlags{false, false, false, true}
-}
