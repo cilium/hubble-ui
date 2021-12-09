@@ -58,7 +58,8 @@ func (srv *UIServer) RunStatusChecker(req *ui.GetStatusRequest) (
 	delay := time.Second * 1
 
 	go func() {
-		ticker := time.Tick(delay)
+		ticker := time.NewTicker(delay)
+		defer ticker.Stop()
 		lastCheck := time.Now()
 
 		sendError := func(err error) {
@@ -95,7 +96,7 @@ func (srv *UIServer) RunStatusChecker(req *ui.GetStatusRequest) (
 			case <-ctx.Done():
 				log.Infof(msg.HubbleStatusCheckerIsStopped)
 				break F
-			case <-ticker:
+			case <-ticker.C:
 				if time.Since(lastCheck) < delay {
 					continue F
 				}
