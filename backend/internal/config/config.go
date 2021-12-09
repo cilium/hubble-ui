@@ -12,9 +12,6 @@ import (
 
 var (
 	log = logger.New("config")
-
-	CACertLoadError    = errors.New("failed to read CA certificate")
-	CACertInvalidError = errors.New("CA certificate is not properly PEM-encoded")
 )
 
 const (

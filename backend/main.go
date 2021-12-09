@@ -6,8 +6,6 @@ import (
 	"os"
 	"strconv"
 
-	// "github.com/cilium/cilium/pkg/logging"
-	// "github.com/cilium/cilium/pkg/logging/logfields"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 	gops "github.com/google/gops/agent"
 	"github.com/sirupsen/logrus"

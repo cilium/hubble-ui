@@ -14,7 +14,6 @@ type Service struct {
 	LabelProps *labels.LabelProps
 
 	flowRef    *pbFlow.Flow
-	ref        *pbUi.Service
 	endpoint   *pbFlow.Endpoint
 	dnsNames   []string
 	isSender   bool
