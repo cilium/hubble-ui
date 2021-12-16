@@ -39,7 +39,9 @@ func EventResponseFromNSEvent(e *NSEvent) *ui.GetEventsResponse {
 		Type: stateChange,
 	}
 
-	nsEvent := &ui.GetEventsResponse_K8SNamespaceState{state}
+	nsEvent := &ui.GetEventsResponse_K8SNamespaceState{
+		K8SNamespaceState: state,
+	}
 
 	return &ui.GetEventsResponse{
 		Node:      ns.ClusterName, // not node name but though

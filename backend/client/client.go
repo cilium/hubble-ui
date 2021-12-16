@@ -77,7 +77,9 @@ func prepareRequest() *ui.GetEventsRequest {
 		Since: timestamppb.Now(),
 		Whitelist: []*ui.EventFilter{
 			{
-				Filter: &ui.EventFilter_FlowFilter{flowFilter},
+				Filter: &ui.EventFilter_FlowFilter{
+					FlowFilter: flowFilter,
+				},
 			},
 		},
 	}

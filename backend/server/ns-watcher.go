@@ -11,7 +11,10 @@ import (
 func eventFromNSObject(event helpers.EventKind, obj interface{}) *helpers.NSEvent {
 	ns := obj.(*v1.Namespace)
 
-	return &helpers.NSEvent{event, ns}
+	return &helpers.NSEvent{
+		Event:     event,
+		Namespace: ns,
+	}
 }
 
 func (srv *UIServer) RunNSWatcher() (chan *helpers.NSEvent, chan error, chan struct{}) {
