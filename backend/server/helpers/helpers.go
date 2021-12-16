@@ -24,7 +24,9 @@ func EventResponseForService(
 	return &ui.GetEventsResponse{
 		Node:      f.NodeName,
 		Timestamp: f.Time,
-		Event:     &ui.GetEventsResponse_ServiceState{sstate},
+		Event: &ui.GetEventsResponse_ServiceState{
+			ServiceState: sstate,
+		},
 	}
 }
 
@@ -40,7 +42,9 @@ func EventResponseForLink(
 	return &ui.GetEventsResponse{
 		Node:      f.NodeName,
 		Timestamp: f.Time,
-		Event:     &ui.GetEventsResponse_ServiceLinkState{lstate},
+		Event: &ui.GetEventsResponse_ServiceLinkState{
+			ServiceLinkState: lstate,
+		},
 	}
 }
 
@@ -49,7 +53,9 @@ func EventResponseFromFlow(f *flow.Flow) *ui.GetEventsResponse {
 	return &ui.GetEventsResponse{
 		Node:      ref.NodeName,
 		Timestamp: ref.Time,
-		Event:     &ui.GetEventsResponse_Flow{ref},
+		Event: &ui.GetEventsResponse_Flow{
+			Flow: ref,
+		},
 	}
 }
 
@@ -79,7 +85,9 @@ func EventResponseFromStatusResponse(
 		Timestamp: timestamppb.Now(),
 		Event: &ui.GetEventsResponse_Notification{
 			Notification: &ui.Notification{
-				Notification: &ui.Notification_Status{st},
+				Notification: &ui.Notification_Status{
+					Status: st,
+				},
 			},
 		},
 	}
