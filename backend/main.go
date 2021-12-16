@@ -61,7 +61,10 @@ func runServer(cfg *config.Config) {
 	ui.RegisterUIServer(grpcServer, srv)
 
 	listener := setupListener()
-	grpcServer.Serve(listener)
+	if err := grpcServer.Serve(listener); err != nil {
+		log.Errorf(msg.ServerSetupRunError, err)
+		os.Exit(1)
+	}
 }
 
 func runClient(cfg *config.Config) {
