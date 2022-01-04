@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -149,11 +150,40 @@ func createClientset() (kubernetes.Interface, error) {
 		return kubernetes.NewForConfig(config)
 	}
 
-	kubeconfig := filepath.Join(os.Getenv("HOME"), ".kube", "config")
+	kubeconfig, err := kubeconfigLocation()
+	if err != nil {
+		return nil, err
+	}
+
 	config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
 		return nil, err
 	}
 
 	return kubernetes.NewForConfig(config)
+}
+
+func kubeconfigLocation() (string, error) {
+	value, present := os.LookupEnv("KUBECONFIG")
+	if present == true {
+		fileExist, err := exists(value)
+		if err != nil {
+			return "", err
+		}
+		if fileExist == true {
+			return value, nil
+		}
+	}
+	return filepath.Join(os.Getenv("HOME"), ".kube", "config"), nil
+}
+
+func exists(name string) (bool, error) {
+	_, err := os.Stat(name)
+	if err == nil {
+		return true, nil
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	return false, err
 }
