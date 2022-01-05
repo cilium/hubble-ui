@@ -8,15 +8,6 @@ import (
 	"github.com/cilium/hubble-ui/backend/server/helpers"
 )
 
-func eventFromNSObject(event helpers.EventKind, obj interface{}) *helpers.NSEvent {
-	ns := obj.(*v1.Namespace)
-
-	return &helpers.NSEvent{
-		Event:     event,
-		Namespace: ns,
-	}
-}
-
 func (srv *UIServer) RunNSWatcher() (chan *helpers.NSEvent, chan error, chan struct{}) {
 	restClient := srv.k8s.CoreV1().RESTClient()
 	nsWatcher := cache.NewListWatchFromClient(
@@ -30,24 +21,36 @@ func (srv *UIServer) RunNSWatcher() (chan *helpers.NSEvent, chan error, chan str
 	errors := make(chan error)
 
 	addFunc := func(obj interface{}) {
-		e := eventFromNSObject(helpers.Added, obj)
-
-		eventChannel <- e
+		if ns, ok := obj.(*v1.Namespace); ok {
+			eventChannel <- &helpers.NSEvent{
+				Event:     helpers.Added,
+				Namespace: ns,
+			}
+		}
 	}
 
-	updateFunc := func(upd interface{}) {
-		// Before deletion, ns updated to Terminating phase
-		if upd.(*v1.Namespace).Status.Phase != v1.NamespaceActive {
+	updateFunc := func(obj interface{}) {
+		ns, ok := obj.(*v1.Namespace)
+		if !ok {
 			return
 		}
-
-		e := eventFromNSObject(helpers.Modified, upd)
-		eventChannel <- e
+		// Before deletion, ns updated to Terminating phase
+		if ns.Status.Phase != v1.NamespaceActive {
+			return
+		}
+		eventChannel <- &helpers.NSEvent{
+			Event:     helpers.Modified,
+			Namespace: ns,
+		}
 	}
 
 	deleteFunc := func(obj interface{}) {
-		e := eventFromNSObject(helpers.Deleted, obj)
-		eventChannel <- e
+		if ns, ok := obj.(*v1.Namespace); ok {
+			eventChannel <- &helpers.NSEvent{
+				Event:     helpers.Deleted,
+				Namespace: ns,
+			}
+		}
 	}
 
 	processFunc := func(obj interface{}) error {

@@ -14,18 +14,16 @@ import (
 func (srv *UIServer) GetStatus(ctx context.Context, _ *ui.GetStatusRequest) (
 	*ui.GetStatusResponse, error,
 ) {
-	var client *HubbleClient = nil
-	parentClient := ctx.Value("hubbleClient")
-
-	if parentClient != nil {
-		client = parentClient.(*HubbleClient)
-	} else {
+	var client *HubbleClient
+	if c := ctx.Value("hubbleClient"); c != nil {
+		client, _ = c.(*HubbleClient)
+	}
+	if client == nil {
 		cl, err := srv.GetHubbleClientFromContext(ctx)
 		if err != nil {
 			log.Errorf(msg.ServerSetupRelayClientError, err)
 			return nil, err
 		}
-
 		client = cl
 	}
 
