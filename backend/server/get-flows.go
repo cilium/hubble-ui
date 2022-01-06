@@ -26,8 +26,9 @@ func (srv *UIServer) GetFlows(
 ) {
 	// TODO: handle context cancellation
 	flowsRequest := extractFlowsRequest(req)
-	ctx, cancel := context.WithCancel(context.Background())
+	log.Infof("Get flows request: %v", flowsRequest)
 
+	ctx, cancel := context.WithCancel(context.Background())
 	responses := make(chan *ui.GetEventsResponse)
 	errors := make(chan error)
 
@@ -176,6 +177,5 @@ func extractFlowsRequest(req *ui.GetEventsRequest) *observer.GetFlowsRequest {
 		}
 	}
 
-	log.Infof("Get flows request: %v", request)
 	return &request
 }
