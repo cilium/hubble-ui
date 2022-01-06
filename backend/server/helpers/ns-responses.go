@@ -13,18 +13,19 @@ type NSEvent struct {
 }
 
 func EventResponseFromNSEvent(e *NSEvent) *ui.GetEventsResponse {
+	var stateChange ui.StateChange
+	var ts metaV1.Time
 	ns := e.Namespace
-	event := e.Event
-
-	ts := metaV1.Now()
-	var stateChange ui.StateChange = ui.StateChange_MODIFIED
-
-	if event == Added {
+	switch e.Event {
+	case Added:
 		ts = ns.CreationTimestamp
 		stateChange = ui.StateChange_ADDED
-	} else if event == Deleted {
+	case Deleted:
 		ts = *ns.DeletionTimestamp
 		stateChange = ui.StateChange_DELETED
+	case Modified, Exists, Unknown:
+		ts = metaV1.Now()
+		stateChange = ui.StateChange_MODIFIED
 	}
 
 	creationTimestamp := timestamppb.New(ns.CreationTimestamp.Time)
