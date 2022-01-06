@@ -23,7 +23,7 @@ func (f *Flow) BuildServices() (*service.Service, *service.Service) {
 }
 
 func (f *Flow) BuildSenderService() *service.Service {
-	svc := service.FromEndpointProtoAndDns(
+	svc := service.FromEndpointProtoAndDNS(
 		f.ref, f.ref.Source, f.ref.SourceNames,
 	)
 
@@ -33,7 +33,7 @@ func (f *Flow) BuildSenderService() *service.Service {
 }
 
 func (f *Flow) BuildReceiverService() *service.Service {
-	svc := service.FromEndpointProtoAndDns(
+	svc := service.FromEndpointProtoAndDNS(
 		f.ref, f.ref.Destination, f.ref.DestinationNames,
 	)
 

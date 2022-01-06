@@ -8,7 +8,7 @@ const (
 	ServiceChanged             = "hubble-ui.Service changed: %s"
 	SkippingZeroIdentitySvc    = "%s svc identity == 0. Skipping.\n"
 	ZeroIdentityInSourceOrDest = "invalid (zero) identity in source / dest services\n"
-	PrintZeroIdentityFlowJson  = "zero identity flow json: %v\n"
+	PrintZeroIdentityFlowJSON  = "zero identity flow json: %v\n"
 
 	ServerSetupGRPCClientError     = "failed to setup grpc client: %v\n"
 	ServerSetupK8sClientsetError   = "failed to create k8s clientset: %v\n"

@@ -9,9 +9,9 @@ import (
 )
 
 type Link struct {
-	Id              string
-	SourceId        string
-	DestinationId   string
+	ID              string
+	SourceID        string
+	DestinationID   string
 	DestinationPort uint32
 
 	// TODO: this is bad; create domain types for this fields
@@ -26,14 +26,14 @@ func FromFlowProto(f *pbFlow.Flow) *Link {
 		return nil
 	}
 
-	srcId, destId := service.IdsFromFlowProto(f)
+	srcID, destID := service.IDsFromFlowProto(f)
 	destPort, ipProtocol := portProtocolFromFlow(f)
-	linkId := linkIdFromParts(srcId, destId, destPort, ipProtocol)
+	linkID := linkIDFromParts(srcID, destID, destPort, ipProtocol)
 
 	return &Link{
-		Id:              linkId,
-		SourceId:        srcId,
-		DestinationId:   destId,
+		ID:              linkID,
+		SourceID:        srcID,
+		DestinationID:   destID,
 		DestinationPort: destPort,
 		Verdict:         f.Verdict,
 		IPProtocol:      ipProtocol,
@@ -67,17 +67,15 @@ func portProtocolFromFlow(f *pbFlow.Flow) (uint32, ui.IPProtocol) {
 	return destPort, ipProtocol
 }
 
-func linkIdFromParts(srcId, dstId string, port uint32, proto ui.IPProtocol) string {
+func linkIDFromParts(srcID, dstID string, port uint32, proto ui.IPProtocol) string {
 	protocolStr := ui.IPProtocol_name[int32(proto)]
-	linkId := fmt.Sprintf(
+	return fmt.Sprintf(
 		"%v %v %v:%v",
-		srcId,
+		srcID,
 		protocolStr,
-		dstId,
+		dstID,
 		port,
 	)
-
-	return linkId
 }
 
 func (l *Link) String() string {
@@ -85,9 +83,9 @@ func (l *Link) String() string {
 		"<Link %p, %s '%v' (ns: '%s') -> '%v':%v (ns: '%s') (%v), from flow %p>",
 		l,
 		ui.IPProtocol_name[int32(l.IPProtocol)],
-		l.SourceId,
+		l.SourceID,
 		l.ref.Source.Namespace,
-		l.DestinationId,
+		l.DestinationID,
 		l.DestinationPort,
 		l.ref.Destination.Namespace,
 		pbFlow.Verdict_name[int32(l.Verdict)],
@@ -97,9 +95,9 @@ func (l *Link) String() string {
 
 func (l *Link) ToProto() *ui.ServiceLink {
 	return &ui.ServiceLink{
-		Id:              l.Id,
-		SourceId:        l.SourceId,
-		DestinationId:   l.DestinationId,
+		Id:              l.ID,
+		SourceId:        l.SourceID,
+		DestinationId:   l.DestinationID,
 		DestinationPort: l.DestinationPort,
 		Verdict:         l.Verdict,
 		IpProtocol:      l.IPProtocol,
@@ -108,8 +106,8 @@ func (l *Link) ToProto() *ui.ServiceLink {
 
 func (l *Link) Equals(rhs *Link) bool {
 	// NOTE: Id field is not participated here
-	return (l.SourceId == rhs.SourceId &&
-		l.DestinationId == rhs.DestinationId &&
+	return (l.SourceID == rhs.SourceID &&
+		l.DestinationID == rhs.DestinationID &&
 		l.DestinationPort == rhs.DestinationPort &&
 		l.Verdict == rhs.Verdict &&
 		l.IPProtocol == rhs.IPProtocol)

@@ -13,7 +13,7 @@ type DataCache struct {
 	links    map[string]*link.Link
 }
 
-type CacheFlags struct {
+type Flags struct {
 	Created bool
 	Updated bool
 	Deleted bool
@@ -34,16 +34,16 @@ func (c *DataCache) Drop() {
 	c.links = make(map[string]*link.Link)
 }
 
-func (c *DataCache) UpsertService(svc *service.Service) *CacheFlags {
-	flags := new(CacheFlags)
-	svcId := svc.Id()
+func (c *DataCache) UpsertService(svc *service.Service) *Flags {
+	flags := new(Flags)
+	svcID := svc.ID()
 
 	c.Mutex.Lock()
 	defer c.Mutex.Unlock()
 
-	_, exists := c.services[svcId]
+	_, exists := c.services[svcID]
 	if !exists {
-		c.services[svcId] = svc
+		c.services[svcID] = svc
 		flags.Created = true
 	} else {
 		flags.Exists = true
@@ -52,14 +52,14 @@ func (c *DataCache) UpsertService(svc *service.Service) *CacheFlags {
 	return flags
 }
 
-func (c *DataCache) UpsertServiceLink(newLink *link.Link) *CacheFlags {
-	flags := new(CacheFlags)
+func (c *DataCache) UpsertServiceLink(newLink *link.Link) *Flags {
+	flags := new(Flags)
 
 	c.Mutex.Lock()
 	defer c.Mutex.Unlock()
-	currentLink, exists := c.links[newLink.Id]
+	currentLink, exists := c.links[newLink.ID]
 	if !exists {
-		c.links[newLink.Id] = newLink
+		c.links[newLink.ID] = newLink
 		flags.Created = true
 
 		return flags
@@ -72,7 +72,7 @@ func (c *DataCache) UpsertServiceLink(newLink *link.Link) *CacheFlags {
 
 	flags.Updated = true
 	// NOTE: the only thing that can differ is Verdict
-	c.links[newLink.Id] = newLink
+	c.links[newLink.ID] = newLink
 	return flags
 }
 
@@ -94,10 +94,10 @@ func (c *DataCache) ForEachLink(cb func(key string, link *link.Link)) {
 	}
 }
 
-func (cf *DataCache) Empty() *DataCache {
+func (c *DataCache) Empty() *DataCache {
 	return New()
 }
 
-func (cf *CacheFlags) Changed() bool {
+func (cf *Flags) Changed() bool {
 	return cf.Created || cf.Updated || cf.Deleted
 }

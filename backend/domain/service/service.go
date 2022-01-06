@@ -20,7 +20,7 @@ type Service struct {
 	isReceiver bool
 }
 
-func FromEndpointProtoAndDns(
+func FromEndpointProtoAndDNS(
 	f *flowpb.Flow,
 	ep *flowpb.Endpoint,
 	dnsNames []string,
@@ -35,19 +35,19 @@ func FromEndpointProtoAndDns(
 	return svc
 }
 
-func IdsFromFlowProto(f *flowpb.Flow) (string, string) {
+func IDsFromFlowProto(f *flowpb.Flow) (string, string) {
 	sourceProps := labels.Props(f.Source.Labels)
 	destProps := labels.Props(f.Destination.Labels)
 
-	senderSvcId := getServiceId(
+	senderSvcID := getServiceID(
 		f.Source, f.SourceNames, sourceProps, false,
 	)
 
-	receiverSvcId := getServiceId(
+	receiverSvcID := getServiceID(
 		f.Destination, f.DestinationNames, destProps, true,
 	)
 
-	return senderSvcId, receiverSvcId
+	return senderSvcID, receiverSvcID
 }
 
 func (s *Service) String() string {
@@ -55,7 +55,7 @@ func (s *Service) String() string {
 		"<%s %p, id: '%v', name: '%v', namespace: '%v', from flow: %p>",
 		s.Side(),
 		s,
-		s.Id(),
+		s.ID(),
 		s.Name(),
 		s.endpoint.Namespace,
 		s.flowRef,
@@ -78,7 +78,7 @@ func (s *Service) Side() string {
 // TODO: its not ok to have this code here
 func (s *Service) ToProto() *pbUi.Service {
 	return &pbUi.Service{
-		Id:                     s.Id(),
+		Id:                     s.ID(),
 		Name:                   s.Name(),
 		Namespace:              s.endpoint.Namespace,
 		Labels:                 s.endpoint.Labels,
@@ -91,7 +91,7 @@ func (s *Service) ToProto() *pbUi.Service {
 }
 
 func (s *Service) Name() string {
-	serviceName := fmt.Sprintf("%v", s.Id())
+	serviceName := fmt.Sprintf("%v", s.ID())
 
 	if s.LabelProps.AppName != nil {
 		serviceName = *s.LabelProps.AppName
@@ -108,15 +108,15 @@ func (s *Service) SetIsReceiver(state bool) {
 	s.isReceiver = state
 }
 
-func (s *Service) Id() string {
-	return getServiceId(s.endpoint, s.dnsNames, s.LabelProps, s.isReceiver)
+func (s *Service) ID() string {
+	return getServiceID(s.endpoint, s.dnsNames, s.LabelProps, s.isReceiver)
 }
 
 func (s *Service) FlowRef() *flowpb.Flow {
 	return s.flowRef
 }
 
-func getServiceId(
+func getServiceID(
 	ep *flowpb.Endpoint,
 	dnsNames []string,
 	lblProps *labels.LabelProps,

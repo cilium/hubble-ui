@@ -6,14 +6,14 @@ import (
 	pbFlow "github.com/cilium/cilium/api/v1/flow"
 )
 
-type FlowLimiter struct {
+type Limiter struct {
 	Flushed      chan []*pbFlow.Flow
 	buffer       []*pbFlow.Flow
 	flushTimeout time.Duration
 }
 
-func NewLimiter(flushTimeout time.Duration) *FlowLimiter {
-	limiter := &FlowLimiter{
+func NewLimiter(flushTimeout time.Duration) *Limiter {
+	limiter := &Limiter{
 		Flushed:      make(chan []*pbFlow.Flow),
 		buffer:       []*pbFlow.Flow{},
 		flushTimeout: flushTimeout,
@@ -24,11 +24,11 @@ func NewLimiter(flushTimeout time.Duration) *FlowLimiter {
 	return limiter
 }
 
-func (fl *FlowLimiter) Push(f *pbFlow.Flow) {
+func (fl *Limiter) Push(f *pbFlow.Flow) {
 	fl.buffer = append(fl.buffer, f)
 }
 
-func (fl *FlowLimiter) run() {
+func (fl *Limiter) run() {
 	go func() {
 		ticker := time.NewTicker(fl.flushTimeout)
 		defer ticker.Stop()
@@ -44,7 +44,7 @@ func (fl *FlowLimiter) run() {
 	}()
 }
 
-func (fl *FlowLimiter) flush() {
+func (fl *Limiter) flush() {
 	fl.Flushed <- fl.buffer
 	fl.buffer = []*pbFlow.Flow{}
 }

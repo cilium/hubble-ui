@@ -77,19 +77,9 @@ func (srv *UIServer) RunStatusChecker(req *ui.GetStatusRequest) (
 				return
 			}
 		}
-
-		client, err := srv.GetHubbleClientFromContext(ctx)
-		if err != nil {
-			log.Errorf(msg.ServerSetupRelayClientError, err)
-			sendError(err)
-			return
-		}
-
-		ctx = context.WithValue(ctx, "hubbleClient", client)
 	F:
 		for {
-			var lastError error = nil
-
+			var lastError error
 			select {
 			case <-ctx.Done():
 				log.Infof(msg.HubbleStatusCheckerIsStopped)
@@ -177,18 +167,16 @@ func nodeStatusFromSS(ss *observer.ServerStatusResponse) []*ui.NodeStatus {
 			Name:        nodeName,
 			IsAvailable: false,
 		}
-
-		idx += 1
+		idx++
 	}
 
 	// TODO: need somehow to get their names
-	for i := 0; i < numConnected; i += 1 {
+	for i := 0; i < numConnected; i++ {
 		statuses[idx] = &ui.NodeStatus{
 			Name:        fmt.Sprintf("Connected node %d", i+1),
 			IsAvailable: true,
 		}
-
-		idx += 1
+		idx++
 	}
 
 	return statuses

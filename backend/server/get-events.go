@@ -232,7 +232,7 @@ func extractDerivedEvents(
 }
 
 func handleSvc(svc *service.Service, cache *cache.DataCache) *ui.GetEventsResponse {
-	if svc.Id() == "0" {
+	if svc.ID() == "0" {
 		log.Debugf(msg.SkippingZeroIdentitySvc, svc.Side())
 		return nil
 	}

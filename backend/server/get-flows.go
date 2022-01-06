@@ -32,7 +32,7 @@ func (srv *UIServer) GetFlows(
 	responses := make(chan *ui.GetEventsResponse)
 	errors := make(chan error)
 
-	var flowStream FlowStream = nil
+	var flowStream FlowStream
 	retry := func(attempt int) error {
 		log.Infof(msg.GetFlowsConnectingToRelay, attempt)
 
@@ -80,10 +80,10 @@ func (srv *UIServer) GetFlows(
 				continue F
 			}
 
-			sourceId, destId := service.IdsFromFlowProto(pbFlow)
-			if sourceId == "0" || destId == "0" {
+			sourceID, destID := service.IDsFromFlowProto(pbFlow)
+			if sourceID == "0" || destID == "0" {
 				log.Warnf(msg.ZeroIdentityInSourceOrDest)
-				printPBFlowJson(pbFlow)
+				printPBFlowJSON(pbFlow)
 
 				continue F
 
@@ -107,14 +107,14 @@ func (srv *UIServer) GetFlows(
 	return cancel, responses, errors
 }
 
-func printPBFlowJson(pbFlow *flow.Flow) {
+func printPBFlowJSON(pbFlow *flow.Flow) {
 	serialized, err := json.Marshal(pbFlow)
 	if err != nil {
 		log.Errorf("failed to marshal flow to json: %v\n", err)
 		return
 	}
 
-	log.Warnf(msg.PrintZeroIdentityFlowJson, string(serialized))
+	log.Warnf(msg.PrintZeroIdentityFlowJSON, string(serialized))
 }
 
 func extractFlowsRequest(req *ui.GetEventsRequest) *observer.GetFlowsRequest {
