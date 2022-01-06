@@ -151,12 +151,12 @@ func EventResponseK8sConnected() *ui.GetEventsResponse {
 	}
 }
 
-func EventResponseNoPermission(resource string, error string) *ui.GetEventsResponse {
+func EventResponseNoPermission(resource string, err string) *ui.GetEventsResponse {
 	notif := &ui.Notification{
 		Notification: &ui.Notification_NoPermission{
 			NoPermission: &ui.NoPermission{
 				Resource: resource,
-				Error:    error,
+				Error:    err,
 			},
 		},
 	}
