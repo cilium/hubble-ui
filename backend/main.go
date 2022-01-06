@@ -23,13 +23,13 @@ var (
 )
 
 const (
-	EVENTS_SERVER_DEFAULT_PORT = 8090
+	EventsServerDefaultPort = 8090
 )
 
 func getServerAddr() string {
 	port, ok := os.LookupEnv("EVENTS_SERVER_PORT")
 	if !ok {
-		port = fmt.Sprintf("%d", EVENTS_SERVER_DEFAULT_PORT)
+		port = fmt.Sprintf("%d", EventsServerDefaultPort)
 		log.Warnf(msg.ServerSetupUsingDefPort, port)
 	}
 

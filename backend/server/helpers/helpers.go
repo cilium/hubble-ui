@@ -12,7 +12,7 @@ import (
 )
 
 func EventResponseForService(
-	svc *service.Service, cflags *cache.CacheFlags,
+	svc *service.Service, cflags *cache.Flags,
 ) *ui.GetEventsResponse {
 	sstate := &ui.ServiceState{
 		Service: svc.ToProto(),
@@ -31,7 +31,7 @@ func EventResponseForService(
 }
 
 func EventResponseForLink(
-	l *link.Link, cflags *cache.CacheFlags,
+	l *link.Link, cflags *cache.Flags,
 ) *ui.GetEventsResponse {
 	f := l.IntoFlow()
 	lstate := &ui.ServiceLinkState{
@@ -170,7 +170,7 @@ func EventResponseNoPermission(resource string, err string) *ui.GetEventsRespons
 	}
 }
 
-func StateChangeFromCacheFlags(cflags *cache.CacheFlags) ui.StateChange {
+func StateChangeFromCacheFlags(cflags *cache.Flags) ui.StateChange {
 	if cflags.Exists {
 		return ui.StateChange_EXISTS
 	} else if cflags.Created {

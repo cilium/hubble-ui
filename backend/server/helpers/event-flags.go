@@ -11,12 +11,12 @@ const (
 	Exists   EventKind = "exists"
 	Unknown  EventKind = "unknown"
 
-	FLOW_EVENT          = ui.EventType_FLOW
-	FLOWS_EVENT         = ui.EventType_FLOWS
-	NS_STATE_EVENT      = ui.EventType_K8S_NAMESPACE_STATE
-	SERVICE_STATE_EVENT = ui.EventType_SERVICE_STATE
-	SERVICE_LINK_EVENT  = ui.EventType_SERVICE_LINK_STATE
-	STATUS_EVENT        = ui.EventType_STATUS
+	FlowEvent         = ui.EventType_FLOW
+	FlowsEvent        = ui.EventType_FLOWS
+	NsStateEvent      = ui.EventType_K8S_NAMESPACE_STATE
+	ServiceStateEvent = ui.EventType_SERVICE_STATE
+	ServiceLinkEvent  = ui.EventType_SERVICE_LINK_STATE
+	StatusEvent       = ui.EventType_STATUS
 )
 
 type EventFlags struct {
@@ -40,12 +40,12 @@ func GetFlagsWhichEventsRequested(events []ui.EventType) *EventFlags {
 	flags := new(EventFlags)
 
 	for _, event := range events {
-		flags.Flow = flags.Flow || event == FLOW_EVENT
-		flags.Flows = flags.Flows || event == FLOWS_EVENT
-		flags.Services = flags.Services || event == SERVICE_STATE_EVENT
-		flags.ServiceLinks = flags.ServiceLinks || event == SERVICE_LINK_EVENT
-		flags.Namespaces = flags.Namespaces || event == NS_STATE_EVENT
-		flags.Status = flags.Status || event == STATUS_EVENT
+		flags.Flow = flags.Flow || event == FlowEvent
+		flags.Flows = flags.Flows || event == FlowsEvent
+		flags.Services = flags.Services || event == ServiceStateEvent
+		flags.ServiceLinks = flags.ServiceLinks || event == ServiceLinkEvent
+		flags.Namespaces = flags.Namespaces || event == NsStateEvent
+		flags.Status = flags.Status || event == StatusEvent
 	}
 
 	return flags
