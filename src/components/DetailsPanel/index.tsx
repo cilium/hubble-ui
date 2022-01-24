@@ -17,7 +17,7 @@ import {
 } from '~/components/FlowsTable/Sidebar';
 
 import { LoadingOverlay } from '~/components/Misc/LoadingOverlay';
-
+import { DataMode } from '~/domain/interactions';
 import { usePanelResize, ResizeProps } from './hooks/usePanelResize';
 
 import css from './styles.scss';
@@ -26,7 +26,7 @@ export { DEFAULT_TS_UPDATE_DELAY, TickerEvents, OnFlowsDiffCount };
 
 interface PanelProps {
   namespace: string;
-  isStreaming: boolean;
+  dataMode: DataMode;
   flowsWaitTimeout: boolean;
   flowsTableVisibleColumns: Set<Column>;
   onPanelResize?: (resizeProps: ResizeProps) => void;
@@ -61,7 +61,8 @@ export const DetailsPanelComponent = function (props: Props) {
     props.onPanelResize?.(panelResize.props);
   }, [props.onPanelResize, panelResize.props]);
 
-  const tableLoaded = props.flows.length > 0 && props.isStreaming;
+  const tableLoaded =
+    props.flows.length > 0 && props.dataMode === DataMode.RealtimeStreaming;
 
   return (
     <div className={css.panel} ref={panelResize.ref} style={panelResize.style}>

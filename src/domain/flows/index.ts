@@ -1,27 +1,43 @@
 import _ from 'lodash';
 
+import urlParse from 'url-parse';
+
 import {
   HubbleFlow,
   Verdict,
   TrafficDirection,
   TCPFlags,
   PodSelector,
+  HTTP,
+  IPProtocol,
 } from '~/domain/hubble';
-import { Labels, LabelsProps } from '~/domain/labels';
+
 import {
   CiliumEventSubTypesCodes,
   CiliumDropReasonCodes,
 } from '~/domain/cilium';
-import { KV } from '~/domain/misc';
+
+import { Labels, LabelsProps } from '~/domain/labels';
 import { memoize } from '~/utils/memoize';
 
-export { HubbleFlow, Verdict };
+import * as tcpFlagsHelpers from '~/domain/helpers/tcp-flags';
+import * as verdictHelpers from '~/domain/helpers/verdict';
+import * as timeHelpers from '~/domain/helpers/time';
+import * as protocolHelpers from '~/domain/helpers/protocol';
+
+export { HubbleFlow, Verdict, TCPFlags };
 
 export class Flow {
-  private ref: HubbleFlow;
+  private _id?: string;
+  public ref: HubbleFlow;
 
-  constructor(flow: HubbleFlow) {
+  constructor(flow: HubbleFlow, flowId?: string) {
     this.ref = flow;
+    this._id = flowId;
+  }
+
+  public compare(rhs: Flow): number {
+    return timeHelpers.compareTimes(this.time ?? null, rhs.time ?? null);
   }
 
   public clone(): Flow {
@@ -86,6 +102,8 @@ export class Flow {
 
   @memoize
   public get id() {
+    if (this._id) return this._id;
+
     let timeStr = '';
     if (this.ref.time) {
       const { seconds: s, nanos: n } = this.ref.time;
@@ -117,21 +135,21 @@ export class Flow {
   }
 
   public get hasSource() {
-    return Boolean(this.ref.source);
+    return !!this.ref.source;
   }
 
   public get hasDestination() {
-    return Boolean(this.ref.destination);
+    return !!this.ref.destination;
   }
 
   @memoize
   public get sourceLabels() {
-    return this.mapLabelsToKv(this.ref.source?.labelsList || []);
+    return (this.ref.source?.labelsList || []).map(l => Labels.toKV(l));
   }
 
   @memoize
   public get destinationLabels() {
-    return this.mapLabelsToKv(this.ref.destination?.labelsList || []);
+    return (this.ref.destination?.labelsList || []).map(l => Labels.toKV(l));
   }
 
   public get sourceNamesList() {
@@ -151,22 +169,28 @@ export class Flow {
   }
 
   @memoize
-  public get sourceNamespace() {
+  public get sourceNamespace(): string | null {
+    const sourceNs = this.ref.source?.namespace;
+    if (!!sourceNs) return sourceNs;
+
     return Labels.findNamespaceInLabels(this.sourceLabels);
   }
 
   @memoize
-  public get destinationNamespace() {
+  public get destinationNamespace(): string | null {
+    const destNs = this.ref.destination?.namespace;
+    if (!!destNs) return destNs;
+
     return Labels.findNamespaceInLabels(this.destinationLabels);
   }
 
   @memoize
-  public get sourceAppName() {
+  public get sourceIdentityName() {
     return Labels.findAppNameInLabels(this.sourceLabels);
   }
 
   @memoize
-  public get destinationAppName() {
+  public get destinationIdentityName() {
     return Labels.findAppNameInLabels(this.destinationLabels);
   }
 
@@ -213,7 +237,34 @@ export class Flow {
       return this.ref.l4.udp.destinationPort;
     }
 
+    if (this.ref.l7?.dns != null) return 53;
+    if (this.ref.l7?.http != null) {
+      const parsedUrl = urlParse(this.ref.l7.http.url);
+      if (parsedUrl != null && !!parsedUrl.port) {
+        return parseInt(parsedUrl.port);
+      }
+    }
+
     return null;
+  }
+
+  public get protocol(): IPProtocol | null {
+    if (this.ref.l4?.tcp || this.ref.l7?.kafka || this.ref.l7?.http) {
+      return IPProtocol.TCP;
+    }
+
+    if (this.ref.l4?.udp || this.ref.l7?.dns) return IPProtocol.UDP;
+    if (this.ref.l4?.icmpv4) return IPProtocol.ICMPv4;
+    if (this.ref.l4?.icmpv6) return IPProtocol.ICMPv6;
+
+    return null;
+  }
+
+  public get protocolStr(): string | null {
+    const protocol = this.protocol;
+    if (protocol == null) return null;
+
+    return protocolHelpers.toString(protocol);
   }
 
   public get sourceIp() {
@@ -224,12 +275,16 @@ export class Flow {
     return this.ref.ip?.destination ?? null;
   }
 
+  public get http(): HTTP | null {
+    return this.ref.l7?.http ?? null;
+  }
+
   public get verdict(): Verdict {
     return this.ref.verdict;
   }
 
-  public get verdictLabel(): 'forwarded' | 'dropped' | 'unknown' | 'unhandled' {
-    return Flow.getVerdictLabel(this.ref.verdict);
+  public get verdictLabel(): string {
+    return verdictHelpers.toString(this.ref.verdict);
   }
 
   public get dropReasonCode() {
@@ -256,7 +311,7 @@ export class Flow {
     ];
   }
 
-  public get destinationDns() {
+  public get destinationDns(): string | null {
     if (this.ref.destinationNamesList.length === 0) {
       return null;
     }
@@ -272,7 +327,7 @@ export class Flow {
     const { seconds, nanos } = this.ref.time;
     const ms = seconds * 1000 + nanos / 1e6;
 
-    return new Date(ms).valueOf();
+    return ms;
   }
 
   public get isoTimestamp() {
@@ -320,44 +375,61 @@ export class Flow {
 
   @memoize
   public get enabledTcpFlags(): Array<keyof TCPFlags> {
-    if (this.tcpFlags == null) return [];
-
-    return Object.keys(this.tcpFlags)
-      .filter(f => {
-        const flag = f as keyof TCPFlags;
-        return this.tcpFlags?.[flag];
-      })
-      .sort() as Array<keyof TCPFlags>;
+    return tcpFlagsHelpers.toArray(this.tcpFlags);
   }
 
   @memoize
   public get joinedTcpFlags() {
-    if (this.enabledTcpFlags.length === 0) return null;
-
-    return this.enabledTcpFlags.map(f => f.toLocaleUpperCase()).join(' ');
+    return tcpFlagsHelpers.toString(this.tcpFlags);
   }
 
-  public static getVerdictLabel(
-    verdict: Verdict,
-  ): 'forwarded' | 'dropped' | 'unknown' | 'unhandled' {
-    switch (verdict) {
-      case Verdict.Forwarded:
-        return 'forwarded';
-      case Verdict.Dropped:
-        return 'dropped';
-      case Verdict.Unknown:
-        return 'unknown';
-      default:
-        return 'unhandled';
+  public get type() {
+    return this.ref.type;
+  }
+
+  public get isTcp() {
+    return !!this.ref.l4?.tcp;
+  }
+
+  public get isUdp() {
+    return !!this.ref.l4?.udp;
+  }
+
+  @memoize
+  public get isKubeDnsFlow() {
+    return (
+      this.trafficDirection === TrafficDirection.Egress &&
+      this.isUdp &&
+      this.destinationPort === 53 &&
+      this.destinationLabelProps.isKubeDNS
+    );
+  }
+
+  @memoize
+  public get isFqdnFlow() {
+    return (
+      this.ref.destination?.labelsList.includes('reserved:world') &&
+      this.destinationNamesList.length > 0
+    );
+  }
+
+  @memoize
+  public get isIpFlow() {
+    if (this.ref.trafficDirection === TrafficDirection.Egress) {
+      return !!(
+        this.ref.destination?.labelsList.includes('reserved:world') &&
+        this.destinationIp
+      );
+    } else if (this.ref.trafficDirection === TrafficDirection.Ingress) {
+      return !!(
+        this.ref.source?.labelsList.includes('reserved:world') && this.sourceIp
+      );
+    } else {
+      return false;
     }
   }
 
-  private mapLabelsToKv(labels: string[]) {
-    return labels.map(label => {
-      const [key, ...rest] = label.split('=');
-      const value = rest.join('=');
-
-      return { key, value };
-    });
+  public get time() {
+    return this.ref.time;
   }
 }

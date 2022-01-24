@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { action, observable, computed } from 'mobx';
+import { action, observable, computed, makeAutoObservable } from 'mobx';
 
 import { Flow, HubbleFlow } from '~/domain/flows';
 import { Link, ServiceCard, AccessPoint } from '~/domain/service-map';
@@ -28,6 +28,8 @@ export default class InteractionStore {
   constructor() {
     this._flows = [];
     this._links = [];
+
+    makeAutoObservable(this);
   }
 
   @computed

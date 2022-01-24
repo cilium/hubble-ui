@@ -1,10 +1,10 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { memo, useCallback } from 'react';
 import classnames from 'classnames';
 
-import { Flow } from '~/domain/flows';
-import { FilterDirection, FilterEntry, FilterKind } from '~/domain/filtering';
-import { TCPFlags, TCPFlagName, Verdict, PodSelector } from '~/domain/hubble';
+import { FilterDirection } from '~/domain/filtering';
+import { TCPFlagName, Verdict, PodSelector } from '~/domain/hubble';
 import { KV } from '~/domain/misc';
+import * as verdictHelpers from '~/domain/helpers/verdict';
 
 import css from './styles.scss';
 import { Labels } from '~/domain/labels';
@@ -146,7 +146,7 @@ export const VerdictEntry = memo<VerdictEntryProps>(
 
     return (
       <span className={className} onClick={props.onClick}>
-        {Flow.getVerdictLabel(props.verdict)}
+        {verdictHelpers.toString(props.verdict)}
       </span>
     );
   },

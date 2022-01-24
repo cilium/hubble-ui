@@ -34,8 +34,14 @@ export const filterFlow = (flow: Flow, filters: Filters): boolean => {
     if (sourceIsRemoteNode || destIsRemoteNode) return false;
   }
 
+  // NOTE: destination port 53 and apporpriate destination label are exactly
+  // NOTE: how GetFlowsRequest is built now
   if (!!filters.skipKubeDns) {
-    if (flow.sourcePort === 53 || flow.destinationPort === 53) return false;
+    if (
+      flow.sourcePort === 53 ||
+      (flow.destinationPort === 53 && flow.destinationLabelProps.isKubeDNS)
+    )
+      return false;
   }
 
   if (filters.httpStatus != null) {

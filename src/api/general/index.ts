@@ -1,32 +1,26 @@
-import { HubbleFlow } from '~/domain/flows';
 import { Filters } from '~/domain/filtering';
+import { FeatureFlags } from '~/domain/features';
+
+import { ControlStream } from './control-stream';
 import {
-  IEventStream,
-  EventParams,
-  EventStreamHandlers,
+  EventStream,
   EventKind as EventStreamEventKind,
-  NamespaceChange,
-  ServiceChange,
-  ServiceLinkChange,
+  EventParams,
 } from './event-stream';
 
 export interface CoreAPIv1 {
+  getControlStream: () => ControlStream;
+
   getEventStream: (
     params?: EventParams,
     filters?: Filters, // TODO: builder pattern ?
-  ) => IEventStream;
+  ) => EventStream;
+
+  getFeatureFlags: () => Promise<FeatureFlags>;
 }
 
 export interface API {
   v1: CoreAPIv1;
 }
 
-export {
-  IEventStream,
-  EventParams,
-  EventStreamHandlers,
-  EventStreamEventKind,
-  NamespaceChange,
-  ServiceChange,
-  ServiceLinkChange,
-};
+export { EventStream, EventParams, EventStreamEventKind };

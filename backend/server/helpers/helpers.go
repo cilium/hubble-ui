@@ -7,6 +7,7 @@ import (
 	"github.com/cilium/hubble-ui/backend/domain/flow"
 	"github.com/cilium/hubble-ui/backend/domain/link"
 	"github.com/cilium/hubble-ui/backend/domain/service"
+	"github.com/cilium/hubble-ui/backend/internal/types"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -72,22 +73,6 @@ func EventResponseFromRawFlows(flows []*pbFlow.Flow) *ui.GetEventsResponse {
 		Event: &ui.GetEventsResponse_Flows{
 			Flows: &ui.Flows{
 				Flows: flows,
-			},
-		},
-	}
-}
-
-func EventResponseFromStatusResponse(
-	st *ui.GetStatusResponse,
-) *ui.GetEventsResponse {
-	return &ui.GetEventsResponse{
-		Node:      "backend",
-		Timestamp: timestamppb.Now(),
-		Event: &ui.GetEventsResponse_Notification{
-			Notification: &ui.Notification{
-				Notification: &ui.Notification_Status{
-					Status: st,
-				},
 			},
 		},
 	}
@@ -179,6 +164,20 @@ func StateChangeFromCacheFlags(cflags *cache.Flags) ui.StateChange {
 		return ui.StateChange_MODIFIED
 	} else if cflags.Deleted {
 		return ui.StateChange_DELETED
+	}
+
+	return ui.StateChange_UNKNOWN_STATE_CHANGE
+}
+
+func StateChangeFromEventType(evtType types.EventKind) ui.StateChange {
+	if evtType == types.Added {
+		return ui.StateChange_ADDED
+	} else if evtType == types.Deleted {
+		return ui.StateChange_DELETED
+	} else if evtType == types.Modified {
+		return ui.StateChange_MODIFIED
+	} else if evtType == types.Exists {
+		return ui.StateChange_EXISTS
 	}
 
 	return ui.StateChange_UNKNOWN_STATE_CHANGE

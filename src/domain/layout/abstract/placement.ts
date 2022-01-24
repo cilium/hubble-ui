@@ -1,4 +1,4 @@
-import { action, computed, observable } from 'mobx';
+import { action, computed, observable, makeObservable, autorun } from 'mobx';
 
 import { XYWH, WH, XY } from '~/domain/geometry';
 
@@ -15,8 +15,9 @@ export abstract class PlacementStrategy {
   constructor() {
     this.cardsWHs = new Map();
     this.cardsXYs = new Map();
-
     this._accessPointCoords = new Map();
+
+    makeObservable(this);
   }
 
   public abstract get bbox(): XYWH;
@@ -67,7 +68,7 @@ export abstract class PlacementStrategy {
 
   @action.bound
   public defaultCardXYWH(): XYWH {
-    return new XYWH(0, 0, this.defaultCardW, this.defaultCardH);
+    return new XYWH(-100500, -100500, this.defaultCardW, this.defaultCardH);
   }
 
   @action.bound

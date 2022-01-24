@@ -1,7 +1,7 @@
-import { EventStream } from '~/api/grpc/event-stream';
 import { Filters, FilterEntry, FilterDirection } from '~/domain/filtering';
 import { FlowFilter, Verdict } from '~backend/proto/flow/flow_pb';
 
+import * as common from '~/api/grpc/common';
 import { filterEntries } from '~/testing/data';
 
 // TODO: consider to move it to helper utils ~/testing/helpers
@@ -137,7 +137,7 @@ describe('EventStream::buildFlowFilters', () => {
       filters: [],
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(2);
 
     const [a, b] = wl;
@@ -154,7 +154,7 @@ describe('EventStream::buildFlowFilters', () => {
       filters: [fe],
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(2);
 
     const [toInside, fromInside] = wl;
@@ -173,7 +173,7 @@ describe('EventStream::buildFlowFilters', () => {
       filters: [fe],
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(2);
 
     const [fromInside, toInside] = wl;
@@ -192,7 +192,7 @@ describe('EventStream::buildFlowFilters', () => {
       filters: [fe],
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(4);
 
     const [
@@ -231,7 +231,7 @@ describe('EventStream::buildFlowFilters', () => {
       filters: fe,
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(4);
 
     const [
@@ -273,7 +273,7 @@ describe('EventStream::buildFlowFilters', () => {
       filters: [fe],
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(2);
 
     const [toInside, fromInside] = wl;
@@ -292,7 +292,7 @@ describe('EventStream::buildFlowFilters', () => {
       filters: [fe],
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(2);
 
     const [fromInside, toInside] = wl;
@@ -311,7 +311,7 @@ describe('EventStream::buildFlowFilters', () => {
       filters: [fe],
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(4);
 
     const [
@@ -350,7 +350,7 @@ describe('EventStream::buildFlowFilters', () => {
       filters: fe,
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(4);
 
     const [
@@ -392,7 +392,7 @@ describe('EventStream::buildFlowFilters', () => {
       filters: [fe],
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(2);
 
     const [toInside, fromInside] = wl;
@@ -411,7 +411,7 @@ describe('EventStream::buildFlowFilters', () => {
       filters: [fe],
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(2);
 
     const [fromInside, toInside] = wl;
@@ -430,7 +430,7 @@ describe('EventStream::buildFlowFilters', () => {
       filters: [fe],
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(4);
 
     const [
@@ -469,7 +469,7 @@ describe('EventStream::buildFlowFilters', () => {
       filters: fe,
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(4);
 
     const [
@@ -513,7 +513,7 @@ describe('EventStream::buildFlowFilters', () => {
       filters: [fe.setDirection(FilterDirection.From)],
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(2);
 
     const [toInside, fromInside] = wl;
@@ -533,7 +533,7 @@ describe('EventStream::buildFlowFilters', () => {
       filters: [fe.setDirection(FilterDirection.From)],
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(2);
 
     const [toInside, fromInside] = wl;
@@ -556,7 +556,7 @@ describe('EventStream::buildFlowFilters', () => {
       filters: [fe.setDirection(FilterDirection.To)],
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(2);
 
     const [fromInside, toInside] = wl;
@@ -576,7 +576,7 @@ describe('EventStream::buildFlowFilters', () => {
       filters: [fe.setDirection(FilterDirection.To)],
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(2);
 
     const [fromInside, toInside] = wl;
@@ -599,15 +599,11 @@ describe('EventStream::buildFlowFilters', () => {
       filters: [fe],
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(4);
 
-    const [
-      toInsideFromPod,
-      fromInsideFromPod,
-      fromInsideToPod,
-      toInsideToPod,
-    ] = wl;
+    const [toInsideFromPod, fromInsideFromPod, fromInsideToPod, toInsideToPod] =
+      wl;
     // NOTE: flows to current ns AND from specified pod...
     expectLists(toInsideFromPod, {
       dstPod: [`${ns}/`],
@@ -635,15 +631,11 @@ describe('EventStream::buildFlowFilters', () => {
       filters: [fe],
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(4);
 
-    const [
-      toInsideFromPod,
-      fromInsideFromPod,
-      fromInsideToPod,
-      toInsideToPod,
-    ] = wl;
+    const [toInsideFromPod, fromInsideFromPod, fromInsideToPod, toInsideToPod] =
+      wl;
     // NOTE: flows to current ns AND from specified pod...
     expectLists(toInsideFromPod, {
       dstPod: [`${ns1}/`],
@@ -680,15 +672,11 @@ describe('EventStream::buildFlowFilters', () => {
       filters: fes,
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(4);
 
-    const [
-      toInsideFromPod,
-      fromInsideFromPod,
-      fromInsideToPod,
-      toInsideToPod,
-    ] = wl;
+    const [toInsideFromPod, fromInsideFromPod, fromInsideToPod, toInsideToPod] =
+      wl;
     // NOTE: flows to current ns AND from specified pod...
     expectLists(toInsideFromPod, {
       dstPod: [`${ns}/`],
@@ -721,15 +709,11 @@ describe('EventStream::buildFlowFilters', () => {
       filters: fes,
     });
 
-    const [wl] = EventStream.buildFlowFilters(filters);
+    const [wl] = common.buildFlowFilters(filters);
     expect(wl.length).toBe(4);
 
-    const [
-      toInsideFromPod,
-      fromInsideFromPod,
-      fromInsideToPod,
-      toInsideToPod,
-    ] = wl;
+    const [toInsideFromPod, fromInsideFromPod, fromInsideToPod, toInsideToPod] =
+      wl;
     // NOTE: flows to current ns AND from specified pod...
     expectLists(toInsideFromPod, {
       dstPod: [`${ns1}/`],

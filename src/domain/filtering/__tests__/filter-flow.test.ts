@@ -9,7 +9,6 @@ import { Dictionary } from '~/domain/misc';
 import { Verdict } from '~/domain/hubble';
 import { Flow } from '~/domain/flows';
 
-import * as combinations from '~/utils/iter-tools/combinations';
 import { flows } from '~/testing/data';
 import * as thelpers from '~/testing/helpers';
 

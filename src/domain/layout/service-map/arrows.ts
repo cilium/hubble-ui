@@ -1,4 +1,11 @@
-import { action, computed, observable, reaction, trace } from 'mobx';
+import {
+  action,
+  computed,
+  observable,
+  reaction,
+  trace,
+  makeObservable,
+} from 'mobx';
 
 import { StoreFrame } from '~/store/frame';
 
@@ -36,16 +43,12 @@ export class ServiceMapArrowStrategy extends ArrowStrategy {
   @observable
   private services: ServiceStore;
 
-  constructor(
-    controls: ControlStore,
-    interactions: InteractionStore,
-    services: ServiceStore,
-    placement: ServiceMapPlacementStrategy,
-  ) {
+  constructor(frame: StoreFrame, placement: ServiceMapPlacementStrategy) {
     super();
-    this.controls = controls;
-    this.interactions = interactions;
-    this.services = services;
+    makeObservable(this);
+    this.controls = frame.controls;
+    this.interactions = frame.interactions;
+    this.services = frame.services;
     this.placement = placement;
 
     reaction(

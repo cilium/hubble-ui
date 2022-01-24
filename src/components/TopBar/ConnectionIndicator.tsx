@@ -1,57 +1,61 @@
 import classnames from 'classnames';
-import React, { memo } from 'react';
+import React from 'react';
+import { computed } from 'mobx';
+import { observer } from 'mobx-react';
 
 import { Status } from '~/domain/status';
+import { TransferState } from '~/domain/interactions';
+import { numberSep } from '~/domain/misc';
 
 import css from './ConnectionIndicator.scss';
 
-export enum ConnectionState {
-  Receiving = 'receiving',
-  Reconnecting = 'reconnecting',
-  Stopped = 'stopped',
-  Idle = 'idle',
-}
-
 export interface Props {
-  state: ConnectionState;
-  status?: Status;
+  transferState: TransferState;
 }
 
-export const ConnectionIndicator = memo<Props>(function ConnectionIndicator(
-  props,
+export const ConnectionIndicator = observer(function ConnectionIndicator(
+  props: Props,
 ) {
-  const isReceiving = props.state === ConnectionState.Receiving;
-  const isReconnecting = props.state === ConnectionState.Reconnecting;
+  const transfer = props.transferState;
+  const isReceiving = transfer.isReceiving;
+  const isReconnecting = props.transferState.isReconnecting;
+  const isStopped = props.transferState.isStopped;
 
   const className = classnames(css.wrapper, {
     [css.receiving]: isReceiving,
-    [css.reconnecting]: isReconnecting,
-    [css.stopped]: props.state === ConnectionState.Stopped,
-    [css.idle]: props.state === ConnectionState.Idle,
-    [css.circleAnimated]: [
-      ConnectionState.Receiving,
-      ConnectionState.Reconnecting,
-    ].includes(props.state),
+    [css.reconnecting]:
+      transfer.isReconnecting ||
+      transfer.isReconnectDelay ||
+      transfer.isReconnectFailed,
+    [css.stopped]: isStopped,
+    [css.idle]: transfer.isIdle,
+    [css.circleAnimated]: isReceiving || transfer.isReconnecting,
   });
 
-  let label: React.ReactNode = (
-    <>
-      {isReceiving ? 'Receiving data' : 'Reconnecting'}
-      <span className={css.dots}>
-        <span>.</span>
-        <span>.</span>
-        <span>.</span>
-      </span>
-    </>
-  );
+  const unknownReconnectWaiting =
+    transfer.isWaitingForReconnect &&
+    (transfer.reconnectingInMs == null ||
+      transfer.reconnectingInMs < Number.EPSILON);
 
-  if (isReceiving && props.status != null) {
-    label = generateStatusLabel(props.status);
-  } else if (props.state === ConnectionState.Stopped) {
-    label = 'Data receiving stopped';
-  } else if (props.state === ConnectionState.Idle) {
-    label = 'Idle';
-  }
+  const label: React.ReactNode = computed(() => {
+    if (isReconnecting) return dots('Reconnecting');
+    if (transfer.isWaitingForReconnect) {
+      const remaining = Math.round(transfer.reconnectingInSeconds!);
+
+      return `Reconnecting in ${remaining}s`;
+    }
+
+    if (unknownReconnectWaiting) return dots('Waiting for reconnection');
+    if (transfer.isReconnectFailed) return `Reconnection failed`;
+
+    if (isReceiving && transfer.deploymentStatus != null) {
+      return generateStatusLabel(transfer.deploymentStatus);
+    }
+
+    if (isStopped) return 'Data receiving stopped';
+
+    return 'Idle';
+  }).get();
 
   return (
     <div className={className}>
@@ -61,12 +65,27 @@ export const ConnectionIndicator = memo<Props>(function ConnectionIndicator(
   );
 });
 
+const dots = (text: string) => {
+  return (
+    <>
+      {text}
+      <span className={css.dots}>
+        <span>.</span>
+        <span>.</span>
+        <span>.</span>
+      </span>
+    </>
+  );
+};
+
 const generateStatusLabel = (st: Status): React.ReactNode => {
   const fps = st.flows.perSecond;
-  const flowsRate =
-    fps < 100 ? `${Math.round(fps)}` : `${(fps / 1000).toFixed(1)}K`;
+  const [factor, letter] =
+    fps < 1e3 ? [1, ''] : fps < 1e6 ? [1e3, 'K'] : [1e6, 'M'];
 
+  const flowsRate = numberSep(`${(fps / factor).toFixed(1)}${letter}`);
   const flowsLabel = `${flowsRate} flows/s`;
+  const flowsTitle = `${numberSep(fps.toFixed(1))} flows/s`;
 
   const nTotalNodes = st.nodes.length;
   const nAvailable = st.nodes.filter(n => n.isAvailable).length;
@@ -74,7 +93,9 @@ const generateStatusLabel = (st: Status): React.ReactNode => {
 
   return (
     <>
-      <span className={css.flowsLabel}>{flowsLabel}</span>
+      <span className={css.flowsLabel} title={flowsTitle}>
+        {flowsLabel}
+      </span>
       <span className={css.dotDivider}>•</span>
       <span className={css.nodesLabel}>{nodesLabel}</span>
     </>

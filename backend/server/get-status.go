@@ -7,16 +7,18 @@ import (
 
 	"github.com/cilium/cilium/api/v1/observer"
 	"github.com/cilium/hubble-ui/backend/internal/msg"
+	"github.com/cilium/hubble-ui/backend/internal/server"
+	"github.com/cilium/hubble-ui/backend/internal/server/statuschecker"
+	"github.com/cilium/hubble-ui/backend/pkg/logger"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
-	"github.com/cilium/hubble-ui/backend/server/helpers"
 )
 
 func (srv *UIServer) GetStatus(ctx context.Context, _ *ui.GetStatusRequest) (
 	*ui.GetStatusResponse, error,
 ) {
-	var client *HubbleClient
+	var client *server.HubbleClient
 	if c := ctx.Value("hubbleClient"); c != nil {
-		client, _ = c.(*HubbleClient)
+		client, _ = c.(*server.HubbleClient)
 	}
 	if client == nil {
 		cl, err := srv.GetHubbleClientFromContext(ctx)
@@ -27,7 +29,7 @@ func (srv *UIServer) GetStatus(ctx context.Context, _ *ui.GetStatusRequest) (
 		client = cl
 	}
 
-	ss, err := client.hubble.ServerStatus(
+	ss, err := client.Handle.ServerStatus(
 		ctx,
 		&observer.ServerStatusRequest{},
 	)
@@ -45,96 +47,33 @@ func (srv *UIServer) GetStatus(ctx context.Context, _ *ui.GetStatusRequest) (
 	return resp, nil
 }
 
-func (srv *UIServer) RunStatusChecker(req *ui.GetStatusRequest) (
-	context.CancelFunc, chan *ui.GetEventsResponse, chan error,
+func (srv *UIServer) RunStatusChecker(ctx context.Context) (
+	*statuschecker.Handle, error,
 ) {
-	ctx, cancel := context.WithCancel(context.Background())
-
-	responses := make(chan *ui.GetEventsResponse)
-	errors := make(chan error)
-
-	delay := time.Second * 1
-
-	go func() {
-		ticker := time.NewTicker(delay)
-		defer ticker.Stop()
-		lastCheck := time.Now()
-
-		sendError := func(err error) {
-			select {
-			case <-ctx.Done():
-				return
-			case errors <- err:
-				return
-			}
+	connectFn := func(ctx context.Context, attempt int) (
+		observer.ObserverClient, error,
+	) {
+		client, err := srv.GetHubbleClientFromContext(ctx)
+		if err != nil {
+			log.Errorf(msg.HubbleStatusCriticalError, err)
+			return nil, err
 		}
 
-		sendResponse := func(resp *ui.GetStatusResponse) {
-			select {
-			case <-ctx.Done():
-				return
-			case responses <- helpers.EventResponseFromStatusResponse(resp):
-				return
-			}
-		}
-	F:
-		for {
-			var lastError error
-			select {
-			case <-ctx.Done():
-				log.Infof(msg.HubbleStatusCheckerIsStopped)
-				break F
-			case <-ticker.C:
-				if time.Since(lastCheck) < delay {
-					continue F
-				}
+		log.Infof(msg.HubbleStatusCheckerRelayConnected)
+		return client.Handle, nil
+	}
 
-				resp, err := srv.GetStatus(ctx, req)
-				if err != nil {
-					lastError = err
-					sendError(err)
-					break
-				}
+	statusChecker, err := statuschecker.New().
+		WithLogger(logger.Sub("status-checker")).
+		WithDelay(3 * time.Second).
+		WithNewClientFunction(connectFn).
+		Unwrap()
 
-				sendResponse(resp)
-				lastCheck = time.Now()
+	if err != nil {
+		return nil, err
+	}
 
-				continue F
-			}
-
-			retries := srv.newRetries()
-			for {
-				if !srv.IsGrpcUnavailable(lastError) {
-					break F
-				}
-
-				err := retries.Wait(ctx)
-				if err != nil {
-					continue F
-				}
-
-				resp, err := srv.GetStatus(ctx, req)
-				if err != nil {
-					sendError(err)
-					lastError = err
-					continue
-				}
-
-				lastCheck = time.Now()
-				log.Infof(msg.HubbleStatusCheckerRelayConnected)
-				if resp != nil {
-					sendResponse(resp)
-				}
-
-				continue F
-			}
-		}
-
-		close(responses)
-		close(errors)
-	}()
-
-	return cancel, responses, errors
+	return statusChecker, nil
 }
 
 func flowsStatusFromSS(ss *observer.ServerStatusResponse) *ui.FlowStats {

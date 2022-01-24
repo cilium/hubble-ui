@@ -9,6 +9,8 @@ import (
 	"github.com/cilium/hubble-ui/backend/domain/link"
 	"github.com/cilium/hubble-ui/backend/domain/service"
 	"github.com/cilium/hubble-ui/backend/internal/msg"
+	"github.com/cilium/hubble-ui/backend/internal/server/nswatcher"
+	"github.com/cilium/hubble-ui/backend/internal/server/statuschecker"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 	"github.com/cilium/hubble-ui/backend/server/helpers"
 )
@@ -38,27 +40,34 @@ func (srv *UIServer) GetEvents(
 		defer flowCancel()
 	}
 
-	var nsSource chan *helpers.NSEvent
-	var nsErrors chan error
+	var nsWatcher *nswatcher.Watcher
+	var err error
 	if eventsRequested.Namespaces {
-		watcherChan, errors, stop := srv.RunNSWatcher()
-		defer close(stop)
+		nsWatcher, err = srv.CreateNSWatcher(stream.Context())
+		if err != nil {
+			log.Infof("running ns watcher error: %v\n", err)
+			return err
+		}
 
-		nsErrors = errors
-		nsSource = watcherChan
+		go nsWatcher.Run(stream.Context())
+		defer nsWatcher.Stop()
+	} else {
+		nsWatcher = nswatcher.NewDumb()
 	}
 
-	var statuses chan *ui.GetEventsResponse
-	var statusErrors chan error
-	var statusCancel func()
-
+	var statusChecker *statuschecker.Handle
 	if eventsRequested.Status {
 		log.Infof(msg.HubbleStatusCheckerIsRunning)
-		statusCancel, statuses, statusErrors = srv.RunStatusChecker(
-			req.StatusRequest,
-		)
+		statusChecker, err = srv.RunStatusChecker(stream.Context())
+		if err != nil {
+			log.Errorf(msg.HubbleStatusCriticalError, err)
+			return err
+		}
 
-		defer statusCancel()
+		go statusChecker.Run(stream.Context())
+		defer statusChecker.Stop()
+	} else {
+		statusChecker = statuschecker.NewDumb()
 	}
 
 F:
@@ -80,14 +89,14 @@ F:
 					break F
 				}
 			}
-		case err := <-statusErrors:
+		case err := <-statusChecker.Errors():
 			if !srv.IsGrpcUnavailable(err) {
 				log.Errorf(msg.HubbleStatusCriticalError, err)
 				return err
 			}
 
 			log.Errorf(msg.HubbleStatusRelayUnavailableError, err)
-		case err := <-nsErrors:
+		case err := <-nsWatcher.Errors():
 			if helpers.IsTimeout(err) {
 				log.Warnf(msg.NSWatcherK8sTimeoutError, err)
 				break
@@ -118,7 +127,7 @@ F:
 				log.Errorf(msg.SendFlowsError, err)
 				return err
 			}
-		case nsEvent := <-nsSource:
+		case nsEvent := <-nsWatcher.NSEvents():
 			resp := helpers.EventResponseFromNSEvent(nsEvent)
 
 			if err := stream.Send(resp); err != nil {
@@ -169,7 +178,9 @@ F:
 					return err
 				}
 			}
-		case statusEvent := <-statuses:
+		case serverStatus := <-statusChecker.Statuses():
+			statusEvent := helpers.EventResponseFromServerStatus(serverStatus)
+
 			if err := stream.Send(statusEvent); err != nil {
 				log.Errorf(msg.SendHubbleStatusError, err)
 				return err

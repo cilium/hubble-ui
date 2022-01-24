@@ -221,7 +221,7 @@ proto.ui.UIClient.prototype.getStatus =
  * @param {?Object<string, string>} metadata User defined
  *     call metadata
  * @return {!Promise<!proto.ui.GetStatusResponse>}
- *     A native promise that resolves to the response
+ *     Promise that resolves to the response
  */
 proto.ui.UIPromiseClient.prototype.getStatus =
     function(request, metadata) {
@@ -230,6 +230,81 @@ proto.ui.UIPromiseClient.prototype.getStatus =
       request,
       metadata || {},
       methodDescriptor_UI_GetStatus);
+};
+
+
+/**
+ * @const
+ * @type {!grpc.web.MethodDescriptor<
+ *   !proto.ui.GetControlStreamRequest,
+ *   !proto.ui.GetControlStreamResponse>}
+ */
+const methodDescriptor_UI_GetControlStream = new grpc.web.MethodDescriptor(
+  '/ui.UI/GetControlStream',
+  grpc.web.MethodType.SERVER_STREAMING,
+  proto.ui.GetControlStreamRequest,
+  proto.ui.GetControlStreamResponse,
+  /**
+   * @param {!proto.ui.GetControlStreamRequest} request
+   * @return {!Uint8Array}
+   */
+  function(request) {
+    return request.serializeBinary();
+  },
+  proto.ui.GetControlStreamResponse.deserializeBinary
+);
+
+
+/**
+ * @const
+ * @type {!grpc.web.AbstractClientBase.MethodInfo<
+ *   !proto.ui.GetControlStreamRequest,
+ *   !proto.ui.GetControlStreamResponse>}
+ */
+const methodInfo_UI_GetControlStream = new grpc.web.AbstractClientBase.MethodInfo(
+  proto.ui.GetControlStreamResponse,
+  /**
+   * @param {!proto.ui.GetControlStreamRequest} request
+   * @return {!Uint8Array}
+   */
+  function(request) {
+    return request.serializeBinary();
+  },
+  proto.ui.GetControlStreamResponse.deserializeBinary
+);
+
+
+/**
+ * @param {!proto.ui.GetControlStreamRequest} request The request proto
+ * @param {?Object<string, string>} metadata User defined
+ *     call metadata
+ * @return {!grpc.web.ClientReadableStream<!proto.ui.GetControlStreamResponse>}
+ *     The XHR Node Readable Stream
+ */
+proto.ui.UIClient.prototype.getControlStream =
+    function(request, metadata) {
+  return this.client_.serverStreaming(this.hostname_ +
+      '/ui.UI/GetControlStream',
+      request,
+      metadata || {},
+      methodDescriptor_UI_GetControlStream);
+};
+
+
+/**
+ * @param {!proto.ui.GetControlStreamRequest} request The request proto
+ * @param {?Object<string, string>} metadata User defined
+ *     call metadata
+ * @return {!grpc.web.ClientReadableStream<!proto.ui.GetControlStreamResponse>}
+ *     The XHR Node Readable Stream
+ */
+proto.ui.UIPromiseClient.prototype.getControlStream =
+    function(request, metadata) {
+  return this.client_.serverStreaming(this.hostname_ +
+      '/ui.UI/GetControlStream',
+      request,
+      metadata || {},
+      methodDescriptor_UI_GetControlStream);
 };
 
 

@@ -2,15 +2,13 @@ import {
   Filters,
   FiltersObject,
   FiltersDiff,
-  diffFilters,
-  FilterEntry,
   FiltersKey,
 } from '~/domain/filtering';
 import { Verdict } from '~/domain/hubble';
 
 import { filterEntries } from '~/testing/data';
 
-const testFieldsDiff = (testName: string, fobj: FiltersObject) => {
+const testFieldsDiff = (testName: string, fobj: Partial<FiltersObject>) => {
   const lhs = Filters.default();
   const rhs = lhs.clone();
 
@@ -18,7 +16,7 @@ const testFieldsDiff = (testName: string, fobj: FiltersObject) => {
     (rhs as any)[key] = (fobj as any)[key];
   });
 
-  const diff = diffFilters(lhs, rhs);
+  const diff = FiltersDiff.new(lhs, rhs);
 
   const otherFields: FiltersKey[] = [
     'namespace',
@@ -33,20 +31,22 @@ const testFieldsDiff = (testName: string, fobj: FiltersObject) => {
 
   test(testName, () => {
     Object.keys(fobj).forEach((key: string) => {
+      const fkey: keyof FiltersObject = key as keyof FiltersObject;
       otherFields.splice(otherFields.indexOf(key as FiltersKey), 1);
 
-      const keyChange = diff.changeOf(key as FiltersKey);
+      const keyChange = diff[fkey];
       expect(keyChange.changed).toBe(true);
 
-      if (key !== 'filters') {
-        expect(keyChange.added).toEqual([(fobj as any)[key]]);
-      } else {
-        expect(keyChange.added).toEqual((fobj as any)[key]);
-      }
+      // if (key === 'filters') {
+      //   expect(keyChange.after).toEqual((fobj as any)[key]);
+      // } else {
+      //   expect(keyChange.after).toEqual([(fobj as any)[key]]);
+      // }
     });
 
     otherFields.forEach((key: string) => {
-      const keyChange = diff.changeOf(key as FiltersKey);
+      const fkey: keyof FiltersObject = key as keyof FiltersObject;
+      const keyChange = diff[fkey];
 
       expect(keyChange.changed).toEqual(false);
     });
@@ -55,9 +55,9 @@ const testFieldsDiff = (testName: string, fobj: FiltersObject) => {
 
 describe('sanity check', () => {
   test('test 1 - empty', () => {
-    const diff = FiltersDiff.empty();
+    const diff = FiltersDiff.newUnchanged();
 
-    expect(diff.isEmpty).toBe(true);
+    expect(diff.nothingChanged).toBe(true);
     expect(diff.namespace.changed).toBe(false);
     expect(diff.verdict.changed).toBe(false);
     expect(diff.httpStatus.changed).toBe(false);
@@ -69,11 +69,11 @@ describe('sanity check', () => {
   });
 });
 
-describe('diffFilters', () => {
+describe('FiltersDiff', () => {
   test('test 1 - null / null', () => {
-    const diff = diffFilters(null, null);
+    const diff = FiltersDiff.new(null, null);
 
-    expect(diff.isEmpty).toBe(true);
+    expect(diff.nothingChanged).toBe(true);
     expect(diff.namespace.changed).toBe(false);
     expect(diff.verdict.changed).toBe(false);
     expect(diff.httpStatus.changed).toBe(false);
@@ -85,21 +85,21 @@ describe('diffFilters', () => {
   });
 
   test('test 2 - null / default filters', () => {
-    const diff = diffFilters(null, Filters.default());
+    const diff = FiltersDiff.new(null, Filters.default());
 
-    expect(diff.isEmpty).toBe(false);
+    expect(diff.nothingChanged).toBe(false);
   });
 
   test('test 3 - default filters / null', () => {
-    const diff = diffFilters(Filters.default(), null);
+    const diff = FiltersDiff.new(Filters.default(), null);
 
-    expect(diff.isEmpty).toBe(false);
+    expect(diff.nothingChanged).toBe(false);
   });
 
   test('test 4 - default filters / default filters', () => {
-    const diff = diffFilters(Filters.default(), Filters.default());
+    const diff = FiltersDiff.new(Filters.default(), Filters.default());
 
-    expect(diff.isEmpty).toBe(true);
+    expect(diff.nothingChanged).toBe(true);
   });
 
   testFieldsDiff('test 5 - namespace is changed', {
@@ -180,6 +180,17 @@ describe('diffFilters', () => {
   });
 
   testFieldsDiff('test 19 - 8 fields changed', {
+    namespace: 'random-namespace',
+    verdict: Verdict.Forwarded,
+    httpStatus: '200',
+    filters: [filterEntries.fromDnsGoogle!],
+    skipHost: true,
+    skipKubeDns: true,
+    skipRemoteNode: true,
+    skipPrometheusApp: true,
+  });
+
+  testFieldsDiff('test 20 - 9 fields changed', {
     namespace: 'random-namespace',
     verdict: Verdict.Forwarded,
     httpStatus: '200',

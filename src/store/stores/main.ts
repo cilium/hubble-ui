@@ -5,35 +5,29 @@ import {
   computed,
   reaction,
   autorun,
+  makeObservable,
 } from 'mobx';
 
 import { Flow } from '~/domain/flows';
-import {
-  Filters,
-  FilterEntry,
-  FilterKind,
-  FilterDirection,
-} from '~/domain/filtering';
+import { Filters, FilterEntry } from '~/domain/filtering';
 
 import { Service } from '~/domain/service-map';
 import { StateChange } from '~/domain/misc';
 import { setupDebugProp } from '~/domain/misc';
-import { Vec2 } from '~/domain/geometry';
 import { HubbleService, HubbleLink, HubbleFlow } from '~/domain/hubble';
+import { FeatureFlags } from '~/domain/features';
 
 import {
   ServiceMapPlacementStrategy,
   ServiceMapArrowStrategy,
 } from '~/domain/layout/service-map';
 
-import InteractionStore from './interaction';
 import RouteStore, { RouteHistorySourceKind, Route } from './route';
-import ServiceStore from './service';
 import ControlStore from './controls';
+import FeaturesStore from './features';
 
 import { StoreFrame, EventKind as FrameEvent } from '~/store/frame';
 import * as storage from '~/storage/local';
-import { ReservedLabel } from '~/domain/labels';
 
 configure({ enforceActions: 'observed' });
 
@@ -41,6 +35,12 @@ export interface Props {
   historySource: RouteHistorySourceKind;
   routes?: Route[];
 }
+
+export type FlushOptions = {
+  namespaces?: boolean;
+  policies?: boolean;
+  globalFrame?: boolean;
+};
 
 export class Store {
   @observable
@@ -61,25 +61,24 @@ export class Store {
   @observable
   public currentFrame: StoreFrame;
 
+  @observable
+  public features: FeaturesStore;
+
   private afterResetCallbacks: Array<() => void> = [];
 
   constructor(props: Props) {
+    makeObservable(this);
+
     this.controls = new ControlStore();
     this.route = new RouteStore(props.historySource, props.routes);
+    this.features = new FeaturesStore();
 
-    this.globalFrame = StoreFrame.empty();
-    this.currentFrame = StoreFrame.empty();
+    this.globalFrame = StoreFrame.emptyWithShared(this.controls);
+    this.currentFrame = StoreFrame.emptyWithShared(this.controls);
 
-    this.placement = new ServiceMapPlacementStrategy(
-      this.controls,
-      this.currentFrame.interactions,
-      this.currentFrame.services,
-    );
-
+    this.placement = new ServiceMapPlacementStrategy(this.currentFrame);
     this.arrows = new ServiceMapArrowStrategy(
-      this.controls,
-      this.currentFrame.interactions,
-      this.currentFrame.services,
+      this.currentFrame,
       this.placement,
     );
 
@@ -173,12 +172,30 @@ export class Store {
     return this.route.hash === 'mock';
   }
 
+  @computed
+  public get filters(): Filters {
+    return Filters.fromObject({
+      namespace: this.controls.currentNamespace,
+      verdict: this.controls.verdict,
+      httpStatus: this.controls.httpStatus,
+      filters: this.controls.flowFilters,
+      skipHost: !this.controls.showHost,
+      skipKubeDns: !this.controls.showKubeDns,
+      skipRemoteNode: !this.controls.showRemoteNode,
+      skipPrometheusApp: !this.controls.showPrometheusApp,
+    });
+  }
+
   @action.bound
-  public flush() {
+  public flush(opts?: FlushOptions) {
     this.controls.selectTableFlow(null);
 
-    this.globalFrame.flush();
+    if (!!opts?.globalFrame) {
+      this.globalFrame.flush();
+    }
+
     this.currentFrame.flush();
+    this.placement.reset();
   }
 
   @action.bound
@@ -353,6 +370,12 @@ export class Store {
 
     storage.saveShowPrometheusApp(isActive);
     return isActive;
+  }
+
+  @action.bound
+  public setFeatures(features: FeatureFlags) {
+    console.log(`setting features`);
+    this.features.set(features);
   }
 
   // D E B U G

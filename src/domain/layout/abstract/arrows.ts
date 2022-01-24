@@ -1,4 +1,4 @@
-import { action, computed, observable, reaction } from 'mobx';
+import { action, computed, observable, reaction, makeObservable } from 'mobx';
 
 import { Vec2, XYWH, rounding, utils as gutils } from '~/domain/geometry';
 import { Advancer } from '~/utils/advancer';
@@ -68,6 +68,7 @@ export abstract class ArrowStrategy {
   // abstract get arrows(): ArrowsMap;
 
   constructor() {
+    makeObservable(this);
     this.arrows = new Map();
   }
 

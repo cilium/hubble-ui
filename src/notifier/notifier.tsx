@@ -124,6 +124,13 @@ export class Notifier {
     return this.notificationsCache.get(key) ?? null;
   }
 
+  public hideBykeys(...keys: string[]) {
+    keys.forEach(key => {
+      const notif = this.cached(key);
+      notif?.hide();
+    });
+  }
+
   public dismissAll() {
     this.setupCheck();
     this.toaster!.clear();

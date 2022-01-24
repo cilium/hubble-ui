@@ -30,7 +30,7 @@ export const Cell = memo<CellProps>(function FlowsTableCell(props) {
       return <div className={css.cell}>{props.flow.sourceIp}</div>;
     }
     case Column.SrcService: {
-      const appName = props.flow.sourceAppName ?? 'No app name';
+      const appName = props.flow.sourceIdentityName ?? 'No app name';
       const subtitle = props.flow.sourceNamespace ? (
         <span className={css.subtitle}>{props.flow.sourceNamespace}</span>
       ) : (
@@ -55,7 +55,7 @@ export const Cell = memo<CellProps>(function FlowsTableCell(props) {
     case Column.DstService: {
       const appName = props.flow.destinationDns
         ? props.flow.destinationDns
-        : props.flow.destinationAppName ?? '—';
+        : props.flow.destinationIdentityName ?? '—';
 
       const subtitle = props.flow.destinationDns ? (
         ''

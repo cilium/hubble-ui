@@ -1,11 +1,14 @@
-import { EventEmitter } from '~/utils/emitter';
-import { GeneralStreamEvents } from './stream';
-
-import { Verdict, HubbleService, HubbleLink } from '~/domain/hubble';
 import { Flow } from '~/domain/flows';
-import { StateChange } from '~/domain/misc';
-import { Status } from '~/domain/status';
-import { NoPermission } from '~/domain/notifications';
+import { HubbleFlow } from '~/domain/hubble';
+import { Notification } from '~/domain/notifications';
+import { Filters } from '~/domain/filtering';
+import {
+  NamespaceChange,
+  ServiceChange,
+  ServiceLinkChange,
+} from '~/domain/events';
+
+import { RegularStream } from './stream-utils';
 
 export interface EventParams {
   flow?: boolean;
@@ -25,6 +28,14 @@ export const EventParamsSet = {
     serviceLinks: true,
     status: true,
   },
+  AllButNamespaces: {
+    flow: false,
+    flows: true,
+    namespaces: false,
+    services: true,
+    serviceLinks: true,
+    status: true,
+  },
   Namespaces: {
     flow: false,
     flows: false,
@@ -38,54 +49,34 @@ export const EventParamsSet = {
 export enum EventKind {
   Flow = 'flow',
   Flows = 'flows',
+  RawFlow = 'raw-flow',
   Namespace = 'namespace',
   Service = 'service',
   ServiceLink = 'service-link',
   Notification = 'notification',
 }
 
-export interface NamespaceChange {
-  name: string;
-  change: StateChange;
-}
-
-export interface ServiceChange {
-  service: HubbleService;
-  change: StateChange;
-}
-
-export interface ServiceLinkChange {
-  serviceLink: HubbleLink;
-  change: StateChange;
-}
-
-export interface Notification {
-  connState?: {
-    connected: boolean;
-    reconnecting: boolean;
-    k8sUnavailable: boolean;
-    k8sConnected: boolean;
-  };
-
-  dataState?: {
-    noActivity: boolean;
-  };
-
-  status?: Status;
-  noPermission?: NoPermission;
-}
-
-export type EventStreamHandlers = GeneralStreamEvents & {
+export type Handlers = {
   [EventKind.Flow]: (_: Flow) => void;
   [EventKind.Flows]: (_: Flow[]) => void;
+  [EventKind.RawFlow]: (_: HubbleFlow) => void;
   [EventKind.Namespace]: (_: NamespaceChange) => void;
   [EventKind.Service]: (_: ServiceChange) => void;
   [EventKind.ServiceLink]: (_: ServiceLinkChange) => void;
   [EventKind.Notification]: (_: Notification) => void;
 };
 
-export interface IEventStream extends EventEmitter<EventStreamHandlers> {
+export type EventStream = RegularStream & {
   flowsDelay: number;
+  filters?: Filters;
 
-  stop: (dropEventHandlers?: boolean) => Promise<void>;
-}
+  onFlow: (_: Handlers[EventKind.Flow]) => void;
+  onFlows: (_: Handlers[EventKind.Flows]) => void;
+  onRawFlow: (_: Handlers[EventKind.RawFlow]) => void;
+  onNamespaceChange: (_: Handlers[EventKind.Namespace]) => void;
+  onServiceChange: (_: Handlers[EventKind.Service]) => void;
+  onServiceLinkChange: (_: Handlers[EventKind.ServiceLink]) => void;
+  onNotification: (_: Handlers[EventKind.Notification]) => void;
+};
+
+export type FlowsStream = Pick<EventStream, 'onFlows'>;

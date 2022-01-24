@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { observable, action } from 'mobx';
+import { observable, action, makeObservable } from 'mobx';
 
 import InteractionStore from '~/store/stores/interaction';
 import ServiceStore from '~/store/stores/service';
@@ -10,7 +10,6 @@ import { HubbleService, HubbleLink } from '~/domain/hubble';
 import { StateChange } from '~/domain/misc';
 import { ServiceCard, Link } from '~/domain/service-map';
 import { Flow } from '~/domain/flows';
-import { Vec2 } from '~/domain/geometry';
 import { EventEmitter } from '~/utils/emitter';
 
 export enum EventKind {
@@ -34,15 +33,32 @@ export class StoreFrame extends EventEmitter<Events> {
   @observable
   public services: ServiceStore;
 
+  @observable
+  public controls: ControlStore;
+
   public static empty(): StoreFrame {
-    return new StoreFrame(new InteractionStore(), new ServiceStore());
+    return new StoreFrame(
+      new ControlStore(),
+      new InteractionStore(),
+      new ServiceStore(),
+    );
   }
 
-  constructor(interactions: InteractionStore, services: ServiceStore) {
+  public static emptyWithShared(controls: ControlStore) {
+    return new StoreFrame(controls, new InteractionStore(), new ServiceStore());
+  }
+
+  constructor(
+    controls: ControlStore,
+    interactions: InteractionStore,
+    services: ServiceStore,
+  ) {
     super();
+    makeObservable(this);
 
     this.interactions = interactions;
     this.services = services;
+    this.controls = controls;
   }
 
   getServiceById(id: string) {
@@ -146,11 +162,15 @@ export class StoreFrame extends EventEmitter<Events> {
   }
 
   clone() {
-    return new StoreFrame(this.interactions.clone(), this.services.clone());
+    return new StoreFrame(
+      this.controls,
+      this.interactions.clone(),
+      this.services.clone(),
+    );
   }
 
   cloneEmpty(): StoreFrame {
-    return new StoreFrame(new InteractionStore(), new ServiceStore());
+    return StoreFrame.empty();
   }
 
   public get amounts() {

@@ -1,17 +1,14 @@
-import * as _ from 'lodash';
 import React, {
-  FunctionComponent,
   useCallback,
   useEffect,
   useState,
   useMemo,
   useRef,
 } from 'react';
-import { IconNames } from '@blueprintjs/icons';
 import { RouteComponentProps } from '@reach/router';
 import { observer } from 'mobx-react';
 
-import { TopBar, ConnectionState } from '~/components/TopBar';
+import { TopBar } from '~/components/TopBar';
 import {
   DetailsPanel,
   ResizeProps as DetailsResizeProps,
@@ -23,30 +20,20 @@ import { Map } from '~/components/Map';
 import { LoadingOverlay } from '~/components/Misc/LoadingOverlay';
 import { ServiceMapCard } from '~/components/ServiceMapCard';
 import { CardComponentProps } from '~/components/Card';
-import { CardComponent } from '~/components/Card';
 import { WelcomeScreen } from './WelcomeScreen';
 
 import { Verdict, TCPFlagName, PodSelector } from '~/domain/hubble';
 import { ServiceCard } from '~/domain/service-map';
 import { Vec2 } from '~/domain/geometry';
 import { KV, Labels } from '~/domain/labels';
-import {
-  Filters,
-  FilterEntry,
-  FilterKind,
-  FilterDirection,
-} from '~/domain/filtering';
+import { FilterEntry, FilterDirection } from '~/domain/filtering';
 
 import { useStore } from '~/store';
-import { useNotifier } from '~/notifier';
-
 import { API } from '~/api/general';
-import * as storage from '~/storage/local';
-import { DataManager, EventKind as DataManagerEvents } from './DataManager';
+import { useDataManager, EventKind as DataManagerEvents } from '~/data-manager';
 
 import { Ticker } from '~/utils/ticker';
 import { sizes } from '~/ui/vars';
-import { usePrevious } from '~/ui/hooks';
 import { useFlowsTableColumns } from './hooks/useColumns';
 import css from './styles.scss';
 
@@ -54,22 +41,16 @@ export interface AppProps extends RouteComponentProps {
   api: API;
 }
 
-export const App: FunctionComponent<AppProps> = observer(props => {
+export const App = observer((_props: AppProps) => {
+  const dataManager = useDataManager();
   const store = useStore();
 
+  const transferState = store.controls.transferState;
   const onFlowsDiffCount = useRef<(diff: number) => void>();
-  const [isStreaming, setIsStreaming] = useState(true);
-  const [connState, setConnState] = useState(ConnectionState.Idle);
   const [mapVisibleHeight, setMapVisibleHeight] = useState<number | null>(null);
   const [mapWasDragged, setMapWasDragged] = useState(false);
-  const previousFilters = usePrevious(store.controls.filters);
   const flowsTableColumns = useFlowsTableColumns();
   const [flowsWaitTimeout, setFlowsWaitTimeout] = useState<boolean>(false);
-
-  const notifier = useNotifier();
-  const dataManager = useMemo(() => {
-    return new DataManager(props.api, store);
-  }, []);
 
   const ticker = useMemo(() => {
     const ticker = new Ticker<DPTickerEvents>();
@@ -81,127 +62,13 @@ export const App: FunctionComponent<AppProps> = observer(props => {
   useEffect(() => {
     if (!store.controls.currentNamespace) return;
     setFlowsWaitTimeout(false);
+
     const stop = setTimeout(() => {
       setFlowsWaitTimeout(true);
     }, 5000);
+
     return () => clearTimeout(stop);
   }, [store.controls.currentNamespace]);
-
-  useEffect(() => {
-    const d1 = dataManager.on(DataManagerEvents.StreamError, () => {
-      setIsStreaming(false);
-      setConnState(ConnectionState.Stopped);
-
-      notifier.showError(
-        `Failed to receive data from backend.
-        Please make sure that your deployment is up and refresh this page.`,
-        { key: 'backend-error', timeout: 0 },
-      );
-    });
-
-    const d2 = dataManager.on(DataManagerEvents.Notification, notif => {
-      if (notif.connState?.reconnecting) {
-        setConnState(ConnectionState.Reconnecting);
-
-        notifier.showError(
-          `Connection to hubble-relay has been lost.
-          Reconnecting...`,
-          { key: 'reconnecting-to-hubble-relay ' },
-        );
-      } else if (notif.connState?.connected) {
-        setConnState(ConnectionState.Receiving);
-
-        notifier.showInfo(`Connection to hubble-relay has been established.`, {
-          key: 'connected-to-hubble-relay',
-        });
-      } else if (notif.connState?.k8sConnected) {
-        const unavailableNotif = notifier.cached('k8s-unavailable');
-        unavailableNotif?.hide();
-
-        notifier.showInfo(`Connection to Kubernetes has been established.`);
-      } else if (notif.connState?.k8sUnavailable) {
-        notifier.showError(
-          `Connection to Kubernetes has been lost. Check your deployment and ` +
-            `refresh this page.`,
-          { timeout: 0, key: 'k8s-unavailable' },
-        );
-      } else if (notif.dataState?.noActivity) {
-        notifier.showInfo(`There are no pods in this namespace.`, {
-          key: 'no-activity',
-        });
-      } else if (notif.status != null) {
-        store.controls.setStatus(notif.status);
-      } else if (notif.noPermission != null) {
-        const { error, resource } = notif.noPermission;
-
-        let notifText =
-          `hubble-ui unable to watch over ${resource} resource. ` +
-          `You will not be provided with this kind of resource. `;
-
-        if (error.length > 0) {
-          notifText += `Check out developer console to discover the internal error`;
-          console.warn(notifText);
-          console.warn(
-            `Here is why we can't provide ${resource} data: `,
-            error,
-          );
-        }
-
-        notifier.showWarning(notifText, { key: resource, timeout: 0 });
-      }
-    });
-
-    return () => {
-      d1();
-      d2();
-    };
-  }, [dataManager, notifier]);
-
-  useEffect(() => {
-    return dataManager.on(DataManagerEvents.StreamEnd, () => {
-      setIsStreaming(false);
-    });
-  }, [dataManager]);
-
-  useEffect(() => {
-    return dataManager.on(DataManagerEvents.StoreMocked, () => {
-      setIsStreaming(true);
-    });
-  }, [dataManager]);
-
-  useEffect(() => {
-    const { currentNamespace } = store.controls;
-
-    const unsubscribe = dataManager.on(
-      DataManagerEvents.NamespaceAdded,
-      _.debounce(() => {
-        const { namespaces } = store.controls;
-        if (currentNamespace == null) return;
-        if (currentNamespace && namespaces.includes(currentNamespace)) return;
-
-        const message = `
-          Namespace "${currentNamespace}" is still not observed.
-          Keep waiting for the data.
-        `;
-
-        notifier.showWarning(message, { icon: IconNames.SEARCH_AROUND });
-        storage.deleteLastNamespace();
-      }, 2000),
-    );
-
-    if (store.mocked) {
-      dataManager.setupMock();
-    } else if (currentNamespace == null && !dataManager.hasInitialStream) {
-      dataManager.setupInitialStream();
-    }
-
-    return unsubscribe;
-  }, [
-    dataManager,
-    store.controls.namespaces,
-    store.controls.currentNamespace,
-    store.mocked,
-  ]);
 
   useEffect(() => {
     return dataManager.on(
@@ -215,27 +82,8 @@ export const App: FunctionComponent<AppProps> = observer(props => {
   }, [store.currentFrame, dataManager]);
 
   useEffect(() => {
-    if (!store.controls.currentNamespace || store.mocked) return;
-    const newNamespace = store.controls.currentNamespace;
-
-    const changes = Filters.diff(previousFilters, store.controls.filters);
-    const flushRequired = changes.podFiltersChanged;
-    console.log('data flush required: ', flushRequired);
-
-    if (dataManager.currentNamespace !== newNamespace) {
-      dataManager.resetNamespace(newNamespace);
-    } else {
-      dataManager.dropCurrentStream();
-      dataManager.setupCurrentStream(store.controls.currentNamespace);
-
-      if (flushRequired) {
-        store.flush();
-      }
-    }
-
-    setConnState(ConnectionState.Receiving);
     setMapWasDragged(false);
-  }, [store.controls.filters]);
+  }, [store.filters]);
 
   const onNamespaceChange = useCallback((ns: string) => {
     store.flush();
@@ -365,11 +213,12 @@ export const App: FunctionComponent<AppProps> = observer(props => {
   );
 
   const mapLoaded =
-    store.currentFrame.services.cardsList.length > 0 && isStreaming;
+    store.currentFrame.services.cardsList.length > 0 &&
+    !transferState.isDisabled;
 
   const RenderedTopBar = (
     <TopBar
-      connectionState={connState}
+      transferState={store.controls.transferState}
       status={store.controls.lastStatus || undefined}
       namespaces={store.controls.namespaces}
       currentNamespace={store.controls.currentNamespace}
@@ -437,7 +286,7 @@ export const App: FunctionComponent<AppProps> = observer(props => {
 
       <DetailsPanel
         namespace={store.controls.currentNamespace}
-        isStreaming={isStreaming}
+        dataMode={transferState.dataMode}
         flowsWaitTimeout={flowsWaitTimeout}
         flows={store.currentFrame.interactions.flows}
         flowsTableVisibleColumns={flowsTableColumns.visible}

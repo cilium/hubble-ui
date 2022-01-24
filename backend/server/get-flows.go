@@ -42,7 +42,7 @@ func (srv *UIServer) GetFlows(
 			return err
 		}
 
-		fs, err := client.hubble.GetFlows(ctx, flowsRequest)
+		fs, err := client.Handle.GetFlows(ctx, flowsRequest)
 		if err != nil {
 			log.Errorf(msg.GetFlowsConnectionAttemptError, attempt, err)
 			return err

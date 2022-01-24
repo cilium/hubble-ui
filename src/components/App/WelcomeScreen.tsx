@@ -1,5 +1,6 @@
-import React, { memo, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { Spinner } from '@blueprintjs/core';
+import { observer } from 'mobx-react';
 
 import css from './WelcomeScreen.scss';
 
@@ -10,7 +11,7 @@ export interface Props {
   onNamespaceChange: (namespace: string) => void;
 }
 
-export const WelcomeScreen = memo<Props>(function WelcomeScreen(props) {
+export const WelcomeScreen = observer(function WelcomeScreen(props: Props) {
   const someNamespacesLoaded = props.namespaces.length > 0;
 
   return (
@@ -46,7 +47,9 @@ interface NamespaceItemProps {
   onClick: (namespace: string) => void;
 }
 
-const NamespaceItem = memo<NamespaceItemProps>(function NamespaceItem(props) {
+const NamespaceItem = observer(function NamespaceItem(
+  props: NamespaceItemProps,
+) {
   const onClick = useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>) => {
       event.preventDefault();

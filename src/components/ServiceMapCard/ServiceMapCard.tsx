@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
 
 import { AccessPoint, CenterGetter } from '~/components/AccessPoint';
@@ -10,13 +10,7 @@ import {
   AccessPoint as AccessPointDatum,
 } from '~/domain/service-map';
 
-import {
-  Card,
-  DivRef,
-  BaseCardProps,
-  CardComponentProps,
-  CoordsFn,
-} from '~/components/Card';
+import { Card, CardComponentProps, CoordsFn } from '~/components/Card';
 import { EndpointCardLabels } from './EndpointCardLabels';
 
 import css from './styles.scss';
@@ -47,9 +41,7 @@ export const ServiceMapCard = observer(function ServiceMapCard(props: Props) {
 
     centerGetters.forEach((cg: CenterGetter, apId: string) => {
       const connectorCenterCoords = cg();
-      // console.log(`connectorCenterCoords of ${apId}: `, connectorCenterCoords);
       const [_, svgCoords] = coordsFn(connectorCenterCoords);
-      // console.log(`svgCoords of ${apId}: `, svgCoords);
 
       props.onAccessPointCoords?.(apId, Vec2.fromXY(svgCoords));
     });

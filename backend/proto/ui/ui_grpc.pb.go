@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type UIClient interface {
 	GetEvents(ctx context.Context, in *GetEventsRequest, opts ...grpc.CallOption) (UI_GetEventsClient, error)
 	GetStatus(ctx context.Context, in *GetStatusRequest, opts ...grpc.CallOption) (*GetStatusResponse, error)
+	GetControlStream(ctx context.Context, in *GetControlStreamRequest, opts ...grpc.CallOption) (UI_GetControlStreamClient, error)
 }
 
 type uIClient struct {
@@ -75,12 +76,45 @@ func (c *uIClient) GetStatus(ctx context.Context, in *GetStatusRequest, opts ...
 	return out, nil
 }
 
+func (c *uIClient) GetControlStream(ctx context.Context, in *GetControlStreamRequest, opts ...grpc.CallOption) (UI_GetControlStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &UI_ServiceDesc.Streams[1], "/ui.UI/GetControlStream", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &uIGetControlStreamClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type UI_GetControlStreamClient interface {
+	Recv() (*GetControlStreamResponse, error)
+	grpc.ClientStream
+}
+
+type uIGetControlStreamClient struct {
+	grpc.ClientStream
+}
+
+func (x *uIGetControlStreamClient) Recv() (*GetControlStreamResponse, error) {
+	m := new(GetControlStreamResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // UIServer is the server API for UI service.
 // All implementations must embed UnimplementedUIServer
 // for forward compatibility
 type UIServer interface {
 	GetEvents(*GetEventsRequest, UI_GetEventsServer) error
 	GetStatus(context.Context, *GetStatusRequest) (*GetStatusResponse, error)
+	GetControlStream(*GetControlStreamRequest, UI_GetControlStreamServer) error
 	mustEmbedUnimplementedUIServer()
 }
 
@@ -93,6 +127,9 @@ func (UnimplementedUIServer) GetEvents(*GetEventsRequest, UI_GetEventsServer) er
 }
 func (UnimplementedUIServer) GetStatus(context.Context, *GetStatusRequest) (*GetStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStatus not implemented")
+}
+func (UnimplementedUIServer) GetControlStream(*GetControlStreamRequest, UI_GetControlStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetControlStream not implemented")
 }
 func (UnimplementedUIServer) mustEmbedUnimplementedUIServer() {}
 
@@ -146,6 +183,27 @@ func _UI_GetStatus_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UI_GetControlStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetControlStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UIServer).GetControlStream(m, &uIGetControlStreamServer{stream})
+}
+
+type UI_GetControlStreamServer interface {
+	Send(*GetControlStreamResponse) error
+	grpc.ServerStream
+}
+
+type uIGetControlStreamServer struct {
+	grpc.ServerStream
+}
+
+func (x *uIGetControlStreamServer) Send(m *GetControlStreamResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // UI_ServiceDesc is the grpc.ServiceDesc for UI service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -162,6 +220,11 @@ var UI_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "GetEvents",
 			Handler:       _UI_GetEvents_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetControlStream",
+			Handler:       _UI_GetControlStream_Handler,
 			ServerStreams: true,
 		},
 	},

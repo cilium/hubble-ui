@@ -1,29 +1,38 @@
 import _ from 'lodash';
-import { action, observable, computed } from 'mobx';
+import { action, computed, makeAutoObservable } from 'mobx';
 
 import { Flow } from '~/domain/flows';
 import { Verdict } from '~/domain/hubble';
 import { Filters, FilterEntry, FilterKind } from '~/domain/filtering';
 import { Status } from '~/domain/status';
+import { TransferState } from '~/domain/interactions';
 
 // This store maintains data that is configured by control interfaces
 export default class ControlStore {
-  @observable private _namespaces: Array<string> = [];
+  private _namespaces: Array<string> = [];
 
-  @observable lastStatus: Status | null = null;
-  @observable currentNamespace: string | null = null;
-  @observable selectedTableFlow: Flow | null = null;
-  @observable showCrossNamespaceActivity = true;
+  public lastStatus: Status | null = null;
+  public currentNamespace: string | null = null;
+  public selectedTableFlow: Flow | null = null;
+  public showCrossNamespaceActivity = true;
 
-  @observable verdict: Verdict | null = null;
-  @observable httpStatus: string | null = null;
-  @observable flowFilters: FilterEntry[] = [];
-  @observable showHost = false;
-  @observable showKubeDns = false;
-  @observable showRemoteNode = false;
-  @observable showPrometheusApp = false;
+  public verdict: Verdict | null = null;
+  public httpStatus: string | null = null;
+  public flowFilters: FilterEntry[] = [];
+  public showHost = false;
+  public showKubeDns = false;
+  public showRemoteNode = false;
+  public showPrometheusApp = false;
 
-  clone(deep = false): ControlStore {
+  public transferState: TransferState = new TransferState();
+
+  constructor() {
+    makeAutoObservable(this, void 0, {
+      autoBind: true,
+    });
+  }
+
+  public clone(deep = false): ControlStore {
     const store = new ControlStore();
     const nss = this.namespaces;
     const selFlow = this.selectedTableFlow;
@@ -40,8 +49,7 @@ export default class ControlStore {
     return store;
   }
 
-  @action.bound
-  reset() {
+  public reset() {
     this.currentNamespace = null;
     this.selectedTableFlow = null;
     this.verdict = null;
@@ -49,102 +57,85 @@ export default class ControlStore {
     this.flowFilters = [];
   }
 
-  @action.bound
-  setCurrentNamespace(ns: string | null) {
+  public setCurrentNamespace(ns: string | null) {
     this.currentNamespace = ns;
   }
 
-  @action.bound
-  addNamespace(ns: string) {
+  public addNamespace(ns: string) {
     const nsIdx = this._namespaces.findIndex((nss: string) => nss === ns);
     if (nsIdx !== -1) return;
 
     this._namespaces.push(ns);
   }
 
-  @action.bound
-  removeNamespace(ns: string) {
+  public removeNamespace(ns: string) {
     const nsIdx = this._namespaces.findIndex((nss: string) => nss === ns);
     if (nsIdx === -1) return;
 
     this._namespaces.splice(nsIdx, 1);
   }
 
-  @action.bound
-  selectTableFlow(flow: Flow | null) {
+  public selectTableFlow(flow: Flow | null) {
     this.selectedTableFlow = flow;
   }
 
-  @action.bound
-  setCrossNamespaceActivity(v: boolean) {
+  public setCrossNamespaceActivity(v: boolean) {
     this.showCrossNamespaceActivity = v;
   }
 
-  @action.bound
-  setVerdict(v: Verdict | null) {
+  public setVerdict(v: Verdict | null) {
     this.verdict = v;
   }
 
-  @action.bound
-  setHttpStatus(st: string | null) {
+  public setHttpStatus(st: string | null) {
     this.httpStatus = st;
   }
 
-  @action.bound
-  setFlowFilters(ffs: FilterEntry[]) {
+  public setFlowFilters(ffs: FilterEntry[]) {
     this.flowFilters = ffs;
   }
 
-  @action.bound
-  setShowHost(val: boolean): boolean {
+  public setShowHost(val: boolean): boolean {
     this.showHost = val;
 
     return val;
   }
 
-  @action.bound
-  toggleShowHost(): boolean {
+  public toggleShowHost(): boolean {
     return this.setShowHost(!this.showHost);
   }
 
-  @action.bound
-  setShowKubeDns(val: boolean): boolean {
+  public setShowKubeDns(val: boolean): boolean {
     this.showKubeDns = val;
 
     return val;
   }
 
-  @action.bound
-  toggleShowKubeDns(): boolean {
+  public toggleShowKubeDns(): boolean {
     return this.setShowKubeDns(!this.showKubeDns);
   }
 
-  @action.bound
-  setShowRemoteNode(val: boolean): boolean {
+  public setShowRemoteNode(val: boolean): boolean {
     this.showRemoteNode = val;
 
     return val;
   }
 
-  @action.bound
-  toggleShowRemoteNode(): boolean {
+  public toggleShowRemoteNode(): boolean {
     return this.setShowRemoteNode(!this.showRemoteNode);
   }
 
-  @action.bound
-  setShowPrometheusApp(val: boolean): boolean {
+  public setShowPrometheusApp(val: boolean): boolean {
     this.showPrometheusApp = val;
 
     return val;
   }
 
-  @action.bound
-  toggleShowPrometheusApp(): boolean {
+  public toggleShowPrometheusApp(): boolean {
     return this.setShowPrometheusApp(!this.showPrometheusApp);
   }
 
-  @action.bound
-  setFilters(f: Filters) {
+  public setFilters(f: Filters) {
     this.currentNamespace = f.namespace ?? null;
     this.verdict = f.verdict ?? null;
     this.httpStatus = f.httpStatus ?? null;
@@ -155,20 +146,17 @@ export default class ControlStore {
     this.showPrometheusApp = !f.skipPrometheusApp;
   }
 
-  @action.bound
-  setStatus(st: Status) {
+  public setStatus(st: Status) {
     this.lastStatus = st;
   }
 
-  @computed
-  get activeCardFilter() {
+  public get activeCardFilter() {
     return this.flowFilters.find(f => {
       return [FilterKind.Dns, FilterKind.Identity].includes(f.kind);
     });
   }
 
-  @computed
-  get namespaces() {
+  public get namespaces() {
     return this._namespaces.slice().sort((a, b) => a.localeCompare(b));
   }
 
@@ -176,13 +164,11 @@ export default class ControlStore {
     this._namespaces = namespaces;
   }
 
-  @computed
-  get correctFlowFilters() {
+  public get correctFlowFilters() {
     return this.flowFilters.filter(f => !f.isTCPFlag);
   }
 
-  @computed
-  get filters(): Filters {
+  public get filters(): Filters {
     return Filters.fromObject({
       namespace: this.currentNamespace,
       verdict: this.verdict,

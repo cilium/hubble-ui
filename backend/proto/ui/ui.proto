@@ -24,6 +24,9 @@ package ui;
 service UI {
     rpc GetEvents(GetEventsRequest) returns (stream GetEventsResponse) {}
     rpc GetStatus(GetStatusRequest) returns (GetStatusResponse) {}
+    rpc GetControlStream(GetControlStreamRequest) returns (
+        stream GetControlStreamResponse
+    );
 }
 
 // Here I didn't include "follow", "until", and "number". This request assumes follow,
@@ -161,4 +164,16 @@ enum StateChange {
     // This is needed in case the relay server knows that the service exists,
     // but it doesn't know when it got created.
     EXISTS = 4;
+}
+
+message GetControlStreamRequest {}
+message GetControlStreamResponse {
+    oneof event {
+        NamespaceStates namespaces = 1;
+        Notification notification = 2;
+    }
+
+    message NamespaceStates {
+        repeated K8sNamespaceState namespaces = 1;
+    }
 }

@@ -1,9 +1,17 @@
 import { UIClient } from '~backend/proto/ui/ui_grpc_web_pb';
+import { GetControlStreamRequest } from '~backend/proto/ui/ui_pb';
 
 import { API, CoreAPIv1, EventParams } from '~/api/general';
-import { IEventStream, EventParamsSet } from '~/api/general/event-stream';
+import {
+  EventStream as IEventStream,
+  EventParamsSet,
+} from '~/api/general/event-stream';
+import { ControlStream as IControlStream } from '~/api/general/control-stream';
 import { EventStream } from './event-stream';
+import { ControlStream } from './control-stream';
+
 import { Filters } from '~/domain/filtering';
+import { FeatureFlags } from '~/domain/features';
 
 export class APIv1 implements CoreAPIv1 {
   private client: UIClient;
@@ -16,21 +24,39 @@ export class APIv1 implements CoreAPIv1 {
     const port = process.env.API_PORT;
     const path = process.env.API_PATH ?? '';
 
-    if (process.env.NODE_ENV === 'development') {
-      this.client = new UIClient(`${schema}://${host}:${port}${path}`);
-    } else {
-      this.client = new UIClient(`${document.location.origin}${path}`);
+    let addr = `${schema}://${host}:${port}${path}`;
+    if (process.env.NODE_ENV !== 'development') {
+      addr = `${document.location.origin}${path}`;
     }
+
+    this.client = new UIClient(addr);
   }
 
   public getEventStream(params?: EventParams, filters?: Filters): IEventStream {
-    params = params ?? APIv1.defaultEventStreamParams;
-    filters = filters ?? Filters.default();
+    const streamFn = () => {
+      params = params ?? APIv1.defaultEventStreamParams;
+      filters = filters ?? Filters.default();
 
-    const request = EventStream.buildRequest(params, filters);
-    const stream = this.client.getEvents(request);
+      const req = EventStream.buildRequest(params, filters);
+      return this.client.getEvents(req);
+    };
 
-    return new EventStream(stream);
+    return new EventStream(streamFn()).withReconnecting(streamFn);
+  }
+
+  public getControlStream(): IControlStream {
+    const requestFn = () => {
+      const req = new GetControlStreamRequest();
+      return this.client.getControlStream(req);
+    };
+
+    return ControlStream.new(requestFn()).withReconnecting(requestFn);
+  }
+
+  public async getFeatureFlags(): Promise<FeatureFlags> {
+    return new Promise((resolve, reject) => {
+      resolve({});
+    });
   }
 }
 

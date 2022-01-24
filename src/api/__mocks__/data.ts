@@ -310,45 +310,41 @@ export const services: HubbleService[] = [
   },
 ];
 
-export const flows: HubbleFlow[] = range(1000).map(
-  (): HubbleFlow => {
-    return {
-      source: {
-        id: 0,
-        identity: 0,
-        labelsList: ['app=kafka'],
-        namespace: 'kube-system',
-        podName: `kafka-${Math.random() * 10}`,
+export const flows: HubbleFlow[] = range(1000).map((): HubbleFlow => {
+  return {
+    source: {
+      id: 0,
+      identity: 0,
+      labelsList: ['app=kafka'],
+      namespace: 'kube-system',
+      podName: `kafka-${Math.random() * 10}`,
+    },
+    time: {
+      seconds: Date.now() + Math.random() * 1000,
+      nanos: Date.now() + Math.random() * 1000,
+    },
+    destination: {
+      id: 1,
+      identity: 1,
+      labelsList: ['app=loader'],
+      namespace: 'kube-system',
+      podName: `loader-${Math.random() * 10}`,
+    },
+    destinationNamesList: [],
+    dropReason: 0,
+    nodeName: '',
+    reply: false,
+    sourceNamesList: [],
+    summary: '',
+    type: FlowType.L34,
+    l4: {
+      tcp: {
+        destinationPort: Math.random() <= 0.5 ? 80 : 443,
+        sourcePort: Math.random() * 5000,
       },
-      time: {
-        seconds: Date.now() + Math.random() * 1000,
-        nanos: Date.now() + Math.random() * 1000,
-      },
-      destination: {
-        id: 1,
-        identity: 1,
-        labelsList: ['app=loader'],
-        namespace: 'kube-system',
-        podName: `loader-${Math.random() * 10}`,
-      },
-      destinationNamesList: [],
-      dropReason: 0,
-      nodeName: '',
-      reply: false,
-      sourceNamesList: [],
-      summary: '',
-      type: FlowType.L34,
-      l4: {
-        tcp: {
-          destinationPort: Math.random() <= 0.5 ? 80 : 443,
-          sourcePort: Math.random() * 5000,
-        },
-      },
-      verdict: Math.random() <= 0.5 ? Verdict.Forwarded : Verdict.Dropped,
-      trafficDirection:
-        Math.random() <= 0.5
-          ? TrafficDirection.Egress
-          : TrafficDirection.Ingress,
-    };
-  },
-);
+    },
+    verdict: Math.random() <= 0.5 ? Verdict.Forwarded : Verdict.Dropped,
+    trafficDirection:
+      Math.random() <= 0.5 ? TrafficDirection.Egress : TrafficDirection.Ingress,
+  };
+});

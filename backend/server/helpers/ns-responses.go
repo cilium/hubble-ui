@@ -1,29 +1,26 @@
 package helpers
 
 import (
+	"github.com/cilium/hubble-ui/backend/internal/server/nswatcher/common"
+	"github.com/cilium/hubble-ui/backend/internal/types"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
-	"google.golang.org/protobuf/types/known/timestamppb"
-	v1 "k8s.io/api/core/v1"
+	"google.golang.org/protobuf/types/known/timestamppb" //nolint
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type NSEvent struct {
-	Event     EventKind
-	Namespace *v1.Namespace
-}
-
-func EventResponseFromNSEvent(e *NSEvent) *ui.GetEventsResponse {
+func EventResponseFromNSEvent(e *common.NSEvent) *ui.GetEventsResponse {
 	var stateChange ui.StateChange
 	var ts metaV1.Time
-	ns := e.Namespace
+	ns := e.K8sNamespace
+
 	switch e.Event {
-	case Added:
+	case types.Added:
 		ts = ns.CreationTimestamp
 		stateChange = ui.StateChange_ADDED
-	case Deleted:
+	case types.Deleted:
 		ts = *ns.DeletionTimestamp
 		stateChange = ui.StateChange_DELETED
-	case Modified, Exists, Unknown:
+	case types.Modified, types.Exists, types.Unknown:
 		ts = metaV1.Now()
 		stateChange = ui.StateChange_MODIFIED
 	}
