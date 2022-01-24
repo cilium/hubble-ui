@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react';
 import React, { ReactNode, useCallback, useEffect, useMemo } from 'react';
+import { autorun } from 'mobx';
 
 import { AbstractCard } from '~/domain/cards';
 import { Vec2, XYWH } from '~/domain/geometry';
@@ -29,7 +30,7 @@ export interface Props<C extends AbstractCard> {
 }
 
 export const MapElements = observer(function MapElements<
-  C extends AbstractCard
+  C extends AbstractCard,
 >(props: Props<C>) {
   const isCardActive = useCallback(
     (cardId: string): boolean => {

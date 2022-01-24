@@ -8,14 +8,13 @@ import { FlowsFilterInput } from './FlowsFilterInput';
 import { VerdictFilterDropdown } from './VerdictFilterDropdown';
 import { VisualFiltersDropdown } from './VisualFiltersDropdown';
 import { NamespaceSelectorDropdown } from './NamespaceSelectorDropdown';
-import { ConnectionIndicator, ConnectionState } from './ConnectionIndicator';
+import { ConnectionIndicator } from './ConnectionIndicator';
+import { DataMode, TransferState } from '~/domain/interactions';
 
 import css from './styles.scss';
 
-export { ConnectionState };
-
 export interface Props {
-  connectionState: ConnectionState;
+  transferState: TransferState;
   status?: Status;
   namespaces: Array<string>;
   currentNamespace: string | null;
@@ -78,10 +77,7 @@ export const TopBar = memo<Props>(function TopBar(props) {
         <div className={css.spacer} />
         <div className={css.spacer} />
 
-        <ConnectionIndicator
-          state={props.connectionState}
-          status={props.status}
-        />
+        <ConnectionIndicator transferState={props.transferState} />
       </div>
     </div>
   );

@@ -61,10 +61,11 @@ $idle-color: #c7c7c7;
     }
   }
 
+  @include circle-color("", $idle-color);
+  @include circle-color(".idle", $idle-color);
   @include circle-color(".receiving", $receiving-color);
   @include circle-color(".reconnecting", $reconnecting-color);
   @include circle-color(".stopped", $stopped-color);
-  @include circle-color(".idle", $idle-color);
 
   &.circleAnimated {
     .circle {

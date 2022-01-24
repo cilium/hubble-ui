@@ -55,9 +55,8 @@ export const udpError: HubbleLink = {
   verdict: Verdict.Error,
 };
 
-export const tcpForwardedDropped = Link.fromHubbleLink(
-  tcpForwarded,
-).updateWithHubbleLink(tcpDropped);
+export const tcpForwardedDropped =
+  Link.fromHubbleLink(tcpForwarded).updateWithHubbleLink(tcpDropped);
 
 export const tcpMixed = tcpForwardedDropped
   .updateWithHubbleLink(tcpUnknown)

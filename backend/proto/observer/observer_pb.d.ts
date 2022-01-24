@@ -1,9 +1,10 @@
-import * as jspb from "google-protobuf"
+import * as jspb from 'google-protobuf'
 
 import * as google_protobuf_wrappers_pb from 'google-protobuf/google/protobuf/wrappers_pb';
 import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb';
 import * as flow_flow_pb from '../flow/flow_pb';
 import * as relay_relay_pb from '../relay/relay_pb';
+
 
 export class ServerStatusRequest extends jspb.Message {
   serializeBinary(): Uint8Array;

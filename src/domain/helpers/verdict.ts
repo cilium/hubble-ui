@@ -26,3 +26,26 @@ export const verdictToPb = (v: Verdict): PBVerdict => {
 
   return verdict;
 };
+
+export const verdictFromStr = (v: string): Verdict => {
+  if (!v) return Verdict.Unknown;
+  v = v.toLowerCase();
+
+  if (v.startsWith('forward')) return Verdict.Forwarded;
+  if (v.startsWith('drop')) return Verdict.Dropped;
+
+  return Verdict.Unknown;
+};
+
+export const toString = (verdict: Verdict): string => {
+  switch (verdict) {
+    case Verdict.Forwarded:
+      return 'forwarded';
+    case Verdict.Dropped:
+      return 'dropped';
+    case Verdict.Unknown:
+      return 'unknown';
+  }
+
+  return 'unhandled';
+};

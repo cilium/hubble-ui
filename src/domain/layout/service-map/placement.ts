@@ -1,4 +1,4 @@
-import { action, computed, observable, reaction, autorun } from 'mobx';
+import { action, computed, makeObservable, observable, reaction } from 'mobx';
 import _ from 'lodash';
 
 import { XYWH, XY, dummy as geom } from '~/domain/geometry';
@@ -56,11 +56,12 @@ export class ServiceMapPlacementStrategy extends PlacementStrategy {
   @observable
   private services: ServiceStore;
 
-  constructor(ctrl: ControlStore, intx: InteractionStore, svcs: ServiceStore) {
+  constructor(frame: StoreFrame) {
     super();
-    this.controls = ctrl;
-    this.interactions = intx;
-    this.services = svcs;
+    makeObservable(this);
+    this.controls = frame.controls;
+    this.interactions = frame.interactions;
+    this.services = frame.services;
 
     reaction(
       () => this.cardsPlacement,

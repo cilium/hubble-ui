@@ -1,9 +1,10 @@
-import * as jspb from "google-protobuf"
+import * as jspb from 'google-protobuf'
 
 import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb';
 import * as flow_flow_pb from '../flow/flow_pb';
 import * as ui_notifications_pb from '../ui/notifications_pb';
 import * as ui_status_pb from '../ui/status_pb';
+
 
 export class GetEventsRequest extends jspb.Message {
   getEventTypesList(): Array<EventType>;
@@ -431,6 +432,75 @@ export namespace ServiceLinkFilter {
     destinationList: Array<ServiceFilter.AsObject>,
     destinationPortList: Array<string>,
     verdictList: Array<flow_flow_pb.Verdict>,
+  }
+}
+
+export class GetControlStreamRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetControlStreamRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetControlStreamRequest): GetControlStreamRequest.AsObject;
+  static serializeBinaryToWriter(message: GetControlStreamRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetControlStreamRequest;
+  static deserializeBinaryFromReader(message: GetControlStreamRequest, reader: jspb.BinaryReader): GetControlStreamRequest;
+}
+
+export namespace GetControlStreamRequest {
+  export type AsObject = {
+  }
+}
+
+export class GetControlStreamResponse extends jspb.Message {
+  getNamespaces(): GetControlStreamResponse.NamespaceStates | undefined;
+  setNamespaces(value?: GetControlStreamResponse.NamespaceStates): GetControlStreamResponse;
+  hasNamespaces(): boolean;
+  clearNamespaces(): GetControlStreamResponse;
+
+  getNotification(): ui_notifications_pb.Notification | undefined;
+  setNotification(value?: ui_notifications_pb.Notification): GetControlStreamResponse;
+  hasNotification(): boolean;
+  clearNotification(): GetControlStreamResponse;
+
+  getEventCase(): GetControlStreamResponse.EventCase;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetControlStreamResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetControlStreamResponse): GetControlStreamResponse.AsObject;
+  static serializeBinaryToWriter(message: GetControlStreamResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetControlStreamResponse;
+  static deserializeBinaryFromReader(message: GetControlStreamResponse, reader: jspb.BinaryReader): GetControlStreamResponse;
+}
+
+export namespace GetControlStreamResponse {
+  export type AsObject = {
+    namespaces?: GetControlStreamResponse.NamespaceStates.AsObject,
+    notification?: ui_notifications_pb.Notification.AsObject,
+  }
+
+  export class NamespaceStates extends jspb.Message {
+    getNamespacesList(): Array<K8sNamespaceState>;
+    setNamespacesList(value: Array<K8sNamespaceState>): NamespaceStates;
+    clearNamespacesList(): NamespaceStates;
+    addNamespaces(value?: K8sNamespaceState, index?: number): K8sNamespaceState;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): NamespaceStates.AsObject;
+    static toObject(includeInstance: boolean, msg: NamespaceStates): NamespaceStates.AsObject;
+    static serializeBinaryToWriter(message: NamespaceStates, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): NamespaceStates;
+    static deserializeBinaryFromReader(message: NamespaceStates, reader: jspb.BinaryReader): NamespaceStates;
+  }
+
+  export namespace NamespaceStates {
+    export type AsObject = {
+      namespacesList: Array<K8sNamespaceState.AsObject>,
+    }
+  }
+
+
+  export enum EventCase { 
+    EVENT_NOT_SET = 0,
+    NAMESPACES = 1,
+    NOTIFICATION = 2,
   }
 }
 

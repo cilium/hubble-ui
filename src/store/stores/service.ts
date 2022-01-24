@@ -1,8 +1,8 @@
 import _ from 'lodash';
-import { action, observable, computed, reaction } from 'mobx';
+import { action, observable, computed, reaction, makeObservable } from 'mobx';
 
+import { Service, ServiceCard, Link, AccessPoint } from '~/domain/service-map';
 import { HubbleLink, HubbleService } from '~/domain/hubble';
-import { ServiceCard, Link, AccessPoint } from '~/domain/service-map';
 import { StateChange } from '~/domain/misc';
 
 export default class ServiceStore {
@@ -10,6 +10,7 @@ export default class ServiceStore {
   @observable private activeCardsSet: Set<string>;
 
   constructor() {
+    makeObservable(this);
     this.cards = [];
     this.activeCardsSet = new Set();
   }

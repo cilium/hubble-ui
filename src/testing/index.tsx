@@ -4,13 +4,18 @@ import React, { FunctionComponent } from 'react';
 import { StoreProvider } from '~/store';
 import { RouteHistorySourceKind } from '~/store/stores/route';
 import { NotifierProvider } from '~/notifier';
+import { DataManagerProvider } from '~/data-manager';
 import * as data from './data';
 import * as helpers from './helpers';
+
+import api from '~/api';
 
 const AllProviders: FunctionComponent = ({ children }) => {
   return (
     <StoreProvider historySource={RouteHistorySourceKind.URL}>
-      <NotifierProvider>{children}</NotifierProvider>
+      <NotifierProvider>
+        <DataManagerProvider api={api}>{children}</DataManagerProvider>
+      </NotifierProvider>
     </StoreProvider>
   );
 };

@@ -4,9 +4,8 @@ import {
 } from '~backend/proto/ui/notifications_pb';
 import { GetStatusResponse as PBStatusResponse } from '~backend/proto/ui/status_pb';
 
-import { Notification } from '~/api/general/event-stream';
 import { Status, FlowStats, NodeStatus } from '~/domain/status';
-import { NoPermission } from '~/domain/notifications';
+import { Notification, NoPermission } from '~/domain/notifications';
 
 export const fromPb = (notif: PBNotification): Notification | null => {
   if (notif.hasConnState()) {

@@ -1,6 +1,6 @@
 import { Verdict } from '~/domain/flows';
 import { FilterEntry } from './filter-entry';
-import { diffFilters, FiltersDiff } from './filters-diff';
+import { FiltersDiff } from './filters-diff';
 
 const assignFilterProps = (to: FiltersObject, from: FiltersObject) => {
   Object.assign(to, {
@@ -63,8 +63,10 @@ export class Filters implements FiltersObject {
     return new Filters(defaultFilters);
   }
 
-  public static diff(lhs?: Filters | null, rhs?: Filters | null): FiltersDiff {
-    return diffFilters(lhs, rhs);
+  public diff(rhs?: Filters | null): FiltersDiff {
+    if (rhs == null) return FiltersDiff.fromFilters(this).invert();
+
+    return FiltersDiff.new(this, rhs);
   }
 
   constructor(obj: FiltersObject) {

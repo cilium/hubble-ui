@@ -16,9 +16,9 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/cilium/cilium/api/v1/observer"
 	cilium_backoff "github.com/cilium/cilium/pkg/backoff"
 	grpc_helpers "github.com/cilium/hubble-ui/backend/internal/grpc"
+	"github.com/cilium/hubble-ui/backend/internal/server"
 	"github.com/cilium/hubble-ui/backend/proto/ui"
 
 	"github.com/cilium/hubble-ui/backend/domain/cache"
@@ -39,11 +39,6 @@ type UIServer struct {
 
 	k8s       kubernetes.Interface
 	dataCache *cache.DataCache
-}
-
-type HubbleClient struct {
-	hubble         observer.ObserverClient
-	grpcConnection *grpc.ClientConn
 }
 
 func New(cfg *config.Config) *UIServer {
@@ -84,7 +79,7 @@ func (srv *UIServer) Run() error {
 }
 
 func (srv *UIServer) GetHubbleClientFromContext(ctx context.Context) (
-	*HubbleClient, error,
+	*server.HubbleClient, error,
 ) {
 	relayAddr := srv.cfg.RelayAddr
 	if len(relayAddr) == 0 {
@@ -108,10 +103,7 @@ func (srv *UIServer) GetHubbleClientFromContext(ctx context.Context) (
 
 	log.Infof(msg.ServerSetupRelayClientReady, relayAddr)
 
-	return &HubbleClient{
-		hubble:         observer.NewObserverClient(conn),
-		grpcConnection: conn,
-	}, nil
+	return server.NewHubbleClient(conn), nil
 }
 
 func (srv *UIServer) RetryIfGrpcUnavailable(

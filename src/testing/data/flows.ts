@@ -70,6 +70,7 @@ export const hubbleNoSourceNamespace: HubbleFlow = {
   source: {
     ...hubbleOne.source,
     labelsList: ['app=Sender'],
+    namespace: '',
   } as Endpoint,
 };
 
@@ -78,6 +79,7 @@ export const hubbleNoDstNamespace: HubbleFlow = {
   destination: {
     ...hubbleOne.destination,
     labelsList: ['app=Receiver'],
+    namespace: '',
   } as Endpoint,
 };
 
@@ -96,10 +98,12 @@ export const hubbleSameNamespace: HubbleFlow = {
   source: {
     ...hubbleOne.source,
     labelsList: ['app=Sender', 'namespace=kube-system'],
+    namespace: 'kube-system',
   } as Endpoint,
   destination: {
     ...hubbleOne.destination,
     labelsList: ['app=Receiver', 'namespace=kube-system'],
+    namespae: 'kube-system',
   } as Endpoint,
 };
 

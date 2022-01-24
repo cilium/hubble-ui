@@ -371,7 +371,7 @@ proto.observer.ObserverClient.prototype.getNodes =
  * @param {?Object<string, string>} metadata User defined
  *     call metadata
  * @return {!Promise<!proto.observer.GetNodesResponse>}
- *     A native promise that resolves to the response
+ *     Promise that resolves to the response
  */
 proto.observer.ObserverPromiseClient.prototype.getNodes =
     function(request, metadata) {
@@ -451,7 +451,7 @@ proto.observer.ObserverClient.prototype.serverStatus =
  * @param {?Object<string, string>} metadata User defined
  *     call metadata
  * @return {!Promise<!proto.observer.ServerStatusResponse>}
- *     A native promise that resolves to the response
+ *     Promise that resolves to the response
  */
 proto.observer.ObserverPromiseClient.prototype.serverStatus =
     function(request, metadata) {

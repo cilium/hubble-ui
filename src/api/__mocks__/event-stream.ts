@@ -1,16 +1,42 @@
-import { EventEmitter } from '~/utils/emitter';
-import { IEventStream, EventStreamHandlers } from '~/api/general';
+import { ClientReadableStream } from 'grpc-web';
+import { EventStream as IEventStream } from '~/api/general/event-stream';
+import { GRPCStream } from '~/api/grpc/stream';
 
-export class EventStream extends EventEmitter<EventStreamHandlers> {
+import { Filters } from '~/domain/filtering';
+
+export class EventStream extends GRPCStream<number> implements IEventStream {
+  public readonly flowsDelay = 10;
+  public readonly filters = Filters.default();
+
   constructor() {
-    super();
+    super(new ClientReadableStream());
   }
 
-  async stop() {
+  public onFlow() {
     return;
   }
 
-  public get flowsDelay(): number {
-    return 2000;
+  public onFlows() {
+    return;
+  }
+
+  public onRawFlow() {
+    return;
+  }
+
+  public onNamespaceChange() {
+    return;
+  }
+
+  public onServiceChange() {
+    return;
+  }
+
+  public onServiceLinkChange() {
+    return;
+  }
+
+  public onNotification() {
+    return;
   }
 }
