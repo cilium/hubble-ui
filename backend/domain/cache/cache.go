@@ -41,12 +41,11 @@ func (c *DataCache) UpsertService(svc *service.Service) *Flags {
 	c.Mutex.Lock()
 	defer c.Mutex.Unlock()
 
-	_, exists := c.services[svcID]
-	if !exists {
+	if _, exists := c.services[svcID]; exists {
+		flags.Exists = true
+	} else {
 		c.services[svcID] = svc
 		flags.Created = true
-	} else {
-		flags.Exists = true
 	}
 
 	return flags

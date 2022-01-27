@@ -54,8 +54,12 @@ func (srv *UIServer) RunNSWatcher() (chan *helpers.NSEvent, chan error, chan str
 	}
 
 	processFunc := func(obj interface{}) error {
-		newest := obj.(cache.Deltas).Newest()
-
+		deltas, ok := obj.(cache.Deltas)
+		if !ok {
+			// not an object that this function should handle, simply ignore
+			return nil
+		}
+		newest := deltas.Newest()
 		if newest.Type == cache.Added || newest.Type == cache.Sync {
 			addFunc(newest.Object)
 		} else if newest.Type == cache.Deleted {
