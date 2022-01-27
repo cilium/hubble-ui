@@ -164,12 +164,12 @@ func createClientset() (kubernetes.Interface, error) {
 
 func kubeconfigLocation() (string, error) {
 	value, present := os.LookupEnv("KUBECONFIG")
-	if present == true {
+	if present {
 		fileExist, err := exists(value)
 		if err != nil {
 			return "", err
 		}
-		if fileExist == true {
+		if fileExist {
 			return value, nil
 		}
 	}
