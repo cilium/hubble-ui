@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/cilium/cilium/api/v1/flow"
@@ -26,7 +27,7 @@ func New(addr string) *Client {
 }
 
 func (cl *Client) Run() {
-	conn, err := grpc.Dial(cl.addr, grpc.WithInsecure())
+	conn, err := grpc.Dial(cl.addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Errorf("failed to connect to grpc server: %v\n", err)
 		os.Exit(1)
