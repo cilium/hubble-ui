@@ -3,18 +3,18 @@ module github.com/cilium/hubble-ui/backend
 go 1.17
 
 require (
-	github.com/cilium/cilium v1.11.0
+	github.com/cilium/cilium v1.11.1
 	github.com/cilium/hubble v0.9.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/gops v0.3.22
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
 	google.golang.org/grpc v1.44.0
-	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
 	google.golang.org/protobuf v1.27.1
-	k8s.io/api v0.24.0-alpha.0
-	k8s.io/apimachinery v0.24.0-alpha.0
-	k8s.io/client-go v0.24.0-alpha.0
+	k8s.io/api v0.23.3
+	k8s.io/apimachinery v0.23.3
+	k8s.io/client-go v0.23.3
 )
 
 require (
@@ -42,7 +42,7 @@ require (
 	github.com/spf13/pflag v1.0.6-0.20200504143853-81378bbcd8a1 // indirect
 	github.com/spf13/viper v1.9.0 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
-	golang.org/x/net v0.0.0-20211208012354-db4efeb81f4b // indirect
+	golang.org/x/net v0.0.0-20211209124913-491a49abca63 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d // indirect
@@ -59,7 +59,7 @@ require (
 	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // indirect
 	k8s.io/utils v0.0.0-20211203121628-587287796c64 // indirect
 	sigs.k8s.io/json v0.0.0-20211122195132-35920ff0ca7e // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.2.0 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
