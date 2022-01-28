@@ -10,6 +10,8 @@ import {
   PodSelector,
   HTTP,
   IPProtocol,
+  Layer7,
+  FlowType,
 } from '~/domain/hubble';
 
 import {
@@ -279,6 +281,16 @@ export class Flow {
     return this.ref.l7?.http ?? null;
   }
 
+  public get l7(): Layer7 | null {
+    if (!this.hasL7Info) return null;
+
+    return this.ref.l7 ?? null;
+  }
+
+  public get hasL7Info(): boolean {
+    return this.type === FlowType.L7;
+  }
+
   public get verdict(): Verdict {
     return this.ref.verdict;
   }
@@ -383,7 +395,7 @@ export class Flow {
     return tcpFlagsHelpers.toString(this.tcpFlags);
   }
 
-  public get type() {
+  public get type(): FlowType {
     return this.ref.type;
   }
 
