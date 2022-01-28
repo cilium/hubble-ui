@@ -87,6 +87,19 @@
       &.timestamp {
         max-width: 150px;
       }
+
+      &.l7info {
+        &,
+        .http {
+          & > span:not(:last-child) {
+            margin-right: 5px;
+          }
+        }
+
+        .direction {
+          color: #6e6e6e;
+        }
+      }
     }
   }
 

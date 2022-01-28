@@ -1,5 +1,3 @@
-import { Filters } from '~/domain/filtering';
-
 export interface CommonProps {
   visibleColumns: Set<Column>;
 }
@@ -12,6 +10,7 @@ export enum Column {
   DstIp = 'Destination IP',
   DstService = 'Destination Service',
   DstPort = 'Destination Port',
+  L7Info = 'L7 info',
   Verdict = 'Verdict',
   TcpFlags = 'TCP Flags',
   Timestamp = 'Timestamp',
@@ -37,6 +36,7 @@ export const defaultVisibleColumns = new Set<Column>([
   Column.SrcService,
   Column.DstService,
   Column.DstPort,
+  Column.L7Info,
   Column.Verdict,
   Column.Timestamp,
 ]);
