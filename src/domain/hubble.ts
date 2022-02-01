@@ -79,6 +79,13 @@ export interface Layer7 {
   kafka?: Kafka;
 }
 
+export enum L7Kind {
+  DNS = 'dns',
+  HTTP = 'http',
+  Kafka = 'kafka',
+  Unknown = 'unknown',
+}
+
 export interface Kafka {
   errorCode: number;
   apiVersion: number;

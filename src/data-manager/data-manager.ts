@@ -261,11 +261,6 @@ export class DataManager extends EventEmitter<Events> {
     stream.onFlows((flows: Flow[]) => {
       const { flowsDiffCount } = frame.addFlows(flows);
 
-      flows.forEach(f => {
-        if (f.http == null) return;
-
-        console.log('flow.http: ', f.http, f);
-      });
       this.emit(EventKind.FlowsDiff, frame, flowsDiffCount);
     });
   }

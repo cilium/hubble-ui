@@ -1,60 +1,43 @@
-import { Link, AccessPoint } from '~/domain/service-map';
+import * as mobx from 'mobx';
 
-// { cardId -> { cardId -> { acessPointId : Link }  }
-export type ConnectionsMap = Map<string, Map<string, Map<string, Link>>>;
+import { Link } from '~/domain/service-map';
+import { Connections } from '~/domain/interactions/new-connections';
+import { ServiceEndpoint } from '~/domain/interactions/endpoints';
 
-export class Connections {
-  public readonly outgoings: ConnectionsMap;
-  public readonly incomings: ConnectionsMap;
+export class LinkConnections {
+  public readonly outgoings: Connections<Link>;
+  public readonly incomings: Connections<Link>;
 
-  public static build(links: Link[]): Connections {
-    // Connections only gives information about what services are connected
-    // and by which access point (apId), it doesnt provide geometry information
-    //
-    // outgoings: { senderId -> { receiverId -> Connection } }
-    //                   apIds sets are equal --> ||
-    // incomings: { receiverId -> { senderId -> Connection } }
-
-    const outgoings: ConnectionsMap = new Map();
-    const incomings: ConnectionsMap = new Map();
+  // Connections only gives information about what services are connected
+  // and by which access point (apId), it doesnt provide geometry information
+  //
+  // outgoings: { senderId -> { receiverId -> Connection } }
+  //                   apIds sets are equal --> ||
+  // incomings: { receiverId -> { senderId -> Connection } }
+  public static buildFromLinks(links: Link[]): LinkConnections {
+    const outgoings = new Connections<Link>();
 
     links.forEach((link: Link) => {
-      const senderId = link.sourceId;
-      const receiverId = link.destinationId;
-      const accessPointId = AccessPoint.generateId(
+      const {
+        sourceId: senderId,
+        destinationId: receiverId,
+        destinationPort,
+      } = link;
+
+      const accessPointId = ServiceEndpoint.generateId(
         receiverId,
-        link.destinationPort,
+        destinationPort,
       );
-
-      // Outgoing connection setup
-      if (!outgoings.has(senderId)) {
-        outgoings.set(senderId, new Map());
-      }
-
-      const sentTo = outgoings.get(senderId)!;
-      if (!sentTo.has(receiverId)) {
-        sentTo.set(receiverId, new Map());
-      }
-
-      const connectionProps: Map<string, Link> = sentTo.get(receiverId)!;
-      connectionProps.set(accessPointId, link);
-
-      // Incoming connection setup
-      if (!incomings.has(receiverId)) {
-        incomings.set(receiverId, new Map());
-      }
-
-      const receivedFrom = incomings.get(receiverId)!;
-      if (!receivedFrom.has(senderId)) {
-        receivedFrom.set(senderId, connectionProps);
-      }
+      outgoings.upsert(senderId, receiverId, accessPointId, link);
     });
 
-    return new Connections(incomings, outgoings);
+    return new LinkConnections(outgoings);
   }
 
-  private constructor(incomings: ConnectionsMap, outgoings: ConnectionsMap) {
-    this.incomings = incomings;
+  public constructor(outgoings: Connections<Link>) {
     this.outgoings = outgoings;
+    this.incomings = outgoings.getInversed();
+
+    mobx.makeAutoObservable(this);
   }
 }

@@ -94,6 +94,10 @@
           & > span:not(:last-child) {
             margin-right: 5px;
           }
+
+          .method {
+            color: #6e6e6e;
+          }
         }
 
         .direction {

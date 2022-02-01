@@ -6,6 +6,7 @@ import {
   reaction,
   autorun,
   makeObservable,
+  toJS,
 } from 'mobx';
 
 import { Flow } from '~/domain/flows';
@@ -388,6 +389,7 @@ export class Store {
       printLayoutData: () => {
         this.printLayoutData();
       },
+      mobxToJs: (obj: any) => toJS(obj),
     });
   }
 

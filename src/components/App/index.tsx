@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { RouteComponentProps } from '@reach/router';
 import { observer } from 'mobx-react';
+import * as mobx from 'mobx';
 
 import { TopBar } from '~/components/TopBar';
 import {
@@ -24,9 +25,10 @@ import { WelcomeScreen } from './WelcomeScreen';
 
 import { Verdict, TCPFlagName, PodSelector } from '~/domain/hubble';
 import { ServiceCard } from '~/domain/service-map';
-import { Vec2 } from '~/domain/geometry';
+import { Vec2, XY } from '~/domain/geometry';
 import { KV, Labels } from '~/domain/labels';
 import { FilterEntry, FilterDirection } from '~/domain/filtering';
+import { Method as HttpMethod } from '~/domain/http';
 
 import { useStore } from '~/store';
 import { API } from '~/api/general';
@@ -184,33 +186,38 @@ export const App = observer((_props: AppProps) => {
     [store.placement],
   );
 
-  const cardRenderer = useCallback(
-    (props: CardComponentProps<ServiceCard>) => {
-      const onHeightChange = (h: number) => {
-        return store.placement.setCardHeight(props.card.id, h);
-      };
-
-      return (
-        <ServiceMapCard
-          key={props.card.id}
-          active={isCardActive(props.card.id)}
-          coords={props.coords}
-          currentNamespace={store.controls.currentNamespace}
-          card={props.card}
-          onHeightChange={onHeightChange}
-          onClick={onCardSelect}
-          onAccessPointCoords={onAccessPointCoords}
-        />
-      );
+  const onHttpEndpointCoords = useCallback(
+    (svcId: string, urlPath: string, method: HttpMethod, coords: XY) => {
+      store.placement.setHttpEndpointCoords(svcId, urlPath, method, coords);
     },
-    [
-      store.placement,
-      store.placement.cardsBBoxes,
-      store.controls.currentNamespace,
-      onAccessPointCoords,
-      isCardActive,
-    ],
+    [store.placement],
   );
+
+  const cardRenderer = mobx.action((props: CardComponentProps<ServiceCard>) => {
+    const onHeightChange = (h: number) => {
+      return store.placement.setCardHeight(props.card.id, h);
+    };
+
+    const l7endpoints = store.currentFrame.interactions.l7endpoints;
+
+    return (
+      <ServiceMapCard
+        key={props.card.id}
+        active={isCardActive(props.card.id)}
+        coords={props.coords}
+        currentNamespace={store.controls.currentNamespace}
+        card={props.card}
+        l7endpoints={l7endpoints.forReceiver(props.card.id)}
+        maxHttpEndpointsVisible={5}
+        onHeightChange={onHeightChange}
+        onClick={onCardSelect}
+        onAccessPointCoords={onAccessPointCoords}
+        onHttpEndpointCoords={(urlPath, method, xy) =>
+          onHttpEndpointCoords(props.card.id, urlPath, method, xy)
+        }
+      />
+    );
+  });
 
   const mapLoaded =
     store.currentFrame.services.cardsList.length > 0 &&

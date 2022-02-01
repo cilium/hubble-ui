@@ -1,7 +1,5 @@
 import _ from 'lodash';
 
-import urlParse from 'url-parse';
-
 import {
   HubbleFlow,
   Verdict,
@@ -12,13 +10,14 @@ import {
   IPProtocol,
   Layer7,
   FlowType,
+  L7FlowType,
 } from '~/domain/hubble';
 
 import {
   CiliumEventSubTypesCodes,
   CiliumDropReasonCodes,
 } from '~/domain/cilium';
-
+import { WrappedLayer7 } from '~/domain/layer7';
 import { Labels, LabelsProps } from '~/domain/labels';
 import { memoize } from '~/utils/memoize';
 
@@ -26,6 +25,7 @@ import * as tcpFlagsHelpers from '~/domain/helpers/tcp-flags';
 import * as verdictHelpers from '~/domain/helpers/verdict';
 import * as timeHelpers from '~/domain/helpers/time';
 import * as protocolHelpers from '~/domain/helpers/protocol';
+import * as l7helpers from '~/domain/helpers/l7';
 
 export { HubbleFlow, Verdict, TCPFlags };
 
@@ -170,6 +170,33 @@ export class Flow {
     return this.ref.destination?.identity ?? null;
   }
 
+  // NOTE: this function is just a copy of backend's `getServiceID` function
+  @memoize
+  public get destinationServiceId(): string {
+    if (!this.destinationLabelProps.isWorld) {
+      return `${this.ref.destination?.identity}`;
+    }
+
+    if (this.destinationDns != null) {
+      return `${this.destinationDns}-receiver`;
+    }
+
+    return `world-receiver`;
+  }
+
+  @memoize
+  public get sourceServiceId(): string {
+    if (!this.sourceLabelProps.isWorld) {
+      return `${this.ref.source?.identity}`;
+    }
+
+    if (this.sourceDns != null) {
+      return `${this.sourceDns}-sender`;
+    }
+
+    return `world-sender`;
+  }
+
   @memoize
   public get sourceNamespace(): string | null {
     const sourceNs = this.ref.source?.namespace;
@@ -241,10 +268,8 @@ export class Flow {
 
     if (this.ref.l7?.dns != null) return 53;
     if (this.ref.l7?.http != null) {
-      const parsedUrl = urlParse(this.ref.l7.http.url);
-      if (parsedUrl != null && !!parsedUrl.port) {
-        return parseInt(parsedUrl.port);
-      }
+      const port = this.l7Wrapped?.http?.parsedUrl?.port;
+      if (port != null) return parseInt(port);
     }
 
     return null;
@@ -285,6 +310,32 @@ export class Flow {
     if (!this.hasL7Info) return null;
 
     return this.ref.l7 ?? null;
+  }
+
+  @memoize
+  public get l7Wrapped(): WrappedLayer7 | null {
+    if (!this.hasL7Info || this.ref.l7 == null) return null;
+
+    return new WrappedLayer7(this.ref.l7);
+  }
+
+  public get isL7Request(): boolean {
+    return this.l7?.type === L7FlowType.Request;
+  }
+
+  public get l7Fingerprint(): string | null {
+    const l7 = this.l7;
+    if (l7 == null) return null;
+
+    const direction =
+      this.l7?.type === L7FlowType.Request
+        ? '->'
+        : this.l7?.type === L7FlowType.Response
+        ? '<-'
+        : '??';
+
+    // TODO: check if this is a correct fingerprints for all but http
+    return `${direction} ${l7helpers.getEndpointId(l7)}`;
   }
 
   public get hasL7Info(): boolean {
@@ -329,6 +380,14 @@ export class Flow {
     }
 
     return this.ref.destinationNamesList[0];
+  }
+
+  public get sourceDns(): string | null {
+    if (this.ref.sourceNamesList.length === 0) {
+      return null;
+    }
+
+    return this.ref.sourceNamesList[0];
   }
 
   public get millisecondsTimestamp() {

@@ -100,3 +100,15 @@ export const numberSep = (x: number | string, sep = ' '): string => {
 
   return parts.join('.');
 };
+
+export const getIpWeight = (ip?: string | null): number => {
+  if (!ip) return 0;
+
+  // NOTE: this just converts IP octets to weighted sum
+  return ip.split('.').reduce((acc, octet, idx) => {
+    const octetNum = parseInt(octet);
+    if (Number.isNaN(octetNum)) return acc;
+
+    return acc + (octetNum << (8 * (3 - idx)));
+  }, 0);
+};

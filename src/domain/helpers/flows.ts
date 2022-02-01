@@ -215,7 +215,6 @@ export const l7FromObj = (l7: any): Layer7 | null => {
 
 export const l7httpFromObj = (obj: any): HTTP | null => {
   if (obj == null) return null;
-  console.log('http obj: ', obj);
 
   return {
     code: obj.code,

@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { action, computed, makeAutoObservable } from 'mobx';
+import { makeAutoObservable } from 'mobx';
 
 import { Flow } from '~/domain/flows';
 import { Verdict } from '~/domain/hubble';
