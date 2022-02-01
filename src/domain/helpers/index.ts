@@ -34,6 +34,9 @@ export { tcpFlags };
 import * as protocol from './protocol';
 export { protocol };
 
+import * as l7 from './l7';
+export { l7 };
+
 export * as time from './time';
 
 export const stateChangeFromPb = (change: PBStateChange): StateChange => {

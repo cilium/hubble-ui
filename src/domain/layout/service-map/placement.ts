@@ -1,6 +1,7 @@
 import { action, computed, makeObservable, observable, reaction } from 'mobx';
 import _ from 'lodash';
 
+import { Method as HttpMethod } from '~/domain/http';
 import { XYWH, XY, dummy as geom } from '~/domain/geometry';
 import { StoreFrame } from '~/store/frame';
 
@@ -56,17 +57,41 @@ export class ServiceMapPlacementStrategy extends PlacementStrategy {
   @observable
   private services: ServiceStore;
 
+  // NOTE: { receiverId -> { urlPath -> { HttpMethod -> XY }}}
+  @observable
+  protected _httpEndpointCoords: Map<string, Map<string, Map<HttpMethod, XY>>>;
+
   constructor(frame: StoreFrame) {
     super();
     makeObservable(this);
     this.controls = frame.controls;
     this.interactions = frame.interactions;
     this.services = frame.services;
+    this._httpEndpointCoords = new Map();
 
     reaction(
       () => this.cardsPlacement,
       () => this.releasePlacement(),
     );
+  }
+
+  @action
+  public setHttpEndpointCoords(
+    svcId: string,
+    urlPath: string,
+    method: HttpMethod,
+    coords: XY,
+  ) {
+    if (!this._httpEndpointCoords.has(svcId)) {
+      this._httpEndpointCoords.set(svcId, new Map());
+    }
+
+    const svcUrlPaths = this._httpEndpointCoords.get(svcId)!;
+    if (!svcUrlPaths.has(urlPath)) {
+      svcUrlPaths.set(urlPath, new Map());
+    }
+
+    svcUrlPaths.get(urlPath)?.set(method, coords);
   }
 
   @computed
@@ -98,6 +123,11 @@ export class ServiceMapPlacementStrategy extends PlacementStrategy {
 
       return one || two;
     });
+  }
+
+  @computed
+  public get httpEndpointCoords() {
+    return new Map(this._httpEndpointCoords);
   }
 
   @action.bound

@@ -6,7 +6,7 @@ import {
 } from './filter-entry';
 
 import { Link, ServiceCard } from '~/domain/service-map';
-import { Connections } from '~/domain/interactions/connections';
+import { LinkConnections } from '~/domain/interactions/connections';
 import { Filters, FiltersObject, FiltersKey } from './filters';
 
 import { filterFlow, filterFlowByEntry } from './filter-flow';
@@ -35,7 +35,7 @@ export const filter = (
   filters: Filters,
   flows: Flow[],
   cardsMap: Map<string, ServiceCard>,
-  connections: Connections,
+  connections: LinkConnections,
 ): FilterResult => {
   const filteredFlows: Flow[] = [];
   const filteredLinks: Link[] = [];

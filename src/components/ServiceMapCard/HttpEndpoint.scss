@@ -1,0 +1,64 @@
+@import "~/styles/common/layout.scss";
+
+$border-color: #dedede;
+$header-background: #f7f7f7;
+$border-radius: 4px;
+$border-width: 2px;
+$padding-left: 10px;
+
+$circle-inner: #d6c1ff;
+$circle-outer: #a778ff;
+$circle-diameter: 15px;
+$circle-width: 4px;
+
+.httpEndpoint {
+  @include column();
+
+  border-radius: $border-radius;
+  border: $border-width solid $border-color;
+
+  font-size: 20px;
+
+  & + & {
+    margin-top: 10px;
+  }
+
+  .header {
+    padding: 5px $padding-left;
+
+    border-bottom: $border-width solid $border-color;
+    background: $header-background;
+
+    font-weight: 600;
+    font-family: "Inter", "Roboto Mono", monospace;
+  }
+
+  .connectors {
+    @include column();
+    padding: 5px $padding-left;
+
+    .connector {
+      @include row(flex-start, center);
+
+      .circle {
+        @include exact-size($circle-diameter, $circle-diameter);
+
+        border-radius: 50%;
+        border: $circle-width solid $circle-outer;
+        background: $circle-inner;
+      }
+
+      .method {
+        margin-left: 10px;
+        color: $circle-outer;
+
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+    }
+
+    .connector:not(:last-child) {
+      margin-bottom: 0;
+    }
+  }
+}

@@ -37,6 +37,17 @@
 
   border: 1px solid #d4d4d4;
   border-radius: 10px;
+
+  .l7groups {
+    margin-top: 7px;
+  }
+
+  .endpointsLimited {
+    padding-left: 10px;
+    margin-top: 5px;
+
+    color: #929a9f;
+  }
 }
 
 .accessPoints + .labels {

@@ -2,14 +2,16 @@ import _ from 'lodash';
 import { action, observable, computed } from 'mobx';
 
 import { AbstractCard } from '~/domain/cards';
-import { HubbleService } from '~/domain/hubble';
+import { HubbleService, L7Kind } from '~/domain/hubble';
 import { Link } from '~/domain/link';
 import { Labels, LabelsProps, ReservedLabel } from '~/domain/labels';
 import { FilterEntry, FilterKind, FilterDirection } from '~/domain/filtering';
+import { L7Endpoint, ServiceEndpoint } from '~/domain/interactions/endpoints';
+import { Connections } from '~/domain/interactions/new-connections';
 import { KV } from '~/domain/misc';
 
+import { MapUtils } from '~/utils/iter-tools/map';
 import { ApplicationKind } from './types';
-import { AccessPoint } from './access-point';
 
 // This entity maintains ONLY THE DATA of service card
 export class ServiceCard extends AbstractCard {
@@ -20,7 +22,7 @@ export class ServiceCard extends AbstractCard {
   }
 
   @observable
-  private _accessPoints: Map<string, AccessPoint>;
+  private _accessPoints: Map<string, ServiceEndpoint>;
   private _labelsProps: LabelsProps | null;
 
   public service: HubbleService;
@@ -34,7 +36,7 @@ export class ServiceCard extends AbstractCard {
   }
 
   @action.bound
-  public addAccessPoint(ap: AccessPoint) {
+  public addAccessPoint(ap: ServiceEndpoint) {
     if (this._accessPoints.get(ap.id) != null) return;
 
     this._accessPoints.set(ap.id, ap);
@@ -42,8 +44,19 @@ export class ServiceCard extends AbstractCard {
 
   @action.bound
   public addAccessPointFromLink(link: Link) {
-    const ap = AccessPoint.fromLink(link.hubbleLink);
+    const ap = ServiceEndpoint.fromLink(link.hubbleLink);
     return this.addAccessPoint(ap);
+  }
+
+  @action.bound
+  public updateAccessPointsL7(l7endpoints: Connections<L7Endpoint>) {
+    l7endpoints.forEach((kinds, port) => {
+      const apId = ServiceEndpoint.generateId(this.service.id, port);
+
+      MapUtils.new(kinds.ref as Map<L7Kind, any>).mapKeys(l7kind => {
+        this._accessPoints.get(apId)?.accumulateL7Protocol(l7kind);
+      });
+    });
   }
 
   @action.bound
@@ -83,7 +96,7 @@ export class ServiceCard extends AbstractCard {
   }
 
   @computed
-  public get accessPoints(): Map<string, AccessPoint> {
+  public get accessPoints(): Map<string, ServiceEndpoint> {
     return new Map(this._accessPoints);
   }
 

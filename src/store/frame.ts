@@ -88,9 +88,24 @@ export class StoreFrame extends EventEmitter<Events> {
 
   @action.bound
   addFlows(flows: Flow[]) {
-    this.emit(EventKind.FlowsAdded, flows);
+    const addedStats = this.interactions.addFlows(flows);
 
-    return this.interactions.addFlows(flows);
+    // NOTE: addFlows could add l7 interactions, so we need to update
+    // NOTE: ServiceCard accessPoints
+    this.updateServiceEndpoints();
+
+    this.emit(EventKind.FlowsAdded, flows);
+    return addedStats;
+  }
+
+  @action.bound
+  updateServiceEndpoints() {
+    this.interactions.l7endpoints.forEach((ports, serviceId) => {
+      const card = this.services.cardsMap.get(serviceId);
+      if (card == null) return;
+
+      card.updateAccessPointsL7(ports);
+    });
   }
 
   @action.bound

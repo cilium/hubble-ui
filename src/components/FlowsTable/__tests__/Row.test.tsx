@@ -52,7 +52,7 @@ const runAppearanceTests = (
   const sourceTitle = row.querySelector('.cell:nth-child(3)')!;
   const destTitle = row.querySelector('.cell:nth-child(6)')!;
   const destPort = row.querySelector('.cell:nth-child(7)')!;
-  const verdictLabel = row.querySelector('.cell:nth-child(8)')!;
+  const verdictLabel = row.querySelector('.cell:nth-child(9)')!;
 
   expect(sourceTitle.textContent!.trim()).toBe(exps.sourceTitle);
   expect(destTitle.textContent!.trim()).toBe(exps.destTitle);
@@ -70,7 +70,7 @@ const runTemporalTests = (row: HTMLElement, flow: Flow) => {
   jest.clearAllTimers();
   const flowTime = new Date(flow.millisecondsTimestamp || Date.now());
 
-  const tsLabel = row.querySelector('.cell:nth-child(10)')!;
+  const tsLabel = row.querySelector('.cell:nth-child(11)')!;
 
   // Just checks that tsLabel contains smth
   jest.advanceTimersByTime(0);

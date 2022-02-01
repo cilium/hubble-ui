@@ -1,13 +1,16 @@
 import _ from 'lodash';
-import { action, observable, computed, makeAutoObservable } from 'mobx';
+import { makeAutoObservable } from 'mobx';
 
 import { Flow, HubbleFlow } from '~/domain/flows';
-import { Link, ServiceCard, AccessPoint } from '~/domain/service-map';
-import { ids } from '~/domain/ids';
+import { Link } from '~/domain/service-map';
 import { HubbleLink } from '~/domain/hubble';
 import { StateChange } from '~/domain/misc';
 import { flowFromRelay } from '~/domain/helpers';
-import { Connections } from '~/domain/interactions/connections';
+import { LinkConnections } from '~/domain/interactions/connections';
+import {
+  GroupedPartialConnections,
+  L7Endpoint,
+} from '~/domain/interactions/new-connections';
 
 export interface CopyResult {
   newFlows: number;
@@ -22,22 +25,26 @@ export interface SetOptions {
 export default class InteractionStore {
   public static readonly FLOWS_MAX_COUNT = 100000;
 
-  @observable private _flows: Array<Flow>;
-  @observable private _links: Array<Link>;
+  private _flows: Array<Flow>;
+  private _links: Array<Link>;
+
+  // NOTE: { serviceId -> { port -> { l7kind -> { epId -> L7Endpoint }}}}
+  public l7endpoints: GroupedPartialConnections<L7Endpoint>;
 
   constructor() {
     this._flows = [];
     this._links = [];
+    this.l7endpoints = new GroupedPartialConnections();
 
-    makeAutoObservable(this);
+    makeAutoObservable(this, void 0, {
+      autoBind: true,
+    });
   }
 
-  @computed
   get flows() {
     return this._flows.slice();
   }
 
-  @computed
   get links() {
     return this._links.slice();
   }
@@ -52,39 +59,32 @@ export default class InteractionStore {
     return store;
   }
 
-  @action.bound
   clear() {
     this.clearFlows();
     this.clearLinks();
   }
 
-  @action.bound
   clearFlows() {
     this._flows = [];
   }
 
-  @action.bound
   clearLinks() {
     this._links = [];
   }
 
-  @action.bound
   addHubbleLinks(hubbleLinks: HubbleLink[]) {
     hubbleLinks.forEach(this.addLink);
   }
 
-  @action.bound
   setLinks(links: Link[]) {
     this._links = links;
   }
 
-  @action.bound
   setHubbleFlows(hubbleFlows: HubbleFlow[], opts?: SetOptions) {
     const flows = hubbleFlows.map(flowFromRelay);
     return this.setFlows(flows, opts);
   }
 
-  @action.bound
   setFlows(flows: Flow[], opts?: SetOptions) {
     if (!opts?.sort) {
       this._flows = flows;
@@ -96,7 +96,6 @@ export default class InteractionStore {
     });
   }
 
-  @action.bound
   public addFlows(flows: Flow[]) {
     this._flows = _(flows)
       .concat(this._flows)
@@ -105,20 +104,20 @@ export default class InteractionStore {
       .slice(0, InteractionStore.FLOWS_MAX_COUNT)
       .value();
 
+    this.extractL7Info(flows);
+
     return {
       flowsTotalCount: this._flows.length,
       flowsDiffCount: flows.length,
     };
   }
 
-  @action.bound
   public addLinks(links: Link[]) {
     links.forEach(link => {
       this.addLink(link.hubbleLink);
     });
   }
 
-  @action.bound
   applyLinkChange(hubbleLink: HubbleLink, change: StateChange) {
     switch (change) {
       case StateChange.Deleted: {
@@ -133,7 +132,6 @@ export default class InteractionStore {
     }
   }
 
-  @action.bound
   moveTo(rhs: InteractionStore): CopyResult {
     const wasNFlows = rhs._flows.length;
     const { flowsTotalCount } = rhs.addFlows(this._flows);
@@ -150,8 +148,7 @@ export default class InteractionStore {
     };
   }
 
-  @action.bound
-  addNewLink(link: Link): boolean {
+  public addNewLink(link: Link): boolean {
     const existing = this.linksMap.get(link.id);
     if (existing != null) return false;
 
@@ -159,14 +156,28 @@ export default class InteractionStore {
     return true;
   }
 
-  @action.bound
+  public extractL7Info(flows: Flow[]) {
+    flows.forEach(flow => {
+      if (flow.l7Wrapped == null || flow.destinationPort == null) return;
+
+      const ep = new L7Endpoint(flow.l7Wrapped);
+
+      this.l7endpoints.upsert(
+        flow.destinationServiceId,
+        `${flow.destinationPort}`,
+        flow.l7Wrapped.kind,
+        ep.id,
+        ep,
+      );
+    });
+  }
+
   private addLink(hubbleLink: HubbleLink) {
     if (this.linksMap.has(hubbleLink.id)) return this.updateLink(hubbleLink);
 
     this._links.push(Link.fromHubbleLink(hubbleLink));
   }
 
-  @action.bound
   private deleteLink(hubbleLink: HubbleLink) {
     if (!this.linksMap.has(hubbleLink.id)) return;
 
@@ -182,7 +193,6 @@ export default class InteractionStore {
     this._links.splice(idx, 1);
   }
 
-  @action.bound
   private updateLink(hubbleLink: HubbleLink) {
     if (!this.linksMap.has(hubbleLink.id)) return;
 
@@ -195,18 +205,17 @@ export default class InteractionStore {
     this._links.splice(idx, 1, updatedLink);
   }
 
-  @computed
-  get connections(): Connections {
-    return Connections.build(this._links);
+  get connections(): LinkConnections {
+    return LinkConnections.buildFromLinks(this._links);
   }
 
-  @computed get all() {
+  get all() {
     return {
       links: this._links,
     };
   }
 
-  @computed get linksMap(): Map<string, Link> {
+  get linksMap(): Map<string, Link> {
     const index = new Map();
 
     this._links.forEach((l: Link) => {

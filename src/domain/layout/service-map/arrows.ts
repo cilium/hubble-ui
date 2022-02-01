@@ -76,6 +76,9 @@ export class ServiceMapArrowStrategy extends ArrowStrategy {
   @computed
   public get arrowsMap(): ArrowsMap {
     const arrows: ArrowsMap = new Map();
+
+    // NOTE: we keep track of how many connectors a receiver has to properly
+    // NOTE: compute vertical coordinate of next connector
     const cardConnectors: Map<string, Set<string>> = new Map();
     const allConnectorsCoords: Map<string, Vec2> = new Map();
     const connectorEndings: Map<string, Map<string, InnerEnding>> = new Map();
@@ -93,11 +96,13 @@ export class ServiceMapArrowStrategy extends ArrowStrategy {
         const midPoint = this.connectorMidPoints.get(receiverId);
         if (midPoint == null) return;
 
+        // NOTE: we always start from the same point on top right of the card
         const arrowStart = Vec2.from(
           senderBBox.x + senderBBox.w,
           senderBBox.y + sizes.arrowStartTopOffset,
         );
 
+        // NOTE: start arrow has vertical plate at the beginning
         const start: ArrowEnding = {
           endingId: senderId,
           figure: EndingFigure.Plate,
@@ -120,6 +125,9 @@ export class ServiceMapArrowStrategy extends ArrowStrategy {
           cardConnectors.set(receiverId, connectors);
           connectorCoords = midPoint.clone();
 
+          // NOTE: Here we just push a connector closer to bottom, but later
+          // NOTE: we will subtract a half of entire connectors height
+          // NOTE: to make all connectors centered.
           connectorCoords.x = receiverBBox.x - sizes.connectorCardGap;
           connectorCoords.y += connectorIdx * connectorGap;
 
@@ -130,12 +138,16 @@ export class ServiceMapArrowStrategy extends ArrowStrategy {
           connectorEndings.set(connectorId, new Map());
         }
         const innerEndings = connectorEndings.get(connectorId)!;
+        const receiverHttpEndpoints =
+          this.placement.httpEndpointCoords.get(receiverId);
 
         // NOTE: this logic leads to ambiguity: multiple cards can have same
         // NOTE: connector, but its impossible to make a reverse mapping
         // NOTE: from (sender -> access point)
 
-        receiverAccessPoints.forEach((ap, apId) => {
+        // NOTE: Here we are gonna to make inner endings, i e small arrows
+        // NOTE: from card outer connector to endpoint connectors (e g ports)
+        receiverAccessPoints.forEach((_, apId) => {
           const coords = this.placement.accessPointCoords.get(apId);
           if (coords == null) return;
 
@@ -153,12 +165,29 @@ export class ServiceMapArrowStrategy extends ArrowStrategy {
               colors: endingColors,
               coords: Vec2.fromXY(coords),
             });
-
-            return;
+          } else {
+            endingColors.forEach(color => {
+              apEndings.colors.add(color);
+            });
           }
 
-          endingColors.forEach(color => {
-            apEndings.colors.add(color);
+          // NOTE: HTTP endpoints processing
+          if (
+            receiverHttpEndpoints == null ||
+            !this.services.activeCards.has(receiverId)
+          )
+            return;
+
+          receiverHttpEndpoints.forEach((methods, urlPath) => {
+            methods.forEach((xy, method) => {
+              const innerEndingId = `${connectorId} -> ${urlPath}`;
+
+              innerEndings.set(innerEndingId, {
+                endingId: innerEndingId,
+                colors: endingColors,
+                coords: Vec2.fromXY(xy),
+              });
+            });
           });
         });
 
@@ -190,6 +219,7 @@ export class ServiceMapArrowStrategy extends ArrowStrategy {
           return;
         }
 
+        // NOTE: Here is where we are centering entire connectors column
         const gutHeight = (connectorIds.size - 1) * connectorGap;
         connectorCoords.y -= gutHeight / 2;
       });
@@ -239,6 +269,7 @@ export class ServiceMapArrowStrategy extends ArrowStrategy {
     this.services.cardsList.forEach(card => {
       if (card.accessPoints.size === 0) return;
       const position = Vec2.zero();
+      let nPoints = card.accessPoints.size;
 
       card.accessPoints.forEach(accessPoint => {
         const coords = this.placement.accessPointCoords.get(accessPoint.id);
@@ -247,7 +278,18 @@ export class ServiceMapArrowStrategy extends ArrowStrategy {
         position.addInPlace(coords);
       });
 
-      index.set(card.id, position.mul(1 / card.accessPoints.size));
+      const httpEndpoints = this.placement.httpEndpointCoords.get(card.id);
+      if (httpEndpoints != null && this.services.activeCards.has(card.id)) {
+        httpEndpoints.forEach(methods => {
+          methods.forEach(coords => {
+            position.addInPlace(coords);
+          });
+
+          nPoints += methods.size;
+        });
+      }
+
+      index.set(card.id, position.mul(1 / nPoints));
     });
 
     return index;

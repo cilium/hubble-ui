@@ -1,5 +1,7 @@
 import { HubbleLink, Verdict, IPProtocol } from '~/domain/hubble';
 
+// NOTE: Link is restricted to only have information about which two services
+// NOTE: is connected
 export class Link {
   private ref: HubbleLink;
   public verdicts: Set<Verdict>;
