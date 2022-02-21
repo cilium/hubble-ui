@@ -50,7 +50,7 @@
     "react-virtualized-auto-sizer": "1.0.6",
     "react-window": "1.8.6",
     "route-parser": "0.0.5",
-    "url-parse": "^1.5.4"
+    "url-parse": "^1.5.9"
   },
   "devDependencies": {
     "@babel/core": "7.16.0",
