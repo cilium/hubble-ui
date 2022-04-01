@@ -1,4 +1,4 @@
-import { arrowTriangle } from '~/components/ArrowsRenderer';
+import { svg } from '~/components/ServiceMapArrowRenderer/helpers';
 import { Vec2 } from '~/domain/geometry';
 
 interface ArcProps {
@@ -22,7 +22,8 @@ const testArc = (testName: string, s: P, e: P, expectations: Exps) => {
   const start = Vec2.from(s[0], s[1]);
   const end = Vec2.from(e[0], e[1]);
 
-  const lines = arrowTriangle([start, end])
+  const lines = svg
+    .arrowHandlePath([start, end])
     .split('\n')
     .map(l => l.trim())
     .filter(l => l.length > 0);

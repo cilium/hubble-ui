@@ -1,41 +1,26 @@
-import {
-  action,
-  computed,
-  observable,
-  reaction,
-  trace,
-  makeObservable,
-} from 'mobx';
+import { action, computed, observable, reaction, makeObservable } from 'mobx';
 
 import { StoreFrame } from '~/store/frame';
 
 import { sizes } from '~/ui/vars';
 import { Vec2 } from '~/domain/geometry';
-import { PlacementStrategy, ArrowStrategy } from '~/domain/layout/abstract';
-import {
-  ArrowsMap,
-  ArrowEnding,
-  ArrowColor,
-  ArrowPath,
-  InnerEnding,
-  EndingFigure,
-} from '~/domain/layout/abstract/arrows';
-
-import { Verdict } from '~/domain/hubble';
+import { ArrowStrategy } from '~/domain/layout/abstract';
 import { ServiceMapPlacementStrategy } from '~/domain/layout/service-map/placement';
 
-import ControlStore from '~/store/stores/controls';
 import InteractionStore from '~/store/stores/interaction';
 import ServiceStore from '~/store/stores/service';
 
-import { ids } from '~/domain/ids';
+import { ServiceMapArrow } from './arrow';
+import {
+  ConnectorCoordsAccumulator,
+  createCardOffsetAdvancers,
+} from './helpers';
 
+// NOTE: This strategry determines coords of arrows that are to be rendered on
+// NOTE: ServiceMap
 export class ServiceMapArrowStrategy extends ArrowStrategy {
   @observable
   private placement: ServiceMapPlacementStrategy;
-
-  @observable
-  private controls: ControlStore;
 
   @observable
   private interactions: InteractionStore;
@@ -46,14 +31,14 @@ export class ServiceMapArrowStrategy extends ArrowStrategy {
   constructor(frame: StoreFrame, placement: ServiceMapPlacementStrategy) {
     super();
     makeObservable(this);
-    this.controls = frame.controls;
+
     this.interactions = frame.interactions;
     this.services = frame.services;
     this.placement = placement;
 
     reaction(
       () => this.arrowsMap,
-      (_, r) => {
+      () => {
         this.rebuildArrowsMap();
       },
       { delay: 10 },
@@ -61,198 +46,123 @@ export class ServiceMapArrowStrategy extends ArrowStrategy {
   }
 
   @action.bound
-  public reset() {
-    this.arrows.clear();
-  }
-
-  @action.bound
   private rebuildArrowsMap() {
-    this.arrows.clear();
+    this._arrows.clear();
     this.arrowsMap.forEach((arrow, arrowId) => {
-      this.arrows.set(arrowId, arrow);
+      this._arrows.set(arrowId, arrow);
     });
   }
 
   @computed
-  public get arrowsMap(): ArrowsMap {
-    const arrows: ArrowsMap = new Map();
+  public get arrowsMap(): Map<string, ServiceMapArrow> {
+    const arrows: Map<string, ServiceMapArrow> = new Map();
+    const bboxes = this.placement.cardsBBoxes;
 
-    // NOTE: we keep track of how many connectors a receiver has to properly
+    // NOTE: Keep track of how many connectors a receiver has to properly
     // NOTE: compute vertical coordinate of next connector
-    const cardConnectors: Map<string, Set<string>> = new Map();
-    const allConnectorsCoords: Map<string, Vec2> = new Map();
-    const connectorEndings: Map<string, Map<string, InnerEnding>> = new Map();
+    const cardConnectorCoords = new ConnectorCoordsAccumulator(
+      this.connections,
+      this.connectorMidPoints,
+      this.placement,
+    );
 
-    const connectorGap = sizes.distanceBetweenConnectors;
-
-    this.connections.outgoings.forEach((senderIndex, senderId) => {
-      const senderBBox = this.placement.cardsBBoxes.get(senderId);
+    this.connections.outgoings.forEach((receivers, senderId) => {
+      const senderBBox = bboxes.get(senderId);
       if (senderBBox == null) return;
 
-      senderIndex.forEach((receiverAccessPoints, receiverId) => {
-        const receiverBBox = this.placement.cardsBBoxes.get(receiverId);
+      receivers.forEach((receiverAccessPoints, receiverId) => {
+        const receiverBBox = bboxes.get(receiverId);
         if (receiverBBox == null) return;
 
-        const midPoint = this.connectorMidPoints.get(receiverId);
-        if (midPoint == null) return;
+        // NOTE: Save sender/receiver bboxes to be able to construct path
+        // NOTE: that walks around those bboxes later
+        const arrow = ServiceMapArrow.new()
+          .from(senderId, senderBBox)
+          .to(receiverId, receiverBBox);
 
-        // NOTE: we always start from the same point on top right of the card
-        const arrowStart = Vec2.from(
-          senderBBox.x + senderBBox.w,
-          senderBBox.y + sizes.arrowStartTopOffset,
-        );
+        arrows.set(arrow.id, arrow);
 
-        // NOTE: start arrow has vertical plate at the beginning
-        const start: ArrowEnding = {
-          endingId: senderId,
-          figure: EndingFigure.Plate,
-          coords: arrowStart,
-          aroundBBox: senderBBox,
-        };
+        const connector = cardConnectorCoords.accumulate(senderId, receiverId);
+        if (connector == null) return;
+        const { connectorId, connectorCoords } = connector;
 
-        const arrowId = `${senderId} -> ${receiverId}`;
-        const connectorId = ids.cardConnector(
-          receiverId,
-          receiverAccessPoints.keys(),
-        );
+        // NOTE: Arrow starts from the same point on top right of the card and
+        // NOTE: ends on the connector coords.
+        // NOTE: Add initial beginning and ending and bend arrow if needed to
+        // NOTE: go around some boxes (sender and receiver bboxes)
+        arrow
+          .addPoint({
+            x: senderBBox.x + senderBBox.w,
+            y: senderBBox.y + sizes.arrowStartTopOffset,
+          })
+          .addPoint(connectorCoords);
 
-        let connectorCoords = allConnectorsCoords.get(connectorId);
-        if (connectorCoords == null) {
-          const connectors = cardConnectors.get(receiverId) ?? new Set();
-          const connectorIdx = connectors.size;
-          connectors.add(connectorId);
-
-          cardConnectors.set(receiverId, connectors);
-          connectorCoords = midPoint.clone();
-
-          // NOTE: Here we just push a connector closer to bottom, but later
-          // NOTE: we will subtract a half of entire connectors height
-          // NOTE: to make all connectors centered.
-          connectorCoords.x = receiverBBox.x - sizes.connectorCardGap;
-          connectorCoords.y += connectorIdx * connectorGap;
-
-          allConnectorsCoords.set(connectorId, connectorCoords);
-        }
-
-        if (!connectorEndings.has(connectorId)) {
-          connectorEndings.set(connectorId, new Map());
-        }
-        const innerEndings = connectorEndings.get(connectorId)!;
         const receiverHttpEndpoints =
           this.placement.httpEndpointCoords.get(receiverId);
 
-        // NOTE: this logic leads to ambiguity: multiple cards can have same
-        // NOTE: connector, but its impossible to make a reverse mapping
-        // NOTE: from (sender -> access point)
+        const areHttpEndpointsVisible =
+          receiverHttpEndpoints == null ||
+          !this.services.activeCards.has(receiverId);
 
-        // NOTE: Here we are gonna to make inner endings, i e small arrows
-        // NOTE: from card outer connector to endpoint connectors (e g ports)
-        receiverAccessPoints.forEach((_, apId) => {
+        // NOTE: Here we build small arrows from card outer connector to
+        // NOTE: endpoint connectors (points and http endpoints)
+        receiverAccessPoints.forEach((link, apId) => {
           const coords = this.placement.accessPointCoords.get(apId);
           if (coords == null) return;
 
-          const innerEndingId = `${connectorId} -> ${apId}`;
-          const apEndings = innerEndings.get(apId);
-          const endingColors = this.getVerdictColors(
-            senderId,
-            receiverId,
-            apId,
-          );
+          // NOTE: We put the only one point into the AccessPointArrow assuming
+          // NOTE: that the inner arrow could be rendered using connector coords
+          // NOTE: from the ServiceMapArrow
+          arrow
+            .addAccessPointArrow(connectorId, apId)
+            .addVerdicts(link.verdicts)
+            .addPoint(coords);
 
-          if (apEndings == null) {
-            innerEndings.set(innerEndingId, {
-              endingId: innerEndingId,
-              colors: endingColors,
-              coords: Vec2.fromXY(coords),
-            });
-          } else {
-            endingColors.forEach(color => {
-              apEndings.colors.add(color);
-            });
-          }
+          if (areHttpEndpointsVisible) return;
 
-          // NOTE: HTTP endpoints processing
-          if (
-            receiverHttpEndpoints == null ||
-            !this.services.activeCards.has(receiverId)
-          )
-            return;
-
+          // NOTE: For simplicty, treat HTTP endpoints as a regular access
+          // NOTE: points.
           receiverHttpEndpoints.forEach((methods, urlPath) => {
             methods.forEach((xy, method) => {
-              const innerEndingId = `${connectorId} -> ${urlPath}`;
+              const l7endpoint = this.interactions.getHttpEndpointByParts(
+                receiverId,
+                link.destinationPort,
+                method,
+                urlPath,
+              );
 
-              innerEndings.set(innerEndingId, {
-                endingId: innerEndingId,
-                colors: endingColors,
-                coords: Vec2.fromXY(xy),
-              });
+              if (l7endpoint == null) {
+                console.warn(
+                  'ServiceMapArrow building: cannot find appropriate L7Endpoint',
+                );
+
+                return;
+              }
+
+              arrow
+                .addAccessPointArrow(connectorId, l7endpoint.id)
+                .addVerdicts(l7endpoint.verdicts)
+                .addPoint(xy);
             });
           });
         });
-
-        const end: ArrowEnding = {
-          endingId: receiverId,
-          figure: EndingFigure.Circle,
-          coords: connectorCoords,
-          aroundBBox: receiverBBox,
-          innerEndings,
-        };
-
-        const arrow = {
-          arrowId,
-          color: ArrowColor.Neutral,
-
-          start,
-          end,
-        };
-
-        arrows.set(arrowId, arrow);
       });
     });
 
-    cardConnectors.forEach((connectorIds, cardId) => {
-      connectorIds.forEach(connectorId => {
-        const connectorCoords = allConnectorsCoords.get(connectorId);
-        if (connectorCoords == null) {
-          console.error('wrong connector coords management');
-          return;
-        }
+    cardConnectorCoords.adjustVertically();
+    // NOTE: Now, when all connector coords adjusted properly, we can alter
+    // NOTE: arrow points to fit the appropriate path.
 
-        // NOTE: Here is where we are centering entire connectors column
-        const gutHeight = (connectorIds.size - 1) * connectorGap;
-        connectorCoords.y -= gutHeight / 2;
-      });
+    // NOTE: Keep track of all arrows that go around sender and receiver
+    // NOTE: bboxes, not to put them on overlapping parallel paths when that
+    // NOTE: path goes near the edges of the card.
+    const offsets = createCardOffsetAdvancers();
+
+    arrows.forEach(arrow => {
+      arrow.buildPointsAroundSenderAndReceiver(offsets);
     });
 
     return arrows;
-  }
-
-  private getVerdictColors(
-    senderId: string,
-    receiverId: string,
-    apId: string,
-  ): Set<ArrowColor> {
-    const sender = this.interactions.connections.outgoings.get(senderId);
-    if (sender == null) return new Set([ArrowColor.Neutral]);
-
-    const receiver = sender.get(receiverId);
-    if (receiver == null) return new Set([ArrowColor.Neutral]);
-
-    const link = receiver.get(apId);
-    if (link == null) return new Set([ArrowColor.Neutral]);
-
-    const mapped = [...link.verdicts].map(verdict => {
-      switch (verdict) {
-        case Verdict.Forwarded:
-        case Verdict.Unknown:
-          return ArrowColor.Neutral;
-        default:
-          return ArrowColor.Red;
-      }
-    });
-
-    return new Set(mapped);
   }
 
   @computed

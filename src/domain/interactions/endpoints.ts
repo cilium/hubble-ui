@@ -2,8 +2,9 @@ import * as mobx from 'mobx';
 
 import { getIpWeight } from '~/domain/misc';
 import { WrappedLayer7 } from '~/domain/layer7';
-import { IPProtocol, HubbleLink, L7Kind } from '~/domain/hubble';
-import { Flow } from '~/domain/flows';
+import { IPProtocol, HubbleLink, L7Kind, Verdict } from '~/domain/hubble';
+import { Link } from '~/domain/link';
+import { Method as HttpMethod } from '~/domain/http';
 import * as l7helpers from '~/domain/helpers/l7';
 
 // TODO: semantics of `update` method could be extended (?)
@@ -78,13 +79,31 @@ export class IPEndpoint implements Endpoint {
 
 export class L7Endpoint implements Endpoint {
   private l7: WrappedLayer7;
+  private _verdicts: Set<Verdict>;
+
+  public static generateId(method: HttpMethod, pathname: string): string {
+    return l7helpers.httpIdFromParts(method, pathname);
+  }
 
   constructor(l7: WrappedLayer7) {
     this.l7 = l7;
+    this._verdicts = new Set();
 
     mobx.makeAutoObservable(this, void 0, {
       autoBind: true,
     });
+  }
+
+  public update(e: Endpoint) {
+    if (!(e instanceof L7Endpoint)) return;
+
+    e.verdicts.forEach(v => {
+      this._verdicts.add(v);
+    });
+  }
+
+  public addVerdict(v: Verdict) {
+    this._verdicts.add(v);
   }
 
   public get ref(): WrappedLayer7 {
@@ -94,6 +113,10 @@ export class L7Endpoint implements Endpoint {
   public get id(): string {
     return l7helpers.getEndpointId(this.l7);
   }
+
+  public get verdicts(): Set<Verdict> {
+    return new Set(this._verdicts);
+  }
 }
 
 export class ServiceEndpoint implements Endpoint {
@@ -102,7 +125,7 @@ export class ServiceEndpoint implements Endpoint {
   public l4Protocol: IPProtocol;
   public l7Protocol: L7Kind | null = null;
 
-  public static fromLink(link: HubbleLink): ServiceEndpoint {
+  public static fromLink(link: HubbleLink | Link): ServiceEndpoint {
     // NOTE: it's probably worth to return two APs: source and destination
     return new ServiceEndpoint(
       link.destinationId,
@@ -113,15 +136,6 @@ export class ServiceEndpoint implements Endpoint {
 
   public static generateId(serviceId: string, port: number | string) {
     return `ap-${serviceId}-${port}`;
-  }
-
-  public static destinationId(flow: Flow): string | null {
-    if (flow.destinationPort == null) return null;
-
-    return ServiceEndpoint.generateId(
-      flow.destinationServiceId,
-      flow.destinationPort,
-    );
   }
 
   constructor(serviceId: string, port: number, protocol: IPProtocol) {

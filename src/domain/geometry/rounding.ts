@@ -1,6 +1,5 @@
 import { XY } from '~/domain/geometry/general';
 import { XYWH, Sides } from '~/domain/geometry/xywh';
-import { tooSmall } from '~/domain/misc';
 import { distance } from '~/domain/geometry/utils';
 import { segmentsIntersection } from '~/domain/geometry/intersections';
 
@@ -19,19 +18,30 @@ export const goAroundTheBox = (
   padY: number,
 ): XY[] => {
   const sides = box.sides;
+  const pointsBetween: XY[] = [];
 
   const pivot1 = getAroundPoint(from, to, sides, padX, padY);
   if (pivot1 == null) {
-    return [from, to];
+    return pointsBetween;
+  } else {
+    pointsBetween.push(pivot1);
   }
 
   const secondAroundPoint = getAroundPoint(pivot1, to, sides, padX, padY);
+  if (secondAroundPoint != null) pointsBetween.push(secondAroundPoint);
 
-  return [from, pivot1]
-    .concat(secondAroundPoint ? [secondAroundPoint] : [])
-    .concat([to]);
+  return pointsBetween;
 };
 
+// NOTE: This function returns a point near to one of the corners of the box
+// NOTE: that can be used to get around this box:
+// NOTE:  \ <- This is the direction determined by from and to points.
+// NOTE:   \
+// NOTE:    \         * <- This is where we can go not to intersect the box.
+// NOTE: #==========#      This point is the "around" point.
+// NOTE: #          #
+// NOTE: #==========#
+// NOTE:       \
 const getAroundPoint = (
   from: XY,
   to: XY,

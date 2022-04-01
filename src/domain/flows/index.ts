@@ -324,7 +324,7 @@ export class Flow {
   }
 
   public get l7Fingerprint(): string | null {
-    const l7 = this.l7;
+    const l7 = this.l7Wrapped;
     if (l7 == null) return null;
 
     const direction =

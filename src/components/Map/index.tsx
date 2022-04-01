@@ -1,12 +1,12 @@
+import React, { ReactNode, useCallback } from 'react';
 import { observer } from 'mobx-react';
-import React, { ReactNode, useCallback, useEffect, useMemo } from 'react';
-import { autorun } from 'mobx';
+import { computed } from 'mobx';
 
 import { AbstractCard } from '~/domain/cards';
-import { Vec2, XYWH } from '~/domain/geometry';
+import { XYWH } from '~/domain/geometry';
 import { ArrowStrategy, PlacementStrategy } from '~/domain/layout';
 
-import { ArrowsRenderer } from '~/components/ArrowsRenderer';
+import { ArrowsRenderer, ArrowRenderer } from '~/components/ArrowsRenderer';
 import { Card as BaseCard, CardComponentProps } from '~/components/Card';
 import { NamespaceBackplate } from './NamespaceBackplate';
 
@@ -23,6 +23,7 @@ export interface Props<C extends AbstractCard> {
   wasDragged: boolean;
   visibleHeight: number;
   arrows?: ArrowStrategy;
+  arrowRenderer?: ArrowRenderer;
   cardRenderer: (cardProps: CardComponentProps<C>) => ReactNode;
   isCardActive?: (id: string) => boolean;
   onCardHeightChange?: (id: string, height: number) => void;
@@ -39,7 +40,7 @@ export const MapElements = observer(function MapElements<
     [props.isCardActive],
   );
 
-  const [backplates, cards, unsizedCards] = useMemo(() => {
+  const [backplates, cards, unsizedCards] = computed(() => {
     const backplates: ReactNode[] = [];
     const cards: ReactNode[] = [];
     const unsizedCards: ReactNode[] = [];
@@ -66,13 +67,7 @@ export const MapElements = observer(function MapElements<
     });
 
     return [backplates, cards, unsizedCards];
-  }, [
-    props.cardRenderer,
-    props.cards,
-    props.onCardHeightChange,
-    props.placement.cardsBBoxes,
-    isCardActive,
-  ]);
+  }).get();
 
   return (
     <>
@@ -84,7 +79,12 @@ export const MapElements = observer(function MapElements<
       )}
 
       {backplates}
-      {props.arrows && <ArrowsRenderer arrows={props.arrows.paths} />}
+      {props.arrows && props.arrowRenderer && (
+        <ArrowsRenderer
+          strategy={props.arrows}
+          renderer={props.arrowRenderer}
+        />
+      )}
       {cards}
 
       <g visibility="hidden">{unsizedCards}</g>

@@ -95,6 +95,18 @@ export class PartialConnections<E extends Endpoint> {
   public get inversed(): PartialConnections<E> {
     return this.getInversed();
   }
+
+  public get endpointMap(): Map<string, E> {
+    const m = new Map<string, E>();
+
+    this._connections.forEach(endpoints => {
+      endpoints.forEach((ep, key) => {
+        m.set(key, ep);
+      });
+    });
+
+    return m;
+  }
 }
 
 export class Connections<E extends Endpoint> {
@@ -150,6 +162,25 @@ export class Connections<E extends Endpoint> {
     return this.getInversed();
   }
 
+  public get endpointList(): E[] {
+    return Array.from(this.endpointMap.values());
+  }
+
+  // NOTE: just combine all senders' endpointMap into single one
+  public get endpointMap(): Map<string, E> {
+    const m: Map<string, E> = new Map();
+
+    this._connections.forEach(senderConnections => {
+      const senderMap = senderConnections.endpointMap;
+
+      senderMap.forEach((ep, key) => {
+        m.set(key, ep);
+      });
+    });
+
+    return m;
+  }
+
   private ensureSenderId(sid: string): PartialConnections<E> {
     if (!this._connections.has(sid)) {
       this._connections.set(sid, new PartialConnections<E>());
@@ -173,6 +204,10 @@ export class GroupedPartialConnections<E extends Endpoint> {
 
   public clear() {
     this._connections.clear();
+  }
+
+  public get(rid: string): Connections<E> | undefined {
+    return this._connections.get(rid);
   }
 
   public upsert(rid: string, port: string, kind: string, eid: string, ep: E) {
