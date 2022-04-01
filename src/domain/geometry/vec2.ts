@@ -1,3 +1,4 @@
+import { tooSmall } from '~/domain/misc';
 import { XY } from './general';
 
 export class Vec2 implements XY {
@@ -19,6 +20,16 @@ export class Vec2 implements XY {
 
   public static zero(): Vec2 {
     return new Vec2(0, 0);
+  }
+
+  public static advance(p1: Vec2, p2: Vec2, d: number): [Vec2, Vec2] {
+    const dist = p1.distance(p2);
+
+    return [p1.linterp(p2, d / dist), p2.linterp(p1, -d / dist)];
+  }
+
+  public xy(): XY {
+    return { x: this.x, y: this.y };
   }
 
   public sub(arg: XY): Vec2 {
@@ -43,6 +54,13 @@ export class Vec2 implements XY {
     const y = this.y * (1 - t) + rhs.y * t;
 
     return new Vec2(x, y);
+  }
+
+  public slope(to: XY): number {
+    const dx = to.x - this.x;
+    if (tooSmall(dx)) return 0;
+
+    return (to.y - this.y) / dx;
   }
 
   public normalize(): Vec2 {

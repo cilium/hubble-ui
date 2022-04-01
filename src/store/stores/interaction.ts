@@ -3,10 +3,11 @@ import { makeAutoObservable } from 'mobx';
 
 import { Flow, HubbleFlow } from '~/domain/flows';
 import { Link } from '~/domain/service-map';
-import { HubbleLink } from '~/domain/hubble';
+import { HubbleLink, L7Kind, Verdict } from '~/domain/hubble';
 import { StateChange } from '~/domain/misc';
 import { flowFromRelay } from '~/domain/helpers';
 import { LinkConnections } from '~/domain/interactions/connections';
+import { Method as HttpMethod } from '~/domain/http';
 import {
   GroupedPartialConnections,
   L7Endpoint,
@@ -161,6 +162,7 @@ export default class InteractionStore {
       if (flow.l7Wrapped == null || flow.destinationPort == null) return;
 
       const ep = new L7Endpoint(flow.l7Wrapped);
+      ep.addVerdict(flow.verdict);
 
       this.l7endpoints.upsert(
         flow.destinationServiceId,
@@ -170,6 +172,39 @@ export default class InteractionStore {
         ep,
       );
     });
+  }
+
+  public getHttpEndpointByParts(
+    receiverId: string,
+    port: number | string,
+    method: HttpMethod,
+    urlPathname: string,
+  ): L7Endpoint | undefined {
+    const endpointsMap = this.l7endpoints
+      .get(receiverId)
+      ?.get(port.toString())
+      ?.get(L7Kind.HTTP);
+
+    if (endpointsMap == null) return void 0;
+    const epId = L7Endpoint.generateId(method, urlPathname);
+
+    return endpointsMap.get(epId);
+  }
+
+  public getHttpVerdicts(
+    receiverId: string,
+    port: number | string,
+    method: HttpMethod,
+    urlPathname: string,
+  ): Set<Verdict> {
+    const ep = this.getHttpEndpointByParts(
+      receiverId,
+      port,
+      method,
+      urlPathname,
+    );
+
+    return ep?.verdicts ?? new Set();
   }
 
   private addLink(hubbleLink: HubbleLink) {

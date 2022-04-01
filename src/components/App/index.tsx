@@ -21,6 +21,7 @@ import { Map } from '~/components/Map';
 import { LoadingOverlay } from '~/components/Misc/LoadingOverlay';
 import { ServiceMapCard } from '~/components/ServiceMapCard';
 import { CardComponentProps } from '~/components/Card';
+import { ServiceMapArrowRenderer } from '~/components/ServiceMapArrowRenderer';
 import { WelcomeScreen } from './WelcomeScreen';
 
 import { Verdict, TCPFlagName, PodSelector } from '~/domain/hubble';
@@ -270,6 +271,7 @@ export const App = observer((_props: AppProps) => {
             namespaceBBox={store.placement.namespaceBBox}
             placement={store.placement}
             arrows={store.arrows}
+            arrowRenderer={ServiceMapArrowRenderer}
             cards={store.currentFrame.services.cardsList}
             cardRenderer={cardRenderer}
             visibleHeight={mapVisibleHeight ?? 0}
