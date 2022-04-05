@@ -29,8 +29,8 @@ type Handle struct {
 	stopOnce     sync.Once
 }
 
-func New() builder {
-	return builder{}
+func New() Builder {
+	return Builder{}
 }
 
 func NewDumb() *Handle {

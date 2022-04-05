@@ -8,28 +8,28 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type builder struct {
+type Builder struct {
 	log         *logrus.Entry
 	newClientFn NewClientFn
 	delay       *time.Duration
 }
 
-func (b builder) WithLogger(log *logrus.Entry) builder {
+func (b Builder) WithLogger(log *logrus.Entry) Builder {
 	b.log = log
 	return b
 }
 
-func (b builder) WithNewClientFunction(fn NewClientFn) builder {
+func (b Builder) WithNewClientFunction(fn NewClientFn) Builder {
 	b.newClientFn = fn
 	return b
 }
 
-func (b builder) WithDelay(delay time.Duration) builder {
+func (b Builder) WithDelay(delay time.Duration) Builder {
 	b.delay = &delay
 	return b
 }
 
-func (b builder) Unwrap() (*Handle, error) {
+func (b Builder) Unwrap() (*Handle, error) {
 	if b.log == nil {
 		return nil, errors.New("cannot build status_checker: no logger")
 	}
