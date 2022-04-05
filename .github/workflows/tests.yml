@@ -42,7 +42,7 @@ jobs:
         uses: golangci/golangci-lint-action@v2.5.2
         with:
           working-directory: ./backend
-          version: v1.44.0
+          version: v1.45.2
           args: --config=.golangci.yml --verbose
           skip-go-installation: true
           skip-pkg-cache: true
