@@ -48,7 +48,7 @@ jobs:
         uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
 
       - name: Release Build ${{ matrix.name }}
-        uses: docker/build-push-action@7f9d37fa544684fb73bfe4835ed7214c255ce02b
+        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
         id: docker_build_release
         with:
           context: ${{ matrix.context }}
@@ -99,7 +99,7 @@ jobs:
           mkdir -p image-digest/
 
       - name: Download digests of all images built
-        uses: actions/download-artifact@f023be2c48cc18debc3bacd34cb396e0295e2869
+        uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741
         with:
           path: image-digest/
 
