@@ -24,7 +24,7 @@
     ]
   },
   "dependencies": {
-    "@babel/runtime": "7.16.3",
+    "@babel/runtime": "7.17.9",
     "@blueprintjs/core": "3.29.0",
     "@blueprintjs/datetime": "3.18.3",
     "@blueprintjs/icons": "3.19.0",
@@ -53,7 +53,7 @@
     "url-parse": "^1.5.10"
   },
   "devDependencies": {
-    "@babel/core": "7.16.0",
+    "@babel/core": "7.17.9",
     "@babel/plugin-proposal-nullish-coalescing-operator": "7.16.0",
     "@babel/plugin-proposal-optional-chaining": "7.16.0",
     "@babel/plugin-transform-runtime": "7.16.4",
