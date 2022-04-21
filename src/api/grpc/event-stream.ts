@@ -39,7 +39,6 @@ export class EventStream
   public static readonly FlowsThrottleDelay: number = 1000;
 
   private _filters?: Filters;
-  private stream: GRPCEventStream;
   private flowsThrottler: ThrottledEmitter<Flow>;
 
   public static buildRequest(
@@ -90,9 +89,7 @@ export class EventStream
   ) {
     super(stream, opts);
 
-    this.stream = stream;
     this._filters = filters;
-
     this.flowsThrottler = new ThrottledEmitter(EventStream.FlowsThrottleDelay);
 
     this.setupEventHandlers();
@@ -127,7 +124,7 @@ export class EventStream
   }
 
   private setupEventHandlers() {
-    this.stream.on(GRPCStreamEvent.Data, (res: GetEventsResponse) => {
+    this.on(GRPCStreamEvent.Data, (res: GetEventsResponse) => {
       const eventKind = res.getEventCase();
 
       switch (eventKind) {
@@ -232,15 +229,6 @@ export class EventStream
       namespace: namespace.getName(),
       change: helpers.stateChangeFromPb(change),
     });
-  }
-
-  public async stop(dropEventHandlers?: boolean) {
-    dropEventHandlers = dropEventHandlers ?? false;
-    if (dropEventHandlers) {
-      this.offAllEvents();
-    }
-
-    this.stream.cancel();
   }
 
   public get flowsDelay() {
