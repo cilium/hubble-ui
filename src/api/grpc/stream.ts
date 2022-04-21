@@ -110,13 +110,26 @@ export class GRPCStream<T, H extends HandlerTypes = {}> extends EventEmitter<
     return new Promise((resolve, reject) => {
       let resolveTimerId: TimerId | null = null;
 
-      const off = this.emitter.once(GRPCStreamEvent.Error, err => {
+      const offErrorHandler = this.emitter.once(GRPCStreamEvent.Error, err => {
         resolveTimerId && clearTimeout(resolveTimerId);
+        offDataHandler();
+
         reject(err);
       });
 
+      // NOTE: If we get any piece of stream data then connection is established
+      const offDataHandler = this.emitter.once(GRPCStreamEvent.Data, evt => {
+        resolveTimerId && clearTimeout(resolveTimerId);
+        offErrorHandler();
+
+        // NOTE: push current event back to event emitter in case it is cached
+        this.emitter.emit(GRPCStreamEvent.Data, evt);
+        resolve(null);
+      });
+
       resolveTimerId = setTimeout(() => {
-        off();
+        offErrorHandler();
+        offDataHandler();
         resolve(null);
       }, timeout);
     });
@@ -131,8 +144,8 @@ export class GRPCStream<T, H extends HandlerTypes = {}> extends EventEmitter<
   // NOTE: this method is private to force all descendant to explicitly implement
   // NOTE: additional reconnect logic: since reconnect calls stop() internally
   // NOTE: all event handlers is dropped, so you need to setup them again
-  public reconnect() {
-    this.handleReconnecting();
+  public async reconnect() {
+    await this.handleReconnecting();
   }
 
   public onReconnectingStarted(

@@ -100,7 +100,7 @@ module.exports = {
     alias: {
       '~backend': path.resolve(__dirname, './backend'),
       '~': path.resolve(__dirname, './src/'),
-    },
+    }
   },
   module: {
     rules: [

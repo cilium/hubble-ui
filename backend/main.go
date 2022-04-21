@@ -3,11 +3,12 @@ package main
 import (
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"strconv"
 
-	"github.com/cilium/hubble-ui/backend/proto/ui"
 	gops "github.com/google/gops/agent"
+	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/cilium/hubble-ui/backend/internal/config"
 	"github.com/cilium/hubble-ui/backend/internal/msg"
 	"github.com/cilium/hubble-ui/backend/pkg/logger"
+	"github.com/cilium/hubble-ui/backend/proto/ui"
 	"github.com/cilium/hubble-ui/backend/server"
 )
 
@@ -22,22 +24,7 @@ var (
 	log = logger.New("ui-backend")
 )
 
-const (
-	EventsServerDefaultPort = 8090
-)
-
-func getServerAddr() string {
-	port, ok := os.LookupEnv("EVENTS_SERVER_PORT")
-	if !ok {
-		port = fmt.Sprintf("%d", EventsServerDefaultPort)
-		log.Warnf(msg.ServerSetupUsingDefPort, port)
-	}
-
-	return fmt.Sprintf("0.0.0.0:%s", port)
-}
-
-func setupListener() net.Listener {
-	addr := getServerAddr()
+func setupListener(addr string) net.Listener {
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.Errorf(msg.ServerSetupListenError, err)
@@ -60,8 +47,23 @@ func runServer(cfg *config.Config) {
 	grpcServer := grpc.NewServer()
 	ui.RegisterUIServer(grpcServer, srv)
 
-	listener := setupListener()
-	if err := grpcServer.Serve(listener); err != nil {
+	wrappedGrpc := grpcweb.WrapServer(
+		grpcServer,
+		grpcweb.WithOriginFunc(func(origin string) bool {
+			return true
+		}),
+		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
+	)
+
+	httpSrv := http.NewServeMux()
+	httpSrv.HandleFunc("/api/", func(resp http.ResponseWriter, req *http.Request) {
+		// NOTE: GRPC server handles requests with URL like "ui.UI/functionName"
+		req.URL.Path = req.URL.Path[len("/api/"):]
+		wrappedGrpc.ServeHTTP(resp, req)
+	})
+
+	listener := setupListener(cfg.UIServerListenAddr())
+	if err := http.Serve(listener, httpSrv); err != nil {
 		log.Errorf(msg.ServerSetupRunError, err)
 		os.Exit(1)
 	}

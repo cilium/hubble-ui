@@ -69,8 +69,12 @@ export class EventEmitter<T extends HandlerTypes> {
 
     onHandlers?.forEach(fn => fn(...args));
     if (onceHandlers) {
-      onceHandlers.forEach(fn => fn(...args));
+      // NOTE: Handlers should be flushed first to avoid recursive calls in case
+      // NOTE: if any of that handlers called .emit() again
+      const handlers = new Set(onceHandlers);
       onceHandlers.clear();
+
+      handlers.forEach(fn => fn(...args));
     }
   }
 
@@ -101,9 +105,9 @@ export class EventEmitter<T extends HandlerTypes> {
 
     if (!!once) {
       const datum = cached.shift();
-      datum && handler(...datum);
-
       this.onceHandlers.get(evt)?.delete(handler);
+
+      datum && handler(...datum);
       return;
     }
 
