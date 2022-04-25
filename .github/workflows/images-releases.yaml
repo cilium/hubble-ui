@@ -45,10 +45,10 @@ jobs:
           echo ::set-output name=tag::${GITHUB_REF##*/}
 
       - name: Checkout Source Code
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
 
       - name: Release Build ${{ matrix.name }}
-        uses: docker/build-push-action@7f9d37fa544684fb73bfe4835ed7214c255ce02b
+        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
         id: docker_build_release
         with:
           context: ${{ matrix.context }}
