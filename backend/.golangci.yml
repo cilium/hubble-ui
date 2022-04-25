@@ -43,17 +43,17 @@ linters:
 
 linters-settings:
   gosimple:
-    go: "1.17"
+    go: "1.18"
   govet:
     enable-all: true
     disable:
       - fieldalignment
   staticcheck:
-    go: "1.17"
+    go: "1.18"
   stylecheck:
-    go: "1.17"
+    go: "1.18"
   unused:
-    go: "1.17"
+    go: "1.18"
 
 issues:
   exclude-rules:

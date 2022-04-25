@@ -30,6 +30,5 @@ COPY . .
 ARG NODE_ENV=production
 RUN npm run build
 
-FROM docker.io/nginxinc/nginx-unprivileged:1.21.4-alpine@sha256:9db074b3025019e92d259d3f61849ce9bc6e7214a4b48634d7a1aff02dfb8747
+FROM docker.io/nginxinc/nginx-unprivileged:1.21.6-alpine@sha256:c754b5ff17e6cd39e786855ee31d4eeac21276d26119bf37385cbb3dcc3a9d29
 COPY --from=stage1 /app/server/public /app
-COPY --from=stage1 /app/server/nginx-hubble-ui-frontend.conf /etc/nginx/conf.d/default.conf

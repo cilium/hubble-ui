@@ -1,21 +1,21 @@
 module github.com/cilium/hubble-ui/backend
 
-go 1.17
+go 1.18
 
 require (
-	github.com/cilium/cilium v1.11.1
+	github.com/cilium/cilium v1.11.3
 	github.com/cilium/hubble v0.9.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/gops v0.3.22
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
-	google.golang.org/grpc v1.44.0
+	google.golang.org/grpc v1.45.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
-	google.golang.org/protobuf v1.27.1
-	k8s.io/api v0.23.3
-	k8s.io/apimachinery v0.23.3
-	k8s.io/client-go v0.23.3
+	google.golang.org/protobuf v1.28.0
+	k8s.io/api v0.23.5
+	k8s.io/apimachinery v0.23.5
+	k8s.io/client-go v0.23.5
 )
 
 require (
@@ -55,7 +55,7 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20211207154714-918901c715cf // indirect
+	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
