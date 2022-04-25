@@ -3,7 +3,7 @@
 # Copyright 2021 Authors of Cilium
 # SPDX-License-Identifier: Apache-2.0
 
-ARG GOLANG_IMAGE=docker.io/library/golang:1.17.4-bullseye@sha256:dbc5c71a115118983b4bc3a253f9e05ff4854b6fda3adaf3c2eed3cd6e0e04cf
+ARG GOLANG_IMAGE=docker.io/library/golang:1.18.1-bullseye@sha256:7c4f3edb000e9e0e8b2a3e30d1d4969c1bdca2dff3ba51fb3d965628e5a307f8
 
 # BUILDPLATFORM is an automatic platform ARG enabled by Docker BuildKit.
 # Represents the plataform where the build is happening, do not mix with
