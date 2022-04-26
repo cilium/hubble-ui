@@ -1,7 +1,7 @@
 import * as grpcWeb from 'grpc-web';
 
-import * as ui_status_pb from '../ui/status_pb';
 import * as ui_ui_pb from '../ui/ui_pb';
+import * as ui_status_pb from '../ui/status_pb';
 
 
 export class UIClient {
@@ -17,7 +17,7 @@ export class UIClient {
   getStatus(
     request: ui_status_pb.GetStatusRequest,
     metadata: grpcWeb.Metadata | undefined,
-    callback: (err: grpcWeb.Error,
+    callback: (err: grpcWeb.RpcError,
                response: ui_status_pb.GetStatusResponse) => void
   ): grpcWeb.ClientReadableStream<ui_status_pb.GetStatusResponse>;
 

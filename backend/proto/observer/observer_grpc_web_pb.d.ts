@@ -26,14 +26,14 @@ export class ObserverClient {
   getNodes(
     request: observer_observer_pb.GetNodesRequest,
     metadata: grpcWeb.Metadata | undefined,
-    callback: (err: grpcWeb.Error,
+    callback: (err: grpcWeb.RpcError,
                response: observer_observer_pb.GetNodesResponse) => void
   ): grpcWeb.ClientReadableStream<observer_observer_pb.GetNodesResponse>;
 
   serverStatus(
     request: observer_observer_pb.ServerStatusRequest,
     metadata: grpcWeb.Metadata | undefined,
-    callback: (err: grpcWeb.Error,
+    callback: (err: grpcWeb.RpcError,
                response: observer_observer_pb.ServerStatusResponse) => void
   ): grpcWeb.ClientReadableStream<observer_observer_pb.ServerStatusResponse>;
 

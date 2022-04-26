@@ -29,7 +29,7 @@ proto.observer = require('./observer_pb.js');
 /**
  * @param {string} hostname
  * @param {?Object} credentials
- * @param {?Object} options
+ * @param {?grpc.web.ClientOptions} options
  * @constructor
  * @struct
  * @final
@@ -37,7 +37,7 @@ proto.observer = require('./observer_pb.js');
 proto.observer.ObserverClient =
     function(hostname, credentials, options) {
   if (!options) options = {};
-  options['format'] = 'text';
+  options.format = 'text';
 
   /**
    * @private @const {!grpc.web.GrpcWebClientBase} The client
@@ -55,7 +55,7 @@ proto.observer.ObserverClient =
 /**
  * @param {string} hostname
  * @param {?Object} credentials
- * @param {?Object} options
+ * @param {?grpc.web.ClientOptions} options
  * @constructor
  * @struct
  * @final
@@ -63,7 +63,7 @@ proto.observer.ObserverClient =
 proto.observer.ObserverPromiseClient =
     function(hostname, credentials, options) {
   if (!options) options = {};
-  options['format'] = 'text';
+  options.format = 'text';
 
   /**
    * @private @const {!grpc.web.GrpcWebClientBase} The client
@@ -101,27 +101,8 @@ const methodDescriptor_Observer_GetFlows = new grpc.web.MethodDescriptor(
 
 
 /**
- * @const
- * @type {!grpc.web.AbstractClientBase.MethodInfo<
- *   !proto.observer.GetFlowsRequest,
- *   !proto.observer.GetFlowsResponse>}
- */
-const methodInfo_Observer_GetFlows = new grpc.web.AbstractClientBase.MethodInfo(
-  proto.observer.GetFlowsResponse,
-  /**
-   * @param {!proto.observer.GetFlowsRequest} request
-   * @return {!Uint8Array}
-   */
-  function(request) {
-    return request.serializeBinary();
-  },
-  proto.observer.GetFlowsResponse.deserializeBinary
-);
-
-
-/**
  * @param {!proto.observer.GetFlowsRequest} request The request proto
- * @param {?Object<string, string>} metadata User defined
+ * @param {?Object<string, string>=} metadata User defined
  *     call metadata
  * @return {!grpc.web.ClientReadableStream<!proto.observer.GetFlowsResponse>}
  *     The XHR Node Readable Stream
@@ -138,7 +119,7 @@ proto.observer.ObserverClient.prototype.getFlows =
 
 /**
  * @param {!proto.observer.GetFlowsRequest} request The request proto
- * @param {?Object<string, string>} metadata User defined
+ * @param {?Object<string, string>=} metadata User defined
  *     call metadata
  * @return {!grpc.web.ClientReadableStream<!proto.observer.GetFlowsResponse>}
  *     The XHR Node Readable Stream
@@ -176,27 +157,8 @@ const methodDescriptor_Observer_GetAgentEvents = new grpc.web.MethodDescriptor(
 
 
 /**
- * @const
- * @type {!grpc.web.AbstractClientBase.MethodInfo<
- *   !proto.observer.GetAgentEventsRequest,
- *   !proto.observer.GetAgentEventsResponse>}
- */
-const methodInfo_Observer_GetAgentEvents = new grpc.web.AbstractClientBase.MethodInfo(
-  proto.observer.GetAgentEventsResponse,
-  /**
-   * @param {!proto.observer.GetAgentEventsRequest} request
-   * @return {!Uint8Array}
-   */
-  function(request) {
-    return request.serializeBinary();
-  },
-  proto.observer.GetAgentEventsResponse.deserializeBinary
-);
-
-
-/**
  * @param {!proto.observer.GetAgentEventsRequest} request The request proto
- * @param {?Object<string, string>} metadata User defined
+ * @param {?Object<string, string>=} metadata User defined
  *     call metadata
  * @return {!grpc.web.ClientReadableStream<!proto.observer.GetAgentEventsResponse>}
  *     The XHR Node Readable Stream
@@ -213,7 +175,7 @@ proto.observer.ObserverClient.prototype.getAgentEvents =
 
 /**
  * @param {!proto.observer.GetAgentEventsRequest} request The request proto
- * @param {?Object<string, string>} metadata User defined
+ * @param {?Object<string, string>=} metadata User defined
  *     call metadata
  * @return {!grpc.web.ClientReadableStream<!proto.observer.GetAgentEventsResponse>}
  *     The XHR Node Readable Stream
@@ -251,27 +213,8 @@ const methodDescriptor_Observer_GetDebugEvents = new grpc.web.MethodDescriptor(
 
 
 /**
- * @const
- * @type {!grpc.web.AbstractClientBase.MethodInfo<
- *   !proto.observer.GetDebugEventsRequest,
- *   !proto.observer.GetDebugEventsResponse>}
- */
-const methodInfo_Observer_GetDebugEvents = new grpc.web.AbstractClientBase.MethodInfo(
-  proto.observer.GetDebugEventsResponse,
-  /**
-   * @param {!proto.observer.GetDebugEventsRequest} request
-   * @return {!Uint8Array}
-   */
-  function(request) {
-    return request.serializeBinary();
-  },
-  proto.observer.GetDebugEventsResponse.deserializeBinary
-);
-
-
-/**
  * @param {!proto.observer.GetDebugEventsRequest} request The request proto
- * @param {?Object<string, string>} metadata User defined
+ * @param {?Object<string, string>=} metadata User defined
  *     call metadata
  * @return {!grpc.web.ClientReadableStream<!proto.observer.GetDebugEventsResponse>}
  *     The XHR Node Readable Stream
@@ -288,7 +231,7 @@ proto.observer.ObserverClient.prototype.getDebugEvents =
 
 /**
  * @param {!proto.observer.GetDebugEventsRequest} request The request proto
- * @param {?Object<string, string>} metadata User defined
+ * @param {?Object<string, string>=} metadata User defined
  *     call metadata
  * @return {!grpc.web.ClientReadableStream<!proto.observer.GetDebugEventsResponse>}
  *     The XHR Node Readable Stream
@@ -326,30 +269,11 @@ const methodDescriptor_Observer_GetNodes = new grpc.web.MethodDescriptor(
 
 
 /**
- * @const
- * @type {!grpc.web.AbstractClientBase.MethodInfo<
- *   !proto.observer.GetNodesRequest,
- *   !proto.observer.GetNodesResponse>}
- */
-const methodInfo_Observer_GetNodes = new grpc.web.AbstractClientBase.MethodInfo(
-  proto.observer.GetNodesResponse,
-  /**
-   * @param {!proto.observer.GetNodesRequest} request
-   * @return {!Uint8Array}
-   */
-  function(request) {
-    return request.serializeBinary();
-  },
-  proto.observer.GetNodesResponse.deserializeBinary
-);
-
-
-/**
  * @param {!proto.observer.GetNodesRequest} request The
  *     request proto
  * @param {?Object<string, string>} metadata User defined
  *     call metadata
- * @param {function(?grpc.web.Error, ?proto.observer.GetNodesResponse)}
+ * @param {function(?grpc.web.RpcError, ?proto.observer.GetNodesResponse)}
  *     callback The callback function(error, response)
  * @return {!grpc.web.ClientReadableStream<!proto.observer.GetNodesResponse>|undefined}
  *     The XHR Node Readable Stream
@@ -368,7 +292,7 @@ proto.observer.ObserverClient.prototype.getNodes =
 /**
  * @param {!proto.observer.GetNodesRequest} request The
  *     request proto
- * @param {?Object<string, string>} metadata User defined
+ * @param {?Object<string, string>=} metadata User defined
  *     call metadata
  * @return {!Promise<!proto.observer.GetNodesResponse>}
  *     Promise that resolves to the response
@@ -406,30 +330,11 @@ const methodDescriptor_Observer_ServerStatus = new grpc.web.MethodDescriptor(
 
 
 /**
- * @const
- * @type {!grpc.web.AbstractClientBase.MethodInfo<
- *   !proto.observer.ServerStatusRequest,
- *   !proto.observer.ServerStatusResponse>}
- */
-const methodInfo_Observer_ServerStatus = new grpc.web.AbstractClientBase.MethodInfo(
-  proto.observer.ServerStatusResponse,
-  /**
-   * @param {!proto.observer.ServerStatusRequest} request
-   * @return {!Uint8Array}
-   */
-  function(request) {
-    return request.serializeBinary();
-  },
-  proto.observer.ServerStatusResponse.deserializeBinary
-);
-
-
-/**
  * @param {!proto.observer.ServerStatusRequest} request The
  *     request proto
  * @param {?Object<string, string>} metadata User defined
  *     call metadata
- * @param {function(?grpc.web.Error, ?proto.observer.ServerStatusResponse)}
+ * @param {function(?grpc.web.RpcError, ?proto.observer.ServerStatusResponse)}
  *     callback The callback function(error, response)
  * @return {!grpc.web.ClientReadableStream<!proto.observer.ServerStatusResponse>|undefined}
  *     The XHR Node Readable Stream
@@ -448,7 +353,7 @@ proto.observer.ObserverClient.prototype.serverStatus =
 /**
  * @param {!proto.observer.ServerStatusRequest} request The
  *     request proto
- * @param {?Object<string, string>} metadata User defined
+ * @param {?Object<string, string>=} metadata User defined
  *     call metadata
  * @return {!Promise<!proto.observer.ServerStatusResponse>}
  *     Promise that resolves to the response

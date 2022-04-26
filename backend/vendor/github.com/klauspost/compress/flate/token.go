@@ -13,17 +13,14 @@ import (
 )
 
 const (
-	// From top
 	// 2 bits:   type   0 = literal  1=EOF  2=Match   3=Unused
 	// 8 bits:   xlength = length - MIN_MATCH_LENGTH
-	// 5 bits    offsetcode
-	// 16 bits   xoffset = offset - MIN_OFFSET_SIZE, or literal
-	lengthShift         = 22
-	offsetMask          = 1<<lengthShift - 1
-	typeMask            = 3 << 30
-	literalType         = 0 << 30
-	matchType           = 1 << 30
-	matchOffsetOnlyMask = 0xffff
+	// 22 bits   xoffset = offset - MIN_OFFSET_SIZE, or literal
+	lengthShift = 22
+	offsetMask  = 1<<lengthShift - 1
+	typeMask    = 3 << 30
+	literalType = 0 << 30
+	matchType   = 1 << 30
 )
 
 // The length code for length X (MIN_MATCH_LENGTH <= X <= MAX_MATCH_LENGTH)
@@ -190,7 +187,7 @@ func (t *tokens) indexTokens(in []token) {
 			t.AddLiteral(tok.literal())
 			continue
 		}
-		t.AddMatch(uint32(tok.length()), tok.offset()&matchOffsetOnlyMask)
+		t.AddMatch(uint32(tok.length()), tok.offset())
 	}
 }
 
@@ -235,7 +232,7 @@ func (t *tokens) EstimatedBits() int {
 		for _, v := range t.litHist[:] {
 			if v > 0 {
 				n := float32(v)
-				shannon += atLeastOne(-mFastLog2(n*invTotal)) * n
+				shannon += -mFastLog2(n*invTotal) * n
 			}
 		}
 		// Just add 15 for EOB
@@ -243,7 +240,7 @@ func (t *tokens) EstimatedBits() int {
 		for i, v := range t.extraHist[1 : literalCount-256] {
 			if v > 0 {
 				n := float32(v)
-				shannon += atLeastOne(-mFastLog2(n*invTotal)) * n
+				shannon += -mFastLog2(n*invTotal) * n
 				bits += int(lengthExtraBits[i&31]) * int(v)
 				nMatches += int(v)
 			}
@@ -254,7 +251,7 @@ func (t *tokens) EstimatedBits() int {
 		for i, v := range t.offHist[:offsetCodeCount] {
 			if v > 0 {
 				n := float32(v)
-				shannon += atLeastOne(-mFastLog2(n*invTotal)) * n
+				shannon += -mFastLog2(n*invTotal) * n
 				bits += int(offsetExtraBits[i&31]) * int(v)
 			}
 		}
@@ -273,13 +270,11 @@ func (t *tokens) AddMatch(xlength uint32, xoffset uint32) {
 			panic(fmt.Errorf("invalid offset: %v", xoffset))
 		}
 	}
-	oCode := offsetCode(xoffset)
-	xoffset |= oCode << 16
 	t.nLits++
-
-	t.extraHist[lengthCodes1[uint8(xlength)]]++
-	t.offHist[oCode]++
+	lengthCode := lengthCodes1[uint8(xlength)] & 31
 	t.tokens[t.n] = token(matchType | xlength<<lengthShift | xoffset)
+	t.extraHist[lengthCode]++
+	t.offHist[offsetCode(xoffset)&31]++
 	t.n++
 }
 
@@ -291,8 +286,7 @@ func (t *tokens) AddMatchLong(xlength int32, xoffset uint32) {
 			panic(fmt.Errorf("invalid offset: %v", xoffset))
 		}
 	}
-	oc := offsetCode(xoffset)
-	xoffset |= oc << 16
+	oc := offsetCode(xoffset) & 31
 	for xlength > 0 {
 		xl := xlength
 		if xl > 258 {
@@ -300,11 +294,12 @@ func (t *tokens) AddMatchLong(xlength int32, xoffset uint32) {
 			xl = 258 - baseMatchLength
 		}
 		xlength -= xl
-		xl -= baseMatchLength
+		xl -= 3
 		t.nLits++
-		t.extraHist[lengthCodes1[uint8(xl)]]++
-		t.offHist[oc]++
+		lengthCode := lengthCodes1[uint8(xl)] & 31
 		t.tokens[t.n] = token(matchType | uint32(xl)<<lengthShift | xoffset)
+		t.extraHist[lengthCode]++
+		t.offHist[oc]++
 		t.n++
 	}
 }

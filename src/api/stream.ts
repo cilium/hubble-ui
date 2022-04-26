@@ -1,7 +1,7 @@
 import { Message as ProtobufMessage } from 'google-protobuf';
 import {
   ClientReadableStream as GrpcStream,
-  Error as GrpcError,
+  RpcError,
   Status as GrpcStatus,
 } from 'grpc-web';
 import _ from 'lodash';
@@ -20,7 +20,7 @@ export enum StreamEvent {
 export type TypedHandler<T> = {
   [StreamEvent.DATA]: (data: T) => void;
   [StreamEvent.BATCH_DRAIN]: (data: T[]) => void;
-  [StreamEvent.ERROR]: (error: GrpcError) => void;
+  [StreamEvent.ERROR]: (error: RpcError) => void;
   [StreamEvent.END]: () => void;
   [StreamEvent.STATUS]: (status: GrpcStatus) => void;
 };
