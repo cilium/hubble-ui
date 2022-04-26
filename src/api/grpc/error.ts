@@ -1,16 +1,15 @@
-import { Error as GrpcError, StatusCode } from 'grpc-web';
+import { RpcError, StatusCode } from 'grpc-web';
 
 // TODO: provide additional getters if needed
 export class GrpcWrappedError implements Error {
-  private err: GrpcError;
+  private err: RpcError;
 
-  public static new(err: GrpcError | GrpcWrappedError): GrpcWrappedError {
+  public static new(err: RpcError): GrpcWrappedError {
     return new GrpcWrappedError(err);
   }
 
-  constructor(err: GrpcError | GrpcWrappedError) {
+  constructor(err: RpcError) {
     this.err = err;
-    if (err instanceof GrpcWrappedError) return err;
   }
 
   public get code() {
@@ -25,7 +24,7 @@ export class GrpcWrappedError implements Error {
     return GrpcWrappedError.name;
   }
 
-  public get grpcError(): GrpcError {
+  public get grpcError(): RpcError {
     return this.err;
   }
 

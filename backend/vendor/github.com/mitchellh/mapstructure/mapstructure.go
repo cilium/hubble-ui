@@ -684,12 +684,16 @@ func (d *Decoder) decodeUint(name string, data interface{}, val reflect.Value) e
 		}
 	case dataType.PkgPath() == "encoding/json" && dataType.Name() == "Number":
 		jn := data.(json.Number)
-		i, err := strconv.ParseUint(string(jn), 0, 64)
+		i, err := jn.Int64()
 		if err != nil {
 			return fmt.Errorf(
 				"error decoding json.Number into %s: %s", name, err)
 		}
-		val.SetUint(i)
+		if i < 0 && !d.config.WeaklyTypedInput {
+			return fmt.Errorf("cannot parse '%s', %d overflows uint",
+				name, i)
+		}
+		val.SetUint(uint64(i))
 	default:
 		return fmt.Errorf(
 			"'%s' expected type '%s', got unconvertible type '%s', value: '%v'",

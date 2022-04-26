@@ -440,7 +440,8 @@ func (d *compressor) deflateLazy() {
 			// index and index-1 are already inserted. If there is not enough
 			// lookahead, the last two strings are not inserted into the hash
 			// table.
-			newIndex := s.index + prevLength - 1
+			var newIndex int
+			newIndex = s.index + prevLength - 1
 			// Calculate missing hashes
 			end := newIndex
 			if end > s.maxInsertIndex {
@@ -644,15 +645,15 @@ func (d *compressor) init(w io.Writer, level int) (err error) {
 		d.fill = (*compressor).fillBlock
 		d.step = (*compressor).store
 	case level == ConstantCompression:
-		d.w.logNewTablePenalty = 10
-		d.window = make([]byte, 32<<10)
+		d.w.logNewTablePenalty = 4
+		d.window = make([]byte, maxStoreBlockSize)
 		d.fill = (*compressor).fillBlock
 		d.step = (*compressor).storeHuff
 	case level == DefaultCompression:
 		level = 5
 		fallthrough
 	case level >= 1 && level <= 6:
-		d.w.logNewTablePenalty = 8
+		d.w.logNewTablePenalty = 6
 		d.fast = newFastEnc(level)
 		d.window = make([]byte, maxStoreBlockSize)
 		d.fill = (*compressor).fillBlock

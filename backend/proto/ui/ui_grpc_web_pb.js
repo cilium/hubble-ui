@@ -29,7 +29,7 @@ proto.ui = require('./ui_pb.js');
 /**
  * @param {string} hostname
  * @param {?Object} credentials
- * @param {?Object} options
+ * @param {?grpc.web.ClientOptions} options
  * @constructor
  * @struct
  * @final
@@ -37,7 +37,7 @@ proto.ui = require('./ui_pb.js');
 proto.ui.UIClient =
     function(hostname, credentials, options) {
   if (!options) options = {};
-  options['format'] = 'text';
+  options.format = 'text';
 
   /**
    * @private @const {!grpc.web.GrpcWebClientBase} The client
@@ -55,7 +55,7 @@ proto.ui.UIClient =
 /**
  * @param {string} hostname
  * @param {?Object} credentials
- * @param {?Object} options
+ * @param {?grpc.web.ClientOptions} options
  * @constructor
  * @struct
  * @final
@@ -63,7 +63,7 @@ proto.ui.UIClient =
 proto.ui.UIPromiseClient =
     function(hostname, credentials, options) {
   if (!options) options = {};
-  options['format'] = 'text';
+  options.format = 'text';
 
   /**
    * @private @const {!grpc.web.GrpcWebClientBase} The client
@@ -101,27 +101,8 @@ const methodDescriptor_UI_GetEvents = new grpc.web.MethodDescriptor(
 
 
 /**
- * @const
- * @type {!grpc.web.AbstractClientBase.MethodInfo<
- *   !proto.ui.GetEventsRequest,
- *   !proto.ui.GetEventsResponse>}
- */
-const methodInfo_UI_GetEvents = new grpc.web.AbstractClientBase.MethodInfo(
-  proto.ui.GetEventsResponse,
-  /**
-   * @param {!proto.ui.GetEventsRequest} request
-   * @return {!Uint8Array}
-   */
-  function(request) {
-    return request.serializeBinary();
-  },
-  proto.ui.GetEventsResponse.deserializeBinary
-);
-
-
-/**
  * @param {!proto.ui.GetEventsRequest} request The request proto
- * @param {?Object<string, string>} metadata User defined
+ * @param {?Object<string, string>=} metadata User defined
  *     call metadata
  * @return {!grpc.web.ClientReadableStream<!proto.ui.GetEventsResponse>}
  *     The XHR Node Readable Stream
@@ -138,7 +119,7 @@ proto.ui.UIClient.prototype.getEvents =
 
 /**
  * @param {!proto.ui.GetEventsRequest} request The request proto
- * @param {?Object<string, string>} metadata User defined
+ * @param {?Object<string, string>=} metadata User defined
  *     call metadata
  * @return {!grpc.web.ClientReadableStream<!proto.ui.GetEventsResponse>}
  *     The XHR Node Readable Stream
@@ -176,30 +157,11 @@ const methodDescriptor_UI_GetStatus = new grpc.web.MethodDescriptor(
 
 
 /**
- * @const
- * @type {!grpc.web.AbstractClientBase.MethodInfo<
- *   !proto.ui.GetStatusRequest,
- *   !proto.ui.GetStatusResponse>}
- */
-const methodInfo_UI_GetStatus = new grpc.web.AbstractClientBase.MethodInfo(
-  ui_status_pb.GetStatusResponse,
-  /**
-   * @param {!proto.ui.GetStatusRequest} request
-   * @return {!Uint8Array}
-   */
-  function(request) {
-    return request.serializeBinary();
-  },
-  ui_status_pb.GetStatusResponse.deserializeBinary
-);
-
-
-/**
  * @param {!proto.ui.GetStatusRequest} request The
  *     request proto
  * @param {?Object<string, string>} metadata User defined
  *     call metadata
- * @param {function(?grpc.web.Error, ?proto.ui.GetStatusResponse)}
+ * @param {function(?grpc.web.RpcError, ?proto.ui.GetStatusResponse)}
  *     callback The callback function(error, response)
  * @return {!grpc.web.ClientReadableStream<!proto.ui.GetStatusResponse>|undefined}
  *     The XHR Node Readable Stream
@@ -218,7 +180,7 @@ proto.ui.UIClient.prototype.getStatus =
 /**
  * @param {!proto.ui.GetStatusRequest} request The
  *     request proto
- * @param {?Object<string, string>} metadata User defined
+ * @param {?Object<string, string>=} metadata User defined
  *     call metadata
  * @return {!Promise<!proto.ui.GetStatusResponse>}
  *     Promise that resolves to the response
@@ -256,27 +218,8 @@ const methodDescriptor_UI_GetControlStream = new grpc.web.MethodDescriptor(
 
 
 /**
- * @const
- * @type {!grpc.web.AbstractClientBase.MethodInfo<
- *   !proto.ui.GetControlStreamRequest,
- *   !proto.ui.GetControlStreamResponse>}
- */
-const methodInfo_UI_GetControlStream = new grpc.web.AbstractClientBase.MethodInfo(
-  proto.ui.GetControlStreamResponse,
-  /**
-   * @param {!proto.ui.GetControlStreamRequest} request
-   * @return {!Uint8Array}
-   */
-  function(request) {
-    return request.serializeBinary();
-  },
-  proto.ui.GetControlStreamResponse.deserializeBinary
-);
-
-
-/**
  * @param {!proto.ui.GetControlStreamRequest} request The request proto
- * @param {?Object<string, string>} metadata User defined
+ * @param {?Object<string, string>=} metadata User defined
  *     call metadata
  * @return {!grpc.web.ClientReadableStream<!proto.ui.GetControlStreamResponse>}
  *     The XHR Node Readable Stream
@@ -293,7 +236,7 @@ proto.ui.UIClient.prototype.getControlStream =
 
 /**
  * @param {!proto.ui.GetControlStreamRequest} request The request proto
- * @param {?Object<string, string>} metadata User defined
+ * @param {?Object<string, string>=} metadata User defined
  *     call metadata
  * @return {!grpc.web.ClientReadableStream<!proto.ui.GetControlStreamResponse>}
  *     The XHR Node Readable Stream

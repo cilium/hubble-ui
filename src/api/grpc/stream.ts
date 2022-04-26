@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import {
   ClientReadableStream,
-  Error as GrpcError,
+  RpcError,
   Status as GrpcStatus,
   Metadata as GrpcMetadata,
 } from 'grpc-web';
@@ -216,7 +216,7 @@ export class GRPCStream<T, H extends HandlerTypes = {}> extends EventEmitter<
       this.emitter.emit(GRPCStreamEvent.Metadata, md);
     };
 
-    const onError = (err: GrpcError) => {
+    const onError = (err: RpcError) => {
       const wrapped = GrpcWrappedError.new(err);
       this.emitter.emit(GRPCStreamEvent.Error, wrapped);
 
@@ -266,7 +266,7 @@ export class GRPCStream<T, H extends HandlerTypes = {}> extends EventEmitter<
         if (underlyingStream == null) return;
 
         const stream = new GRPCStream(underlyingStream, { caching: true });
-        await stream.connect().catch((err: GrpcError) => {
+        await stream.connect().catch((err: RpcError) => {
           this.emitter.emit(
             GRPCStreamEvent.ReconnectingFailed,
             GrpcWrappedError.new(err),
