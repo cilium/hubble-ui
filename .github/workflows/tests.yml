@@ -39,7 +39,7 @@ jobs:
           go mod verify
           test -z "$(git status --porcelain)" || (echo "please run 'go mod tidy && go mod vendor', and submit your changes"; exit 1)
       - name: Run Go static checks
-        uses: golangci/golangci-lint-action@v2.5.2
+        uses: golangci/golangci-lint-action@v3.2.0
         with:
           working-directory: ./backend
           version: v1.45.2
