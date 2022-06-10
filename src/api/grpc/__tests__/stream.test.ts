@@ -3,8 +3,9 @@ import { DumbResponseStream } from '~/testing/grpc/response-stream';
 // import { GrpcWrappedError } from '../error';
 
 describe('GRPCStream', () => {
+  jest.setTimeout(5 * 1000 * 60);
+
   test('external data handler not dropped after reconnect', async () => {
-    jest.setTimeout(5 * 1000 * 60);
     const TOTAL_RECONNECT_ERRORS = 3;
     let reconnectAttempt = 0;
 
