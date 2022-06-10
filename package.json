@@ -97,6 +97,7 @@
     "husky": "7.0.4",
     "identity-obj-proxy": "3.0.0",
     "jest": "^28.1.1",
+    "jest-environment-jsdom": "^28.1.1",
     "lint-staged": "10.2.11",
     "mini-css-extract-plugin": "2.6.0",
     "node-sass-package-importer": "^3.0.4",
