@@ -3,7 +3,7 @@ module github.com/cilium/hubble-ui/backend
 go 1.18
 
 require (
-	github.com/cilium/cilium v1.11.4
+	github.com/cilium/cilium v1.11.5
 	github.com/cilium/hubble v0.9.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/gops v0.3.22
@@ -78,5 +78,5 @@ replace (
 	github.com/miekg/dns => github.com/cilium/dns v1.1.4-0.20190417235132-8e25ec9a0ff3
 	github.com/optiopay/kafka => github.com/cilium/kafka v0.0.0-20180809090225-01ce283b732b
 	go.universe.tf/metallb => github.com/cilium/metallb v0.1.1-0.20210831235406-48667b93284d
-	sigs.k8s.io/controller-tools => github.com/christarazi/controller-tools v0.6.2
+	sigs.k8s.io/controller-tools => github.com/cilium/controller-tools v0.6.2
 )
