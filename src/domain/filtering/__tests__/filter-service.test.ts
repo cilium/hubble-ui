@@ -58,6 +58,10 @@ describe('filterService', () => {
   const host = ServiceCard.fromService(services.host);
   const remoteNode = ServiceCard.fromService(services.remoteNode);
   const kubeDns = ServiceCard.fromService(services.kubeDNS);
+  const kubeApiServer = ServiceCard.fromService(services.kubeApiServer);
+  const worldKubeApiServer = ServiceCard.fromService(
+    services.worldKubeApiServer,
+  );
 
   test('mock data sanity check', () => {
     expect(regular.isWorld).toBe(false);
@@ -65,30 +69,49 @@ describe('filterService', () => {
     expect(regular.isKubeDNS).toBe(false);
     expect(regular.isPrometheusApp).toBe(false);
     expect(regular.isRemoteNode).toBe(false);
+    expect(regular.isKubeApiServer).toBe(false);
 
     expect(world.isWorld).toBe(true);
     expect(world.isHost).toBe(false);
     expect(world.isKubeDNS).toBe(false);
     expect(world.isPrometheusApp).toBe(false);
     expect(world.isRemoteNode).toBe(false);
+    expect(world.isKubeApiServer).toBe(false);
 
     expect(host.isWorld).toBe(false);
     expect(host.isHost).toBe(true);
     expect(host.isKubeDNS).toBe(false);
     expect(host.isPrometheusApp).toBe(false);
     expect(host.isRemoteNode).toBe(false);
+    expect(host.isKubeApiServer).toBe(false);
 
     expect(remoteNode.isWorld).toBe(false);
     expect(remoteNode.isHost).toBe(false);
     expect(remoteNode.isKubeDNS).toBe(false);
     expect(remoteNode.isPrometheusApp).toBe(false);
     expect(remoteNode.isRemoteNode).toBe(true);
+    expect(remoteNode.isKubeApiServer).toBe(false);
 
     expect(kubeDns.isWorld).toBe(false);
     expect(kubeDns.isHost).toBe(false);
     expect(kubeDns.isKubeDNS).toBe(true);
     expect(kubeDns.isPrometheusApp).toBe(false);
     expect(kubeDns.isRemoteNode).toBe(false);
+    expect(kubeDns.isKubeApiServer).toBe(false);
+
+    expect(kubeApiServer.isWorld).toBe(false);
+    expect(kubeApiServer.isHost).toBe(false);
+    expect(kubeApiServer.isKubeDNS).toBe(false);
+    expect(kubeApiServer.isPrometheusApp).toBe(false);
+    expect(kubeApiServer.isRemoteNode).toBe(false);
+    expect(kubeApiServer.isKubeApiServer).toBe(true);
+
+    expect(worldKubeApiServer.isWorld).toBe(true);
+    expect(worldKubeApiServer.isHost).toBe(false);
+    expect(worldKubeApiServer.isKubeDNS).toBe(false);
+    expect(worldKubeApiServer.isPrometheusApp).toBe(false);
+    expect(worldKubeApiServer.isRemoteNode).toBe(false);
+    expect(worldKubeApiServer.isKubeApiServer).toBe(true);
   });
 
   test('prepared filter entries sanity check', () => {
@@ -246,6 +269,151 @@ describe('filterService', () => {
     expect(stay).toBe(true);
   });
 
+  test('kubeApiServer > matches (skipkubeApiServer = true)', () => {
+    const filters: Filters = Filters.fromObject({
+      skipKubeApiServer: true,
+    });
+
+    const stay = filterService(kubeApiServer, filters);
+    expect(stay).toBe(false);
+  });
+
+  test('kubeApiServer > matches (skipKubeApiServer = false)', () => {
+    const filters: Filters = Filters.fromObject({
+      skipKubeApiServer: false,
+    });
+
+    const stay = filterService(kubeApiServer, filters);
+    expect(stay).toBe(true);
+  });
+
+  test('kubeApiServer > matches (skipHost = false)', () => {
+    const filters: Filters = Filters.fromObject({
+      skipHost: false,
+    });
+
+    const stay = filterService(kubeApiServer, filters);
+    expect(stay).toBe(true);
+  });
+
+  test('kubeApiServer > doesnt match (skipHost = true)', () => {
+    const filters: Filters = Filters.fromObject({
+      skipHost: true,
+    });
+
+    const stay = filterService(kubeApiServer, filters);
+    expect(stay).toBe(true);
+  });
+
+  test('kubeApiServer > matches (skipKubeDns = false)', () => {
+    const filters: Filters = Filters.fromObject({
+      skipKubeDns: false,
+    });
+
+    const stay = filterService(kubeApiServer, filters);
+    expect(stay).toBe(true);
+  });
+
+  test('kubeApiServer > doesnt match (skipKubeDns = true)', () => {
+    const filters: Filters = Filters.fromObject({
+      skipKubeDns: true,
+    });
+
+    const stay = filterService(kubeApiServer, filters);
+    expect(stay).toBe(true);
+  });
+
+  test('kubeApiServer > matches (skipPrometheusApp = false)', () => {
+    const filters: Filters = Filters.fromObject({
+      skipPrometheusApp: false,
+    });
+
+    const stay = filterService(kubeApiServer, filters);
+    expect(stay).toBe(true);
+  });
+
+  test('kubeApiServer > doesnt match (skipPrometheusApp = true)', () => {
+    const filters: Filters = Filters.fromObject({
+      skipPrometheusApp: true,
+    });
+
+    const stay = filterService(kubeApiServer, filters);
+    expect(stay).toBe(true);
+  });
+
+  //
+  test('worldKubeApiServer > matches (skipWorldKubeApiServer = true)', () => {
+    const filters: Filters = Filters.fromObject({
+      skipKubeApiServer: true,
+    });
+
+    const stay = filterService(worldKubeApiServer, filters);
+    expect(stay).toBe(false);
+  });
+
+  test('worldKubeApiServer > matches (skipWorldKubeApiServer = false)', () => {
+    const filters: Filters = Filters.fromObject({
+      skipKubeApiServer: false,
+    });
+
+    const stay = filterService(worldKubeApiServer, filters);
+    expect(stay).toBe(true);
+  });
+
+  test('worldKubeApiServer > matches (skipHost = false)', () => {
+    const filters: Filters = Filters.fromObject({
+      skipHost: false,
+    });
+
+    const stay = filterService(worldKubeApiServer, filters);
+    expect(stay).toBe(true);
+  });
+
+  test('worldKubeApiServer > doesnt match (skipHost = true)', () => {
+    const filters: Filters = Filters.fromObject({
+      skipHost: true,
+    });
+
+    const stay = filterService(worldKubeApiServer, filters);
+    expect(stay).toBe(true);
+  });
+
+  test('worldKubeApiServer > matches (skipKubeDns = false)', () => {
+    const filters: Filters = Filters.fromObject({
+      skipKubeDns: false,
+    });
+
+    const stay = filterService(worldKubeApiServer, filters);
+    expect(stay).toBe(true);
+  });
+
+  test('worldKubeApiServer > doesnt match (skipKubeDns = true)', () => {
+    const filters: Filters = Filters.fromObject({
+      skipKubeDns: true,
+    });
+
+    const stay = filterService(worldKubeApiServer, filters);
+    expect(stay).toBe(true);
+  });
+
+  test('worldKubeApiServer > matches (skipPrometheusApp = false)', () => {
+    const filters: Filters = Filters.fromObject({
+      skipPrometheusApp: false,
+    });
+
+    const stay = filterService(worldKubeApiServer, filters);
+    expect(stay).toBe(true);
+  });
+
+  test('worldKubeApiServer > doesnt match (skipPrometheusApp = true)', () => {
+    const filters: Filters = Filters.fromObject({
+      skipPrometheusApp: true,
+    });
+
+    const stay = filterService(worldKubeApiServer, filters);
+    expect(stay).toBe(true);
+  });
+
   testFilterEntry(
     (svcName: string, tnum: number) =>
       `identity > to matches ${tnum} (${svcName})`,
@@ -377,7 +545,7 @@ describe('filterService', () => {
       `label > from reserved world matches ${tnum} (${svcName})`,
     filterEntries.fromLabelWorld!,
     true,
-    { world },
+    { world, worldKubeApiServer },
   );
 
   testFilterEntry(
@@ -390,6 +558,7 @@ describe('filterService', () => {
       host,
       remoteNode,
       kubeDns,
+      kubeApiServer,
     },
   );
 
@@ -398,7 +567,7 @@ describe('filterService', () => {
       `label > to reserved world matches ${tnum} (${svcName})`,
     filterEntries.toLabelWorld!,
     true,
-    { world },
+    { world, worldKubeApiServer },
   );
 
   testFilterEntry(
@@ -411,6 +580,7 @@ describe('filterService', () => {
       host,
       remoteNode,
       kubeDns,
+      kubeApiServer,
     },
   );
 
@@ -419,7 +589,7 @@ describe('filterService', () => {
       `label > both reserved world matches ${tnum} (${svcName})`,
     filterEntries.bothLabelWorld!,
     true,
-    { world },
+    { world, worldKubeApiServer },
   );
 
   testFilterEntry(
@@ -432,6 +602,7 @@ describe('filterService', () => {
       host,
       remoteNode,
       kubeDns,
+      kubeApiServer,
     },
   );
 
@@ -452,6 +623,8 @@ describe('filterService', () => {
       host,
       remoteNode,
       kubeDns,
+      kubeApiServer,
+      worldKubeApiServer,
     },
   );
 
@@ -473,6 +646,8 @@ describe('filterService', () => {
       host,
       remoteNode,
       kubeDns,
+      kubeApiServer,
+      worldKubeApiServer,
     },
   );
 
@@ -494,6 +669,8 @@ describe('filterService', () => {
       host,
       remoteNode,
       kubeDns,
+      kubeApiServer,
+      worldKubeApiServer,
     },
   );
 

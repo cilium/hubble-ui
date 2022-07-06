@@ -8,13 +8,14 @@ type ReservedLabel string
 type SpecialLabel string
 
 const (
-	ReservedLabelHost       ReservedLabel = "reserved:host"
-	ReservedLabelWorld      ReservedLabel = "reserved:world"
-	ReservedLabelHealth     ReservedLabel = "reserved:health"
-	ReservedLabelInit       ReservedLabel = "reserved:init"
-	ReservedLabelRemoteNode ReservedLabel = "reserved:remote-node"
-	ReservedLabelUnmanaged  ReservedLabel = "reserved:unmanaged"
-	ReservedLabelUnknown    ReservedLabel = "reserved:unknown"
+	ReservedLabelHost          ReservedLabel = "reserved:host"
+	ReservedLabelWorld         ReservedLabel = "reserved:world"
+	ReservedLabelHealth        ReservedLabel = "reserved:health"
+	ReservedLabelInit          ReservedLabel = "reserved:init"
+	ReservedLabelRemoteNode    ReservedLabel = "reserved:remote-node"
+	ReservedLabelUnmanaged     ReservedLabel = "reserved:unmanaged"
+	ReservedLabelUnknown       ReservedLabel = "reserved:unknown"
+	ReservedLabelKubeAPIServer ReservedLabel = "reserved:kube-apiserver"
 
 	SpecialLabelKubeDNS    SpecialLabel = "k8s:k8s-app=kube-dns"
 	SpecialLabelPrometheus SpecialLabel = "k8s:app=prometheus"
@@ -26,14 +27,15 @@ var (
 )
 
 type LabelProps struct {
-	IsHost       bool
-	IsWorld      bool
-	IsRemoteNode bool
-	IsKubeDNS    bool
-	IsInit       bool
-	IsHealth     bool
-	IsPrometheus bool
-	AppName      *string
+	IsHost          bool
+	IsWorld         bool
+	IsRemoteNode    bool
+	IsKubeDNS       bool
+	IsKubeAPIServer bool
+	IsInit          bool
+	IsHealth        bool
+	IsPrometheus    bool
+	AppName         *string
 }
 
 func Props(labels []string) *LabelProps {
@@ -52,6 +54,9 @@ func Props(labels []string) *LabelProps {
 		props.IsKubeDNS = props.IsKubeDNS || lbl == string(SpecialLabelKubeDNS)
 		props.IsPrometheus = props.IsPrometheus || k == string(
 			SpecialLabelPrometheus,
+		)
+		props.IsKubeAPIServer = props.IsKubeAPIServer || k == string(
+			ReservedLabelKubeAPIServer,
 		)
 
 		if props.AppName != nil {

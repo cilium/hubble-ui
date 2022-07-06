@@ -23,6 +23,7 @@ export default class ControlStore {
   public showKubeDns = false;
   public showRemoteNode = false;
   public showPrometheusApp = false;
+  public showKubeApiServer = false;
 
   public transferState: TransferState = new TransferState();
 
@@ -135,6 +136,16 @@ export default class ControlStore {
     return this.setShowPrometheusApp(!this.showPrometheusApp);
   }
 
+  public setShowKubeApiServer(s: boolean): boolean {
+    this.showKubeApiServer = s;
+
+    return s;
+  }
+
+  public toggleShowKubeApiServer(): boolean {
+    return this.setShowKubeApiServer(!this.showKubeApiServer);
+  }
+
   public setFilters(f: Filters) {
     this.currentNamespace = f.namespace ?? null;
     this.verdict = f.verdict ?? null;
@@ -144,6 +155,7 @@ export default class ControlStore {
     this.showKubeDns = !f.skipKubeDns;
     this.showRemoteNode = !f.skipRemoteNode;
     this.showPrometheusApp = !f.skipPrometheusApp;
+    this.showKubeApiServer = !f.skipKubeApiServer;
   }
 
   public setStatus(st: Status) {
@@ -178,6 +190,7 @@ export default class ControlStore {
       skipKubeDns: !this.showKubeDns,
       skipRemoteNode: !this.showRemoteNode,
       skipPrometheusApp: !this.showPrometheusApp,
+      skipKubeApiServer: !this.showKubeApiServer,
     });
   }
 }

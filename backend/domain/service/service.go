@@ -120,14 +120,18 @@ func getServiceID(
 	ep *flowpb.Endpoint,
 	dnsNames []string,
 	lblProps *labels.LabelProps,
-	isWorldReceiver bool,
+	isReceiver bool,
 ) string {
+	if lblProps.IsKubeAPIServer {
+		return fmt.Sprintf("%v", ep.Identity)
+	}
+
 	if !lblProps.IsWorld {
 		return fmt.Sprintf("%v", ep.Identity)
 	}
 
 	sideStr := "sender"
-	if isWorldReceiver {
+	if isReceiver {
 		sideStr = "receiver"
 	}
 

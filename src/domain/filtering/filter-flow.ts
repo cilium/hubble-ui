@@ -1,10 +1,5 @@
-import { Labels } from '~/domain/labels';
-import { Flow, Verdict } from '~/domain/flows';
-import {
-  FilterEntry,
-  Kind as FilterKind,
-  Direction as FilterDirection,
-} from './filter-entry';
+import { Flow } from '~/domain/flows';
+import { FilterEntry, Kind as FilterKind } from './filter-entry';
 
 import { Filters } from '~/domain/filtering';
 
@@ -32,6 +27,13 @@ export const filterFlow = (flow: Flow, filters: Filters): boolean => {
     const destIsRemoteNode = flow.destinationLabelProps.isRemoteNode;
 
     if (sourceIsRemoteNode || destIsRemoteNode) return false;
+  }
+
+  if (!!filters.skipKubeApiServer) {
+    const sourceIsKubeApiServer = flow.sourceLabelProps.isKubeApiServer;
+    const destIsKubeApiServer = flow.destinationLabelProps.isKubeApiServer;
+
+    if (sourceIsKubeApiServer || destIsKubeApiServer) return false;
   }
 
   // NOTE: destination port 53 and apporpriate destination label are exactly

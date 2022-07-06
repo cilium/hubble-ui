@@ -33,6 +33,11 @@ describe('extract app name', () => {
     appNameTest(['reserved:remote-node='], 'remote-node');
   });
 
+  test('from reserved kube-apiserver', () => {
+    appNameTest(['reserved:kube-apiserver'], 'kube-apiserver');
+    appNameTest(['reserved:kube-apiserver='], 'kube-apiserver');
+  });
+
   test('from reserved unmanaged', () => {
     appNameTest(['reserved:unmanaged'], 'unmanaged');
     appNameTest(['reserved:unmanaged='], 'unmanaged');

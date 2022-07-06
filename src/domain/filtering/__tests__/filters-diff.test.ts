@@ -27,6 +27,7 @@ const testFieldsDiff = (testName: string, fobj: Partial<FiltersObject>) => {
     'skipKubeDns',
     'skipRemoteNode',
     'skipPrometheusApp',
+    'skipKubeApiServer',
   ];
 
   test(testName, () => {
@@ -66,6 +67,7 @@ describe('sanity check', () => {
     expect(diff.skipKubeDns.changed).toBe(false);
     expect(diff.skipRemoteNode.changed).toBe(false);
     expect(diff.skipPrometheusApp.changed).toBe(false);
+    expect(diff.skipKubeApiServer.changed).toBe(false);
   });
 });
 
@@ -82,6 +84,7 @@ describe('FiltersDiff', () => {
     expect(diff.skipKubeDns.changed).toBe(false);
     expect(diff.skipRemoteNode.changed).toBe(false);
     expect(diff.skipPrometheusApp.changed).toBe(false);
+    expect(diff.skipKubeApiServer.changed).toBe(false);
   });
 
   test('test 2 - null / default filters', () => {

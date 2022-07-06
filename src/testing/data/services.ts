@@ -81,6 +81,27 @@ export const kubeDNS: HubbleService = {
   ...restOfService,
 };
 
+export const kubeApiServer: HubbleService = {
+  id: 'kube-apiserver',
+  name: 'kube-apiserver',
+  namespace: 'kube-apiserver-ns',
+  labels: [Labels.toKV(ReservedLabel.KubeApiServer)],
+  dnsNames: [],
+  ...restOfService,
+};
+
+export const worldKubeApiServer: HubbleService = {
+  id: 'kube-apiserver',
+  name: 'kube-apiserver',
+  namespace: 'kube-apiserver-ns',
+  labels: [
+    Labels.toKV(ReservedLabel.KubeApiServer),
+    Labels.toKV(ReservedLabel.World),
+  ],
+  dnsNames: [],
+  ...restOfService,
+};
+
 const replaceNsLabel = (lbls: KV[], newNs = 'same-namespace') => {
   return lbls
     .filter(l => l.key != 'k8s:namespace')

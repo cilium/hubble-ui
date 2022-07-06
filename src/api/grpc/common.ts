@@ -77,6 +77,11 @@ export const buildBlacklistFlowFilters = (filters?: Filters): FlowFilter[] => {
     blDstLabelsFilter.addDestinationLabel(SpecialLabel.PrometheusApp);
   }
 
+  if (filters?.skipKubeApiServer) {
+    blSrcLabelsFilter.addSourceLabel(ReservedLabel.KubeApiServer);
+    blDstLabelsFilter.addDestinationLabel(ReservedLabel.KubeApiServer);
+  }
+
   // filter out intermediate dns requests
   const blSrcLocalDnsFilter = new FlowFilter();
   const blDstLocalDnsFilter = new FlowFilter();

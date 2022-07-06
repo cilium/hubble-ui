@@ -245,6 +245,8 @@ export const App = observer((_props: AppProps) => {
       onShowRemoteNodeToggle={store.toggleShowRemoteNode}
       showPrometheusApp={store.controls.showPrometheusApp}
       onShowPrometheusAppToggle={store.toggleShowPrometheusApp}
+      showKubeApiServer={store.controls.showKubeApiServer}
+      onShowKubeApiServerToggle={store.toggleShowKubeApiServer}
     />
   );
 

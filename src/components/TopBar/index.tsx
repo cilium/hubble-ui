@@ -33,6 +33,8 @@ export interface Props {
   onShowRemoteNodeToggle?: () => void;
   showPrometheusApp: boolean;
   onShowPrometheusAppToggle: () => void;
+  showKubeApiServer: boolean;
+  onShowKubeApiServerToggle?: () => void;
 }
 
 export const TopBar = memo<Props>(function TopBar(props) {
@@ -59,6 +61,8 @@ export const TopBar = memo<Props>(function TopBar(props) {
         onShowRemoteNodeToggle={props.onShowRemoteNodeToggle}
         showPrometheusApp={props.showPrometheusApp}
         onShowPrometheusAppToggle={props.onShowPrometheusAppToggle}
+        showKubeApiServer={props.showKubeApiServer}
+        onShowKubeApiServerToggle={props.onShowKubeApiServerToggle}
       />
     </>
   );
