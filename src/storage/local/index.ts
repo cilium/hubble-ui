@@ -6,6 +6,7 @@ const SHOW_HOST_KEY = '@hubble-ui/show-host';
 const SHOW_KUBEDNS_KEY = '@hubble-ui/show-kube-dns';
 const SHOW_REMOTE_NODE_KEY = '@hubble-ui/show-remote-node';
 const SHOW_PROMETHEUS_SERVICE_KEY = '@hubble-ui/show-prometheus-app';
+const SHOW_KUBE_APISERVER = '@hubble-ui/show-kube-apiserver';
 const DETAILS_PANEL_POS = '@hubble-ui/panel-position';
 
 export function getLastNamespace(): string | null {
@@ -67,6 +68,14 @@ export function getShowPrometheusApp(): boolean {
 
 export function saveShowPrometheusApp(val: boolean) {
   localStorage.setItem(SHOW_PROMETHEUS_SERVICE_KEY, val ? 'true' : 'false');
+}
+
+export function getShowKubeApiServer(): boolean {
+  return localStorage.getItem(SHOW_KUBE_APISERVER) === 'true';
+}
+
+export function saveShowKubeApiServer(val: boolean) {
+  localStorage.setItem(SHOW_KUBE_APISERVER, val ? 'true' : 'false');
 }
 
 export function getDetailsPanelTop(): number | null {

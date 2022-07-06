@@ -199,6 +199,10 @@ export class ServiceCard extends AbstractCard {
   public get isPrometheusApp(): boolean {
     return this.labelsProps.isPrometheusApp;
   }
+
+  public get isKubeApiServer(): boolean {
+    return this.labelsProps.isKubeApiServer;
+  }
 }
 
 export default ServiceCard;

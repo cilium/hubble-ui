@@ -18,6 +18,8 @@ interface Props {
   onShowRemoteNodeToggle?: () => void;
   showPrometheusApp: boolean;
   onShowPrometheusAppToggle?: () => void;
+  showKubeApiServer: boolean;
+  onShowKubeApiServerToggle?: () => void;
 }
 
 export const VisualFiltersDropdown = memo<Props>(function VisualFiltersDropdown(
@@ -28,7 +30,8 @@ export const VisualFiltersDropdown = memo<Props>(function VisualFiltersDropdown(
     !props.showHost ||
     !props.showKubeDns ||
     !props.showRemoteNode ||
-    !props.showPrometheusApp;
+    !props.showPrometheusApp ||
+    !props.showKubeApiServer;
 
   const content = (
     <Menu>
@@ -49,6 +52,16 @@ export const VisualFiltersDropdown = memo<Props>(function VisualFiltersDropdown(
             checked={!props.showKubeDns}
             label="Hide kube-dns:53 pod"
             onChange={props.onShowKubeDnsToggle}
+          />
+        }
+      />
+      <MenuItem
+        shouldDismissPopover={false}
+        text={
+          <Checkbox
+            checked={!props.showKubeApiServer}
+            label="Hide kube-apiserver"
+            onChange={props.onShowKubeApiServerToggle}
           />
         }
       />

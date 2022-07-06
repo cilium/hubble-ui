@@ -14,6 +14,7 @@ export class FiltersDiff implements IDiff<Filters> {
       Diff.new(f?.skipKubeDns),
       Diff.new(f?.skipRemoteNode),
       Diff.new(f?.skipPrometheusApp),
+      Diff.new(f?.skipKubeApiServer),
     );
   }
 
@@ -28,6 +29,7 @@ export class FiltersDiff implements IDiff<Filters> {
     diff.skipKubeDns.step(rhs?.skipKubeDns);
     diff.skipRemoteNode.step(rhs?.skipRemoteNode);
     diff.skipPrometheusApp.step(rhs?.skipPrometheusApp);
+    diff.skipKubeApiServer.step(rhs?.skipKubeApiServer);
 
     return diff;
   }
@@ -75,6 +77,7 @@ export class FiltersDiff implements IDiff<Filters> {
     public skipKubeDns: Diff<boolean>,
     public skipRemoteNode: Diff<boolean>,
     public skipPrometheusApp: Diff<boolean>,
+    public skipKubeApiServer: Diff<boolean>,
   ) {}
 
   public invert(): this {
@@ -86,6 +89,7 @@ export class FiltersDiff implements IDiff<Filters> {
     this.skipKubeDns.invert();
     this.skipRemoteNode.invert();
     this.skipPrometheusApp.invert();
+    this.skipKubeApiServer.invert();
 
     return this;
   }
@@ -99,7 +103,8 @@ export class FiltersDiff implements IDiff<Filters> {
       this.skipHost.changed ||
       this.skipKubeDns.changed ||
       this.skipRemoteNode.changed ||
-      this.skipPrometheusApp.changed
+      this.skipPrometheusApp.changed ||
+      this.skipKubeApiServer.changed
     );
   }
 

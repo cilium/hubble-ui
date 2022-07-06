@@ -12,6 +12,7 @@ const assignFilterProps = (to: FiltersObject, from: FiltersObject) => {
     skipKubeDns: from.skipKubeDns,
     skipRemoteNode: from.skipRemoteNode,
     skipPrometheusApp: from.skipPrometheusApp,
+    skipKubeApiServer: from.skipKubeApiServer,
   });
 
   return to;
@@ -26,6 +27,7 @@ export interface FiltersObject {
   skipKubeDns?: boolean;
   skipRemoteNode?: boolean;
   skipPrometheusApp?: boolean;
+  skipKubeApiServer?: boolean;
 }
 
 export type FiltersKey = keyof FiltersObject;
@@ -39,6 +41,7 @@ const defaultFilters: FiltersObject = Object.freeze({
   skipKubeDns: false,
   skipRemoteNode: false,
   skipPrometheusApp: false,
+  skipKubeApiServer: false,
 });
 
 export class Filters implements FiltersObject {
@@ -50,6 +53,7 @@ export class Filters implements FiltersObject {
   public skipKubeDns?: boolean;
   public skipRemoteNode?: boolean;
   public skipPrometheusApp?: boolean;
+  public skipKubeApiServer?: boolean;
 
   public static fromObject(obj: FiltersObject): Filters {
     return new Filters(obj);
@@ -91,7 +95,8 @@ export class Filters implements FiltersObject {
       this.skipHost != rhs.skipHost ||
       this.skipKubeDns != rhs.skipKubeDns ||
       this.skipRemoteNode != rhs.skipRemoteNode ||
-      this.skipPrometheusApp != rhs.skipPrometheusApp
+      this.skipPrometheusApp != rhs.skipPrometheusApp ||
+      this.skipKubeApiServer != rhs.skipKubeApiServer
     ) {
       return false;
     }

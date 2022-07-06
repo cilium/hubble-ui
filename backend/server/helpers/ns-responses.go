@@ -42,7 +42,7 @@ func EventResponseFromNSEvent(e *common.NSEvent) *ui.GetEventsResponse {
 	}
 
 	return &ui.GetEventsResponse{
-		Node:      ns.ClusterName, // not node name but though
+		Node:      "",
 		Timestamp: eventTimestamp,
 		Event:     nsEvent,
 	}

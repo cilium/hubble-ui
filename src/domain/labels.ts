@@ -9,6 +9,7 @@ export interface LabelsProps {
   isInit: boolean;
   isHealth: boolean;
   isPrometheusApp: boolean;
+  isKubeApiServer: boolean;
   appName?: string;
 }
 
@@ -18,6 +19,7 @@ export enum ReservedLabel {
   Health = 'reserved:health',
   Init = 'reserved:init',
   RemoteNode = 'reserved:remote-node',
+  KubeApiServer = 'reserved:kube-apiserver',
   Unmanaged = 'reserved:unmanaged',
   Unknown = 'reserved:unknown',
 }
@@ -145,6 +147,10 @@ export class Labels {
     return Labels.haveReserved(labels, ReservedLabel.RemoteNode);
   }
 
+  public static isKubeApiServer(labels: KV[]): boolean {
+    return Labels.haveReserved(labels, ReservedLabel.KubeApiServer);
+  }
+
   public static detect(labels: KV[]): LabelsProps {
     const props: LabelsProps = {
       isWorld: false,
@@ -154,6 +160,7 @@ export class Labels {
       isKubeDNS: false,
       isHealth: false,
       isPrometheusApp: false,
+      isKubeApiServer: false,
       appName: undefined,
     };
 
@@ -170,6 +177,8 @@ export class Labels {
         !!props.isRemoteNode || nkey === ReservedLabel.RemoteNode;
       props.isPrometheusApp =
         !!props.isPrometheusApp || nkey === SpecialLabel.PrometheusApp;
+      props.isKubeApiServer =
+        !!props.isKubeApiServer || nkey === ReservedLabel.KubeApiServer;
     });
 
     const appName = Labels.findAppNameInLabels(labels);

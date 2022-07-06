@@ -8,6 +8,8 @@ export const filterService = (svc: ServiceCard, filters: Filters): boolean => {
   if (filters.skipHost && svc.isHost) return false;
   if (filters.skipRemoteNode && svc.isRemoteNode) return false;
   if (filters.skipPrometheusApp && svc.isPrometheusApp) return false;
+  if (filters.skipKubeApiServer && svc.isKubeApiServer) return false;
+
   return true;
 };
 
