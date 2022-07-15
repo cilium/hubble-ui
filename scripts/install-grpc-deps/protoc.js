@@ -4,7 +4,7 @@ const { Readable } = require('stream');
 const fs = require('fs-extra');
 const path = require('path');
 const unzipper = require('unzipper');
-const download = require('download');
+const fetch = require('node-fetch');
 
 const VERSION = '3.11.4';
 
@@ -21,10 +21,12 @@ const FILE_NAME = `protoc-${VERSION}-${PLATFORM}-x86_64.zip`;
 const DOWNLOAD_URL = `${DL_PREFIX}/v${VERSION}/${FILE_NAME}`;
 
 const run = async targetDir => {
-  const buffer = await download(DOWNLOAD_URL).catch(err => {
-    console.error(err.message);
-    process.exit(1);
-  });
+  const buffer = await fetch(DOWNLOAD_URL)
+    .then(r => r.buffer())
+    .catch(err => {
+      console.error(err.message);
+      process.exit(1);
+    });
 
   const protocTarget = path.resolve(targetDir, 'protoc');
   await fs.remove(protocTarget).catch(err => {});
