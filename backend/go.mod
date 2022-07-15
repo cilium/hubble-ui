@@ -6,11 +6,11 @@ require (
 	github.com/cilium/cilium v1.11.5
 	github.com/cilium/hubble v0.9.0
 	github.com/golang/protobuf v1.5.2
-	github.com/google/gops v0.3.24
+	github.com/google/gops v0.3.25
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
-	google.golang.org/grpc v1.46.0
+	google.golang.org/grpc v1.48.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
 	google.golang.org/protobuf v1.28.0
 	k8s.io/api v0.24.2
