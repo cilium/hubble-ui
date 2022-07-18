@@ -76,6 +76,9 @@ export class GetFlowsRequest extends jspb.Message {
   getNumber(): number;
   setNumber(value: number): GetFlowsRequest;
 
+  getFirst(): boolean;
+  setFirst(value: boolean): GetFlowsRequest;
+
   getFollow(): boolean;
   setFollow(value: boolean): GetFlowsRequest;
 
@@ -110,6 +113,7 @@ export class GetFlowsRequest extends jspb.Message {
 export namespace GetFlowsRequest {
   export type AsObject = {
     number: number,
+    first: boolean,
     follow: boolean,
     blacklistList: Array<flow_flow_pb.FlowFilter.AsObject>,
     whitelistList: Array<flow_flow_pb.FlowFilter.AsObject>,
@@ -173,6 +177,9 @@ export class GetAgentEventsRequest extends jspb.Message {
   getNumber(): number;
   setNumber(value: number): GetAgentEventsRequest;
 
+  getFirst(): boolean;
+  setFirst(value: boolean): GetAgentEventsRequest;
+
   getFollow(): boolean;
   setFollow(value: boolean): GetAgentEventsRequest;
 
@@ -197,6 +204,7 @@ export class GetAgentEventsRequest extends jspb.Message {
 export namespace GetAgentEventsRequest {
   export type AsObject = {
     number: number,
+    first: boolean,
     follow: boolean,
     since?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     until?: google_protobuf_timestamp_pb.Timestamp.AsObject,
@@ -237,6 +245,9 @@ export class GetDebugEventsRequest extends jspb.Message {
   getNumber(): number;
   setNumber(value: number): GetDebugEventsRequest;
 
+  getFirst(): boolean;
+  setFirst(value: boolean): GetDebugEventsRequest;
+
   getFollow(): boolean;
   setFollow(value: boolean): GetDebugEventsRequest;
 
@@ -261,6 +272,7 @@ export class GetDebugEventsRequest extends jspb.Message {
 export namespace GetDebugEventsRequest {
   export type AsObject = {
     number: number,
+    first: boolean,
     follow: boolean,
     since?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     until?: google_protobuf_timestamp_pb.Timestamp.AsObject,

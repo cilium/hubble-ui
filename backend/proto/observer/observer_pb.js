@@ -857,6 +857,7 @@ proto.observer.GetFlowsRequest.prototype.toObject = function(opt_includeInstance
 proto.observer.GetFlowsRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     number: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    first: jspb.Message.getBooleanFieldWithDefault(msg, 9, false),
     follow: jspb.Message.getBooleanFieldWithDefault(msg, 3, false),
     blacklistList: jspb.Message.toObjectList(msg.getBlacklistList(),
     flow_flow_pb.FlowFilter.toObject, includeInstance),
@@ -903,6 +904,10 @@ proto.observer.GetFlowsRequest.deserializeBinaryFromReader = function(msg, reade
     case 1:
       var value = /** @type {number} */ (reader.readUint64());
       msg.setNumber(value);
+      break;
+    case 9:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setFirst(value);
       break;
     case 3:
       var value = /** @type {boolean} */ (reader.readBool());
@@ -964,6 +969,13 @@ proto.observer.GetFlowsRequest.serializeBinaryToWriter = function(message, write
       f
     );
   }
+  f = message.getFirst();
+  if (f) {
+    writer.writeBool(
+      9,
+      f
+    );
+  }
   f = message.getFollow();
   if (f) {
     writer.writeBool(
@@ -1021,6 +1033,24 @@ proto.observer.GetFlowsRequest.prototype.getNumber = function() {
  */
 proto.observer.GetFlowsRequest.prototype.setNumber = function(value) {
   return jspb.Message.setProto3IntField(this, 1, value);
+};
+
+
+/**
+ * optional bool first = 9;
+ * @return {boolean}
+ */
+proto.observer.GetFlowsRequest.prototype.getFirst = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 9, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.observer.GetFlowsRequest} returns this
+ */
+proto.observer.GetFlowsRequest.prototype.setFirst = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 9, value);
 };
 
 
@@ -1586,6 +1616,7 @@ proto.observer.GetAgentEventsRequest.prototype.toObject = function(opt_includeIn
 proto.observer.GetAgentEventsRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     number: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    first: jspb.Message.getBooleanFieldWithDefault(msg, 9, false),
     follow: jspb.Message.getBooleanFieldWithDefault(msg, 2, false),
     since: (f = msg.getSince()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
     until: (f = msg.getUntil()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f)
@@ -1628,6 +1659,10 @@ proto.observer.GetAgentEventsRequest.deserializeBinaryFromReader = function(msg,
     case 1:
       var value = /** @type {number} */ (reader.readUint64());
       msg.setNumber(value);
+      break;
+    case 9:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setFirst(value);
       break;
     case 2:
       var value = /** @type {boolean} */ (reader.readBool());
@@ -1679,6 +1714,13 @@ proto.observer.GetAgentEventsRequest.serializeBinaryToWriter = function(message,
       f
     );
   }
+  f = message.getFirst();
+  if (f) {
+    writer.writeBool(
+      9,
+      f
+    );
+  }
   f = message.getFollow();
   if (f) {
     writer.writeBool(
@@ -1720,6 +1762,24 @@ proto.observer.GetAgentEventsRequest.prototype.getNumber = function() {
  */
 proto.observer.GetAgentEventsRequest.prototype.setNumber = function(value) {
   return jspb.Message.setProto3IntField(this, 1, value);
+};
+
+
+/**
+ * optional bool first = 9;
+ * @return {boolean}
+ */
+proto.observer.GetAgentEventsRequest.prototype.getFirst = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 9, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.observer.GetAgentEventsRequest} returns this
+ */
+proto.observer.GetAgentEventsRequest.prototype.setFirst = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 9, value);
 };
 
 
@@ -2080,6 +2140,7 @@ proto.observer.GetDebugEventsRequest.prototype.toObject = function(opt_includeIn
 proto.observer.GetDebugEventsRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     number: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    first: jspb.Message.getBooleanFieldWithDefault(msg, 9, false),
     follow: jspb.Message.getBooleanFieldWithDefault(msg, 2, false),
     since: (f = msg.getSince()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
     until: (f = msg.getUntil()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f)
@@ -2122,6 +2183,10 @@ proto.observer.GetDebugEventsRequest.deserializeBinaryFromReader = function(msg,
     case 1:
       var value = /** @type {number} */ (reader.readUint64());
       msg.setNumber(value);
+      break;
+    case 9:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setFirst(value);
       break;
     case 2:
       var value = /** @type {boolean} */ (reader.readBool());
@@ -2173,6 +2238,13 @@ proto.observer.GetDebugEventsRequest.serializeBinaryToWriter = function(message,
       f
     );
   }
+  f = message.getFirst();
+  if (f) {
+    writer.writeBool(
+      9,
+      f
+    );
+  }
   f = message.getFollow();
   if (f) {
     writer.writeBool(
@@ -2214,6 +2286,24 @@ proto.observer.GetDebugEventsRequest.prototype.getNumber = function() {
  */
 proto.observer.GetDebugEventsRequest.prototype.setNumber = function(value) {
   return jspb.Message.setProto3IntField(this, 1, value);
+};
+
+
+/**
+ * optional bool first = 9;
+ * @return {boolean}
+ */
+proto.observer.GetDebugEventsRequest.prototype.getFirst = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 9, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.observer.GetDebugEventsRequest} returns this
+ */
+proto.observer.GetDebugEventsRequest.prototype.setFirst = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 9, value);
 };
 
 
