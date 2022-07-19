@@ -80,7 +80,7 @@
     "@types/url-parse": "^1.4.7",
     "@typescript-eslint/eslint-plugin": "5.21.0",
     "@typescript-eslint/parser": "5.21.0",
-    "autoprefixer": "9.8.5",
+    "autoprefixer": "10.4.7",
     "babel-jest": "^28.1.1",
     "babel-loader": "8.2.5",
     "circular-dependency-plugin": "5.2.2",
