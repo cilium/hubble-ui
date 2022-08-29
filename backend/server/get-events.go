@@ -239,7 +239,7 @@ func extractDerivedEvents(
 		}
 	}
 
-	return
+	return linkResponses, svcResponses
 }
 
 func handleSvc(svc *service.Service, cache *cache.DataCache) *ui.GetEventsResponse {

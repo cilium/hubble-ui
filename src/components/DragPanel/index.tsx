@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { animated } from 'react-spring';
-import { useDrag } from 'react-use-gesture';
+import { useDrag } from '@use-gesture/react';
 
 import {
   FlowsTableColumnsSelector,
@@ -18,7 +18,7 @@ export interface Props {
 
 export const Component = function DragPanelComponent(props: Props) {
   const bind = useDrag(e => {
-    const dy = e.delta[1];
+    const dy = (e as any).delta[1];
     props.onResize && props.onResize(dy);
   });
 

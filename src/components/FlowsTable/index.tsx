@@ -1,5 +1,5 @@
-import React, { memo, useMemo } from 'react';
-import AutoSizer from 'react-virtualized-auto-sizer';
+import useResizeObserver from '@react-hook/resize-observer';
+import React, { memo, useMemo, useRef } from 'react';
 import { FixedSizeList } from 'react-window';
 
 import { Flow } from '~/domain/flows';
@@ -26,6 +26,9 @@ export interface Props extends CommonProps {
 }
 
 export const FlowsTable = memo<Props>(function FlowsTable(props: Props) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const wrapperSize = useSize(wrapperRef);
+
   const scroll = useScroll(props.onFlowsDiffCount);
 
   const itemData = useMemo((): RowRendererData => {
@@ -44,26 +47,25 @@ export const FlowsTable = memo<Props>(function FlowsTable(props: Props) {
     props.ticker,
   ]);
 
+  const width = wrapperSize?.width ?? 0;
+  const height = wrapperSize ? wrapperSize.height : 0;
+
   return (
-    <div className={css.wrapper}>
+    <div className={css.wrapper} ref={wrapperRef}>
       <Header visibleColumns={itemData.visibleColumns} />
-      <AutoSizer>
-        {({ width, height }) => (
-          <FixedSizeList
-            {...scroll}
-            className={css.table}
-            width={width}
-            height={height - sizes.flowsTableHeadHeight}
-            itemSize={sizes.flowsTableRowHeight}
-            itemCount={props.flows.length}
-            itemKey={itemKey}
-            itemData={itemData}
-            overscanCount={Math.ceil(height / sizes.flowsTableRowHeight / 2)}
-          >
-            {RowRenderer}
-          </FixedSizeList>
-        )}
-      </AutoSizer>
+      <FixedSizeList
+        {...scroll}
+        className={css.table}
+        width={width}
+        height={height - sizes.flowsTableHeadHeight}
+        itemSize={sizes.flowsTableRowHeight}
+        itemCount={props.flows.length}
+        itemKey={itemKey}
+        itemData={itemData}
+        overscanCount={Math.ceil(height / sizes.flowsTableRowHeight / 2)}
+      >
+        {RowRenderer}
+      </FixedSizeList>
     </div>
   );
 });
@@ -71,3 +73,12 @@ export const FlowsTable = memo<Props>(function FlowsTable(props: Props) {
 function itemKey(index: number, data: RowRendererData) {
   return data.flows[index].id;
 }
+
+const useSize = (target: React.RefObject<HTMLElement>) => {
+  const [size, setSize] = React.useState<DOMRect | null>(null);
+  React.useLayoutEffect(() => {
+    setSize(target.current?.getBoundingClientRect() ?? null);
+  }, [target]);
+  useResizeObserver(target, entry => setSize(entry.contentRect));
+  return size;
+};

@@ -15,9 +15,9 @@ jobs:
         with:
           submodules: true
       - name: Use Node.js
-        uses: actions/setup-node@v3.4.1
+        uses: actions/setup-node@2fddd8803e2f5c9604345a0b591c3020ee971a93
         with:
-          node-version: '16.x'
+          node-version: '18.x'
       - name: Install dependencies
         run: npm install
       - name: Run tests
@@ -28,9 +28,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
       - name: Setup Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f
         with:
-          go-version: '^1.18'
+          go-version: '1.19'
       - name: Check Go module vendoring
         working-directory: ./backend
         run: |
@@ -39,18 +39,16 @@ jobs:
           go mod verify
           test -z "$(git status --porcelain)" || (echo "please run 'go mod tidy && go mod vendor', and submit your changes"; exit 1)
       - name: Run Go static checks
-        uses: golangci/golangci-lint-action@v3.2.0
+        uses: golangci/golangci-lint-action@537aa1903e5d359d0b27dbc19ddd22c5087f3fbc
         with:
           working-directory: ./backend
-          version: v1.45.2
-          args: --config=.golangci.yml --verbose
-          skip-go-installation: true
-          skip-pkg-cache: true
-          skip-build-cache: true
+          version: v1.49.0
+          args: --config=.golangci.yml --verbose --out-${NO_FUTURE}format colored-line-number --timeout 3m
+          skip-cache: true
       - name: Setup Node.js
-        uses: actions/setup-node@v3.4.1
+        uses: actions/setup-node@2fddd8803e2f5c9604345a0b591c3020ee971a93
         with:
-          node-version: '16.x'
+          node-version: '18.x'
       - name: Install NPM dependencies
         run: npm install
       - name: Check proto files

@@ -1,5 +1,7 @@
-@import "~/styles/common/layout.scss";
-// Thanks to Martin Wolf for blinking css dots (https://martinwolf.org/before-2018/blog/2015/01/pure-css-savingloading-dots-animation/)
+@import '~/styles/common/layout';
+
+// Thanks to Martin Wolf for blinking css dots
+// https://martinwolf.org/before-2018/blog/2015/01/pure-css-savingloading-dots-animation/
 
 @mixin setup-animation($name) {
   animation-name: $name;
@@ -61,11 +63,11 @@ $idle-color: #c7c7c7;
     }
   }
 
-  @include circle-color("", $idle-color);
-  @include circle-color(".idle", $idle-color);
-  @include circle-color(".receiving", $receiving-color);
-  @include circle-color(".reconnecting", $reconnecting-color);
-  @include circle-color(".stopped", $stopped-color);
+  @include circle-color('', $idle-color);
+  @include circle-color('.idle', $idle-color);
+  @include circle-color('.receiving', $receiving-color);
+  @include circle-color('.reconnecting', $reconnecting-color);
+  @include circle-color('.stopped', $stopped-color);
 
   &.circleAnimated {
     .circle {

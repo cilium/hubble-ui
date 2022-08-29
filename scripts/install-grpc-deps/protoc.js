@@ -17,7 +17,19 @@ const PLATFORM =
     darwin: 'osx',
   }[process.platform] || process.platform;
 
-const FILE_NAME = `protoc-${VERSION}-${PLATFORM}-x86_64.zip`;
+const ARCH = {
+  arm64: 'aarch_64',
+  arm: 'aarch_64',
+  x64: 'x86_64',
+}[process.arch];
+
+if (!ARCH) {
+  throw new Error(
+    `Unsupported arch: only support x86_64 and arm64, but you're using ${process.arch}`,
+  );
+}
+
+const FILE_NAME = `protoc-${VERSION}-${PLATFORM}-${ARCH}.zip`;
 const DOWNLOAD_URL = `${DL_PREFIX}/v${VERSION}/${FILE_NAME}`;
 
 const run = async targetDir => {

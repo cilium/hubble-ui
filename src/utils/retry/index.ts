@@ -104,10 +104,10 @@ export class Retries {
 
       this.onTickHandlers.forEach(fn => fn(tickInfo));
 
-      if (tickInfo.remaining < Number.EPSILON) {
-        clearInterval(this.tickTimer!);
-      } else if (tickInfo.remaining < tickInfo.tick) {
-        clearInterval(this.tickTimer!);
+      if (tickInfo.remaining < Number.EPSILON && this.tickTimer) {
+        clearInterval(this.tickTimer);
+      } else if (tickInfo.remaining < tickInfo.tick && this.tickTimer) {
+        clearInterval(this.tickTimer);
 
         setTimeout(() => {
           tickInfo.elapsed = delay;

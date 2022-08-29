@@ -10,7 +10,7 @@ import * as helpers from './helpers';
 
 import api from '~/api';
 
-const AllProviders: FunctionComponent = ({ children }) => {
+const AllProviders = ({ children }: React.PropsWithChildren<{}>) => {
   return (
     <StoreProvider historySource={RouteHistorySourceKind.URL}>
       <NotifierProvider>

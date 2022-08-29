@@ -1,15 +1,19 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
+	"time"
 
 	gops "github.com/google/gops/agent"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sys/unix"
 	"google.golang.org/grpc"
 
 	"github.com/cilium/hubble-ui/backend/client"
@@ -23,17 +27,6 @@ import (
 var (
 	log = logger.New("ui-backend")
 )
-
-func setupListener(addr string) net.Listener {
-	listener, err := net.Listen("tcp", addr)
-	if err != nil {
-		log.Errorf(msg.ServerSetupListenError, err)
-		os.Exit(1)
-	}
-
-	log.Infof(msg.ServerSetupListeningAt, addr)
-	return listener
-}
 
 func runServer(cfg *config.Config) {
 	// observerAddr := getObserverAddr()
@@ -55,15 +48,27 @@ func runServer(cfg *config.Config) {
 		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
 	)
 
-	httpSrv := http.NewServeMux()
-	httpSrv.HandleFunc("/api/", func(resp http.ResponseWriter, req *http.Request) {
+	handler := http.NewServeMux()
+	handler.HandleFunc("/api/", func(resp http.ResponseWriter, req *http.Request) {
 		// NOTE: GRPC server handles requests with URL like "ui.UI/functionName"
 		req.URL.Path = req.URL.Path[len("/api/"):]
 		wrappedGrpc.ServeHTTP(resp, req)
 	})
 
-	listener := setupListener(cfg.UIServerListenAddr())
-	if err := http.Serve(listener, httpSrv); err != nil {
+	ctx, cancel := signal.NotifyContext(context.Background(), unix.SIGINT, unix.SIGTERM)
+	defer cancel()
+
+	addr := cfg.UIServerListenAddr()
+	httpSrv := &http.Server{
+		Addr:    addr,
+		Handler: handler,
+		BaseContext: func(net.Listener) context.Context {
+			return ctx
+		},
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+	log.Infof(msg.ServerSetupListeningAt, addr)
+	if err := httpSrv.ListenAndServe(); err != nil {
 		log.Errorf(msg.ServerSetupRunError, err)
 		os.Exit(1)
 	}

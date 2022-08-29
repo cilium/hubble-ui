@@ -1,4 +1,6 @@
-@import "~/styles/common/layout.scss";
+@use 'sass:color';
+
+@import '~/styles/common/layout';
 
 .dragPanel {
   @include row(center, center);
@@ -10,11 +12,11 @@
   user-select: none;
 
   &:hover {
-    background-color: darken(#f6f6f6, 3);
+    background-color: color.adjust(#f6f6f6, $lightness: -3%);
   }
 
   &:active {
-    background-color: darken(#f6f6f6, 5);
+    background-color: color.adjust(#f6f6f6, $lightness: -5%);
     cursor: grabbing;
   }
 }

@@ -95,17 +95,18 @@ func (f *Flow) ICMPv6() *pbFlow.Layer4_ICMPv6 {
 }
 
 func (f *Flow) ProtocolString() string {
-	if f.TCP() != nil {
+	switch {
+	case f.TCP() != nil:
 		return "TCP"
-	} else if f.UDP() != nil {
+	case f.UDP() != nil:
 		return "UDP"
-	} else if f.ICMPv4() != nil {
+	case f.ICMPv4() != nil:
 		return "ICMPv4"
-	} else if f.ICMPv6() != nil {
+	case f.ICMPv6() != nil:
 		return "ICMPv6"
+	default:
+		return "Unknown"
 	}
-
-	return "Unknown"
 }
 
 func (f *Flow) DestinationPort() *uint32 {

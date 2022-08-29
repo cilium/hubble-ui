@@ -4,7 +4,6 @@ module.exports = {
   extends: [
     'plugin:react/recommended',
     'plugin:@typescript-eslint/recommended',
-    'prettier/@typescript-eslint',
     'plugin:prettier/recommended',
   ],
   parserOptions: {
@@ -16,7 +15,7 @@ module.exports = {
   },
   settings: {
     react: {
-      version: '16.9.0',
+      version: '18',
     },
   },
   rules: {

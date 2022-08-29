@@ -156,29 +156,31 @@ func EventResponseNoPermission(resource string, err string) *ui.GetEventsRespons
 }
 
 func StateChangeFromCacheFlags(cflags *cache.Flags) ui.StateChange {
-	if cflags.Exists {
+	switch {
+	case cflags.Exists:
 		return ui.StateChange_EXISTS
-	} else if cflags.Created {
+	case cflags.Created:
 		return ui.StateChange_ADDED
-	} else if cflags.Updated {
+	case cflags.Updated:
 		return ui.StateChange_MODIFIED
-	} else if cflags.Deleted {
+	case cflags.Deleted:
 		return ui.StateChange_DELETED
+	default:
+		return ui.StateChange_UNKNOWN_STATE_CHANGE
 	}
-
-	return ui.StateChange_UNKNOWN_STATE_CHANGE
 }
 
 func StateChangeFromEventType(evtType types.EventKind) ui.StateChange {
-	if evtType == types.Added {
+	switch evtType {
+	case types.Added:
 		return ui.StateChange_ADDED
-	} else if evtType == types.Deleted {
+	case types.Deleted:
 		return ui.StateChange_DELETED
-	} else if evtType == types.Modified {
+	case types.Modified:
 		return ui.StateChange_MODIFIED
-	} else if evtType == types.Exists {
+	case types.Exists:
 		return ui.StateChange_EXISTS
+	default:
+		return ui.StateChange_UNKNOWN_STATE_CHANGE
 	}
-
-	return ui.StateChange_UNKNOWN_STATE_CHANGE
 }

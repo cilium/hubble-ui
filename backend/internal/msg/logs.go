@@ -17,7 +17,6 @@ const (
 	ServerSetupRunError            = "failed to run server: %v\n"
 	ServerSetupUsingDefRelayAddr   = "hubble-relay addr is set to default (%s)\n"
 	ServerSetupUsingDefPort        = "server port is set to default (%s)\n"
-	ServerSetupListenError         = "failed to listen: %v\n"
 	ServerSetupListeningAt         = "listening at: %s\n"
 	ServerSetupConfigInitError     = "failed to initialize hubble-ui backend: %s\n"
 	ServerSetupTLSAllowInsecureDef = "TLSAllowInsecure option set to: %v\n"

@@ -1,10 +1,10 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import { Router } from '@reach/router';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { observer } from 'mobx-react-lite';
 
-import { StoreProvider } from '~/store';
-import { RouteHistorySourceKind, Route } from '~/store/stores/route';
+import { StoreProvider, useStore } from '~/store';
+import { RouteHistorySourceKind } from '~/store/stores/route';
 import { NotifierProvider, Notifier } from '~/notifier';
 
 import { DataManagerProvider } from '~/data-manager';
@@ -28,15 +28,17 @@ declare global {
 const run = async () => {
   ui.setCSSVars(ui.sizes);
 
-  const routes: Route[] = [Route.new('service-map', { path: '(/:namespace)' })];
-
   const Screen = observer(() => {
+    const store = useStore();
+
     useHooksOnDataManager();
 
     return (
-      <Router>
-        <App key="service-map" api={api} path="/*appPath" />
-      </Router>
+      <BrowserRouter>
+        <Routes location={store.route.location}>
+          <Route path="*" element={<App api={api} />} />
+        </Routes>
+      </BrowserRouter>
     );
   });
 
@@ -48,7 +50,7 @@ const run = async () => {
 
   const elems = (
     <NotifierProvider>
-      <StoreProvider historySource={RouteHistorySourceKind.URL} routes={routes}>
+      <StoreProvider historySource={RouteHistorySourceKind.URL}>
         <DataManagerProvider api={api}>
           <FeatureFlagsFetcher api={api.v1} onError={onFeatureFetchError}>
             <Screen />
@@ -58,7 +60,11 @@ const run = async () => {
     </NotifierProvider>
   );
 
-  ReactDOM.render(elems, document.getElementById('app'));
+  const container = document.getElementById('app');
+  if (!container) throw new Error('Expect #app in DOM');
+  const root = createRoot(container);
+
+  root.render(elems);
 };
 
 // TODO: run() if only we are running not as library

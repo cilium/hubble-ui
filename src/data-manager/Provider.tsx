@@ -1,12 +1,6 @@
 // import * as mobx from 'mobx';
 import { IconNames } from '@blueprintjs/icons';
-import React, {
-  createContext,
-  FunctionComponent,
-  useContext,
-  useEffect,
-  useMemo,
-} from 'react';
+import React, { createContext, useContext, useEffect, useMemo } from 'react';
 import _ from 'lodash';
 
 import { API } from '~/api/general';
@@ -17,28 +11,29 @@ import * as storage from '~/storage/local';
 
 import { EventKind as DataManagerEvents } from './common';
 import { DataManager } from './data-manager';
+import { observer } from 'mobx-react';
 
 export interface ProviderProps {
   api: API;
 }
 
-export type ProviderComponent = FunctionComponent<ProviderProps>;
-
 export const DataManagerContext = createContext<DataManager | null>(null);
 
-export const DataManagerProvider: ProviderComponent = props => {
-  const store = useStore();
+export const DataManagerProvider = observer(
+  (props: React.PropsWithChildren<ProviderProps>) => {
+    const store = useStore();
 
-  const dataManager = useMemo(() => {
-    return new DataManager(props.api, store);
-  }, [props.api, store]);
+    const dataManager = useMemo(() => {
+      return new DataManager(props.api, store);
+    }, [props.api, store]);
 
-  return (
-    <DataManagerContext.Provider value={dataManager}>
-      {props.children}
-    </DataManagerContext.Provider>
-  );
-};
+    return (
+      <DataManagerContext.Provider value={dataManager}>
+        {props.children}
+      </DataManagerContext.Provider>
+    );
+  },
+);
 
 export const useDataManager = () => {
   const dataManager = useContext(DataManagerContext);

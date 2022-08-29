@@ -112,14 +112,23 @@ export class Diff<T> implements IDiff<T> {
   private computeDiff(): DiffType<T> | null {
     const [before, after] = [this.before, this.after];
 
-    const beforeDiffable = Diff.isDiffable<T, DiffType<T>>(before);
-    const afterDiffable = Diff.isDiffable<T, DiffType<T>>(after);
-
-    if (before != null && after != null && beforeDiffable) {
+    if (
+      before != null &&
+      after != null &&
+      Diff.isDiffable<T, DiffType<T>>(before)
+    ) {
       return before.diff(after);
-    } else if (before == null && after != null && afterDiffable) {
+    } else if (
+      before == null &&
+      after != null &&
+      Diff.isDiffable<T, DiffType<T>>(after)
+    ) {
       return after.diff(null).invert();
-    } else if (before != null && after == null && beforeDiffable) {
+    } else if (
+      before != null &&
+      after == null &&
+      Diff.isDiffable<T, DiffType<T>>(before)
+    ) {
       return before.diff(null);
     }
 

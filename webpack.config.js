@@ -2,7 +2,6 @@
 const path = require('path');
 const webpack = require('webpack');
 const inliner = require('@geakstr/sass-inline-svg');
-const packageImporter = require('node-sass-package-importer');
 
 const Dotenv = require('dotenv-webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -55,7 +54,6 @@ const stylesLoaders = ({ enableSass, enableModules }) => {
               sourceMap: true,
               implementation: require('sass'),
               sassOptions: {
-                importer: packageImporter(),
                 functions: {
                   ...require('@geakstr/sass-inline-svg'),
                   'svg-icon($path, $selectors: null)': inliner(
@@ -100,7 +98,7 @@ module.exports = {
     alias: {
       '~backend': path.resolve(__dirname, './backend'),
       '~': path.resolve(__dirname, './src/'),
-    }
+    },
   },
   module: {
     rules: [

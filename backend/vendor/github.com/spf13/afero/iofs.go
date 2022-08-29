@@ -10,6 +10,8 @@ import (
 	"path"
 	"sort"
 	"time"
+
+	"github.com/spf13/afero/internal/common"
 )
 
 // IOFS adopts afero.Fs to stdlib io/fs.FS
@@ -76,7 +78,12 @@ func (iofs IOFS) ReadDir(name string) ([]fs.DirEntry, error) {
 	defer f.Close()
 
 	if rdf, ok := f.(fs.ReadDirFile); ok {
-		return rdf.ReadDir(-1)
+		items, err := rdf.ReadDir(-1)
+		if err != nil {
+			return nil, iofs.wrapError("readdir", name, err)
+		}
+		sort.Slice(items, func(i, j int) bool { return items[i].Name() < items[j].Name() })
+		return items, nil
 	}
 
 	items, err := f.Readdir(-1)
@@ -87,7 +94,7 @@ func (iofs IOFS) ReadDir(name string) ([]fs.DirEntry, error) {
 
 	ret := make([]fs.DirEntry, len(items))
 	for i := range items {
-		ret[i] = dirEntry{items[i]}
+		ret[i] = common.FileInfoDirEntry{FileInfo: items[i]}
 	}
 
 	return ret, nil
@@ -122,17 +129,6 @@ func (IOFS) wrapError(op, path string, err error) error {
 	}
 }
 
-// dirEntry provides adapter from os.FileInfo to fs.DirEntry
-type dirEntry struct {
-	fs.FileInfo
-}
-
-var _ fs.DirEntry = dirEntry{}
-
-func (d dirEntry) Type() fs.FileMode { return d.FileInfo.Mode().Type() }
-
-func (d dirEntry) Info() (fs.FileInfo, error) { return d.FileInfo, nil }
-
 // readDirFile provides adapter from afero.File to fs.ReadDirFile needed for correct Open
 type readDirFile struct {
 	File
@@ -148,7 +144,7 @@ func (r readDirFile) ReadDir(n int) ([]fs.DirEntry, error) {
 
 	ret := make([]fs.DirEntry, len(items))
 	for i := range items {
-		ret[i] = dirEntry{items[i]}
+		ret[i] = common.FileInfoDirEntry{FileInfo: items[i]}
 	}
 
 	return ret, nil

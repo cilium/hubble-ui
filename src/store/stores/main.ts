@@ -1,13 +1,4 @@
-import {
-  action,
-  configure,
-  observable,
-  computed,
-  reaction,
-  autorun,
-  makeObservable,
-  toJS,
-} from 'mobx';
+import { configure, reaction, autorun, toJS, makeAutoObservable } from 'mobx';
 
 import { Flow } from '~/domain/flows';
 import { Filters, FilterEntry } from '~/domain/filtering';
@@ -23,7 +14,7 @@ import {
   ServiceMapArrowStrategy,
 } from '~/domain/layout/service-map';
 
-import RouteStore, { RouteHistorySourceKind, Route } from './route';
+import RouteStore, { RouteHistorySourceKind } from './route';
 import ControlStore from './controls';
 import FeaturesStore from './features';
 
@@ -34,7 +25,6 @@ configure({ enforceActions: 'observed' });
 
 export interface Props {
   historySource: RouteHistorySourceKind;
-  routes?: Route[];
 }
 
 export type FlushOptions = {
@@ -44,34 +34,27 @@ export type FlushOptions = {
 };
 
 export class Store {
-  @observable
   public route: RouteStore;
 
-  @observable
   public controls: ControlStore;
 
-  @observable
   public placement: ServiceMapPlacementStrategy;
 
-  @observable
   public arrows: ServiceMapArrowStrategy;
 
-  @observable
   public globalFrame: StoreFrame;
 
-  @observable
   public currentFrame: StoreFrame;
 
-  @observable
   public features: FeaturesStore;
 
   private afterResetCallbacks: Array<() => void> = [];
 
   constructor(props: Props) {
-    makeObservable(this);
+    makeAutoObservable(this, void 0, { autoBind: true });
 
     this.controls = new ControlStore();
-    this.route = new RouteStore(props.historySource, props.routes);
+    this.route = new RouteStore(props.historySource);
     this.features = new FeaturesStore();
 
     this.globalFrame = StoreFrame.emptyWithShared(this.controls);
@@ -93,7 +76,6 @@ export class Store {
     this.setupDebugTools();
   }
 
-  @action.bound
   setup({
     services,
     flows,
@@ -109,7 +91,6 @@ export class Store {
     this.currentFrame.interactions.setHubbleFlows(flows, { sort: true });
   }
 
-  @action.bound
   setNamespaces(nss: Array<string>) {
     this.controls.namespaces = nss;
 
@@ -118,7 +99,6 @@ export class Store {
     }
   }
 
-  @action.bound
   resetCurrentFrame(filters: Filters) {
     this.currentFrame.flush();
     this.placement.reset();
@@ -128,17 +108,14 @@ export class Store {
     this.runAfterResetCallbacks();
   }
 
-  @action.bound
   applyServiceChange(svc: Service, change: StateChange) {
     this.currentFrame.applyServiceChange(svc, change);
   }
 
-  @action.bound
   applyServiceLinkChange(hubbleLink: HubbleLink, change: StateChange) {
     this.currentFrame.applyServiceLinkChange(hubbleLink, change);
   }
 
-  @action.bound
   applyNamespaceChange(ns: string, change: StateChange) {
     if (change === StateChange.Deleted) {
       this.controls.removeNamespace(ns);
@@ -148,17 +125,14 @@ export class Store {
     this.controls.addNamespace(ns);
   }
 
-  @action.bound
   addFlows(flows: Flow[]) {
     return this.currentFrame.addFlows(flows);
   }
 
-  @action.bound
   public runAfterFrameReset(cb: () => void) {
     this.afterResetCallbacks.push(cb);
   }
 
-  @action.bound
   private runAfterResetCallbacks() {
     const n = this.afterResetCallbacks.length;
     const cbs = this.afterResetCallbacks.splice(0, n);
@@ -168,17 +142,14 @@ export class Store {
     });
   }
 
-  @computed
   get mocked(): boolean {
     return this.route.hash === 'mock';
   }
 
-  @computed
   public get filters(): Filters {
     return this.controls.filters;
   }
 
-  @action.bound
   public flush(opts?: FlushOptions) {
     this.controls.selectTableFlow(null);
 
@@ -190,7 +161,6 @@ export class Store {
     this.placement.reset();
   }
 
-  @action.bound
   private setupEventHandlers() {
     const wrongChanges = [StateChange.Unknown, StateChange.Deleted];
 
@@ -215,7 +185,6 @@ export class Store {
     });
   }
 
-  @action.bound
   private setupReactions() {
     // initial autoruns fires only once
     autorun(reaction => {
@@ -283,17 +252,14 @@ export class Store {
     });
   }
 
-  @action.bound
   public toggleActiveService(id: string) {
     return this.currentFrame.toggleActiveService(id);
   }
 
-  @action.bound
   public setActiveServiceState(id: string, state: boolean) {
     this.currentFrame.services.setActiveState(id, state);
   }
 
-  @action.bound
   public setFlowFiltersForActiveCard(serviceId: string, isActive: boolean) {
     if (!isActive) {
       return this.setFlowFilters([]);
@@ -305,7 +271,6 @@ export class Store {
     this.setFlowFilters([card.filterEntry]);
   }
 
-  @action.bound
   public setFlowFilters(filters: FilterEntry[]) {
     const nextFilters: FilterEntry[] = [];
 
@@ -332,7 +297,6 @@ export class Store {
     this.controls.setFlowFilters(nextFilters);
   }
 
-  @action.bound
   public toggleShowKubeDns(): boolean {
     const isActive = this.controls.toggleShowKubeDns();
 
@@ -340,7 +304,6 @@ export class Store {
     return isActive;
   }
 
-  @action.bound
   public toggleShowHost(): boolean {
     const isActive = this.controls.toggleShowHost();
 
@@ -348,7 +311,6 @@ export class Store {
     return isActive;
   }
 
-  @action.bound
   public toggleShowRemoteNode(): boolean {
     const isActive = this.controls.toggleShowRemoteNode();
 
@@ -356,7 +318,6 @@ export class Store {
     return isActive;
   }
 
-  @action.bound
   public toggleShowPrometheusApp(): boolean {
     const isActive = this.controls.toggleShowPrometheusApp();
 
@@ -364,7 +325,6 @@ export class Store {
     return isActive;
   }
 
-  @action.bound
   public toggleShowKubeApiServer(): boolean {
     const isActive = this.controls.toggleShowKubeApiServer();
 
@@ -372,14 +332,13 @@ export class Store {
     return isActive;
   }
 
-  @action.bound
   public setFeatures(features: FeatureFlags) {
     console.log(`setting features`);
     this.features.set(features);
   }
 
   // D E B U G
-  @action.bound
+
   public setupDebugTools() {
     setupDebugProp({
       printMapData: () => {
@@ -392,14 +351,12 @@ export class Store {
     });
   }
 
-  @action.bound
   private restoreNamespace() {
     if (!this.route.namespace) return;
 
     this.controls.setCurrentNamespace(this.route.namespace);
   }
 
-  @action.bound
   private restoreVisualFilters() {
     this.controls.setShowHost(storage.getShowHost());
     this.controls.setShowKubeDns(storage.getShowKubeDns());
@@ -408,7 +365,6 @@ export class Store {
     this.controls.setShowPrometheusApp(storage.getShowPrometheusApp());
   }
 
-  @action.bound
   private printMapData() {
     const data = {
       services: this.currentFrame.services.cardsList.map(c => c.service),
@@ -418,7 +374,6 @@ export class Store {
     console.log(JSON.stringify(data, null, 2));
   }
 
-  @action.bound
   private printLayoutData() {
     const data = {
       cardsBBoxes: this.placement.cardsBBoxes,
