@@ -1,4 +1,4 @@
-import { EventEmitter, HandlerTypes } from './emitter';
+import { EventEmitter } from './emitter';
 
 type TimerId = ReturnType<typeof setInterval>;
 

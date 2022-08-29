@@ -2,36 +2,38 @@ import React, { createContext, FunctionComponent, useContext } from 'react';
 import { Toaster } from '@blueprintjs/core';
 
 import { Notifier, Props as NotifierProps } from './notifier';
-import { NotifierPosition } from '~/notifier/general';
-import * as helpers from '~/notifier/helpers';
 
 import { setupDebugProp } from '~/domain/misc';
-
-type ProviderComponent = FunctionComponent<NotifierProps>;
+import { observer } from 'mobx-react';
 
 const NotifierContext = createContext<Notifier | null>(null);
 
-export const NotifierProvider: ProviderComponent = props => {
-  const notifier = new Notifier();
-  setupDebugProp({ notifier });
+export const NotifierProvider = observer(
+  (props: React.PropsWithChildren<NotifierProps>) => {
+    const notifier = React.useMemo(() => new Notifier(), []);
+    React.useEffect(() => setupDebugProp({ notifier }), [notifier]);
 
-  const toasterProps = Notifier.prepareToasterProps(props);
+    const toasterProps = React.useMemo(
+      () => Notifier.prepareToasterProps(props),
+      [props],
+    );
 
-  return (
-    <NotifierContext.Provider value={notifier}>
-      <Toaster
-        {...toasterProps}
-        ref={ref => {
-          if (!ref) return;
+    return (
+      <NotifierContext.Provider value={notifier}>
+        <Toaster
+          {...toasterProps}
+          ref={ref => {
+            if (!ref) return;
 
-          notifier.setBackend(ref!);
-        }}
-      />
+            notifier.setBackend(ref!);
+          }}
+        />
 
-      {props.children}
-    </NotifierContext.Provider>
-  );
-};
+        {props.children}
+      </NotifierContext.Provider>
+    );
+  },
+);
 
 export const useNotifier = () => {
   const notifier = useContext(NotifierContext);

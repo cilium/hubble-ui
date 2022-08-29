@@ -1,4 +1,4 @@
-@import "~/styles/common/layout.scss";
+@import '~/styles/common/layout';
 
 $dot-size: 10px;
 
@@ -10,7 +10,7 @@ $dot-size: 10px;
     margin-right: 10px;
 
     .arrow {
-      @include centered();
+      @include centered;
       margin-left: 10px;
 
       img {
@@ -19,7 +19,7 @@ $dot-size: 10px;
     }
 
     .circle {
-      @include centered();
+      @include centered;
       @include exact-size(25px, 25px);
 
       img {

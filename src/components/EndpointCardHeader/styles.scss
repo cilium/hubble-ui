@@ -1,18 +1,18 @@
-@import "~/styles/common/layout.scss";
+@import '~/styles/common/layout';
 
 $icon-side-padding: 10px;
-$wrapperPadding: 10px 20px;
-$headingMaxWidth: calc(
+$wrapper-padding: 10px 20px;
+$heading-max-width: calc(
   100% - var(--endpoint-icon-width) - #{$icon-side-padding} * 2
 );
 
 .wrapper {
-  @include column();
+  @include column;
 
   width: 100%;
   max-width: 100%;
 
-  padding: $wrapperPadding;
+  padding: $wrapper-padding;
 }
 
 .headline {
@@ -20,7 +20,7 @@ $headingMaxWidth: calc(
 }
 
 .logo {
-  @include centered();
+  @include centered;
   flex-shrink: 0;
 
   $size: var(--endpoint-icon-width);
@@ -33,16 +33,16 @@ $headingMaxWidth: calc(
 }
 
 .headings {
-  @include ellipsis-limit();
+  @include ellipsis-limit;
 
   flex: 1 1;
-  max-width: $headingMaxWidth;
+  max-width: $heading-max-width;
   margin-left: 7px;
 }
 
 .title,
 .subtitle {
-  @include ellipsis-limit();
+  @include ellipsis-limit;
 }
 
 .title {
@@ -74,7 +74,7 @@ $headingMaxWidth: calc(
   @include row(space-between, center);
   border-bottom: 1px solid #e4e4e4;
 
-  padding: 10px 10px 10px;
+  padding: 10px;
   margin: 5px 0 10px;
 
   .left,

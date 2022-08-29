@@ -1,5 +1,5 @@
-@import "~/styles/common/layout.scss";
-@import "~/styles/common/vars.scss";
+@import '~/styles/common/layout';
+@import '~/styles/common/vars';
 
 .topbar {
   @include row(flex-start, center);
@@ -15,7 +15,7 @@
   padding: 0 10px;
 
   border-radius: 0 0 6px 6px;
-  box-shadow: 0 0 34px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 0 34px rgb(0 0 0 / 16%);
   background-color: #fff;
 
   .border {

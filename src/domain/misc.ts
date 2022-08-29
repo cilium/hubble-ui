@@ -47,8 +47,13 @@ export const isValidDate = (d: any): boolean => {
   return d instanceof Date && !isNaN(d as any);
 };
 
-export const isClonable = (obj: Partial<Clonable>): obj is Clonable => {
+export const isObject = (val: any): boolean => {
+  return typeof val === 'object' && val !== null;
+};
+
+export const isClonable = (obj: any): obj is Clonable => {
   if (obj == null) return false;
+  if (!isObject(obj) || !('clone' in obj)) return false;
 
   const cloneIsOk =
     obj.clone?.name.charAt != null && obj.clone instanceof Function;

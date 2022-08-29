@@ -1,18 +1,18 @@
-@import "~/styles/common/layout.scss";
+@import '~/styles/common/layout';
 
 .wrapper {
   // NOTE: display: flex is required to count margins for offsetHeight
-  @include column();
+  @include column;
 
   margin: var(--endpoint-shadow-size);
   background-color: #fff;
   border-radius: 10px;
   user-select: none;
-  box-shadow: 0 0 24px rgba(23, 49, 65, 0.13);
+  box-shadow: 0 0 24px rgb(23 49 65 / 13%);
 
   &:hover {
     cursor: pointer;
-    box-shadow: 0 0 24px rgba(23, 49, 65, 0.3);
+    box-shadow: 0 0 24px rgb(23 49 65 / 30%);
     transition: all ease-out 0.25s;
   }
 
@@ -22,5 +22,5 @@
 }
 
 .content {
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgb(255 255 255 / 90%);
 }

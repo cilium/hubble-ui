@@ -1,7 +1,7 @@
-@import "~/styles/common/layout.scss";
+@import '~/styles/common/layout';
 
 .app {
-  @include column();
+  @include column;
   flex-grow: 1;
 
   position: relative;
@@ -11,7 +11,7 @@
   height: 100%;
 
   .map {
-    box-shadow: inset 0 0 23px rgba(8, 44, 65, 0.12);
+    box-shadow: inset 0 0 23px rgb(8 44 65 / 12%);
     background-color: #f0f4f8;
 
     flex-grow: 1;

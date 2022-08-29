@@ -5,7 +5,6 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { RouteComponentProps } from '@reach/router';
 import { observer } from 'mobx-react';
 import * as mobx from 'mobx';
 
@@ -40,7 +39,7 @@ import { sizes } from '~/ui/vars';
 import { useFlowsTableColumns } from './hooks/useColumns';
 import css from './styles.scss';
 
-export interface AppProps extends RouteComponentProps {
+export interface AppProps {
   api: API;
 }
 

@@ -41,11 +41,12 @@ func (w *Watcher) processEvent(ctx context.Context, obj interface{}) error {
 		return nil
 	}
 
-	if newest.Type == cache.Added || newest.Type == cache.Sync {
+	switch {
+	case newest.Type == cache.Added || newest.Type == cache.Sync:
 		w.handleNSAddition(ctx, newest.Object)
-	} else if newest.Type == cache.Deleted || ns.Status.Phase == v1.NamespaceTerminating {
+	case newest.Type == cache.Deleted || ns.Status.Phase == v1.NamespaceTerminating:
 		w.handleNSDeletion(ctx, newest.Object)
-	} else if newest.Type == cache.Updated {
+	case newest.Type == cache.Updated:
 		w.handleNSUpdate(ctx, newest.Object)
 	}
 

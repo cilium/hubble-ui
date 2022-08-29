@@ -8,12 +8,6 @@ const installPlugin = require('./grpc-web-plugin');
 const BIN_DIR = path.resolve(__dirname, '../../node_modules/.bin');
 
 const prepare = async () => {
-  if (process.arch !== 'x64') {
-    throw new Error(
-      `Unsupported arch: only support x86_64, but you're using ${process.arch}`,
-    );
-  }
-
   await fs.ensureDir(BIN_DIR);
 
   const packageJsonPath = path.resolve(__dirname, '../../package.json');

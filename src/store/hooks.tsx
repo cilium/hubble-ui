@@ -1,15 +1,14 @@
 import { useLocalObservable } from 'mobx-react';
-import React, { createContext, FunctionComponent, useContext } from 'react';
+import React, { createContext, useContext } from 'react';
 import { Store, Props as MainStoreProps } from './stores/main';
 
 const StoreContext = createContext<Store | null>(null);
 
-export const StoreProvider: FunctionComponent<MainStoreProps> = ({
+export const StoreProvider = ({
   children,
   historySource,
-  routes,
-}) => {
-  const store = useLocalObservable(() => new Store({ historySource, routes }));
+}: React.PropsWithChildren<MainStoreProps>) => {
+  const store = useLocalObservable(() => new Store({ historySource }));
 
   return (
     <StoreContext.Provider value={store}>{children}</StoreContext.Provider>

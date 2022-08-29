@@ -1,5 +1,5 @@
-import { Button, Classes, Icon, MenuItem } from '@blueprintjs/core';
-import { ItemRenderer, MultiSelect } from '@blueprintjs/select';
+import { Button, Classes, MenuItem } from '@blueprintjs/core';
+import { ItemRenderer, MultiSelect2 } from '@blueprintjs/select';
 import { trim } from 'lodash';
 import React, { useCallback, useState, memo } from 'react';
 import classnames from 'classnames';
@@ -16,7 +16,7 @@ interface Props {
   onChange?: (filters: FilterEntry[]) => void;
 }
 
-const FilterMultiSelect = MultiSelect.ofType<FilterEntry | null>();
+const FilterMultiSelect = MultiSelect2.ofType<FilterEntry | null>();
 
 export const FlowsFilterInput = (props: Props) => {
   const [userInput, setUserInput] = useState<string>('');
@@ -69,7 +69,7 @@ export const FlowsFilterInput = (props: Props) => {
   }, [props.filters, props.onChange, userInput]);
 
   // prettier-ignore
-  const handleTagDelete = useCallback((val: string, idx: number) => {
+  const handleTagDelete = useCallback((val: React.ReactNode, idx: number) => {
     props.onChange?.(
       props.filters.filter((_: FilterEntry, i: number) => i !== idx),
     );

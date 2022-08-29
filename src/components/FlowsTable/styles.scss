@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 .wrapper {
   position: relative;
   overflow: hidden;
@@ -26,7 +28,7 @@
       background-color: #f2f4f6;
     }
 
-    &:not(.selected):not(.head):hover {
+    &:not(.selected, .head):hover {
       background-color: #dee4e9;
       cursor: pointer;
     }
@@ -43,7 +45,7 @@
     }
 
     &.selected {
-      background-color: darken(#dee4e9, 20);
+      background-color: color.adjust(#dee4e9, $lightness: -20%);
 
       .cell {
         color: #fff;
@@ -130,7 +132,7 @@
   height: 100%;
   overflow: auto;
   background: #fff;
-  box-shadow: 0 22px 22px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 22px 22px rgb(0 0 0 / 25%);
 
   .header {
     display: flex;
@@ -153,7 +155,7 @@
       margin-top: -1px;
       padding: 3px;
       border-radius: 3px;
-      background-color: rgba(255, 255, 255, 0.5);
+      background-color: rgb(255 255 255 / 50%);
       color: #c2c2c2;
 
       &:hover {

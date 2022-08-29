@@ -13,7 +13,7 @@ export type UseIndicator<I, T = any> = {
 };
 
 // NOTE: Indicator is a way to pass "trigger" events from parent to child
-export const useIndicator = <I, T = any>(
+export const useIndicator = <I extends {}, T = any>(
   indicatorsTemplate: I,
   dataInit?: T | null,
   ringLimit?: number,
