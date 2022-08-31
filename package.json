@@ -102,7 +102,7 @@
     "postcss-loader": "7.0.1",
     "prettier": "2.7.1",
     "react-test-renderer": "18.2.0",
-    "sass": "1.54.5",
+    "sass": "1.54.7",
     "sass-loader": "13.0.2",
     "servor": "4.0.2",
     "source-map-explorer": "2.5.2",
