@@ -24,7 +24,7 @@
     ]
   },
   "dependencies": {
-    "@babel/runtime": "7.18.9",
+    "@babel/runtime": "7.19.0",
     "@blueprintjs/core": "4.9.3",
     "@blueprintjs/datetime": "4.3.9",
     "@blueprintjs/icons": "4.4.1",
@@ -85,7 +85,7 @@
     "eslint": "8.23.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-prettier": "4.2.1",
-    "eslint-plugin-react": "7.31.1",
+    "eslint-plugin-react": "7.31.8",
     "file-loader": "6.2.0",
     "fs-extra": "10.1.0",
     "html-webpack-plugin": "5.5.0",
@@ -102,7 +102,7 @@
     "postcss-loader": "7.0.1",
     "prettier": "2.7.1",
     "react-test-renderer": "18.2.0",
-    "sass": "1.54.5",
+    "sass": "1.54.9",
     "sass-loader": "13.0.2",
     "servor": "4.0.2",
     "source-map-explorer": "2.5.2",
