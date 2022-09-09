@@ -24,7 +24,7 @@
     ]
   },
   "dependencies": {
-    "@babel/runtime": "7.18.9",
+    "@babel/runtime": "7.19.0",
     "@blueprintjs/core": "4.9.3",
     "@blueprintjs/datetime": "4.3.10",
     "@blueprintjs/icons": "4.4.1",
