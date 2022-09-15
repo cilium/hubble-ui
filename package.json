@@ -28,7 +28,7 @@
     "@blueprintjs/core": "4.9.4",
     "@blueprintjs/datetime": "4.3.10",
     "@blueprintjs/icons": "4.4.1",
-    "@blueprintjs/select": "4.6.3",
+    "@blueprintjs/select": "4.6.6",
     "@react-hook/resize-observer": "1.2.6",
     "@use-gesture/react": "10.2.19",
     "classnames": "2.3.1",
