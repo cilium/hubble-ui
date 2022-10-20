@@ -13,6 +13,52 @@ import { SpecialLabel, ReservedLabel } from '~/domain/labels';
 
 const nowMs = Date.now();
 
+export const icmpv4Flow: HubbleFlow = {
+  verdict: Verdict.Forwarded,
+  dropReason: 0,
+  l4: {
+    icmpv4: {
+      type: 0,
+      code: 0,
+    },
+  },
+  source: {
+    id: 0,
+    identity: 0,
+    labelsList: ['app=Sender', 'namespace=SenderNs'],
+    namespace: 'SenderNs',
+    podName: `sender-a1b2c3`,
+  },
+  destination: {
+    id: 1,
+    identity: 1,
+    labelsList: ['app=Receiver', 'namespace=ReceiverNs'],
+    namespace: 'ReceiverNs',
+    podName: `receiver-d4e5f6`,
+  },
+  sourceNamesList: [],
+  destinationNamesList: [],
+  nodeName: 'TestNode',
+  reply: false,
+  summary: '',
+  type: FlowType.L34,
+  time: {
+    seconds: nowMs / 1000,
+    nanos: nowMs * 1000000,
+  },
+  trafficDirection: TrafficDirection.Ingress,
+};
+
+export const icmpv6Flow: HubbleFlow = {
+  ...icmpv4Flow,
+  l4: {
+    icmpv6: {
+      code: 0,
+      type: 0,
+    },
+  },
+};
+
 export const hubbleOne: HubbleFlow = {
   verdict: Verdict.Forwarded,
   dropReason: 0,

@@ -3,7 +3,7 @@ import React, { memo, useCallback, useMemo, useEffect, useState } from 'react';
 
 import { Flow, Verdict } from '~/domain/flows';
 import { Filters, FilterEntry, FilterDirection } from '~/domain/filtering';
-import { TCPFlagName, PodSelector } from '~/domain/hubble';
+import { TCPFlagName, PodSelector, IPProtocol } from '~/domain/hubble';
 import { KV, Labels } from '~/domain/labels';
 
 import {
@@ -36,6 +36,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
 
   const tcpFilterDirection = FilterDirection.From;
   const isVerdictSelected = props.filters.verdict === flow.verdict;
+  const protocol = props.flow.protocolStr;
 
   const onVerdictClick = useCallback(() => {
     props.onVerdictClick?.(isVerdictSelected ? null : flow.verdict);
@@ -274,6 +275,10 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
     props.onDnsClick?.(props.flow.destinationDns);
   }, [props.flow, props.onDnsClick, isDnsSelected]);
 
+  const isICMPProtocol =
+    props.flow.protocol === IPProtocol.ICMPv4 ||
+    props.flow.protocol === IPProtocol.ICMPv6;
+
   return (
     <div className={css.sidebar}>
       <header className={css.header}>
@@ -433,10 +438,15 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
           </div>
         </section>
       )}
-      {flow.hasDestination && typeof flow.destinationPort === 'number' && (
+      {flow.hasDestination && flow.protocol && (
         <section className={css.block}>
-          <span className={css.title}>Destination port</span>
-          <div className={css.body}>{flow.destinationPort}</div>
+          <span className={css.title}>
+            Destination {!isICMPProtocol && 'port • '}protocol
+          </span>
+          <div className={css.body}>
+            {flow.destinationPort && `${flow.destinationPort} • `}
+            {protocol && `${protocol}`}
+          </div>
         </section>
       )}
     </div>
