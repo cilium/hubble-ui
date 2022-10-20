@@ -89,13 +89,6 @@ export const buildBlacklistFlowFilters = (filters?: Filters): FlowFilter[] => {
   blDstLocalDnsFilter.addDestinationFqdn('*.cluster.local*');
   blFilters.push(blSrcLocalDnsFilter, blDstLocalDnsFilter);
 
-  // filter out icmp flows
-  const blICMPv4Filter = new FlowFilter();
-  const blICMPv6Filter = new FlowFilter();
-  blICMPv4Filter.addProtocol('ICMPv4');
-  blICMPv6Filter.addProtocol('ICMPv6');
-  blFilters.push(blICMPv4Filter, blICMPv6Filter);
-
   return blFilters;
 };
 
