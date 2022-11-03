@@ -59,6 +59,7 @@ func runServer(cfg *config.Config) {
 	defer cancel()
 
 	addr := cfg.UIServerListenAddr()
+
 	httpSrv := &http.Server{
 		Addr:    addr,
 		Handler: handler,
@@ -67,8 +68,21 @@ func runServer(cfg *config.Config) {
 		},
 		ReadHeaderTimeout: 5 * time.Second,
 	}
+
+	go func() {
+		<-ctx.Done()
+		log.Info("Received signal. Shutting down server")
+
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := httpSrv.Shutdown(shutdownCtx); err != nil {
+			log.Println(err)
+		}
+
+	}()
+
 	log.Infof(msg.ServerSetupListeningAt, addr)
-	if err := httpSrv.ListenAndServe(); err != nil {
+	if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Errorf(msg.ServerSetupRunError, err)
 		os.Exit(1)
 	}
