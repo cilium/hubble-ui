@@ -71,7 +71,7 @@ func runServer(cfg *config.Config) {
 
 	go func() {
 		<-ctx.Done()
-		log.Info("Received signal. Shutting down server")
+		log.Info(msg.ServerSetupShuttingDown)
 
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
