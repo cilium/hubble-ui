@@ -23,6 +23,7 @@ const stylesLoaders = ({ enableSass, enableModules }) => {
       : false,
     importLoaders: 2,
     sourceMap: true,
+    url: false,
   };
 
   const cssOpts = {
@@ -35,6 +36,7 @@ const stylesLoaders = ({ enableSass, enableModules }) => {
       : false,
     importLoaders: 1,
     sourceMap: true,
+    url: false,
   };
 
   return [
@@ -74,9 +76,7 @@ const stylesLoaders = ({ enableSass, enableModules }) => {
 
 module.exports = {
   target: 'web',
-  entry: (isDevelopment ? [] : []).concat([
-    path.resolve(__dirname, './src/index.tsx'),
-  ]),
+  entry: path.resolve(__dirname, './src/index.tsx'),
   mode: isProduction ? 'production' : 'development',
   watch: isDevelopment,
   devtool: isProduction ? 'source-map' : 'inline-source-map',
@@ -89,6 +89,7 @@ module.exports = {
     devtoolModuleFilenameTemplate: isProduction
       ? undefined
       : '[absolute-resource-path]',
+    assetModuleFilename: 'static/media/[name].[hash:8][ext][query]',
   },
   stats: {
     colors: true,
@@ -103,44 +104,41 @@ module.exports = {
   module: {
     rules: [
       {
-        oneOf: [
-          {
-            test: /\.ts(x?)$/,
-            exclude: /node_modules/,
-            use: ['babel-loader', 'ts-loader'],
-          },
-          {
-            enforce: 'pre',
-            test: /\.(js|jsx|mjs|ts|tsx)$/,
-            loader: 'source-map-loader',
-            include: path.resolve(__dirname, 'src'),
-          },
-          {
-            test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
-            loader: 'url-loader',
-            options: {
-              limit: 10000,
-              name: 'static/media/[name].[hash:8].[ext]',
-            },
-          },
-          {
-            test: /\.svg$/,
-            exclude: /node_modules/,
-            use: ['svg-react-loader'],
-          },
-          {
-            test: /\.css$/,
-            use: stylesLoaders({ enableSass: false, enableModules: false }),
-          },
-          {
-            test: /.blueprint\.scss$/,
-            use: stylesLoaders({ enableSass: true, enableModules: false }),
-          },
-          {
-            test: /\.s[ac]ss$/,
-            use: stylesLoaders({ enableSass: true, enableModules: true }),
-          },
-        ],
+        enforce: 'pre',
+        test: /\.(js|jsx|mjs|ts|tsx)$/,
+        loader: 'source-map-loader',
+        include: path.resolve(__dirname, 'src'),
+      },
+      {
+        test: /\.js$/,
+        type: 'javascript/auto',
+      },
+      {
+        test: /\.ts(x?)$/,
+        exclude: /node_modules/,
+        use: ['babel-loader', 'ts-loader'],
+      },
+      {
+        test: /\.(bmp|gif|jpg|jpeg|png|woff|woff2|eot|ttf)$/,
+        type: 'asset',
+      },
+      {
+        test: /\.svg$/,
+        exclude: /node_modules/,
+        use: ['svg-react-loader'],
+      },
+      {
+        test: /\.css$/,
+        use: stylesLoaders({ enableSass: false, enableModules: false }),
+      },
+      {
+        test: /.blueprint\.scss$/,
+        use: stylesLoaders({ enableSass: true, enableModules: false }),
+      },
+      {
+        test: /\.s[ac]ss$/,
+        use: stylesLoaders({ enableSass: true, enableModules: true }),
+        exclude: /.blueprint\.scss$/,
       },
     ],
   },

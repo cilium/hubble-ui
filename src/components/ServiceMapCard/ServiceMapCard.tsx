@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { observer } from 'mobx-react';
 import * as mobx from 'mobx';
 
+import { Tooltip2 } from '@blueprintjs/popover2';
+
 import { AccessPoint } from '~/components/AccessPoint';
 import { EndpointCardHeader } from '~/components/EndpointCardHeader';
 
@@ -122,9 +124,10 @@ export const ServiceMapCard = observer(function ServiceMapCard(props: Props) {
   const onHeightChange = useCallback((h: number) => {
     props.onHeightChange?.(h);
 
-    // WARN: do not emit new connector coords from here cz
-    // old coords will be received in props.coords hence wrong connector coords
-    // will be emitted
+    /* WARN: Do not emit new connector coords from here.
+     * Old coords will be received in props.coords,  
+     * hence wrong connector coords will be emitted
+     */
   }, [props.onHeightChange]);
 
   return (
@@ -141,6 +144,13 @@ export const ServiceMapCard = observer(function ServiceMapCard(props: Props) {
       />
       {accessPoints.length > 0 && (
         <div className={css.accessPoints}>{accessPoints}</div>
+      )}
+      {props.isClusterMeshed && props.card.clusterName && (
+        <div className={css.clusterNameLabel}>
+          <Tooltip2 content={`Cluster name: ${props.card.clusterName}`}>
+            {props.card.clusterName}
+          </Tooltip2>
+        </div>
       )}
       {props.active && <EndpointCardLabels labels={props.card.labels} />}
     </Card>

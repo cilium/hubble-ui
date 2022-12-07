@@ -13,7 +13,7 @@ import { KV } from '~/domain/misc';
 import { MapUtils } from '~/utils/iter-tools/map';
 import { ApplicationKind } from './types';
 
-// This entity maintains ONLY THE DATA of service card
+/* This entity maintains ONLY THE DATA of Service Card */
 export class ServiceCard extends AbstractCard {
   public static readonly AppLabel = 'k8s:app';
 
@@ -124,6 +124,10 @@ export class ServiceCard extends AbstractCard {
 
   public get appLabel(): string | null {
     return this.labelsProps.appName || null;
+  }
+
+  public get clusterName(): string | null {
+    return this.labelsProps.clusterName || null;
   }
 
   public get isCovalentRelated(): boolean {
