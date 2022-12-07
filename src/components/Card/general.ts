@@ -15,6 +15,7 @@ export interface CardComponentProps<C extends AbstractCard> {
   currentNamespace?: string | null;
   active?: boolean;
   l7endpoints?: Connections<L7Endpoint>;
+  isClusterMeshed?: boolean;
   maxHttpEndpointsVisible?: number;
 
   onHeightChange?: (height: number) => void;
@@ -36,8 +37,8 @@ export interface BaseCardProps {
   // ref?: Ref<SVGGElement>;
   onHeightChange?: (h: number) => void;
 
-  // NOTE: coords function accepts coords of point relative to client space
-  // NOTE: and returns tuple of two: coords in svg space and in card space
+  /* NOTE: coords function accepts coords of point relative to client space
+     and returns tuple of two: coords in svg space and in card space */
   onEmitCoordsFn?: (fn: CoordsFn) => void;
   onClick?: () => void;
 }

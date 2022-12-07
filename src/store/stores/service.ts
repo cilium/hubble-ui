@@ -46,6 +46,18 @@ export default class ServiceStore {
     return Array.from(this.activeCardsSet);
   }
 
+  /* For Cluster Mesh feature to show cluster name on Service Map cards */
+  public get isClusterMeshed(): boolean {
+    const seenClusters = new Set<string>();
+    for (let i = 0; i < this.cardsList.length; i++) {
+      const card = this.cardsList[i];
+      if (card.clusterName) seenClusters.add(card.clusterName);
+      /* If there's more than 1 cluster name, Cluster Mesh is enabled */
+      if (seenClusters.size > 1) return true;
+    }
+    return false;
+  }
+
   public get byId() {
     return (id: string) => {
       return this.cardsMap.get(id);
