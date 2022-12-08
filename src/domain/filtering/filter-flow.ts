@@ -58,14 +58,14 @@ export const filterFlow = (flow: Flow, filters: Filters): boolean => {
     if (rangeSign === '-' && flow.httpStatus > httpStatus) return false;
   }
 
-  let ok = !filters.filters?.length;
-  filters.filters?.forEach((ff: FilterEntry) => {
-    const passed = filterFlowByEntry(flow, ff);
-
-    ok = ok || passed;
-  });
-
-  return ok;
+  const filtered = filters.filters?.some(
+    ff => ff.negative && !filterFlowByEntry(flow, ff),
+  );
+  return filtered
+    ? false
+    : !!filters.filters?.some(
+        ff => !ff.negative && filterFlowByEntry(flow, ff),
+      );
 };
 
 export const filterFlowByEntry = (flow: Flow, filter: FilterEntry): boolean => {
@@ -108,5 +108,5 @@ export const filterFlowByEntry = (flow: Flow, filter: FilterEntry): boolean => {
     }
   }
 
-  return fromOk || toOk;
+  return filter.negative !== (fromOk || toOk);
 };
