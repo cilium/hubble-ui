@@ -128,6 +128,7 @@ function tagRenderer(item: FilterEntry | null) {
     <div className={css.tag}>
       <TagDirection direction={item.direction} />
       <span className={css.body}>
+        {item.negative && <span className={css.negative}>!</span>}
         <span className={css.kind}>{item.kind}</span>
         <span className={css.separator}>=</span>
         <span className={css.query}>{query}</span>
