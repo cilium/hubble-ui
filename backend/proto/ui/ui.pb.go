@@ -22,9 +22,9 @@ package ui
 
 import (
 	flow "github.com/cilium/cilium/api/v1/flow"
-	timestamp "github.com/golang/protobuf/ptypes/timestamp"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 )
@@ -220,11 +220,11 @@ type GetEventsRequest struct {
 
 	// EventType specifies which types of events to subscribe to. If unspecified, the
 	// request is subscribed to all the event types.
-	EventTypes    []EventType          `protobuf:"varint,1,rep,packed,name=event_types,json=eventTypes,proto3,enum=ui.EventType" json:"event_types,omitempty"`
-	Blacklist     []*EventFilter       `protobuf:"bytes,2,rep,name=blacklist,proto3" json:"blacklist,omitempty"`
-	Whitelist     []*EventFilter       `protobuf:"bytes,3,rep,name=whitelist,proto3" json:"whitelist,omitempty"`
-	Since         *timestamp.Timestamp `protobuf:"bytes,4,opt,name=since,proto3" json:"since,omitempty"`
-	StatusRequest *GetStatusRequest    `protobuf:"bytes,5,opt,name=status_request,json=statusRequest,proto3" json:"status_request,omitempty"`
+	EventTypes    []EventType            `protobuf:"varint,1,rep,packed,name=event_types,json=eventTypes,proto3,enum=ui.EventType" json:"event_types,omitempty"`
+	Blacklist     []*EventFilter         `protobuf:"bytes,2,rep,name=blacklist,proto3" json:"blacklist,omitempty"`
+	Whitelist     []*EventFilter         `protobuf:"bytes,3,rep,name=whitelist,proto3" json:"whitelist,omitempty"`
+	Since         *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=since,proto3" json:"since,omitempty"`
+	StatusRequest *GetStatusRequest      `protobuf:"bytes,5,opt,name=status_request,json=statusRequest,proto3" json:"status_request,omitempty"`
 }
 
 func (x *GetEventsRequest) Reset() {
@@ -280,7 +280,7 @@ func (x *GetEventsRequest) GetWhitelist() []*EventFilter {
 	return nil
 }
 
-func (x *GetEventsRequest) GetSince() *timestamp.Timestamp {
+func (x *GetEventsRequest) GetSince() *timestamppb.Timestamp {
 	if x != nil {
 		return x.Since
 	}
@@ -299,8 +299,8 @@ type GetEventsResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Node      string               `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
-	Timestamp *timestamp.Timestamp `protobuf:"bytes,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Node      string                 `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
+	Timestamp *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	// Types that are assignable to Event:
 	//
 	//	*GetEventsResponse_Flow
@@ -351,7 +351,7 @@ func (x *GetEventsResponse) GetNode() string {
 	return ""
 }
 
-func (x *GetEventsResponse) GetTimestamp() *timestamp.Timestamp {
+func (x *GetEventsResponse) GetTimestamp() *timestamppb.Timestamp {
 	if x != nil {
 		return x.Timestamp
 	}
@@ -602,9 +602,9 @@ type K8SNamespace struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id                string               `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name              string               `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	CreationTimestamp *timestamp.Timestamp `protobuf:"bytes,3,opt,name=creation_timestamp,json=creationTimestamp,proto3" json:"creation_timestamp,omitempty"`
+	Id                string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name              string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	CreationTimestamp *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=creation_timestamp,json=creationTimestamp,proto3" json:"creation_timestamp,omitempty"`
 }
 
 func (x *K8SNamespace) Reset() {
@@ -653,7 +653,7 @@ func (x *K8SNamespace) GetName() string {
 	return ""
 }
 
-func (x *K8SNamespace) GetCreationTimestamp() *timestamp.Timestamp {
+func (x *K8SNamespace) GetCreationTimestamp() *timestamppb.Timestamp {
 	if x != nil {
 		return x.CreationTimestamp
 	}
@@ -733,7 +733,7 @@ type Service struct {
 	// successfully enabled, this string is set to "OK" I think.
 	VisibilityPolicyStatus string `protobuf:"bytes,8,opt,name=visibility_policy_status,json=visibilityPolicyStatus,proto3" json:"visibility_policy_status,omitempty"`
 	// We probably can't reliably set creation timestamp.
-	CreationTimestamp *timestamp.Timestamp `protobuf:"bytes,9,opt,name=creation_timestamp,json=creationTimestamp,proto3" json:"creation_timestamp,omitempty"`
+	CreationTimestamp *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=creation_timestamp,json=creationTimestamp,proto3" json:"creation_timestamp,omitempty"`
 }
 
 func (x *Service) Reset() {
@@ -824,7 +824,7 @@ func (x *Service) GetVisibilityPolicyStatus() string {
 	return ""
 }
 
-func (x *Service) GetCreationTimestamp() *timestamp.Timestamp {
+func (x *Service) GetCreationTimestamp() *timestamppb.Timestamp {
 	if x != nil {
 		return x.CreationTimestamp
 	}
@@ -1552,7 +1552,7 @@ var file_ui_ui_proto_goTypes = []interface{}{
 	(*GetControlStreamRequest)(nil),                  // 15: ui.GetControlStreamRequest
 	(*GetControlStreamResponse)(nil),                 // 16: ui.GetControlStreamResponse
 	(*GetControlStreamResponse_NamespaceStates)(nil), // 17: ui.GetControlStreamResponse.NamespaceStates
-	(*timestamp.Timestamp)(nil),                      // 18: google.protobuf.Timestamp
+	(*timestamppb.Timestamp)(nil),                    // 18: google.protobuf.Timestamp
 	(*GetStatusRequest)(nil),                         // 19: ui.GetStatusRequest
 	(*flow.Flow)(nil),                                // 20: flow.Flow
 	(*Notification)(nil),                             // 21: ui.Notification
