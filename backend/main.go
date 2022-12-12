@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -72,19 +73,20 @@ func runServer(cfg *config.Config) {
 	go func() {
 		<-ctx.Done()
 		log.Info(msg.ServerSetupShuttingDown)
-
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		if err := httpSrv.Shutdown(shutdownCtx); err != nil {
-			log.Println(err)
+		if err := httpSrv.Shutdown(ctx); err != nil {
+			log.WithError(err).Error("httpSrv.Shutdown error")
 		}
-
 	}()
 
 	log.Infof(msg.ServerSetupListeningAt, addr)
-	if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Errorf(msg.ServerSetupRunError, err)
-		os.Exit(1)
+	if err := httpSrv.ListenAndServe(); err != nil {
+		code := 1
+		if !errors.Is(err, http.ErrServerClosed) {
+			log.Errorf(msg.ServerSetupRunError, err)
+		} else {
+			code = 0
+		}
+		os.Exit(code)
 	}
 }
 

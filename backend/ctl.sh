@@ -77,7 +77,7 @@ function build_proto_inner() {
     GO_MAPPINGS+=",Mui/ui.proto=github.com/cilium/hubble-ui/backend/proto/ui"
     GO_MAPPINGS+=",Mui/notifications.proto=github.com/cilium/hubble-ui/backend/proto/ui"
     GO_MAPPINGS+=",Mui/status.proto=github.com/cilium/hubble-ui/backend/proto/ui"
-    GO_MAPPINGS+=",Mgoogle/protobuf/timestamp.proto=github.com/golang/protobuf/ptypes/timestamp"
+    GO_MAPPINGS+=",Mgoogle/protobuf/timestamp.proto=google.golang.org/protobuf/types/known/timestamppb"
 
     $PROTOC $PROTOC_GEN_GO_PLUGIN $PROTOC_GEN_GO_GRPC_PLUGIN \
         --proto_path ./proto \

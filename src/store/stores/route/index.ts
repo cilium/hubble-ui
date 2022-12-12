@@ -150,7 +150,7 @@ export default class RouteStore {
       if (value == null || (hasLength && !(value as string).length)) {
         delete params[key];
       } else {
-        params[key] = String(value!);
+        params[key] = String(value);
       }
 
       return { parts, params, hash };
