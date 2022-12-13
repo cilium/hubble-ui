@@ -479,6 +479,27 @@ describe('filterService', () => {
 
   testFilterEntry(
     (svcName: string, tnum: number) =>
+      `identity > negative > both matches ${tnum} (${svcName})`,
+    FilterEntry.parse(`!both:identity=${regular.id}`)!,
+    false,
+    { regular },
+  );
+
+  testFilterEntry(
+    (svcName: string, tnum: number) =>
+      `identity > negative > both doesnt match ${tnum} (${svcName})`,
+    FilterEntry.parse(`!both:identity=${regular.id}`)!,
+    true,
+    {
+      world,
+      host,
+      remoteNode,
+      kubeDns,
+    },
+  );
+
+  testFilterEntry(
+    (svcName: string, tnum: number) =>
       `label > to matches ${tnum} (${svcName})`,
     filterEntries.toLabelRegular!,
     true,
