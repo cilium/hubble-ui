@@ -249,6 +249,36 @@ describe('filterLink', () => {
   );
 
   testFilterEntry(
+    (linkName: string, n: number) =>
+      `identity > negative > to match ${n} (${linkName})`,
+    FilterEntry.parse(`!to:identity=dst-456`)!,
+    false,
+    {
+      tcpForwarded,
+      tcpDropped,
+      tcpUnknown,
+      tcpError,
+      tcpForwardedDropped,
+      tcpMixed,
+    },
+  );
+
+  testFilterEntry(
+    (linkName: string, n: number) =>
+      `identity > negative > to doesnt match ${n} (${linkName})`,
+    FilterEntry.parse(`!to:identity=dst-456-wrong`)!,
+    true,
+    {
+      tcpForwarded,
+      tcpDropped,
+      tcpUnknown,
+      tcpError,
+      tcpForwardedDropped,
+      tcpMixed,
+    },
+  );
+
+  testFilterEntry(
     (linkName: string, n: number) => `identity > to matches ${n} (${linkName})`,
     FilterEntry.parse(`to:identity=src-123`)!,
     true,

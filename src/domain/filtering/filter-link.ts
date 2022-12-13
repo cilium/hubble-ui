@@ -14,14 +14,15 @@ export const filterLink = (link: Link, filters: Filters): boolean => {
 
   if (link.isDNSRequest && filters.skipKubeDns) return false;
 
-  const filtered = filters.filters?.some(
-    ff => ff.negative && !filterLinkByEntry(link, ff),
-  );
-  return filtered
-    ? false
-    : !!filters.filters?.some(
-        ff => !ff.negative && filterLinkByEntry(link, ff),
-      );
+  if (!filters.filters?.length) return true;
+
+  for (const ff of filters.filters) {
+    const ffResult = filterLinkByEntry(link, ff);
+
+    if (ff.negative && !ffResult) return false;
+    if (!ff.negative && ffResult) return true;
+  }
+  return false;
 };
 
 export const filterLinkByEntry = (l: Link, e: FilterEntry): boolean => {

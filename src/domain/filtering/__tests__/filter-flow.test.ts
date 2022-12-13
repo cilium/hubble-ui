@@ -1017,4 +1017,177 @@ describe('filterFlow', () => {
       fromSenderToSenderPod,
     },
   );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) =>
+      `negative > from label matches ${tnum} (${flowName})`,
+    FilterEntry.parse(`!from:label=namespace=SenderNs`)!,
+    false,
+    {
+      diffNsFlow,
+      differentIpsFlow,
+      verdictDropped,
+      verdictUnknown,
+      flowHttp200,
+      sameIpsFlow,
+      sameV6IpsFlow,
+      fromGoogleFlow,
+      toGoogleFlow,
+      bothGoogleFlow,
+      toKubeDNSFlow,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) =>
+      `negative > from label doesnt match ${tnum} (${flowName})`,
+    FilterEntry.parse(`!from:label=namespace=SenderNs`)!,
+    true,
+    {
+      sameNsFlow,
+      fromKubeDNSFlow,
+      bothKubeDNSFlow,
+      fromHostFlow,
+      bothHostFlow,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) =>
+      `negative > both dns matches ${tnum} (${flowName})`,
+    FilterEntry.parse(`!both:dns=www.google.com`)!,
+    false,
+    {
+      toGoogleFlow,
+      fromGoogleFlow,
+      bothGoogleFlow,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) =>
+      `negative > both dns doesnt match ${tnum} (${flowName})`,
+    FilterEntry.parse(`!both:dns=www.google.com`)!,
+    true,
+    {
+      diffNsFlow,
+      differentIpsFlow,
+      verdictDropped,
+      verdictUnknown,
+      sameIpsFlow,
+      sameV6IpsFlow,
+      toKubeDNSFlow,
+      fromKubeDNSFlow,
+      bothKubeDNSFlow,
+      fromHostFlow,
+      toHostFlow,
+      bothHostFlow,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) =>
+      `negative > both identity matches ${tnum} (${flowName})`,
+    FilterEntry.parse(`!both:identity=1`)!,
+    false,
+    {
+      normalOne: flows.normalOne,
+      differentIpsFlow,
+      sameIpsFlow,
+      diffNsFlow,
+      verdictDropped,
+      verdictUnknown,
+      sameV6IpsFlow,
+      fromGoogleFlow,
+      toGoogleFlow,
+      bothGoogleFlow,
+      toKubeDNSFlow,
+      fromKubeDNSFlow,
+      bothKubeDNSFlow,
+      fromHostFlow,
+      toHostFlow,
+      bothHostFlow,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) =>
+      `negative > both identity doesnt match ${tnum} (${flowName})`,
+    FilterEntry.parse(`!both:identity=100500`)!,
+    true,
+    {
+      normalOne: flows.normalOne,
+      differentIpsFlow,
+      sameIpsFlow,
+      diffNsFlow,
+      verdictDropped,
+      verdictUnknown,
+      sameV6IpsFlow,
+      fromGoogleFlow,
+      toGoogleFlow,
+      bothGoogleFlow,
+      toKubeDNSFlow,
+      fromKubeDNSFlow,
+      bothKubeDNSFlow,
+      fromHostFlow,
+      toHostFlow,
+      bothHostFlow,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) =>
+      `negative > from ip matches ${tnum} (${flowName})`,
+    FilterEntry.parse(`!from:ip=${differentIpsFlow.sourceIp}`)!,
+    false,
+    {
+      differentIpsFlow,
+      sameIpsFlow,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) =>
+      `negative > from ip doesnt matches ${tnum} (${flowName})`,
+    FilterEntry.parse(`!from:ip=${differentIpsFlow.destinationIp}`)!,
+    true,
+    {
+      differentIpsFlow,
+      sameIpsFlow,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) =>
+      `negative > both ip matches ${tnum} (${flowName})`,
+    FilterEntry.parse(`!both:ip=${differentIpsFlow.sourceIp}`)!,
+    false,
+    {
+      differentIpsFlow,
+      sameIpsFlow,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) => {
+      return `negative > both receiver pod matches ${flowName} ${tnum}`;
+    },
+    FilterEntry.parse(`!both:pod=${receiverPod}`)!,
+    false,
+    {
+      fromSenderToReceiverPod,
+      fromReceiverToSenderPod,
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) => {
+      return `negative > both receiver pod matches ${flowName} ${tnum}`;
+    },
+    FilterEntry.parse(`!both:pod=${receiverPod}`)!,
+    true,
+    {
+      fromSenderToSenderPod,
+    },
+  );
 });
