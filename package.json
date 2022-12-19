@@ -48,7 +48,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-router-dom": "6.4.5",
-    "react-spring": "9.5.5",
+    "react-spring": "9.6.1",
     "react-window": "1.8.8",
     "route-parser": "0.0.5",
     "url-parse": "1.5.10"
