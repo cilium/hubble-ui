@@ -15,7 +15,7 @@ jobs:
         with:
           submodules: true
       - name: Use Node.js
-        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c
         with:
           node-version: '18.x'
       - name: Install dependencies
@@ -46,7 +46,7 @@ jobs:
           args: --config=.golangci.yml --verbose --out-${NO_FUTURE}format colored-line-number --timeout 3m
           skip-cache: true
       - name: Setup Node.js
-        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c
         with:
           node-version: '18.x'
       - name: Install NPM dependencies
