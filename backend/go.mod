@@ -10,7 +10,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
 	golang.org/x/sys v0.3.0
-	google.golang.org/grpc v1.52.0
+	google.golang.org/grpc v1.52.1
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
 	google.golang.org/protobuf v1.28.1
 	k8s.io/api v0.26.0
