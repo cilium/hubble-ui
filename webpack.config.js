@@ -85,7 +85,6 @@ module.exports = {
     filename: isProduction
       ? 'bundle.[name].[contenthash].js'
       : 'bundle.[name].js',
-    publicPath: '/',
     devtoolModuleFilenameTemplate: isProduction
       ? undefined
       : '[absolute-resource-path]',

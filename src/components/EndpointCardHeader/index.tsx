@@ -48,8 +48,8 @@ const PolicyInfo = memo(function PolicyProps(props: PolicyProps) {
   const inLocked = props.ingress ? 'locked' : 'unlocked';
   const eLocked = props.egress ? 'locked' : 'unlocked';
 
-  const ingressIcon = `/icons/misc/ingress-${inLocked}.svg`;
-  const egressIcon = `/icons/misc/ingress-${eLocked}.svg`;
+  const ingressIcon = `icons/misc/ingress-${inLocked}.svg`;
+  const egressIcon = `icons/misc/ingress-${eLocked}.svg`;
 
   const ingressCls = classnames({
     [css.left]: true,

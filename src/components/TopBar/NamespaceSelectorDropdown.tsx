@@ -49,7 +49,7 @@ export const NamespaceSelectorDropdown = memo<Props>(
 
     const btnIcon = (
       <img
-        src="/icons/misc/namespace-icon.svg"
+        src="icons/misc/namespace-icon.svg"
         className={css.namespacesDropdownButtonIcon}
       />
     );
