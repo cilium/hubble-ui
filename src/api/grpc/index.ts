@@ -26,7 +26,9 @@ export class APIv1 implements CoreAPIv1 {
 
     let addr = `${schema}://${host}:${port}${path}`;
     if (process.env.NODE_ENV !== 'development') {
-      addr = `${document.location.origin}${path}`;
+      const origin = document.location.origin.replace(/(.*)\/$/, '$1');
+      const pathname = document.location.pathname.replace(/(.*)\/$/, '$1');
+      addr = `${origin}${pathname}${path}`;
     }
 
     this.client = new UIClient(addr);
