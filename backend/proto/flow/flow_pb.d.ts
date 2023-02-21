@@ -108,6 +108,20 @@ export class Flow extends jspb.Message {
   getProxyPort(): number;
   setProxyPort(value: number): Flow;
 
+  getTraceContext(): TraceContext | undefined;
+  setTraceContext(value?: TraceContext): Flow;
+  hasTraceContext(): boolean;
+  clearTraceContext(): Flow;
+
+  getSockXlatePoint(): SocketTranslationPoint;
+  setSockXlatePoint(value: SocketTranslationPoint): Flow;
+
+  getSocketCookie(): number;
+  setSocketCookie(value: number): Flow;
+
+  getCgroupId(): number;
+  setCgroupId(value: number): Flow;
+
   getSummary(): string;
   setSummary(value: string): Flow;
 
@@ -146,6 +160,10 @@ export namespace Flow {
     debugCapturePoint: DebugCapturePoint,
     pb_interface?: NetworkInterface.AsObject,
     proxyPort: number,
+    traceContext?: TraceContext.AsObject,
+    sockXlatePoint: SocketTranslationPoint,
+    socketCookie: number,
+    cgroupId: number,
     summary: string,
   }
 }
@@ -171,6 +189,11 @@ export class Layer4 extends jspb.Message {
   hasIcmpv6(): boolean;
   clearIcmpv6(): Layer4;
 
+  getSctp(): SCTP | undefined;
+  setSctp(value?: SCTP): Layer4;
+  hasSctp(): boolean;
+  clearSctp(): Layer4;
+
   getProtocolCase(): Layer4.ProtocolCase;
 
   serializeBinary(): Uint8Array;
@@ -187,6 +210,7 @@ export namespace Layer4 {
     udp?: UDP.AsObject,
     icmpv4?: ICMPv4.AsObject,
     icmpv6?: ICMPv6.AsObject,
+    sctp?: SCTP.AsObject,
   }
 
   export enum ProtocolCase { 
@@ -195,6 +219,7 @@ export namespace Layer4 {
     UDP = 2,
     ICMPV4 = 3,
     ICMPV6 = 4,
+    SCTP = 5,
   }
 }
 
@@ -244,6 +269,44 @@ export namespace Layer7 {
     DNS = 100,
     HTTP = 101,
     KAFKA = 102,
+  }
+}
+
+export class TraceContext extends jspb.Message {
+  getParent(): TraceParent | undefined;
+  setParent(value?: TraceParent): TraceContext;
+  hasParent(): boolean;
+  clearParent(): TraceContext;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TraceContext.AsObject;
+  static toObject(includeInstance: boolean, msg: TraceContext): TraceContext.AsObject;
+  static serializeBinaryToWriter(message: TraceContext, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TraceContext;
+  static deserializeBinaryFromReader(message: TraceContext, reader: jspb.BinaryReader): TraceContext;
+}
+
+export namespace TraceContext {
+  export type AsObject = {
+    parent?: TraceParent.AsObject,
+  }
+}
+
+export class TraceParent extends jspb.Message {
+  getTraceId(): string;
+  setTraceId(value: string): TraceParent;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TraceParent.AsObject;
+  static toObject(includeInstance: boolean, msg: TraceParent): TraceParent.AsObject;
+  static serializeBinaryToWriter(message: TraceParent, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TraceParent;
+  static deserializeBinaryFromReader(message: TraceParent, reader: jspb.BinaryReader): TraceParent;
+}
+
+export namespace TraceParent {
+  export type AsObject = {
+    traceId: string,
   }
 }
 
@@ -463,6 +526,28 @@ export namespace UDP {
   }
 }
 
+export class SCTP extends jspb.Message {
+  getSourcePort(): number;
+  setSourcePort(value: number): SCTP;
+
+  getDestinationPort(): number;
+  setDestinationPort(value: number): SCTP;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SCTP.AsObject;
+  static toObject(includeInstance: boolean, msg: SCTP): SCTP.AsObject;
+  static serializeBinaryToWriter(message: SCTP, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SCTP;
+  static deserializeBinaryFromReader(message: SCTP, reader: jspb.BinaryReader): SCTP;
+}
+
+export namespace SCTP {
+  export type AsObject = {
+    sourcePort: number,
+    destinationPort: number,
+  }
+}
+
 export class ICMPv4 extends jspb.Message {
   getType(): number;
   setType(value: number): ICMPv4;
@@ -581,6 +666,11 @@ export class FlowFilter extends jspb.Message {
   clearSourceServiceList(): FlowFilter;
   addSourceService(value: string, index?: number): FlowFilter;
 
+  getSourceWorkloadList(): Array<Workload>;
+  setSourceWorkloadList(value: Array<Workload>): FlowFilter;
+  clearSourceWorkloadList(): FlowFilter;
+  addSourceWorkload(value?: Workload, index?: number): Workload;
+
   getDestinationIpList(): Array<string>;
   setDestinationIpList(value: Array<string>): FlowFilter;
   clearDestinationIpList(): FlowFilter;
@@ -605,6 +695,11 @@ export class FlowFilter extends jspb.Message {
   setDestinationServiceList(value: Array<string>): FlowFilter;
   clearDestinationServiceList(): FlowFilter;
   addDestinationService(value: string, index?: number): FlowFilter;
+
+  getDestinationWorkloadList(): Array<Workload>;
+  setDestinationWorkloadList(value: Array<Workload>): FlowFilter;
+  clearDestinationWorkloadList(): FlowFilter;
+  addDestinationWorkload(value?: Workload, index?: number): Workload;
 
   getVerdictList(): Array<Verdict>;
   setVerdictList(value: Array<Verdict>): FlowFilter;
@@ -681,6 +776,11 @@ export class FlowFilter extends jspb.Message {
   clearIpVersionList(): FlowFilter;
   addIpVersion(value: IPVersion, index?: number): FlowFilter;
 
+  getTraceIdList(): Array<string>;
+  setTraceIdList(value: Array<string>): FlowFilter;
+  clearTraceIdList(): FlowFilter;
+  addTraceId(value: string, index?: number): FlowFilter;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): FlowFilter.AsObject;
   static toObject(includeInstance: boolean, msg: FlowFilter): FlowFilter.AsObject;
@@ -696,11 +796,13 @@ export namespace FlowFilter {
     sourceFqdnList: Array<string>,
     sourceLabelList: Array<string>,
     sourceServiceList: Array<string>,
+    sourceWorkloadList: Array<Workload.AsObject>,
     destinationIpList: Array<string>,
     destinationPodList: Array<string>,
     destinationFqdnList: Array<string>,
     destinationLabelList: Array<string>,
     destinationServiceList: Array<string>,
+    destinationWorkloadList: Array<Workload.AsObject>,
     verdictList: Array<Verdict>,
     eventTypeList: Array<EventTypeFilter.AsObject>,
     httpStatusCodeList: Array<string>,
@@ -716,6 +818,7 @@ export namespace FlowFilter {
     tcpFlagsList: Array<TCPFlags.AsObject>,
     nodeNameList: Array<string>,
     ipVersionList: Array<IPVersion>,
+    traceIdList: Array<string>,
   }
 }
 
@@ -1225,6 +1328,12 @@ export class ServiceUpsertNotification extends jspb.Message {
   getNamespace(): string;
   setNamespace(value: string): ServiceUpsertNotification;
 
+  getExtTrafficPolicy(): string;
+  setExtTrafficPolicy(value: string): ServiceUpsertNotification;
+
+  getIntTrafficPolicy(): string;
+  setIntTrafficPolicy(value: string): ServiceUpsertNotification;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ServiceUpsertNotification.AsObject;
   static toObject(includeInstance: boolean, msg: ServiceUpsertNotification): ServiceUpsertNotification.AsObject;
@@ -1242,6 +1351,8 @@ export namespace ServiceUpsertNotification {
     trafficPolicy: string,
     name: string,
     namespace: string,
+    extTrafficPolicy: string,
+    intTrafficPolicy: string,
   }
 }
 
@@ -1347,6 +1458,7 @@ export enum FlowType {
   UNKNOWN_TYPE = 0,
   L3_L4 = 1,
   L7 = 2,
+  SOCK = 3,
 }
 export enum TraceObservationPoint { 
   UNKNOWN_POINT = 0,
@@ -1381,6 +1493,8 @@ export enum Verdict {
   ERROR = 3,
   AUDIT = 4,
   REDIRECTED = 5,
+  TRACED = 6,
+  TRANSLATED = 7,
 }
 export enum DropReason { 
   DROP_REASON_UNKNOWN = 0,
@@ -1438,6 +1552,11 @@ export enum DropReason {
   VLAN_FILTERED = 182,
   INVALID_VNI = 183,
   INVALID_TC_BUFFER = 184,
+  NO_SID = 185,
+  MISSING_SRV6_STATE = 186,
+  NAT46 = 187,
+  NAT64 = 188,
+  AUTH_REQUIRED = 189,
 }
 export enum TrafficDirection { 
   TRAFFIC_DIRECTION_UNKNOWN = 0,
@@ -1479,6 +1598,13 @@ export enum AgentEventType {
   IPCACHE_DELETED = 10,
   SERVICE_UPSERTED = 11,
   SERVICE_DELETED = 12,
+}
+export enum SocketTranslationPoint { 
+  SOCK_XLATE_POINT_UNKNOWN = 0,
+  SOCK_XLATE_POINT_PRE_DIRECTION_FWD = 1,
+  SOCK_XLATE_POINT_POST_DIRECTION_FWD = 2,
+  SOCK_XLATE_POINT_PRE_DIRECTION_REV = 3,
+  SOCK_XLATE_POINT_POST_DIRECTION_REV = 4,
 }
 export enum DebugEventType { 
   DBG_EVENT_UNKNOWN = 0,
