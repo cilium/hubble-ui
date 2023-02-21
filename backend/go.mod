@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/cilium/cilium v1.12.4
 	github.com/cilium/hubble v0.10.0
-	github.com/google/gops v0.3.26
+	github.com/google/gops v0.3.27
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
