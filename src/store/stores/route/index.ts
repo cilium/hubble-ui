@@ -1,6 +1,6 @@
 import { runInAction, makeAutoObservable } from 'mobx';
 import { createBrowserHistory, createMemoryHistory, History } from 'history';
-import * as qs from 'query-string';
+import qs from 'query-string';
 
 import { FilterEntry } from '~/domain/filtering';
 import { Verdict } from '~/domain/hubble';

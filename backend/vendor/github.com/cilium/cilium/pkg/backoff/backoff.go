@@ -29,6 +29,26 @@ type NodeManager interface {
 	ClusterSizeDependantInterval(baseInterval time.Duration) time.Duration
 }
 
+// nodeManager is a wrapper to enable using a plain function as NodeManager to implement
+// cluster size dependent intervals
+type nodeManager struct {
+	clusterSizeDependantInterval func(baseInterval time.Duration) time.Duration
+}
+
+// NewNodeManager returns a new NodeManager implementing cluster size dependent intervals
+// based on the given function. If the function is nil, then no tuning is performed.
+func NewNodeManager(clusterSizeDependantInterval func(baseInterval time.Duration) time.Duration) NodeManager {
+	return &nodeManager{clusterSizeDependantInterval: clusterSizeDependantInterval}
+}
+
+func (n *nodeManager) ClusterSizeDependantInterval(baseInterval time.Duration) time.Duration {
+	if n.clusterSizeDependantInterval == nil {
+		return baseInterval
+	}
+
+	return n.clusterSizeDependantInterval(baseInterval)
+}
+
 // Exponential implements an exponential backoff
 type Exponential struct {
 	// Min is the minimal backoff time, if unspecified, 1 second will be
@@ -56,6 +76,13 @@ type Exponential struct {
 	// for logging purposes.
 	Name string
 
+	// ResetAfter will reset the exponential back-off if no attempt is made for the amount of time specified here.
+	// Needs to be larger than the Max duration, otherwise it will be ignored to avoid accidental resets.
+	// If unspecified, no reset is performed.
+	ResetAfter time.Duration
+
+	lastBackoffStart time.Time
+
 	attempt int
 }
 
@@ -77,8 +104,57 @@ func CalculateDuration(min, max time.Duration, factor float64, jitter bool, fail
 	return time.Duration(t)
 }
 
+// ClusterSizeDependantInterval returns a time.Duration that is dependent on
+// the cluster size, i.e. the number of nodes that have been discovered. This
+// can be used to control sync intervals of shared or centralized resources to
+// avoid overloading these resources as the cluster grows.
+//
+// Example sync interval with baseInterval = 1 * time.Minute
+//
+// nodes | sync interval
+// ------+-----------------
+// 1     |   41.588830833s
+// 2     | 1m05.916737320s
+// 4     | 1m36.566274746s
+// 8     | 2m11.833474640s
+// 16    | 2m49.992800643s
+// 32    | 3m29.790453687s
+// 64    | 4m10.463236193s
+// 128   | 4m51.588744261s
+// 256   | 5m32.944565093s
+// 512   | 6m14.416550710s
+// 1024  | 6m55.946873494s
+// 2048  | 7m37.506428894s
+// 4096  | 8m19.080616652s
+// 8192  | 9m00.662124608s
+// 16384 | 9m42.247293667s
+func ClusterSizeDependantInterval(baseInterval time.Duration, numNodes int) time.Duration {
+	// no nodes are being managed, no work will be performed, return
+	// baseInterval to check again in a reasonable timeframe
+	if numNodes == 0 {
+		return baseInterval
+	}
+
+	waitNanoseconds := float64(baseInterval.Nanoseconds()) * math.Log1p(float64(numNodes))
+	return time.Duration(int64(waitNanoseconds))
+}
+
+// Reset backoff attempt counter
+func (b *Exponential) Reset() {
+	b.attempt = 0
+}
+
 // Wait waits for the required time using an exponential backoff
 func (b *Exponential) Wait(ctx context.Context) error {
+	if resetDuration := b.ResetAfter; resetDuration != time.Duration(0) && resetDuration > b.Max {
+		if !b.lastBackoffStart.IsZero() {
+			if time.Since(b.lastBackoffStart) > resetDuration {
+				b.Reset()
+			}
+		}
+	}
+
+	b.lastBackoffStart = time.Now()
 	b.attempt++
 	t := b.Duration(b.attempt)
 
