@@ -83,7 +83,7 @@
     "circular-dependency-plugin": "5.2.2",
     "css-loader": "6.7.2",
     "dotenv-webpack": "8.0.1",
-    "eslint": "8.29.0",
+    "eslint": "8.34.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-react": "7.31.11",
