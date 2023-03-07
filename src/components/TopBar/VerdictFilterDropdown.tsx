@@ -34,6 +34,10 @@ const filters: FilterOption[] = [
     verdict: Verdict.Dropped,
     title: 'Dropped',
   },
+  {
+    verdict: Verdict.Audit,
+    title: 'Audit',
+  },
 ];
 
 export const VerdictFilterDropdown = memo<Props>(function VerdictFilterDropdown(
@@ -68,6 +72,7 @@ export const VerdictFilterDropdown = memo<Props>(function VerdictFilterDropdown(
         className={classnames({
           [css.verdictFilterDropped]: props.verdict === Verdict.Dropped,
           [css.verdictFilterForwarded]: props.verdict === Verdict.Forwarded,
+          [css.verdictFilterAudit]: props.verdict === Verdict.Audit,
         })}
       />
     </Popover>

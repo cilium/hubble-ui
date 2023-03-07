@@ -15,6 +15,7 @@ export enum CiliumEventTypes {
   Debug = 2,
   Capture = 3,
   Trace = 4,
+  PolicyVerdict = 5,
   L7 = 129,
   Agent = 130,
 }
@@ -25,6 +26,7 @@ export const CiliumEventTypesCodes = {
   [CiliumEventTypes.Debug]: CiliumEventTypes.Debug,
   [CiliumEventTypes.Capture]: CiliumEventTypes.Capture,
   [CiliumEventTypes.Trace]: CiliumEventTypes.Trace,
+  [CiliumEventTypes.PolicyVerdict]: CiliumEventTypes.PolicyVerdict,
   [CiliumEventTypes.L7]: CiliumEventTypes.L7,
   [CiliumEventTypes.Agent]: CiliumEventTypes.Agent,
 };

@@ -138,6 +138,7 @@ export const VerdictEntry = memo<VerdictEntryProps>(
       [css.selected]: props.isSelected,
       [css.forwardedVerdict]: props.verdict === Verdict.Forwarded,
       [css.droppedVerdict]: props.verdict === Verdict.Dropped,
+      [css.auditVerdict]: props.verdict === Verdict.Audit,
     });
 
     const onClick = useCallback(() => {
