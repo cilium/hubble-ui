@@ -1,9 +1,7 @@
-import { Readable } from 'stream';
-
+import https from 'https';
 import fs from 'fs-extra';
 import path from 'path';
-import unzipper from 'unzipper';
-import fetch from 'node-fetch';
+import decompress from 'decompress';
 
 const VERSION = '3.11.4';
 
@@ -18,7 +16,6 @@ const PLATFORM =
 
 const ARCH = {
   arm64: 'aarch_64',
-  arm: 'aarch_64',
   x64: 'x86_64',
 }[process.arch];
 
@@ -32,25 +29,35 @@ const FILE_NAME = `protoc-${VERSION}-${PLATFORM}-${ARCH}.zip`;
 const DOWNLOAD_URL = `${DL_PREFIX}/v${VERSION}/${FILE_NAME}`;
 
 export default async targetDir => {
-  const buffer = await fetch(DOWNLOAD_URL)
-    .then(r => r.buffer())
-    .catch(err => {
-      console.error(err.message);
-      process.exit(1);
-    });
-
-  const protocTarget = path.resolve(targetDir, 'protoc');
-  await fs.remove(protocTarget).catch(err => {
-    console.error(err);
-  });
-
-  const r = new Readable();
-  r._read = () => void 0;
-  r.push(buffer);
-  r.push(null);
-
-  const unzip = unzipper.Extract({ path: protocTarget });
-  await r.pipe(unzip).promise();
-
-  fs.chmodSync(path.resolve(targetDir, './protoc/bin/protoc'), '0755');
+  try {
+    const target = path.resolve(targetDir, 'protoc');
+    await fs.remove(`/tmp/${FILE_NAME}`);
+    await download(DOWNLOAD_URL, `/tmp/${FILE_NAME}`);
+    await fs.remove(target);
+    await fs.mkdir(target);
+    await decompress(`/tmp/${FILE_NAME}`, target);
+    await fs.chmod(path.resolve(targetDir, './protoc/bin/protoc'), '0755');
+  } catch (error) {
+    console.error(error);
+  }
 };
+
+async function download(url, targetFile) {
+  return await new Promise((resolve, reject) => {
+    https
+      .get(url, response => {
+        const code = response.statusCode ?? 0;
+        if (code >= 400) {
+          return reject(new Error(response.statusMessage));
+        }
+        if (code > 300 && code < 400 && !!response.headers.location) {
+          return resolve(download(response.headers.location, targetFile));
+        }
+        const fileWriter = fs
+          .createWriteStream(targetFile)
+          .on('finish', () => resolve());
+        response.pipe(fileWriter);
+      })
+      .on('error', error => reject(error));
+  });
+}

@@ -220,6 +220,15 @@
             text-decoration-color: #d46363;
           }
         }
+
+        &.auditVerdict {
+          text-decoration-color: #d17a31;
+
+          &:hover {
+            color: #c16d28;
+            text-decoration-color: #c2702d;
+          }
+        }
       }
 
       .labels {
@@ -257,4 +266,8 @@
 
 .droppedVerdict {
   color: #e26d66;
+}
+
+.auditVerdict {
+  color: #d17a31;
 }

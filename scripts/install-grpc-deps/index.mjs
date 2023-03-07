@@ -7,6 +7,7 @@ import installPlugin from './grpc-web-plugin.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 const BIN_DIR = path.resolve(__dirname, '../../node_modules/.bin');
 
 const prepare = async () => {
@@ -41,6 +42,7 @@ const run = async () => {
   }
 
   console.log('Done.');
+  process.exit(0);
 };
 
 run();
