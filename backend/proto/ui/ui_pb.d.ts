@@ -1,10 +1,9 @@
-import * as jspb from 'google-protobuf'
+import * as jspb from "google-protobuf"
 
 import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb';
 import * as flow_flow_pb from '../flow/flow_pb';
 import * as ui_notifications_pb from '../ui/notifications_pb';
 import * as ui_status_pb from '../ui/status_pb';
-
 
 export class GetEventsRequest extends jspb.Message {
   getEventTypesList(): Array<EventType>;

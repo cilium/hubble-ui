@@ -1,73 +1,87 @@
 import * as grpcWeb from 'grpc-web';
 
-import * as observer_observer_pb from '../observer/observer_pb';
+import * as google_protobuf_wrappers_pb from 'google-protobuf/google/protobuf/wrappers_pb';
+import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb';
+import * as flow_flow_pb from '../flow/flow_pb';
+import * as relay_relay_pb from '../relay/relay_pb';
 
+import {
+  GetAgentEventsRequest,
+  GetAgentEventsResponse,
+  GetDebugEventsRequest,
+  GetDebugEventsResponse,
+  GetFlowsRequest,
+  GetFlowsResponse,
+  GetNodesRequest,
+  GetNodesResponse,
+  ServerStatusRequest,
+  ServerStatusResponse} from './observer_pb';
 
 export class ObserverClient {
   constructor (hostname: string,
                credentials?: null | { [index: string]: string; },
-               options?: null | { [index: string]: any; });
+               options?: null | { [index: string]: string; });
 
   getFlows(
-    request: observer_observer_pb.GetFlowsRequest,
+    request: GetFlowsRequest,
     metadata?: grpcWeb.Metadata
-  ): grpcWeb.ClientReadableStream<observer_observer_pb.GetFlowsResponse>;
+  ): grpcWeb.ClientReadableStream<GetFlowsResponse>;
 
   getAgentEvents(
-    request: observer_observer_pb.GetAgentEventsRequest,
+    request: GetAgentEventsRequest,
     metadata?: grpcWeb.Metadata
-  ): grpcWeb.ClientReadableStream<observer_observer_pb.GetAgentEventsResponse>;
+  ): grpcWeb.ClientReadableStream<GetAgentEventsResponse>;
 
   getDebugEvents(
-    request: observer_observer_pb.GetDebugEventsRequest,
+    request: GetDebugEventsRequest,
     metadata?: grpcWeb.Metadata
-  ): grpcWeb.ClientReadableStream<observer_observer_pb.GetDebugEventsResponse>;
+  ): grpcWeb.ClientReadableStream<GetDebugEventsResponse>;
 
   getNodes(
-    request: observer_observer_pb.GetNodesRequest,
+    request: GetNodesRequest,
     metadata: grpcWeb.Metadata | undefined,
-    callback: (err: grpcWeb.RpcError,
-               response: observer_observer_pb.GetNodesResponse) => void
-  ): grpcWeb.ClientReadableStream<observer_observer_pb.GetNodesResponse>;
+    callback: (err: grpcWeb.Error,
+               response: GetNodesResponse) => void
+  ): grpcWeb.ClientReadableStream<GetNodesResponse>;
 
   serverStatus(
-    request: observer_observer_pb.ServerStatusRequest,
+    request: ServerStatusRequest,
     metadata: grpcWeb.Metadata | undefined,
-    callback: (err: grpcWeb.RpcError,
-               response: observer_observer_pb.ServerStatusResponse) => void
-  ): grpcWeb.ClientReadableStream<observer_observer_pb.ServerStatusResponse>;
+    callback: (err: grpcWeb.Error,
+               response: ServerStatusResponse) => void
+  ): grpcWeb.ClientReadableStream<ServerStatusResponse>;
 
 }
 
 export class ObserverPromiseClient {
   constructor (hostname: string,
                credentials?: null | { [index: string]: string; },
-               options?: null | { [index: string]: any; });
+               options?: null | { [index: string]: string; });
 
   getFlows(
-    request: observer_observer_pb.GetFlowsRequest,
+    request: GetFlowsRequest,
     metadata?: grpcWeb.Metadata
-  ): grpcWeb.ClientReadableStream<observer_observer_pb.GetFlowsResponse>;
+  ): grpcWeb.ClientReadableStream<GetFlowsResponse>;
 
   getAgentEvents(
-    request: observer_observer_pb.GetAgentEventsRequest,
+    request: GetAgentEventsRequest,
     metadata?: grpcWeb.Metadata
-  ): grpcWeb.ClientReadableStream<observer_observer_pb.GetAgentEventsResponse>;
+  ): grpcWeb.ClientReadableStream<GetAgentEventsResponse>;
 
   getDebugEvents(
-    request: observer_observer_pb.GetDebugEventsRequest,
+    request: GetDebugEventsRequest,
     metadata?: grpcWeb.Metadata
-  ): grpcWeb.ClientReadableStream<observer_observer_pb.GetDebugEventsResponse>;
+  ): grpcWeb.ClientReadableStream<GetDebugEventsResponse>;
 
   getNodes(
-    request: observer_observer_pb.GetNodesRequest,
+    request: GetNodesRequest,
     metadata?: grpcWeb.Metadata
-  ): Promise<observer_observer_pb.GetNodesResponse>;
+  ): Promise<GetNodesResponse>;
 
   serverStatus(
-    request: observer_observer_pb.ServerStatusRequest,
+    request: ServerStatusRequest,
     metadata?: grpcWeb.Metadata
-  ): Promise<observer_observer_pb.ServerStatusResponse>;
+  ): Promise<ServerStatusResponse>;
 
 }
 
