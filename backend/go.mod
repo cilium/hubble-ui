@@ -3,7 +3,7 @@ module github.com/cilium/hubble-ui/backend
 go 1.20
 
 require (
-	github.com/cilium/cilium v1.13.0
+	github.com/cilium/cilium v1.13.1
 	github.com/cilium/hubble v0.11.2
 	github.com/google/gops v0.3.27
 	github.com/improbable-eng/grpc-web v0.15.0
@@ -69,8 +69,8 @@ require (
 
 // Replace directives from github.com/cilium/cilium. Keep in sync when updating Cilium!
 replace (
-	github.com/miekg/dns => github.com/cilium/dns v1.1.4-0.20190417235132-8e25ec9a0ff3
+	github.com/miekg/dns => github.com/cilium/dns v1.1.51-0.20220729113855-5b94b11b46fc
 	github.com/optiopay/kafka => github.com/cilium/kafka v0.0.0-20180809090225-01ce283b732b
-	go.universe.tf/metallb => github.com/cilium/metallb v0.1.1-0.20220713202445-9066eee9e0be
+	go.universe.tf/metallb => github.com/cilium/metallb v0.1.1-0.20220829170633-5d7dfb1129f7
 	sigs.k8s.io/controller-tools => github.com/cilium/controller-tools v0.6.2
 )
