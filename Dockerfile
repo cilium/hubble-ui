@@ -26,5 +26,5 @@ COPY . .
 ARG NODE_ENV=production
 RUN npm run build
 
-FROM docker.io/nginxinc/nginx-unprivileged:1.23-alpine@sha256:a8bb5c0c34e1acff7e2c282d6a4f3982f1f6e0fb692d07755c0cd7c1d0139c62
+FROM docker.io/nginxinc/nginx-unprivileged:1.23-alpine@sha256:cd8bb512cf52e845756f518c834c2e61971d45666cd792378ac43e3b7e90c5df
 COPY --from=stage1 /app/server/public /app
