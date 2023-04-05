@@ -53,7 +53,11 @@ func runServer(cfg *config.Config) {
 	handler.HandleFunc("/api/", func(resp http.ResponseWriter, req *http.Request) {
 		// NOTE: GRPC server handles requests with URL like "ui.UI/functionName"
 		req.URL.Path = req.URL.Path[len("/api/"):]
-		wrappedGrpc.ServeHTTP(resp, req)
+		if wrappedGrpc.IsGrpcWebRequest(req) {
+			wrappedGrpc.ServeHTTP(resp, req)
+			return
+		}
+		grpcServer.ServeHTTP(resp, req)
 	})
 
 	ctx, cancel := signal.NotifyContext(context.Background(), unix.SIGINT, unix.SIGTERM)
