@@ -108,7 +108,7 @@
     "servor": "4.0.2",
     "source-map-explorer": "2.5.3",
     "source-map-loader": "4.0.1",
-    "style-loader": "3.3.1",
+    "style-loader": "3.3.3",
     "stylelint": "15.2.0",
     "stylelint-config-css-modules": "4.2.0",
     "stylelint-config-standard-scss": "7.0.1",
