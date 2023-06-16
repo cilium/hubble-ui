@@ -3,7 +3,7 @@ module github.com/cilium/hubble-ui/backend
 go 1.20
 
 require (
-	github.com/cilium/cilium v1.13.1
+	github.com/cilium/cilium v1.13.4
 	github.com/cilium/hubble v0.11.2
 	github.com/google/gops v0.3.27
 	github.com/improbable-eng/grpc-web v0.15.0
@@ -13,9 +13,9 @@ require (
 	google.golang.org/grpc v1.54.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
 	google.golang.org/protobuf v1.28.1
-	k8s.io/api v0.26.2
-	k8s.io/apimachinery v0.26.2
-	k8s.io/client-go v0.26.2
+	k8s.io/api v0.26.4
+	k8s.io/apimachinery v0.26.4
+	k8s.io/client-go v0.26.4
 )
 
 require (
