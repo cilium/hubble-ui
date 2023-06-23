@@ -141,6 +141,8 @@ message ServiceLink {
     uint32 destination_port = 4;
     IPProtocol ip_protocol = 5;
     flow.Verdict verdict = 6;
+    flow.AuthType auth_type = 7;
+    bool is_encrypted = 8;
 }
 
 message ServiceLinkState {

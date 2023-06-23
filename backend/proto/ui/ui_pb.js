@@ -2879,7 +2879,9 @@ proto.ui.ServiceLink.toObject = function(includeInstance, msg) {
     destinationId: jspb.Message.getFieldWithDefault(msg, 3, ""),
     destinationPort: jspb.Message.getFieldWithDefault(msg, 4, 0),
     ipProtocol: jspb.Message.getFieldWithDefault(msg, 5, 0),
-    verdict: jspb.Message.getFieldWithDefault(msg, 6, 0)
+    verdict: jspb.Message.getFieldWithDefault(msg, 6, 0),
+    authType: jspb.Message.getFieldWithDefault(msg, 7, 0),
+    isEncrypted: jspb.Message.getBooleanFieldWithDefault(msg, 8, false)
   };
 
   if (includeInstance) {
@@ -2939,6 +2941,14 @@ proto.ui.ServiceLink.deserializeBinaryFromReader = function(msg, reader) {
     case 6:
       var value = /** @type {!proto.flow.Verdict} */ (reader.readEnum());
       msg.setVerdict(value);
+      break;
+    case 7:
+      var value = /** @type {!proto.flow.AuthType} */ (reader.readEnum());
+      msg.setAuthType(value);
+      break;
+    case 8:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setIsEncrypted(value);
       break;
     default:
       reader.skipField();
@@ -3008,6 +3018,20 @@ proto.ui.ServiceLink.serializeBinaryToWriter = function(message, writer) {
   if (f !== 0.0) {
     writer.writeEnum(
       6,
+      f
+    );
+  }
+  f = message.getAuthType();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      7,
+      f
+    );
+  }
+  f = message.getIsEncrypted();
+  if (f) {
+    writer.writeBool(
+      8,
       f
     );
   }
@@ -3119,6 +3143,42 @@ proto.ui.ServiceLink.prototype.getVerdict = function() {
  */
 proto.ui.ServiceLink.prototype.setVerdict = function(value) {
   return jspb.Message.setProto3EnumField(this, 6, value);
+};
+
+
+/**
+ * optional flow.AuthType auth_type = 7;
+ * @return {!proto.flow.AuthType}
+ */
+proto.ui.ServiceLink.prototype.getAuthType = function() {
+  return /** @type {!proto.flow.AuthType} */ (jspb.Message.getFieldWithDefault(this, 7, 0));
+};
+
+
+/**
+ * @param {!proto.flow.AuthType} value
+ * @return {!proto.ui.ServiceLink} returns this
+ */
+proto.ui.ServiceLink.prototype.setAuthType = function(value) {
+  return jspb.Message.setProto3EnumField(this, 7, value);
+};
+
+
+/**
+ * optional bool is_encrypted = 8;
+ * @return {boolean}
+ */
+proto.ui.ServiceLink.prototype.getIsEncrypted = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 8, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.ui.ServiceLink} returns this
+ */
+proto.ui.ServiceLink.prototype.setIsEncrypted = function(value) {
+  return jspb.Message.setProto3BooleanField(this, 8, value);
 };
 
 

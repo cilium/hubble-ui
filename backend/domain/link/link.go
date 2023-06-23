@@ -15,8 +15,10 @@ type Link struct {
 	DestinationPort uint32
 
 	// TODO: this is bad; create domain types for this fields
-	Verdict    pbFlow.Verdict
-	IPProtocol ui.IPProtocol
+	Verdict     pbFlow.Verdict
+	IPProtocol  ui.IPProtocol
+	AuthType    pbFlow.AuthType
+	IsEncrypted bool
 
 	ref *pbFlow.Flow
 }
@@ -30,13 +32,20 @@ func FromFlowProto(f *pbFlow.Flow) *Link {
 	destPort, ipProtocol := portProtocolFromFlow(f)
 	linkID := linkIDFromParts(srcID, destID, destPort, ipProtocol)
 
+	IsEncrypted := false
+	if f.IP != nil && f.IP.GetEncrypted() {
+		IsEncrypted = true
+	}
+
 	return &Link{
 		ID:              linkID,
 		SourceID:        srcID,
 		DestinationID:   destID,
 		DestinationPort: destPort,
 		Verdict:         f.Verdict,
+		AuthType:        f.AuthType,
 		IPProtocol:      ipProtocol,
+		IsEncrypted:     IsEncrypted,
 
 		ref: f,
 	}
@@ -101,6 +110,7 @@ func (l *Link) ToProto() *ui.ServiceLink {
 		DestinationPort: l.DestinationPort,
 		Verdict:         l.Verdict,
 		IpProtocol:      l.IPProtocol,
+		AuthType:        l.AuthType,
 	}
 }
 
@@ -110,7 +120,9 @@ func (l *Link) Equals(rhs *Link) bool {
 		l.DestinationID == rhs.DestinationID &&
 		l.DestinationPort == rhs.DestinationPort &&
 		l.Verdict == rhs.Verdict &&
-		l.IPProtocol == rhs.IPProtocol)
+		l.IPProtocol == rhs.IPProtocol &&
+		l.AuthType == rhs.AuthType &&
+		l.IsEncrypted == rhs.IsEncrypted)
 }
 
 func (l *Link) IntoFlow() *pbFlow.Flow {
