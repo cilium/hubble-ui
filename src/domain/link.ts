@@ -1,19 +1,24 @@
-import { HubbleLink, Verdict, IPProtocol } from '~/domain/hubble';
+import { HubbleLink, Verdict, IPProtocol, AuthType } from '~/domain/hubble';
 
 // NOTE: Link is restricted to only have information about which two services
 // NOTE: is connected
 export class Link {
   private ref: HubbleLink;
   public verdicts: Set<Verdict>;
+  public authTypes: Set<AuthType>;
+  public isEncrypted = false;
 
   constructor(ref: HubbleLink) {
     this.ref = ref;
     this.verdicts = new Set([ref.verdict]);
+    this.authTypes = new Set([ref.authType]);
+    this.isEncrypted = ref.isEncrypted;
   }
 
   public clone(): Link {
     const link = Link.fromHubbleLink(this.ref);
     link.verdicts = new Set(this.verdicts);
+    link.authTypes = new Set(this.authTypes);
 
     return link;
   }
@@ -25,6 +30,7 @@ export class Link {
   public updateWithHubbleLink(hl: HubbleLink): Link {
     const updated = this.clone();
     updated.verdicts.add(hl.verdict);
+    updated.authTypes.add(hl.authType);
 
     return updated;
   }

@@ -137,11 +137,20 @@ export const ServiceMapArrowRenderer = observer(
         .selectAll<SVGLineElement, AccessPointArrow>('line.inner')
         .data(apArrows, arr => `inner-${arr.id}`);
 
+      const padlocks = d3
+        .select(innerArrows.current!)
+        .selectAll<SVGTextElement, AccessPointArrow>('text.padlock')
+        .data(apArrows, arr => `inner-${arr.id}`);
+
       backgroundLines.call(self =>
         helpers.innerArrows.setPosition(self, arrow.end!),
       );
       foregroundLines.call(self =>
         helpers.innerArrows.setPosition(self, arrow.end!),
+      );
+
+      padlocks.call(self =>
+        self.attr('x', arrow.end!.x).attr('y', arrow.end!.y - 20),
       );
 
       backgroundLines
@@ -161,8 +170,21 @@ export const ServiceMapArrowRenderer = observer(
         .attr('stroke-dasharray', helpers.innerArrows.strokeStyle)
         .call(self => helpers.innerArrows.setPosition(self, arrow.end!));
 
+      padlocks
+        .enter()
+        .append('text')
+        .attr('class', 'padlock')
+        .attr('font-family', 'blueprint-icons-16')
+        .attr('color', a =>
+          a.isEncrypted ? colors.padlockGreen : colors.feetNeutralStroke,
+        )
+        .attr('x', arrow.end!.x)
+        .attr('y', arrow.end!.y - 20)
+        .text((arrow: AccessPointArrow) => (arrow.hasAuth ? '\uf232' : ''));
+
       backgroundLines.exit().remove();
       foregroundLines.exit().remove();
+      padlocks.exit().remove();
     }, []);
 
     // TODO: check if fine-grained control can be implemented over rendering of
