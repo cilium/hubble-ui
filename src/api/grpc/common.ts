@@ -20,6 +20,7 @@ export const baseWhitelistFilter = (filters?: Filters): FlowFilter => {
       CiliumEventTypes.Drop,
       CiliumEventTypes.Trace,
       CiliumEventTypes.L7,
+      CiliumEventTypes.PolicyVerdict,
     );
   }
 

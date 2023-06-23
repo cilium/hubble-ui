@@ -15,6 +15,7 @@ export enum CiliumEventTypes {
   Debug = 2,
   Capture = 3,
   Trace = 4,
+  PolicyVerdict = 5,
   L7 = 129,
   Agent = 130,
 }
@@ -25,6 +26,7 @@ export const CiliumEventTypesCodes = {
   [CiliumEventTypes.Debug]: CiliumEventTypes.Debug,
   [CiliumEventTypes.Capture]: CiliumEventTypes.Capture,
   [CiliumEventTypes.Trace]: CiliumEventTypes.Trace,
+  [CiliumEventTypes.PolicyVerdict]: CiliumEventTypes.PolicyVerdict,
   [CiliumEventTypes.L7]: CiliumEventTypes.L7,
   [CiliumEventTypes.Agent]: CiliumEventTypes.Agent,
 };
@@ -103,6 +105,7 @@ export enum CiliumDropReason {
   IsAClusterIP = 'Is a ClusterIP',
   FirstLogicalDatagramFragmentNotFound = 'First logical datagram fragment not found',
   ForbiddenICMPv6Message = 'Forbidden ICMPv6 message',
+  AuthenticationRequired = 'Authentication required',
 }
 
 export const CiliumDropReasonCodes = {
@@ -151,4 +154,5 @@ export const CiliumDropReasonCodes = {
   174: CiliumDropReason.IsAClusterIP,
   175: CiliumDropReason.FirstLogicalDatagramFragmentNotFound,
   176: CiliumDropReason.ForbiddenICMPv6Message,
+  189: CiliumDropReason.AuthenticationRequired,
 };

@@ -122,6 +122,13 @@ export const Cell = memo<CellProps>(function FlowsTableCell(props) {
       });
       return <div className={className}>{props.flow.verdictLabel}</div>;
     }
+    case Column.Auth: {
+      return (
+        <div className={classnames(css.cell, css.auth)}>
+          {props.flow.authTypeLabel}
+        </div>
+      );
+    }
     case Column.TcpFlags: {
       return (
         <div className={classnames(css.cell, css.tcpFlags)}>

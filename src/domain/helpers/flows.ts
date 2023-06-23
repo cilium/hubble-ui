@@ -39,11 +39,13 @@ import {
   Service as FlowService,
   Time,
   TrafficDirection,
+  AuthType,
 } from '~/domain/hubble';
 
 import * as misc from '~/domain/misc';
 
 import * as verdictHelpers from './verdict';
+import { authTypeFromPb } from './auth-type';
 
 export const hubbleFlowFromObj = (obj: any): HubbleFlow | null => {
   obj = obj.flow != null ? obj.flow : obj;
@@ -80,6 +82,7 @@ export const hubbleFlowFromObj = (obj: any): HubbleFlow | null => {
   const destinationService =
     flowServiceFromObj(obj.destinationService) ?? void 0;
   const trafficDirection = trafficDirectionFromStr(obj.trafficDirection);
+  const authType = authTypeFromStr(obj.authType);
 
   return {
     time,
@@ -101,6 +104,7 @@ export const hubbleFlowFromObj = (obj: any): HubbleFlow | null => {
     destinationService,
     summary: obj.summary,
     trafficDirection,
+    authType,
   };
 };
 
@@ -142,6 +146,7 @@ export const hubbleFlowFromPb = (flow: PBFlow): HubbleFlow => {
   const sourceService = flowServiceFromPb(flow.getSourceService());
   const destinationService = flowServiceFromPb(flow.getDestinationService());
   const trafficDirection = trafficDirectionFromPb(flow.getTrafficDirection());
+  const authType = authTypeFromPb(flow.getAuthType());
 
   return {
     time,
@@ -163,6 +168,7 @@ export const hubbleFlowFromPb = (flow: PBFlow): HubbleFlow => {
     destinationService,
     summary: flow.getSummary(),
     trafficDirection,
+    authType,
   };
 };
 
@@ -319,6 +325,18 @@ export const flowTypeFromStr = (str: string): FlowType => {
 
   if (str.startsWith('l3_l4')) t = FlowType.L34;
   if (str.startsWith('l7')) t = FlowType.L7;
+
+  return t;
+};
+
+export const authTypeFromStr = (str: string): AuthType => {
+  let t = AuthType.Disbaled;
+
+  if (!str) return t;
+  str = str.toLowerCase();
+
+  if (str.startsWith('spire')) t = AuthType.Spire;
+  if (str.startsWith('test')) t = AuthType.TestAlwaysFail;
 
   return t;
 };
