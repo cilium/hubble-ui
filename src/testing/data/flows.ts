@@ -7,6 +7,7 @@ import {
   TrafficDirection,
   L7FlowType,
   IPVersion,
+  AuthType,
 } from '~/domain/hubble';
 
 import { SpecialLabel, ReservedLabel } from '~/domain/labels';
@@ -47,6 +48,7 @@ export const icmpv4Flow: HubbleFlow = {
     nanos: nowMs * 1000000,
   },
   trafficDirection: TrafficDirection.Ingress,
+  authType: AuthType.Disbaled,
 };
 
 export const icmpv6Flow: HubbleFlow = {
@@ -93,6 +95,7 @@ export const hubbleOne: HubbleFlow = {
     nanos: nowMs * 1000000,
   },
   trafficDirection: TrafficDirection.Ingress,
+  authType: AuthType.Disbaled,
 };
 
 export const hubbleNoSourceName: HubbleFlow = {

@@ -9,6 +9,7 @@ import {
   IPProtocol,
   Verdict,
   TrafficDirection,
+  AuthType,
 } from '~/domain/hubble';
 
 export const selectedNamespace = 'jobs-demo';
@@ -21,6 +22,8 @@ export const links: HubbleLink[] = [
     destinationPort: 443,
     ipProtocol: IPProtocol.TCP,
     verdict: Verdict.Forwarded,
+    authType: AuthType.Disbaled,
+    isEncrypted: false,
   },
   {
     id: 'reserved:world:incoming:8080',
@@ -29,6 +32,8 @@ export const links: HubbleLink[] = [
     destinationPort: 8080,
     ipProtocol: IPProtocol.TCP,
     verdict: Verdict.Forwarded,
+    authType: AuthType.Disbaled,
+    isEncrypted: false,
   },
   {
     id: 'reserved:world:incoming:8080',
@@ -37,6 +42,8 @@ export const links: HubbleLink[] = [
     destinationPort: 8080,
     ipProtocol: IPProtocol.TCP,
     verdict: Verdict.Dropped,
+    authType: AuthType.Disbaled,
+    isEncrypted: false,
   },
   {
     id: 'reserved:world:incoming:443',
@@ -45,6 +52,8 @@ export const links: HubbleLink[] = [
     destinationPort: 443,
     ipProtocol: IPProtocol.TCP,
     verdict: Verdict.Dropped,
+    authType: AuthType.Disbaled,
+    isEncrypted: false,
   },
   {
     id: 'reserved:world:incoming:80',
@@ -53,6 +62,8 @@ export const links: HubbleLink[] = [
     destinationPort: 80,
     ipProtocol: IPProtocol.TCP,
     verdict: Verdict.Forwarded,
+    authType: AuthType.Disbaled,
+    isEncrypted: false,
   },
   {
     id: '1',
@@ -61,6 +72,8 @@ export const links: HubbleLink[] = [
     destinationPort: 9981,
     ipProtocol: IPProtocol.TCP,
     verdict: Verdict.Forwarded,
+    authType: AuthType.Disbaled,
+    isEncrypted: false,
   },
   {
     id: '2',
@@ -69,6 +82,8 @@ export const links: HubbleLink[] = [
     destinationPort: 9200,
     ipProtocol: IPProtocol.UDP,
     verdict: Verdict.Forwarded,
+    authType: AuthType.Disbaled,
+    isEncrypted: false,
   },
   {
     id: '3',
@@ -77,6 +92,8 @@ export const links: HubbleLink[] = [
     destinationPort: 9092,
     ipProtocol: IPProtocol.ICMPv4,
     verdict: Verdict.Forwarded,
+    authType: AuthType.Disbaled,
+    isEncrypted: false,
   },
   {
     id: '4',
@@ -85,6 +102,8 @@ export const links: HubbleLink[] = [
     destinationPort: 9982,
     ipProtocol: IPProtocol.ICMPv6,
     verdict: Verdict.Forwarded,
+    authType: AuthType.Disbaled,
+    isEncrypted: false,
   },
   {
     id: '5',
@@ -93,6 +112,8 @@ export const links: HubbleLink[] = [
     destinationPort: 9201,
     ipProtocol: IPProtocol.TCP,
     verdict: Verdict.Forwarded,
+    authType: AuthType.Disbaled,
+    isEncrypted: false,
   },
   {
     id: '6',
@@ -101,6 +122,8 @@ export const links: HubbleLink[] = [
     destinationPort: 9201,
     ipProtocol: IPProtocol.TCP,
     verdict: Verdict.Forwarded,
+    authType: AuthType.Disbaled,
+    isEncrypted: false,
   },
   {
     id: '7',
@@ -109,6 +132,8 @@ export const links: HubbleLink[] = [
     destinationPort: 9201,
     ipProtocol: IPProtocol.TCP,
     verdict: Verdict.Forwarded,
+    authType: AuthType.Disbaled,
+    isEncrypted: false,
   },
 ];
 
@@ -346,5 +371,6 @@ export const flows: HubbleFlow[] = range(1000).map((): HubbleFlow => {
     verdict: Math.random() <= 0.5 ? Verdict.Forwarded : Verdict.Dropped,
     trafficDirection:
       Math.random() <= 0.5 ? TrafficDirection.Egress : TrafficDirection.Ingress,
+    authType: AuthType.Disbaled,
   };
 });
