@@ -5,8 +5,6 @@ CWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 CILIUM_DIR="${CWD}/vendor/github.com/cilium/cilium"
 
-PROTOC_GEN_GO_PLUGIN="--plugin ${CWD}/vendor/google.golang.org/protobuf/cmd/protoc-gen-go/protoc-gen-go"
-PROTOC_GEN_GO_GRPC_PLUGIN="--plugin ${CWD}/vendor/google.golang.org/grpc/cmd/protoc-gen-go-grpc/protoc-gen-go-grpc"
 PROTOC_GEN_GRPC_WEB_PATH="${CWD}/../node_modules/.bin/protoc-gen-grpc-web"
 PROTOC_WEB_PLUGIN="--plugin $PROTOC_GEN_GRPC_WEB_PATH"
 PROTOC="$CWD/../node_modules/.bin/protoc/bin/protoc"
@@ -50,8 +48,8 @@ function unknown_command() {
 }
 
 function build_protoc_gen_go() {
-    (cd ./vendor/google.golang.org/grpc/cmd/protoc-gen-go-grpc && go build)
-    (cd ./vendor/google.golang.org/protobuf/cmd/protoc-gen-go && go build)
+    go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+    go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 }
 
 function check_outer_dependencies() {
@@ -79,7 +77,7 @@ function build_proto_inner() {
     GO_MAPPINGS+=",Mui/status.proto=github.com/cilium/hubble-ui/backend/proto/ui"
     GO_MAPPINGS+=",Mgoogle/protobuf/timestamp.proto=google.golang.org/protobuf/types/known/timestamppb"
 
-    $PROTOC $PROTOC_GEN_GO_PLUGIN $PROTOC_GEN_GO_GRPC_PLUGIN \
+    $PROTOC \
         --proto_path ./proto \
         --go_out=./proto \
         --go_opt=paths=source_relative,$GO_MAPPINGS \

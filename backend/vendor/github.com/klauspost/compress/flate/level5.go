@@ -12,7 +12,6 @@ func (e *fastEncL5) Encode(dst *tokens, src []byte) {
 	const (
 		inputMargin            = 12 - 1
 		minNonLiteralBlockSize = 1 + 1 + inputMargin
-		hashShortBytes         = 4
 	)
 	if debugDeflate && e.cur < 0 {
 		panic(fmt.Sprint("e.cur < 0: ", e.cur))
@@ -89,7 +88,7 @@ func (e *fastEncL5) Encode(dst *tokens, src []byte) {
 		var l int32
 		var t int32
 		for {
-			nextHashS := hashLen(cv, tableBits, hashShortBytes)
+			nextHashS := hash4x64(cv, tableBits)
 			nextHashL := hash7(cv, tableBits)
 
 			s = nextS
@@ -106,7 +105,7 @@ func (e *fastEncL5) Encode(dst *tokens, src []byte) {
 			eLong := &e.bTable[nextHashL]
 			eLong.Cur, eLong.Prev = entry, eLong.Cur
 
-			nextHashS = hashLen(next, tableBits, hashShortBytes)
+			nextHashS = hash4x64(next, tableBits)
 			nextHashL = hash7(next, tableBits)
 
 			t = lCandidate.Cur.offset - e.cur
@@ -183,34 +182,12 @@ func (e *fastEncL5) Encode(dst *tokens, src []byte) {
 		// match. But, prior to the match, src[nextEmit:s] are unmatched. Emit
 		// them as literal bytes.
 
+		// Extend the 4-byte match as long as possible.
 		if l == 0 {
-			// Extend the 4-byte match as long as possible.
 			l = e.matchlenLong(s+4, t+4, src) + 4
 		} else if l == maxMatchLength {
 			l += e.matchlenLong(s+l, t+l, src)
 		}
-
-		// Try to locate a better match by checking the end of best match...
-		if sAt := s + l; l < 30 && sAt < sLimit {
-			// Allow some bytes at the beginning to mismatch.
-			// Sweet spot is 2/3 bytes depending on input.
-			// 3 is only a little better when it is but sometimes a lot worse.
-			// The skipped bytes are tested in Extend backwards,
-			// and still picked up as part of the match if they do.
-			const skipBeginning = 2
-			eLong := e.bTable[hash7(load6432(src, sAt), tableBits)].Cur.offset
-			t2 := eLong - e.cur - l + skipBeginning
-			s2 := s + skipBeginning
-			off := s2 - t2
-			if t2 >= 0 && off < maxMatchOffset && off > 0 {
-				if l2 := e.matchlenLong(s2, t2, src); l2 > l {
-					t = t2
-					l = l2
-					s = s2
-				}
-			}
-		}
-
 		// Extend backwards
 		for t > 0 && s > nextEmit && src[t-1] == src[s-1] {
 			s--
@@ -218,15 +195,7 @@ func (e *fastEncL5) Encode(dst *tokens, src []byte) {
 			l++
 		}
 		if nextEmit < s {
-			if false {
-				emitLiteral(dst, src[nextEmit:s])
-			} else {
-				for _, v := range src[nextEmit:s] {
-					dst.tokens[dst.n] = token(v)
-					dst.litHist[v]++
-					dst.n++
-				}
-			}
+			emitLiteral(dst, src[nextEmit:s])
 		}
 		if debugDeflate {
 			if t >= s {
@@ -258,7 +227,7 @@ func (e *fastEncL5) Encode(dst *tokens, src []byte) {
 			if i < s-1 {
 				cv := load6432(src, i)
 				t := tableEntry{offset: i + e.cur}
-				e.table[hashLen(cv, tableBits, hashShortBytes)] = t
+				e.table[hash4x64(cv, tableBits)] = t
 				eLong := &e.bTable[hash7(cv, tableBits)]
 				eLong.Cur, eLong.Prev = t, eLong.Cur
 
@@ -271,7 +240,7 @@ func (e *fastEncL5) Encode(dst *tokens, src []byte) {
 				// We only have enough bits for a short entry at i+2
 				cv >>= 8
 				t = tableEntry{offset: t.offset + 1}
-				e.table[hashLen(cv, tableBits, hashShortBytes)] = t
+				e.table[hash4x64(cv, tableBits)] = t
 
 				// Skip one - otherwise we risk hitting 's'
 				i += 4
@@ -281,7 +250,7 @@ func (e *fastEncL5) Encode(dst *tokens, src []byte) {
 					t2 := tableEntry{offset: t.offset + 1}
 					eLong := &e.bTable[hash7(cv, tableBits)]
 					eLong.Cur, eLong.Prev = t, eLong.Cur
-					e.table[hashLen(cv>>8, tableBits, hashShortBytes)] = t2
+					e.table[hash4u(uint32(cv>>8), tableBits)] = t2
 				}
 			}
 		}
@@ -290,7 +259,7 @@ func (e *fastEncL5) Encode(dst *tokens, src []byte) {
 		// compression we first update the hash table at s-1 and at s.
 		x := load6432(src, s-1)
 		o := e.cur + s - 1
-		prevHashS := hashLen(x, tableBits, hashShortBytes)
+		prevHashS := hash4x64(x, tableBits)
 		prevHashL := hash7(x, tableBits)
 		e.table[prevHashS] = tableEntry{offset: o}
 		eLong := &e.bTable[prevHashL]

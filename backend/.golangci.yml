@@ -2,8 +2,10 @@
 # Also https://github.com/cilium/cilium/blob/master/.golangci.yaml as a
 # reference.
 run:
-  go: '1.19'
-  timeout: 3m  # default is 1m
+  go: '1.20'
+  timeout: 3m
+  skip-dirs:
+    - tools
 linters:
   disable-all: true
   enable:

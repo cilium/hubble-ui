@@ -159,13 +159,13 @@ func verifyClientRequest(w http.ResponseWriter, r *http.Request) (errCode int, _
 		return http.StatusUpgradeRequired, fmt.Errorf("WebSocket protocol violation: handshake request must be at least HTTP/1.1: %q", r.Proto)
 	}
 
-	if !headerContainsTokenIgnoreCase(r.Header, "Connection", "Upgrade") {
+	if !headerContainsToken(r.Header, "Connection", "Upgrade") {
 		w.Header().Set("Connection", "Upgrade")
 		w.Header().Set("Upgrade", "websocket")
 		return http.StatusUpgradeRequired, fmt.Errorf("WebSocket protocol violation: Connection header %q does not contain Upgrade", r.Header.Get("Connection"))
 	}
 
-	if !headerContainsTokenIgnoreCase(r.Header, "Upgrade", "websocket") {
+	if !headerContainsToken(r.Header, "Upgrade", "websocket") {
 		w.Header().Set("Connection", "Upgrade")
 		w.Header().Set("Upgrade", "websocket")
 		return http.StatusUpgradeRequired, fmt.Errorf("WebSocket protocol violation: Upgrade header %q does not contain websocket", r.Header.Get("Upgrade"))
@@ -309,9 +309,11 @@ func acceptWebkitDeflate(w http.ResponseWriter, ext websocketExtension, mode Com
 	return copts, nil
 }
 
-func headerContainsTokenIgnoreCase(h http.Header, key, token string) bool {
+func headerContainsToken(h http.Header, key, token string) bool {
+	token = strings.ToLower(token)
+
 	for _, t := range headerTokens(h, key) {
-		if strings.EqualFold(t, token) {
+		if t == token {
 			return true
 		}
 	}
@@ -352,6 +354,7 @@ func headerTokens(h http.Header, key string) []string {
 	for _, v := range h[key] {
 		v = strings.TrimSpace(v)
 		for _, t := range strings.Split(v, ",") {
+			t = strings.ToLower(t)
 			t = strings.TrimSpace(t)
 			tokens = append(tokens, t)
 		}
