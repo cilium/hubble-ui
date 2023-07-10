@@ -201,12 +201,12 @@ func extractDerivedEvents(
 	svcResponses []*ui.GetEventsResponse,
 ) {
 	if flowResponse == nil {
-		return
+		return linkResponses, svcResponses
 	}
 
 	pbFlow := flowResponse.GetFlow()
 	if pbFlow == nil {
-		return
+		return linkResponses, svcResponses
 	}
 
 	f := flow.FromProto(pbFlow)
