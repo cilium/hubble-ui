@@ -50,6 +50,10 @@ func runServer(cfg *config.Config) {
 	)
 
 	handler := http.NewServeMux()
+	handler.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "ok")
+	})
 	handler.HandleFunc("/api/", func(resp http.ResponseWriter, req *http.Request) {
 		// NOTE: GRPC server handles requests with URL like "ui.UI/functionName"
 		req.URL.Path = req.URL.Path[len("/api/"):]
