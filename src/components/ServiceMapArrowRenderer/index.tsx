@@ -149,10 +149,6 @@ export const ServiceMapArrowRenderer = observer(
         helpers.innerArrows.setPosition(self, arrow.end!),
       );
 
-      padlocks.call(self =>
-        self.attr('x', arrow.end!.x).attr('y', arrow.end!.y - 20),
-      );
-
       backgroundLines
         .enter()
         .append('line')
@@ -170,17 +166,41 @@ export const ServiceMapArrowRenderer = observer(
         .attr('stroke-dasharray', helpers.innerArrows.strokeStyle)
         .call(self => helpers.innerArrows.setPosition(self, arrow.end!));
 
+      const padlockTooltip = d3
+        .select('body')
+        .append('div')
+        .style('position', 'absolute')
+        .style('z-index', '10')
+        .style('visibility', 'hidden')
+        .style('color', '#fff')
+        .style('background', '#000')
+        .style('border-radius', '3px')
+        .style('font-size', '12px')
+        .style('line-height', '14px')
+        .style('padding', '1px 3px')
+        .text('Mutual auth enabled');
+
       padlocks
         .enter()
         .append('text')
         .attr('class', 'padlock')
+        .attr('title', 'Mutual auth enabled')
         .attr('font-family', 'blueprint-icons-16')
         .attr('color', a =>
           a.isEncrypted ? colors.padlockGreen : colors.feetNeutralStroke,
         )
-        .attr('x', arrow.end!.x)
-        .attr('y', arrow.end!.y - 20)
-        .text((arrow: AccessPointArrow) => (arrow.hasAuth ? '\uf232' : ''));
+        .attr('x', arrow.end.x - 8)
+        .attr('y', arrow.end.y - 20)
+        .text((arrow: AccessPointArrow) => (arrow.hasAuth ? '\uf232' : ''))
+        .on('mouseover', () => padlockTooltip.style('visibility', 'visible'))
+        .on('mousemove', evt => {
+          return padlockTooltip
+            .style('top', evt.pageY - 10 + 'px')
+            .style('left', evt.pageX + 10 + 'px');
+        })
+        .on('mouseout', () => {
+          return padlockTooltip.style('visibility', 'hidden');
+        });
 
       backgroundLines.exit().remove();
       foregroundLines.exit().remove();
