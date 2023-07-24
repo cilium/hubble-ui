@@ -27,7 +27,7 @@
     "@babel/runtime": "7.22.6",
     "@blueprintjs/core": "4.17.5",
     "@blueprintjs/datetime": "4.4.3",
-    "@blueprintjs/icons": "4.14.3",
+    "@blueprintjs/icons": "5.1.4",
     "@blueprintjs/select": "4.9.9",
     "@react-hook/resize-observer": "1.2.6",
     "@use-gesture/react": "10.2.27",
