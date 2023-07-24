@@ -140,7 +140,7 @@ export const ServiceMapArrowRenderer = observer(
       const padlocks = d3
         .select(innerArrows.current!)
         .selectAll<SVGTextElement, AccessPointArrow>('text.padlock')
-        .data(apArrows, arr => `inner-${arr.id}`);
+        .data(apArrows, arr => `padlock-${arr.id}`);
 
       backgroundLines.call(self =>
         helpers.innerArrows.setPosition(self, arrow.end!),
@@ -181,6 +181,10 @@ export const ServiceMapArrowRenderer = observer(
         .text('Mutual auth enabled');
 
       padlocks
+        .attr('x', () => arrow.end!.x - 8)
+        .attr('y', () => arrow.end!.y - 20);
+
+      padlocks
         .enter()
         .append('text')
         .attr('class', 'padlock')
@@ -189,8 +193,8 @@ export const ServiceMapArrowRenderer = observer(
         .attr('color', a =>
           a.isEncrypted ? colors.padlockGreen : colors.feetNeutralStroke,
         )
-        .attr('x', arrow.end.x - 8)
-        .attr('y', arrow.end.y - 20)
+        .attr('x', () => arrow.end!.x - 8)
+        .attr('y', () => arrow.end!.y - 20)
         .text((arrow: AccessPointArrow) => (arrow.hasAuth ? '\uf232' : ''))
         .on('mouseover', () => padlockTooltip.style('visibility', 'visible'))
         .on('mousemove', evt => {

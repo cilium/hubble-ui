@@ -70,7 +70,7 @@ const runTemporalTests = (row: HTMLElement, flow: Flow) => {
   jest.clearAllTimers();
   const flowTime = new Date(flow.millisecondsTimestamp || Date.now());
 
-  const tsLabel = row.querySelector('.cell:nth-child(11)')!;
+  const tsLabel = row.querySelector('.cell:nth-child(12)')!;
 
   // Just checks that tsLabel contains smth
   jest.advanceTimersByTime(0);
