@@ -24,6 +24,8 @@ var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrapp
 
 var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/timestamp_pb.js')
 
+var google_protobuf_field_mask_pb = require('google-protobuf/google/protobuf/field_mask_pb.js')
+
 var flow_flow_pb = require('../flow/flow_pb.js')
 
 var relay_relay_pb = require('../relay/relay_pb.js')
@@ -308,6 +310,67 @@ proto.observer.ObserverPromiseClient.prototype.getNodes =
       request,
       metadata || {},
       methodDescriptor_Observer_GetNodes);
+};
+
+
+/**
+ * @const
+ * @type {!grpc.web.MethodDescriptor<
+ *   !proto.observer.GetNamespacesRequest,
+ *   !proto.observer.GetNamespacesResponse>}
+ */
+const methodDescriptor_Observer_GetNamespaces = new grpc.web.MethodDescriptor(
+  '/observer.Observer/GetNamespaces',
+  grpc.web.MethodType.UNARY,
+  proto.observer.GetNamespacesRequest,
+  proto.observer.GetNamespacesResponse,
+  /**
+   * @param {!proto.observer.GetNamespacesRequest} request
+   * @return {!Uint8Array}
+   */
+  function(request) {
+    return request.serializeBinary();
+  },
+  proto.observer.GetNamespacesResponse.deserializeBinary
+);
+
+
+/**
+ * @param {!proto.observer.GetNamespacesRequest} request The
+ *     request proto
+ * @param {?Object<string, string>} metadata User defined
+ *     call metadata
+ * @param {function(?grpc.web.RpcError, ?proto.observer.GetNamespacesResponse)}
+ *     callback The callback function(error, response)
+ * @return {!grpc.web.ClientReadableStream<!proto.observer.GetNamespacesResponse>|undefined}
+ *     The XHR Node Readable Stream
+ */
+proto.observer.ObserverClient.prototype.getNamespaces =
+    function(request, metadata, callback) {
+  return this.client_.rpcCall(this.hostname_ +
+      '/observer.Observer/GetNamespaces',
+      request,
+      metadata || {},
+      methodDescriptor_Observer_GetNamespaces,
+      callback);
+};
+
+
+/**
+ * @param {!proto.observer.GetNamespacesRequest} request The
+ *     request proto
+ * @param {?Object<string, string>=} metadata User defined
+ *     call metadata
+ * @return {!Promise<!proto.observer.GetNamespacesResponse>}
+ *     Promise that resolves to the response
+ */
+proto.observer.ObserverPromiseClient.prototype.getNamespaces =
+    function(request, metadata) {
+  return this.client_.unaryCall(this.hostname_ +
+      '/observer.Observer/GetNamespaces',
+      request,
+      metadata || {},
+      methodDescriptor_Observer_GetNamespaces);
 };
 
 

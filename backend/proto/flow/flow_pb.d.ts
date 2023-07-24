@@ -10,11 +10,17 @@ export class Flow extends jspb.Message {
   hasTime(): boolean;
   clearTime(): Flow;
 
+  getUuid(): string;
+  setUuid(value: string): Flow;
+
   getVerdict(): Verdict;
   setVerdict(value: Verdict): Flow;
 
   getDropReason(): number;
   setDropReason(value: number): Flow;
+
+  getAuthType(): AuthType;
+  setAuthType(value: AuthType): Flow;
 
   getEthernet(): Ethernet | undefined;
   setEthernet(value?: Ethernet): Flow;
@@ -136,8 +142,10 @@ export class Flow extends jspb.Message {
 export namespace Flow {
   export type AsObject = {
     time?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    uuid: string,
     verdict: Verdict,
     dropReason: number,
+    authType: AuthType,
     ethernet?: Ethernet.AsObject,
     ip?: IP.AsObject,
     l4?: Layer4.AsObject,
@@ -641,6 +649,11 @@ export namespace CiliumEventType {
 }
 
 export class FlowFilter extends jspb.Message {
+  getUuidList(): Array<string>;
+  setUuidList(value: Array<string>): FlowFilter;
+  clearUuidList(): FlowFilter;
+  addUuid(value: string, index?: number): FlowFilter;
+
   getSourceIpList(): Array<string>;
   setSourceIpList(value: Array<string>): FlowFilter;
   clearSourceIpList(): FlowFilter;
@@ -700,6 +713,11 @@ export class FlowFilter extends jspb.Message {
   setDestinationWorkloadList(value: Array<Workload>): FlowFilter;
   clearDestinationWorkloadList(): FlowFilter;
   addDestinationWorkload(value?: Workload, index?: number): Workload;
+
+  getTrafficDirectionList(): Array<TrafficDirection>;
+  setTrafficDirectionList(value: Array<TrafficDirection>): FlowFilter;
+  clearTrafficDirectionList(): FlowFilter;
+  addTrafficDirection(value: TrafficDirection, index?: number): FlowFilter;
 
   getVerdictList(): Array<Verdict>;
   setVerdictList(value: Array<Verdict>): FlowFilter;
@@ -791,6 +809,7 @@ export class FlowFilter extends jspb.Message {
 
 export namespace FlowFilter {
   export type AsObject = {
+    uuidList: Array<string>,
     sourceIpList: Array<string>,
     sourcePodList: Array<string>,
     sourceFqdnList: Array<string>,
@@ -803,6 +822,7 @@ export namespace FlowFilter {
     destinationLabelList: Array<string>,
     destinationServiceList: Array<string>,
     destinationWorkloadList: Array<Workload.AsObject>,
+    trafficDirectionList: Array<TrafficDirection>,
     verdictList: Array<Verdict>,
     eventTypeList: Array<EventTypeFilter.AsObject>,
     httpStatusCodeList: Array<string>,
@@ -1460,6 +1480,11 @@ export enum FlowType {
   L7 = 2,
   SOCK = 3,
 }
+export enum AuthType { 
+  DISABLED = 0,
+  SPIRE = 1,
+  TEST_ALWAYS_FAIL = 2,
+}
 export enum TraceObservationPoint { 
   UNKNOWN_POINT = 0,
   TO_PROXY = 1,
@@ -1557,6 +1582,10 @@ export enum DropReason {
   NAT46 = 187,
   NAT64 = 188,
   AUTH_REQUIRED = 189,
+  CT_NO_MAP_FOUND = 190,
+  SNAT_NO_MAP_FOUND = 191,
+  INVALID_CLUSTER_ID = 192,
+  UNSUPPORTED_PROTOCOL_FOR_DSR_ENCAP = 193,
   NO_EGRESS_GATEWAY = 194,
 }
 export enum TrafficDirection { 

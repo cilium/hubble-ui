@@ -7,6 +7,7 @@ import {
   TrafficDirection,
   FlowType,
   IPProtocol,
+  AuthType,
 } from '~/domain/hubble';
 
 export interface FlowsBetween {
@@ -62,6 +63,7 @@ export const flowsBetweenPods = (
     type: FlowType.L34,
     time: nextFlowTimestamp(),
     trafficDirection: TrafficDirection.Ingress,
+    authType: AuthType.Disbaled,
   };
 
   const fromBtoA: HubbleFlow = {
@@ -95,6 +97,7 @@ export const flowsBetweenPods = (
     type: FlowType.L34,
     time: nextFlowTimestamp(),
     trafficDirection: TrafficDirection.Ingress,
+    authType: AuthType.Disbaled,
   };
 
   return { fromAtoB, fromBtoA };
@@ -135,6 +138,7 @@ export const flowsBetweenServices = (
     type: FlowType.L34,
     time: nextFlowTimestamp(),
     trafficDirection: TrafficDirection.Ingress,
+    authType: AuthType.Disbaled,
   };
 
   const fromBtoA: HubbleFlow = {
@@ -168,6 +172,7 @@ export const flowsBetweenServices = (
     type: FlowType.L34,
     time: nextFlowTimestamp(),
     trafficDirection: TrafficDirection.Ingress,
+    authType: AuthType.Disbaled,
   };
 
   return { fromAtoB, fromBtoA };
@@ -215,6 +220,7 @@ export const flowsFromToService = (from: HubbleService, to: HubbleService) => {
       type: FlowType.L34,
       time: nextFlowTimestamp(),
       trafficDirection: TrafficDirection.Ingress,
+      authType: AuthType.Disbaled,
     };
 
     const fromBtoA: HubbleFlow = {
@@ -246,6 +252,7 @@ export const flowsFromToService = (from: HubbleService, to: HubbleService) => {
       type: FlowType.L34,
       time: nextFlowTimestamp(),
       trafficDirection: TrafficDirection.Ingress,
+      authType: AuthType.Disbaled,
     };
 
     return { fromAtoB, fromBtoA };
@@ -286,6 +293,8 @@ export const linkFromToService = (from: HubbleService, to: HubbleService) => {
       destinationPort: port,
       ipProtocol: ipProto,
       verdict,
+      authType: AuthType.Disbaled,
+      isEncrypted: false,
     };
   };
 

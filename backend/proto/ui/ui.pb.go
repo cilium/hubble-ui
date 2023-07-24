@@ -943,10 +943,12 @@ type ServiceLink struct {
 	// source Service id
 	SourceId string `protobuf:"bytes,2,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
 	// destination Service id
-	DestinationId   string       `protobuf:"bytes,3,opt,name=destination_id,json=destinationId,proto3" json:"destination_id,omitempty"`
-	DestinationPort uint32       `protobuf:"varint,4,opt,name=destination_port,json=destinationPort,proto3" json:"destination_port,omitempty"`
-	IpProtocol      IPProtocol   `protobuf:"varint,5,opt,name=ip_protocol,json=ipProtocol,proto3,enum=ui.IPProtocol" json:"ip_protocol,omitempty"`
-	Verdict         flow.Verdict `protobuf:"varint,6,opt,name=verdict,proto3,enum=flow.Verdict" json:"verdict,omitempty"`
+	DestinationId   string        `protobuf:"bytes,3,opt,name=destination_id,json=destinationId,proto3" json:"destination_id,omitempty"`
+	DestinationPort uint32        `protobuf:"varint,4,opt,name=destination_port,json=destinationPort,proto3" json:"destination_port,omitempty"`
+	IpProtocol      IPProtocol    `protobuf:"varint,5,opt,name=ip_protocol,json=ipProtocol,proto3,enum=ui.IPProtocol" json:"ip_protocol,omitempty"`
+	Verdict         flow.Verdict  `protobuf:"varint,6,opt,name=verdict,proto3,enum=flow.Verdict" json:"verdict,omitempty"`
+	AuthType        flow.AuthType `protobuf:"varint,7,opt,name=auth_type,json=authType,proto3,enum=flow.AuthType" json:"auth_type,omitempty"`
+	IsEncrypted     bool          `protobuf:"varint,8,opt,name=is_encrypted,json=isEncrypted,proto3" json:"is_encrypted,omitempty"`
 }
 
 func (x *ServiceLink) Reset() {
@@ -1021,6 +1023,20 @@ func (x *ServiceLink) GetVerdict() flow.Verdict {
 		return x.Verdict
 	}
 	return flow.Verdict(0)
+}
+
+func (x *ServiceLink) GetAuthType() flow.AuthType {
+	if x != nil {
+		return x.AuthType
+	}
+	return flow.AuthType(0)
+}
+
+func (x *ServiceLink) GetIsEncrypted() bool {
+	if x != nil {
+		return x.IsEncrypted
+	}
+	return false
 }
 
 type ServiceLinkState struct {
@@ -1432,7 +1448,7 @@ var file_ui_ui_proto_rawDesc = []byte{
 	0x61, 0x6e, 0x67, 0x65, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x22, 0x2d, 0x0a, 0x0d, 0x53, 0x65,
 	0x72, 0x76, 0x69, 0x63, 0x65, 0x46, 0x69, 0x6c, 0x74, 0x65, 0x72, 0x12, 0x1c, 0x0a, 0x09, 0x6e,
 	0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x09,
-	0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x22, 0xe6, 0x01, 0x0a, 0x0b, 0x53, 0x65,
+	0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x22, 0xb6, 0x02, 0x0a, 0x0b, 0x53, 0x65,
 	0x72, 0x76, 0x69, 0x63, 0x65, 0x4c, 0x69, 0x6e, 0x6b, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18,
 	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x1b, 0x0a, 0x09, 0x73, 0x6f, 0x75,
 	0x72, 0x63, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x73, 0x6f,
@@ -1447,7 +1463,12 @@ var file_ui_ui_proto_rawDesc = []byte{
 	0x70, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x12, 0x27, 0x0a, 0x07, 0x76, 0x65, 0x72,
 	0x64, 0x69, 0x63, 0x74, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x0d, 0x2e, 0x66, 0x6c, 0x6f,
 	0x77, 0x2e, 0x56, 0x65, 0x72, 0x64, 0x69, 0x63, 0x74, 0x52, 0x07, 0x76, 0x65, 0x72, 0x64, 0x69,
-	0x63, 0x74, 0x22, 0x6b, 0x0a, 0x10, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x4c, 0x69, 0x6e,
+	0x63, 0x74, 0x12, 0x2b, 0x0a, 0x09, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18,
+	0x07, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x0e, 0x2e, 0x66, 0x6c, 0x6f, 0x77, 0x2e, 0x41, 0x75, 0x74,
+	0x68, 0x54, 0x79, 0x70, 0x65, 0x52, 0x08, 0x61, 0x75, 0x74, 0x68, 0x54, 0x79, 0x70, 0x65, 0x12,
+	0x21, 0x0a, 0x0c, 0x69, 0x73, 0x5f, 0x65, 0x6e, 0x63, 0x72, 0x79, 0x70, 0x74, 0x65, 0x64, 0x18,
+	0x08, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0b, 0x69, 0x73, 0x45, 0x6e, 0x63, 0x72, 0x79, 0x70, 0x74,
+	0x65, 0x64, 0x22, 0x6b, 0x0a, 0x10, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x4c, 0x69, 0x6e,
 	0x6b, 0x53, 0x74, 0x61, 0x74, 0x65, 0x12, 0x32, 0x0a, 0x0c, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63,
 	0x65, 0x5f, 0x6c, 0x69, 0x6e, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0f, 0x2e, 0x75,
 	0x69, 0x2e, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x4c, 0x69, 0x6e, 0x6b, 0x52, 0x0b, 0x73,
@@ -1558,7 +1579,8 @@ var file_ui_ui_proto_goTypes = []interface{}{
 	(*Notification)(nil),                             // 21: ui.Notification
 	(*flow.FlowFilter)(nil),                          // 22: flow.FlowFilter
 	(flow.Verdict)(0),                                // 23: flow.Verdict
-	(*GetStatusResponse)(nil),                        // 24: ui.GetStatusResponse
+	(flow.AuthType)(0),                               // 24: flow.AuthType
+	(*GetStatusResponse)(nil),                        // 25: ui.GetStatusResponse
 }
 var file_ui_ui_proto_depIdxs = []int32{
 	0,  // 0: ui.GetEventsRequest.event_types:type_name -> ui.EventType
@@ -1585,25 +1607,26 @@ var file_ui_ui_proto_depIdxs = []int32{
 	2,  // 21: ui.ServiceState.type:type_name -> ui.StateChange
 	1,  // 22: ui.ServiceLink.ip_protocol:type_name -> ui.IPProtocol
 	23, // 23: ui.ServiceLink.verdict:type_name -> flow.Verdict
-	12, // 24: ui.ServiceLinkState.service_link:type_name -> ui.ServiceLink
-	2,  // 25: ui.ServiceLinkState.type:type_name -> ui.StateChange
-	11, // 26: ui.ServiceLinkFilter.source:type_name -> ui.ServiceFilter
-	11, // 27: ui.ServiceLinkFilter.destination:type_name -> ui.ServiceFilter
-	23, // 28: ui.ServiceLinkFilter.verdict:type_name -> flow.Verdict
-	17, // 29: ui.GetControlStreamResponse.namespaces:type_name -> ui.GetControlStreamResponse.NamespaceStates
-	21, // 30: ui.GetControlStreamResponse.notification:type_name -> ui.Notification
-	8,  // 31: ui.GetControlStreamResponse.NamespaceStates.namespaces:type_name -> ui.K8sNamespaceState
-	3,  // 32: ui.UI.GetEvents:input_type -> ui.GetEventsRequest
-	19, // 33: ui.UI.GetStatus:input_type -> ui.GetStatusRequest
-	15, // 34: ui.UI.GetControlStream:input_type -> ui.GetControlStreamRequest
-	4,  // 35: ui.UI.GetEvents:output_type -> ui.GetEventsResponse
-	24, // 36: ui.UI.GetStatus:output_type -> ui.GetStatusResponse
-	16, // 37: ui.UI.GetControlStream:output_type -> ui.GetControlStreamResponse
-	35, // [35:38] is the sub-list for method output_type
-	32, // [32:35] is the sub-list for method input_type
-	32, // [32:32] is the sub-list for extension type_name
-	32, // [32:32] is the sub-list for extension extendee
-	0,  // [0:32] is the sub-list for field type_name
+	24, // 24: ui.ServiceLink.auth_type:type_name -> flow.AuthType
+	12, // 25: ui.ServiceLinkState.service_link:type_name -> ui.ServiceLink
+	2,  // 26: ui.ServiceLinkState.type:type_name -> ui.StateChange
+	11, // 27: ui.ServiceLinkFilter.source:type_name -> ui.ServiceFilter
+	11, // 28: ui.ServiceLinkFilter.destination:type_name -> ui.ServiceFilter
+	23, // 29: ui.ServiceLinkFilter.verdict:type_name -> flow.Verdict
+	17, // 30: ui.GetControlStreamResponse.namespaces:type_name -> ui.GetControlStreamResponse.NamespaceStates
+	21, // 31: ui.GetControlStreamResponse.notification:type_name -> ui.Notification
+	8,  // 32: ui.GetControlStreamResponse.NamespaceStates.namespaces:type_name -> ui.K8sNamespaceState
+	3,  // 33: ui.UI.GetEvents:input_type -> ui.GetEventsRequest
+	19, // 34: ui.UI.GetStatus:input_type -> ui.GetStatusRequest
+	15, // 35: ui.UI.GetControlStream:input_type -> ui.GetControlStreamRequest
+	4,  // 36: ui.UI.GetEvents:output_type -> ui.GetEventsResponse
+	25, // 37: ui.UI.GetStatus:output_type -> ui.GetStatusResponse
+	16, // 38: ui.UI.GetControlStream:output_type -> ui.GetControlStreamResponse
+	36, // [36:39] is the sub-list for method output_type
+	33, // [33:36] is the sub-list for method input_type
+	33, // [33:33] is the sub-list for extension type_name
+	33, // [33:33] is the sub-list for extension extendee
+	0,  // [0:33] is the sub-list for field type_name
 }
 
 func init() { file_ui_ui_proto_init() }

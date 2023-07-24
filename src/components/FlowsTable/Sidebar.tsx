@@ -3,7 +3,12 @@ import React, { memo, useCallback, useMemo, useEffect, useState } from 'react';
 
 import { Flow, Verdict } from '~/domain/flows';
 import { Filters, FilterEntry, FilterDirection } from '~/domain/filtering';
-import { TCPFlagName, PodSelector, IPProtocol } from '~/domain/hubble';
+import {
+  TCPFlagName,
+  PodSelector,
+  IPProtocol,
+  AuthType,
+} from '~/domain/hubble';
 import { KV, Labels } from '~/domain/labels';
 
 import {
@@ -303,6 +308,12 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
         <section className={css.block}>
           <span className={css.title}>Drop reason</span>
           <div className={css.body}>{flow.dropReason}</div>
+        </section>
+      )}
+      {flow.authType !== AuthType.Disbaled && (
+        <section className={css.block}>
+          <span className={css.title}>Authentication</span>
+          <div className={css.body}>{flow.authTypeLabel}</div>
         </section>
       )}
       <section className={css.block}>

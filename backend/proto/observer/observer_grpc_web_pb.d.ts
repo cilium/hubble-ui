@@ -30,6 +30,13 @@ export class ObserverClient {
                response: observer_observer_pb.GetNodesResponse) => void
   ): grpcWeb.ClientReadableStream<observer_observer_pb.GetNodesResponse>;
 
+  getNamespaces(
+    request: observer_observer_pb.GetNamespacesRequest,
+    metadata: grpcWeb.Metadata | undefined,
+    callback: (err: grpcWeb.RpcError,
+               response: observer_observer_pb.GetNamespacesResponse) => void
+  ): grpcWeb.ClientReadableStream<observer_observer_pb.GetNamespacesResponse>;
+
   serverStatus(
     request: observer_observer_pb.ServerStatusRequest,
     metadata: grpcWeb.Metadata | undefined,
@@ -63,6 +70,11 @@ export class ObserverPromiseClient {
     request: observer_observer_pb.GetNodesRequest,
     metadata?: grpcWeb.Metadata
   ): Promise<observer_observer_pb.GetNodesResponse>;
+
+  getNamespaces(
+    request: observer_observer_pb.GetNamespacesRequest,
+    metadata?: grpcWeb.Metadata
+  ): Promise<observer_observer_pb.GetNamespacesResponse>;
 
   serverStatus(
     request: observer_observer_pb.ServerStatusRequest,

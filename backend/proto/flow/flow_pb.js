@@ -20,6 +20,7 @@ goog.exportSymbol('proto.flow.AgentEvent', null, global);
 goog.exportSymbol('proto.flow.AgentEvent.NotificationCase', null, global);
 goog.exportSymbol('proto.flow.AgentEventType', null, global);
 goog.exportSymbol('proto.flow.AgentEventUnknown', null, global);
+goog.exportSymbol('proto.flow.AuthType', null, global);
 goog.exportSymbol('proto.flow.CiliumEventType', null, global);
 goog.exportSymbol('proto.flow.DNS', null, global);
 goog.exportSymbol('proto.flow.DebugCapturePoint', null, global);
@@ -864,8 +865,10 @@ proto.flow.Flow.prototype.toObject = function(opt_includeInstance) {
 proto.flow.Flow.toObject = function(includeInstance, msg) {
   var f, obj = {
     time: (f = msg.getTime()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
+    uuid: jspb.Message.getFieldWithDefault(msg, 34, ""),
     verdict: jspb.Message.getFieldWithDefault(msg, 2, 0),
     dropReason: jspb.Message.getFieldWithDefault(msg, 3, 0),
+    authType: jspb.Message.getFieldWithDefault(msg, 35, 0),
     ethernet: (f = msg.getEthernet()) && proto.flow.Ethernet.toObject(includeInstance, f),
     ip: (f = msg.getIp()) && proto.flow.IP.toObject(includeInstance, f),
     l4: (f = msg.getL4()) && proto.flow.Layer4.toObject(includeInstance, f),
@@ -934,6 +937,10 @@ proto.flow.Flow.deserializeBinaryFromReader = function(msg, reader) {
       reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
       msg.setTime(value);
       break;
+    case 34:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUuid(value);
+      break;
     case 2:
       var value = /** @type {!proto.flow.Verdict} */ (reader.readEnum());
       msg.setVerdict(value);
@@ -941,6 +948,10 @@ proto.flow.Flow.deserializeBinaryFromReader = function(msg, reader) {
     case 3:
       var value = /** @type {number} */ (reader.readUint32());
       msg.setDropReason(value);
+      break;
+    case 35:
+      var value = /** @type {!proto.flow.AuthType} */ (reader.readEnum());
+      msg.setAuthType(value);
       break;
     case 4:
       var value = new proto.flow.Ethernet;
@@ -1099,6 +1110,13 @@ proto.flow.Flow.serializeBinaryToWriter = function(message, writer) {
       google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
     );
   }
+  f = message.getUuid();
+  if (f.length > 0) {
+    writer.writeString(
+      34,
+      f
+    );
+  }
   f = message.getVerdict();
   if (f !== 0.0) {
     writer.writeEnum(
@@ -1110,6 +1128,13 @@ proto.flow.Flow.serializeBinaryToWriter = function(message, writer) {
   if (f !== 0) {
     writer.writeUint32(
       3,
+      f
+    );
+  }
+  f = message.getAuthType();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      35,
       f
     );
   }
@@ -1355,6 +1380,24 @@ proto.flow.Flow.prototype.hasTime = function() {
 
 
 /**
+ * optional string uuid = 34;
+ * @return {string}
+ */
+proto.flow.Flow.prototype.getUuid = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 34, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.flow.Flow} returns this
+ */
+proto.flow.Flow.prototype.setUuid = function(value) {
+  return jspb.Message.setProto3StringField(this, 34, value);
+};
+
+
+/**
  * optional Verdict verdict = 2;
  * @return {!proto.flow.Verdict}
  */
@@ -1387,6 +1430,24 @@ proto.flow.Flow.prototype.getDropReason = function() {
  */
 proto.flow.Flow.prototype.setDropReason = function(value) {
   return jspb.Message.setProto3IntField(this, 3, value);
+};
+
+
+/**
+ * optional AuthType auth_type = 35;
+ * @return {!proto.flow.AuthType}
+ */
+proto.flow.Flow.prototype.getAuthType = function() {
+  return /** @type {!proto.flow.AuthType} */ (jspb.Message.getFieldWithDefault(this, 35, 0));
+};
+
+
+/**
+ * @param {!proto.flow.AuthType} value
+ * @return {!proto.flow.Flow} returns this
+ */
+proto.flow.Flow.prototype.setAuthType = function(value) {
+  return jspb.Message.setProto3EnumField(this, 35, value);
 };
 
 
@@ -5593,7 +5654,7 @@ proto.flow.CiliumEventType.prototype.setSubType = function(value) {
  * @private {!Array<number>}
  * @const
  */
-proto.flow.FlowFilter.repeatedFields_ = [1,2,7,10,16,26,3,4,8,11,17,27,5,6,9,12,13,14,15,18,19,20,21,22,23,24,25,28];
+proto.flow.FlowFilter.repeatedFields_ = [29,1,2,7,10,16,26,3,4,8,11,17,27,30,5,6,9,12,13,14,15,18,19,20,21,22,23,24,25,28];
 
 
 
@@ -5626,6 +5687,7 @@ proto.flow.FlowFilter.prototype.toObject = function(opt_includeInstance) {
  */
 proto.flow.FlowFilter.toObject = function(includeInstance, msg) {
   var f, obj = {
+    uuidList: (f = jspb.Message.getRepeatedField(msg, 29)) == null ? undefined : f,
     sourceIpList: (f = jspb.Message.getRepeatedField(msg, 1)) == null ? undefined : f,
     sourcePodList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f,
     sourceFqdnList: (f = jspb.Message.getRepeatedField(msg, 7)) == null ? undefined : f,
@@ -5640,6 +5702,7 @@ proto.flow.FlowFilter.toObject = function(includeInstance, msg) {
     destinationServiceList: (f = jspb.Message.getRepeatedField(msg, 17)) == null ? undefined : f,
     destinationWorkloadList: jspb.Message.toObjectList(msg.getDestinationWorkloadList(),
     proto.flow.Workload.toObject, includeInstance),
+    trafficDirectionList: (f = jspb.Message.getRepeatedField(msg, 30)) == null ? undefined : f,
     verdictList: (f = jspb.Message.getRepeatedField(msg, 5)) == null ? undefined : f,
     eventTypeList: jspb.Message.toObjectList(msg.getEventTypeList(),
     proto.flow.EventTypeFilter.toObject, includeInstance),
@@ -5694,6 +5757,10 @@ proto.flow.FlowFilter.deserializeBinaryFromReader = function(msg, reader) {
     }
     var field = reader.getFieldNumber();
     switch (field) {
+    case 29:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addUuid(value);
+      break;
     case 1:
       var value = /** @type {string} */ (reader.readString());
       msg.addSourceIp(value);
@@ -5743,6 +5810,10 @@ proto.flow.FlowFilter.deserializeBinaryFromReader = function(msg, reader) {
       var value = new proto.flow.Workload;
       reader.readMessage(value,proto.flow.Workload.deserializeBinaryFromReader);
       msg.addDestinationWorkload(value);
+      break;
+    case 30:
+      var value = /** @type {!Array<!proto.flow.TrafficDirection>} */ (reader.readPackedEnum());
+      msg.setTrafficDirectionList(value);
       break;
     case 5:
       var value = /** @type {!Array<!proto.flow.Verdict>} */ (reader.readPackedEnum());
@@ -5839,6 +5910,13 @@ proto.flow.FlowFilter.prototype.serializeBinary = function() {
  */
 proto.flow.FlowFilter.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getUuidList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      29,
+      f
+    );
+  }
   f = message.getSourceIpList();
   if (f.length > 0) {
     writer.writeRepeatedString(
@@ -5923,6 +6001,13 @@ proto.flow.FlowFilter.serializeBinaryToWriter = function(message, writer) {
       27,
       f,
       proto.flow.Workload.serializeBinaryToWriter
+    );
+  }
+  f = message.getTrafficDirectionList();
+  if (f.length > 0) {
+    writer.writePackedEnum(
+      30,
+      f
     );
   }
   f = message.getVerdictList();
@@ -6039,6 +6124,43 @@ proto.flow.FlowFilter.serializeBinaryToWriter = function(message, writer) {
       f
     );
   }
+};
+
+
+/**
+ * repeated string uuid = 29;
+ * @return {!Array<string>}
+ */
+proto.flow.FlowFilter.prototype.getUuidList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 29));
+};
+
+
+/**
+ * @param {!Array<string>} value
+ * @return {!proto.flow.FlowFilter} returns this
+ */
+proto.flow.FlowFilter.prototype.setUuidList = function(value) {
+  return jspb.Message.setField(this, 29, value || []);
+};
+
+
+/**
+ * @param {string} value
+ * @param {number=} opt_index
+ * @return {!proto.flow.FlowFilter} returns this
+ */
+proto.flow.FlowFilter.prototype.addUuid = function(value, opt_index) {
+  return jspb.Message.addToRepeatedField(this, 29, value, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.flow.FlowFilter} returns this
+ */
+proto.flow.FlowFilter.prototype.clearUuidList = function() {
+  return this.setUuidList([]);
 };
 
 
@@ -6485,6 +6607,43 @@ proto.flow.FlowFilter.prototype.addDestinationWorkload = function(opt_value, opt
  */
 proto.flow.FlowFilter.prototype.clearDestinationWorkloadList = function() {
   return this.setDestinationWorkloadList([]);
+};
+
+
+/**
+ * repeated TrafficDirection traffic_direction = 30;
+ * @return {!Array<!proto.flow.TrafficDirection>}
+ */
+proto.flow.FlowFilter.prototype.getTrafficDirectionList = function() {
+  return /** @type {!Array<!proto.flow.TrafficDirection>} */ (jspb.Message.getRepeatedField(this, 30));
+};
+
+
+/**
+ * @param {!Array<!proto.flow.TrafficDirection>} value
+ * @return {!proto.flow.FlowFilter} returns this
+ */
+proto.flow.FlowFilter.prototype.setTrafficDirectionList = function(value) {
+  return jspb.Message.setField(this, 30, value || []);
+};
+
+
+/**
+ * @param {!proto.flow.TrafficDirection} value
+ * @param {number=} opt_index
+ * @return {!proto.flow.FlowFilter} returns this
+ */
+proto.flow.FlowFilter.prototype.addTrafficDirection = function(value, opt_index) {
+  return jspb.Message.addToRepeatedField(this, 30, value, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.flow.FlowFilter} returns this
+ */
+proto.flow.FlowFilter.prototype.clearTrafficDirectionList = function() {
+  return this.setTrafficDirectionList([]);
 };
 
 
@@ -11866,6 +12025,15 @@ proto.flow.FlowType = {
 /**
  * @enum {number}
  */
+proto.flow.AuthType = {
+  DISABLED: 0,
+  SPIRE: 1,
+  TEST_ALWAYS_FAIL: 2
+};
+
+/**
+ * @enum {number}
+ */
 proto.flow.TraceObservationPoint = {
   UNKNOWN_POINT: 0,
   TO_PROXY: 1,
@@ -11979,6 +12147,10 @@ proto.flow.DropReason = {
   NAT46: 187,
   NAT64: 188,
   AUTH_REQUIRED: 189,
+  CT_NO_MAP_FOUND: 190,
+  SNAT_NO_MAP_FOUND: 191,
+  INVALID_CLUSTER_ID: 192,
+  UNSUPPORTED_PROTOCOL_FOR_DSR_ENCAP: 193,
   NO_EGRESS_GATEWAY: 194
 };
 

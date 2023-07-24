@@ -19,6 +19,8 @@ import { StateChange } from '~/domain/misc';
 import { KV } from '~/domain/misc';
 import { Flow } from '~/domain/flows';
 
+import { authTypeFromPb } from './auth-type';
+
 import * as verdictHelpers from './verdict';
 export { verdictHelpers as verdict };
 
@@ -92,6 +94,8 @@ export const relayServiceLinkFromPb = (
     destinationPort: obj.destinationPort,
     ipProtocol: ipProtocolFromPb(obj.ipProtocol),
     verdict: verdictHelpers.verdictFromPb(obj.verdict),
+    authType: authTypeFromPb(obj.authType),
+    isEncrypted: obj.isEncrypted,
   };
 };
 

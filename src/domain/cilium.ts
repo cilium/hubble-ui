@@ -105,6 +105,7 @@ export enum CiliumDropReason {
   IsAClusterIP = 'Is a ClusterIP',
   FirstLogicalDatagramFragmentNotFound = 'First logical datagram fragment not found',
   ForbiddenICMPv6Message = 'Forbidden ICMPv6 message',
+  AuthenticationRequired = 'Authentication required',
 }
 
 export const CiliumDropReasonCodes = {
@@ -153,4 +154,5 @@ export const CiliumDropReasonCodes = {
   174: CiliumDropReason.IsAClusterIP,
   175: CiliumDropReason.FirstLogicalDatagramFragmentNotFound,
   176: CiliumDropReason.ForbiddenICMPv6Message,
+  189: CiliumDropReason.AuthenticationRequired,
 };

@@ -354,6 +354,12 @@ export class ServiceLink extends jspb.Message {
   getVerdict(): flow_flow_pb.Verdict;
   setVerdict(value: flow_flow_pb.Verdict): ServiceLink;
 
+  getAuthType(): flow_flow_pb.AuthType;
+  setAuthType(value: flow_flow_pb.AuthType): ServiceLink;
+
+  getIsEncrypted(): boolean;
+  setIsEncrypted(value: boolean): ServiceLink;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ServiceLink.AsObject;
   static toObject(includeInstance: boolean, msg: ServiceLink): ServiceLink.AsObject;
@@ -370,6 +376,8 @@ export namespace ServiceLink {
     destinationPort: number,
     ipProtocol: IPProtocol,
     verdict: flow_flow_pb.Verdict,
+    authType: flow_flow_pb.AuthType,
+    isEncrypted: boolean,
   }
 }
 

@@ -1,4 +1,4 @@
-import { HubbleLink, IPProtocol, Verdict } from '~/domain/hubble';
+import { AuthType, HubbleLink, IPProtocol, Verdict } from '~/domain/hubble';
 import { Link } from '~/domain/link';
 
 export const tcpForwarded: HubbleLink = {
@@ -8,6 +8,8 @@ export const tcpForwarded: HubbleLink = {
   destinationPort: 8080,
   ipProtocol: IPProtocol.TCP,
   verdict: Verdict.Forwarded,
+  authType: AuthType.Disbaled,
+  isEncrypted: false,
 };
 
 export const tcpForwardedToItself: HubbleLink = {

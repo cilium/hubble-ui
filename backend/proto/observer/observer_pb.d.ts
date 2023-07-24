@@ -2,6 +2,7 @@ import * as jspb from 'google-protobuf'
 
 import * as google_protobuf_wrappers_pb from 'google-protobuf/google/protobuf/wrappers_pb';
 import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb';
+import * as google_protobuf_field_mask_pb from 'google-protobuf/google/protobuf/field_mask_pb';
 import * as flow_flow_pb from '../flow/flow_pb';
 import * as relay_relay_pb from '../relay/relay_pb';
 
@@ -102,6 +103,11 @@ export class GetFlowsRequest extends jspb.Message {
   hasUntil(): boolean;
   clearUntil(): GetFlowsRequest;
 
+  getExperimental(): GetFlowsRequest.Experimental | undefined;
+  setExperimental(value?: GetFlowsRequest.Experimental): GetFlowsRequest;
+  hasExperimental(): boolean;
+  clearExperimental(): GetFlowsRequest;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetFlowsRequest.AsObject;
   static toObject(includeInstance: boolean, msg: GetFlowsRequest): GetFlowsRequest.AsObject;
@@ -119,7 +125,29 @@ export namespace GetFlowsRequest {
     whitelistList: Array<flow_flow_pb.FlowFilter.AsObject>,
     since?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     until?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    experimental?: GetFlowsRequest.Experimental.AsObject,
   }
+
+  export class Experimental extends jspb.Message {
+    getFieldMask(): google_protobuf_field_mask_pb.FieldMask | undefined;
+    setFieldMask(value?: google_protobuf_field_mask_pb.FieldMask): Experimental;
+    hasFieldMask(): boolean;
+    clearFieldMask(): Experimental;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Experimental.AsObject;
+    static toObject(includeInstance: boolean, msg: Experimental): Experimental.AsObject;
+    static serializeBinaryToWriter(message: Experimental, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Experimental;
+    static deserializeBinaryFromReader(message: Experimental, reader: jspb.BinaryReader): Experimental;
+  }
+
+  export namespace Experimental {
+    export type AsObject = {
+      fieldMask?: google_protobuf_field_mask_pb.FieldMask.AsObject,
+    }
+  }
+
 }
 
 export class GetFlowsResponse extends jspb.Message {
@@ -414,6 +442,62 @@ export namespace TLS {
   export type AsObject = {
     enabled: boolean,
     serverName: string,
+  }
+}
+
+export class GetNamespacesRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetNamespacesRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetNamespacesRequest): GetNamespacesRequest.AsObject;
+  static serializeBinaryToWriter(message: GetNamespacesRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetNamespacesRequest;
+  static deserializeBinaryFromReader(message: GetNamespacesRequest, reader: jspb.BinaryReader): GetNamespacesRequest;
+}
+
+export namespace GetNamespacesRequest {
+  export type AsObject = {
+  }
+}
+
+export class GetNamespacesResponse extends jspb.Message {
+  getNamespacesList(): Array<Namespace>;
+  setNamespacesList(value: Array<Namespace>): GetNamespacesResponse;
+  clearNamespacesList(): GetNamespacesResponse;
+  addNamespaces(value?: Namespace, index?: number): Namespace;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetNamespacesResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetNamespacesResponse): GetNamespacesResponse.AsObject;
+  static serializeBinaryToWriter(message: GetNamespacesResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetNamespacesResponse;
+  static deserializeBinaryFromReader(message: GetNamespacesResponse, reader: jspb.BinaryReader): GetNamespacesResponse;
+}
+
+export namespace GetNamespacesResponse {
+  export type AsObject = {
+    namespacesList: Array<Namespace.AsObject>,
+  }
+}
+
+export class Namespace extends jspb.Message {
+  getCluster(): string;
+  setCluster(value: string): Namespace;
+
+  getNamespace(): string;
+  setNamespace(value: string): Namespace;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Namespace.AsObject;
+  static toObject(includeInstance: boolean, msg: Namespace): Namespace.AsObject;
+  static serializeBinaryToWriter(message: Namespace, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Namespace;
+  static deserializeBinaryFromReader(message: Namespace, reader: jspb.BinaryReader): Namespace;
+}
+
+export namespace Namespace {
+  export type AsObject = {
+    cluster: string,
+    namespace: string,
   }
 }
 
