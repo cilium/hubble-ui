@@ -14,6 +14,8 @@ import (
 	gops "github.com/google/gops/agent"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 	"golang.org/x/sys/unix"
 	"google.golang.org/grpc"
 
@@ -50,11 +52,16 @@ func runServer(cfg *config.Config) {
 	)
 
 	handler := http.NewServeMux()
+	handler.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "ok")
+	})
 	handler.HandleFunc("/api/", func(resp http.ResponseWriter, req *http.Request) {
 		// NOTE: GRPC server handles requests with URL like "ui.UI/functionName"
 		req.URL.Path = req.URL.Path[len("/api/"):]
 		wrappedGrpc.ServeHTTP(resp, req)
 	})
+	h2cHandler := h2c.NewHandler(handler, &http2.Server{})
 
 	ctx, cancel := signal.NotifyContext(context.Background(), unix.SIGINT, unix.SIGTERM)
 	defer cancel()
@@ -63,7 +70,7 @@ func runServer(cfg *config.Config) {
 
 	httpSrv := &http.Server{
 		Addr:    addr,
-		Handler: handler,
+		Handler: h2cHandler,
 		BaseContext: func(net.Listener) context.Context {
 			return ctx
 		},
