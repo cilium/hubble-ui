@@ -189,7 +189,7 @@ func (c *Conn) Ping(ctx context.Context) error {
 }
 
 func (c *Conn) ping(ctx context.Context, p string) error {
-	pong := make(chan struct{}, 1)
+	pong := make(chan struct{})
 
 	c.activePingsMu.Lock()
 	c.activePings[p] = pong

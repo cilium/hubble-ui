@@ -92,13 +92,7 @@ func (w *Watcher) Run(ctx context.Context) {
 		Queue:         fifo,
 		ListerWatcher: nsWatcher,
 		ObjectType:    &v1.Namespace{},
-<<<<<<< HEAD
-		Process: func(obj interface{}, _ bool) error {
-||||||| c8c9a6e6
-		Process: func(obj interface{}) error {
-=======
 		Process: func(obj interface{}, isInInitialList bool) error {
->>>>>>> upstream/master
 			return w.processEvent(ctx, obj)
 		},
 		WatchErrorHandler: func(_ *cache.Reflector, err error) {
