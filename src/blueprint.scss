@@ -9,10 +9,17 @@
 @import '~@blueprintjs/select/src/blueprint-select';
 @import '~@blueprintjs/popover2/lib/css/blueprint-popover2.css';
 
-
-@font-face{
-  font-family:'blueprint-icons-16';
-  src:url('./icons/blueprint/blueprint-icons-16.ttf?0c7462c47bcd60a8d9e9dc959711c752') format('truetype'), url('./icons/blueprint/blueprint-icons-16.eot?0c7462c47bcd60a8d9e9dc959711c752#iefix') format('embedded-opentype'), url('./icons/blueprint/blueprint-icons-16.woff2?0c7462c47bcd60a8d9e9dc959711c752') format('woff2'), url('./icons/blueprint/blueprint-icons-16.woff?0c7462c47bcd60a8d9e9dc959711c752') format('woff');
+@font-face {
+  font-family: 'blueprint-icons-16';
+  src:
+    url('./icons/blueprint/blueprint-icons-16.ttf?0c7462c47bcd60a8d9e9dc959711c752')
+      format('truetype'),
+    url('./icons/blueprint/blueprint-icons-16.eot?0c7462c47bcd60a8d9e9dc959711c752#iefix')
+      format('embedded-opentype'),
+    url('./icons/blueprint/blueprint-icons-16.woff2?0c7462c47bcd60a8d9e9dc959711c752')
+      format('woff2'),
+    url('./icons/blueprint/blueprint-icons-16.woff?0c7462c47bcd60a8d9e9dc959711c752')
+      format('woff');
 }
 
 .bp4-control {

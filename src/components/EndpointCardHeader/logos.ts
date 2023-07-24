@@ -24,4 +24,3 @@ export const grafana = 'icons/logos/grafana-logo.svg';
 export const loki = 'icons/logos/loki-logo.svg';
 export const tempo = 'icons/logos/tempo-logo.svg';
 export const mimir = 'icons/logos/mimir-logo.svg';
-
