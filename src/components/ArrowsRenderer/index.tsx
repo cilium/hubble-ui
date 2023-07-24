@@ -10,7 +10,7 @@ export interface ArrowRendererProps {
   arrow: Arrow;
 }
 
-export type ArrowRenderer = (_: ArrowRendererProps) => JSX.Element | null;
+export type ArrowRenderer = (_: ArrowRendererProps) => React.ReactNode | null;
 
 export interface Props {
   strategy: ArrowStrategy;
