@@ -1582,11 +1582,16 @@ export enum DropReason {
   NAT46 = 187,
   NAT64 = 188,
   AUTH_REQUIRED = 189,
+<<<<<<< HEAD
   CT_NO_MAP_FOUND = 190,
   SNAT_NO_MAP_FOUND = 191,
   INVALID_CLUSTER_ID = 192,
   UNSUPPORTED_PROTOCOL_FOR_DSR_ENCAP = 193,
   NO_EGRESS_GATEWAY = 194,
+||||||| c8c9a6e6
+=======
+  NO_EGRESS_GATEWAY = 194,
+>>>>>>> upstream/master
 }
 export enum TrafficDirection { 
   TRAFFIC_DIRECTION_UNKNOWN = 0,

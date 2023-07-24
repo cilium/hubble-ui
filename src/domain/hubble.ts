@@ -188,6 +188,7 @@ export enum Verdict {
   Forwarded = 1,
   Dropped = 2,
   Error = 3,
+  Audit = 4,
 }
 
 export enum FlowType {

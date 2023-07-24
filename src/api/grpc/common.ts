@@ -4,6 +4,7 @@ import * as helpers from '~/domain/helpers';
 import { CiliumEventTypes } from '~/domain/cilium';
 import { ReservedLabel, SpecialLabel } from '~/domain/labels';
 import { Filters, FilterEntry, FilterKind } from '~/domain/filtering';
+import { Verdict } from '~/domain/hubble';
 
 export type FlowFilters = [FlowFilter[], FlowFilter[]];
 
@@ -15,6 +16,8 @@ export const baseWhitelistFilter = (filters?: Filters): FlowFilter => {
     // Filter by http status code allows only l7 event type
     eventTypes.push(CiliumEventTypes.L7);
     wlFilter.addHttpStatusCode(filters.httpStatus);
+  } else if (filters?.verdict === Verdict.Audit) {
+    eventTypes.push(CiliumEventTypes.PolicyVerdict);
   } else {
     eventTypes.push(
       CiliumEventTypes.Drop,
