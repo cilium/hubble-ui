@@ -5,12 +5,12 @@ go 1.20
 require (
 	github.com/cilium/cilium v1.14.0-snapshot.6
 	github.com/cilium/hubble v0.12.0
-	github.com/google/gops v0.3.27
+	github.com/google/gops v0.3.28
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
 	golang.org/x/net v0.12.0
-	golang.org/x/sys v0.10.0
+	golang.org/x/sys v0.11.0
 	google.golang.org/grpc v1.56.2
 	google.golang.org/protobuf v1.31.0
 	k8s.io/api v0.27.4
