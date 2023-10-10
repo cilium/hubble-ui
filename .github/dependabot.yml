@@ -7,6 +7,8 @@ updates:
     open-pull-requests-limit: 5
     rebase-strategy: "disabled"
     labels:
+    - ci/dependabot
+    - dependencies
     - kind/enhancement
     - release-note/misc
     groups:
@@ -24,6 +26,8 @@ updates:
       - dependency-name: "github.com/cilium/cilium"
       - dependency-name: "github.com/cilium/hubble"
     labels:
+    - ci/dependabot
+    - dependencies
     - kind/enhancement
     - release-note/misc
     groups:
@@ -41,6 +45,8 @@ updates:
     open-pull-requests-limit: 5
     rebase-strategy: "disabled"
     labels:
+    - ci/dependabot
+    - dependencies
     - kind/enhancement
     - release-note/misc
     groups:
@@ -57,6 +63,7 @@ updates:
     rebase-strategy: disabled
     labels:
     - ci/dependabot
+    - dependencies
     - kind/enhancement
   - package-ecosystem: docker
     directory: /backend
@@ -68,4 +75,5 @@ updates:
     rebase-strategy: disabled
     labels:
     - ci/dependabot
+    - dependencies
     - kind/enhancement
