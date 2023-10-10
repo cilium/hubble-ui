@@ -9,7 +9,11 @@ updates:
     labels:
     - kind/enhancement
     - release-note/misc
-
+    groups:
+      dev-deps:
+        dependency-type: 'development'
+      prod-deps:
+        dependency-type: 'production'
   - package-ecosystem: gomod
     directory: ./backend
     schedule:
@@ -19,13 +23,17 @@ updates:
     ignore:
       - dependency-name: "github.com/cilium/cilium"
       - dependency-name: "github.com/cilium/hubble"
-        # k8s dependencies will be updated manually all at once
-      - dependency-name: "k8s.io/*"
-      - dependency-name: "sigs.k8s.io/*"
     labels:
     - kind/enhancement
     - release-note/misc
-
+    groups:
+      k8s-deps:
+        patterns:
+          - "k8s.io/*"
+          - "sigs.k8s.io/*"
+      all-go-deps:
+        patterns:
+          - '*'
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -35,7 +43,10 @@ updates:
     labels:
     - kind/enhancement
     - release-note/misc
-
+    groups:
+      all-github-actions:
+        patterns:
+          - '*'
   - package-ecosystem: docker
     directory: /
     schedule:
@@ -47,7 +58,6 @@ updates:
     labels:
     - ci/dependabot
     - kind/enhancement
-
   - package-ecosystem: docker
     directory: /backend
     schedule:
