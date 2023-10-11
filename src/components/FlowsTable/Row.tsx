@@ -59,8 +59,8 @@ export const Row = memo<RowProps>(function FlowsTableRow(props) {
       {props.visibleColumns.has(Column.SrcIp) && (
         <Cell flow={props.flow} kind={Column.SrcIp} />
       )}
-      {props.visibleColumns.has(Column.SrcService) && (
-        <Cell flow={props.flow} kind={Column.SrcService} />
+      {props.visibleColumns.has(Column.SrcIdentity) && (
+        <Cell flow={props.flow} kind={Column.SrcIdentity} />
       )}
       {props.visibleColumns.has(Column.DstPod) && (
         <Cell flow={props.flow} kind={Column.DstPod} />
@@ -68,8 +68,8 @@ export const Row = memo<RowProps>(function FlowsTableRow(props) {
       {props.visibleColumns.has(Column.DstIp) && (
         <Cell flow={props.flow} kind={Column.DstIp} />
       )}
-      {props.visibleColumns.has(Column.DstService) && (
-        <Cell flow={props.flow} kind={Column.DstService} />
+      {props.visibleColumns.has(Column.DstIdentity) && (
+        <Cell flow={props.flow} kind={Column.DstIdentity} />
       )}
       {props.visibleColumns.has(Column.DstPort) && (
         <Cell flow={props.flow} kind={Column.DstPort} />
