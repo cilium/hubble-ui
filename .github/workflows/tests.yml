@@ -9,7 +9,7 @@ on:
 
 jobs:
   frontend:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
@@ -23,7 +23,7 @@ jobs:
       - name: Run tests
         run: npm test
   backend:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
