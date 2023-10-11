@@ -14,8 +14,8 @@ export const Header = memo<CommonProps>(function FlowsTableHeader(props) {
       {props.visibleColumns.has(Column.SrcIp) && (
         <div className={css.cell}>{getColumnLabel(Column.SrcIp)}</div>
       )}
-      {props.visibleColumns.has(Column.SrcService) && (
-        <div className={css.cell}>{getColumnLabel(Column.SrcService)}</div>
+      {props.visibleColumns.has(Column.SrcIdentity) && (
+        <div className={css.cell}>{getColumnLabel(Column.SrcIdentity)}</div>
       )}
       {props.visibleColumns.has(Column.DstPod) && (
         <div className={css.cell}>{getColumnLabel(Column.DstPod)}</div>
@@ -23,8 +23,8 @@ export const Header = memo<CommonProps>(function FlowsTableHeader(props) {
       {props.visibleColumns.has(Column.DstIp) && (
         <div className={css.cell}>{getColumnLabel(Column.DstIp)}</div>
       )}
-      {props.visibleColumns.has(Column.DstService) && (
-        <div className={css.cell}>{getColumnLabel(Column.DstService)}</div>
+      {props.visibleColumns.has(Column.DstIdentity) && (
+        <div className={css.cell}>{getColumnLabel(Column.DstIdentity)}</div>
       )}
       {props.visibleColumns.has(Column.DstPort) && (
         <div className={classnames(css.cell, css.dstPort)}>
