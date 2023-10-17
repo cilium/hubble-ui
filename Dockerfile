@@ -19,7 +19,7 @@ COPY patches/ patches/
 ARG TARGETOS
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
 ARG TARGETARCH
-RUN npm --target_arch=${TARGETARCH} install
+RUN NODE_ENV=development npm --target_arch=${TARGETARCH} install
 
 COPY . .
 
