@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { observer } from 'mobx-react';
 import * as mobx from 'mobx';
 
-import { Tooltip2 } from '@blueprintjs/popover2';
+import { Tooltip } from '@blueprintjs/core';
 
 import { AccessPoint } from '~/components/AccessPoint';
 import { EndpointCardHeader } from '~/components/EndpointCardHeader';
@@ -147,9 +147,9 @@ export const ServiceMapCard = observer(function ServiceMapCard(props: Props) {
       )}
       {props.isClusterMeshed && props.card.clusterName && (
         <div className={css.clusterNameLabel}>
-          <Tooltip2 content={`Cluster name: ${props.card.clusterName}`}>
+          <Tooltip content={`Cluster name: ${props.card.clusterName}`}>
             {props.card.clusterName}
-          </Tooltip2>
+          </Tooltip>
         </div>
       )}
       {props.active && <EndpointCardLabels labels={props.card.labels} />}
