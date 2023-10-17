@@ -1,5 +1,10 @@
 import React from 'react';
-import { Intent, IToaster, IToasterProps, IconName } from '@blueprintjs/core';
+import {
+  Intent,
+  OverlayToaster,
+  OverlayToasterProps,
+  IconName,
+} from '@blueprintjs/core';
 
 import {
   Notification,
@@ -34,7 +39,7 @@ export class Notifier {
   public static readonly timeout = 5000;
   public static readonly maxNotificationsOnScreen = 5;
 
-  public static prepareToasterProps(props: Props): IToasterProps {
+  public static prepareToasterProps(props: Props): OverlayToasterProps {
     const position = helpers.position(
       props.position ?? NotifierPosition.TopCenter,
     );
@@ -57,10 +62,10 @@ export class Notifier {
     };
   }
 
-  private toaster: IToaster | null = null;
+  private toaster: OverlayToaster | null = null;
   private notificationsCache: Map<string, Notification> = new Map();
 
-  public setBackend(toaster: IToaster) {
+  public setBackend(toaster: OverlayToaster) {
     this.toaster = toaster;
   }
 

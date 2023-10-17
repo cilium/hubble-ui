@@ -1,5 +1,5 @@
-import React, { createContext, FunctionComponent, useContext } from 'react';
-import { Toaster } from '@blueprintjs/core';
+import React, { createContext, useContext } from 'react';
+import { OverlayToaster } from '@blueprintjs/core';
 
 import { Notifier, Props as NotifierProps } from './notifier';
 
@@ -20,7 +20,7 @@ export const NotifierProvider = observer(
 
     return (
       <NotifierContext.Provider value={notifier}>
-        <Toaster
+        <OverlayToaster
           {...toasterProps}
           ref={ref => {
             if (!ref) return;
