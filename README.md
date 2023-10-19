@@ -1,14 +1,15 @@
-# Hubble UI
+<h1 align="center">Hubble UI</h1>
+<p align="center">
+  Hubble UI is an open-source user interface for <a href="https://github.com/cilium/hubble">Cilium Hubble</a>.
+</p>
 
-Hubble UI is open source user interface for [Cilium Hubble](https://github.com/cilium/hubble).
+## 🚀 Installation
 
-## Installation
+Hubble UI is installed as part of Hubble. Please see the Hubble [Getting Started Guide](https://docs.cilium.io/en/stable/gettingstarted/hubble/#deploy-cilium-and-hubble) for instructions.
 
-Hubble UI is installed as part of hubble, please see [Hubble Getting Started Guide](https://docs.cilium.io/en/stable/gettingstarted/hubble/#deploy-cilium-and-hubble) for details.
+## 🌐 Why Hubble UI?
 
-## Why Hubble UI?
-
-Troubleshooting microservices application connectivity is a challenging task. Simply looking at "kubectl get pods" does not indicate dependencies between each service or external APIs or databases.
+Troubleshooting microservices application connectivity is a challenging task. Simply looking at `kubectl get pods` does not indicate dependencies between each service, external APIs, or databases.
 
 Hubble UI enables zero-effort automatic discovery of the service dependency graph for Kubernetes Clusters at L3/L4 and even L7, allowing user-friendly visualization and filtering of those dataflows as a Service Map.
 
@@ -16,40 +17,85 @@ See [Hubble Getting Started Guide](https://docs.cilium.io/en/stable/gettingstart
 
 ![Service Map](promo/servicemap.png)
 
-### Development
+## 🛠 Development
 
-#### Backend
+### Backend
 
-If you want to point frontend to backend deployed into minikube, then just do next port forward: `kubectl port-forward -n kube-system deployment/hubble-ui 8081`.
+If you want to point the frontend to a backend deployed in Minikube, simply create a port forward.
 
-Otherwise, if you want to change something in Go backend there are additional steps:
+```shell
+kubectl port-forward -n kube-system deployment/hubble-ui 8081
+```
 
-1. Go to backend directory `cd ./backend`, execute `./ctl.sh run`, wait build and server running
-2. In another terminal go to server directory with envoy config `cd ./server` and execute `envoy -c ./envoy.yaml` (envoy must be installed)
-3. In another terminal do port forward to hubble-relay `kubectl port-forward -n kube-system deployment/hubble-relay 50051:4245`
+To make changes to the Go backend, there are additional steps.
 
-To build the docker image run:
-1. `make hubble-ui-backend`
+1. Go to the 📁 `backend` directory and execute `./ctl.sh`.
 
-#### Frontend
+   ```shell
+   cd ./backend
+   ./ctl.sh run
+   ```
 
-1. Install deps `npm install`
-2. Start development server `npm run watch`
+   Wait until the build and server are running.
+
+2. In a separate terminal, enter the 📁 `server` directory containing the Envoy config.
+
+   ```shell
+   cd ./server
+   ```
+
+   Assuming Envoy has already been installed, execute:
+
+   ```shell
+   envoy -c ./envoy.yaml
+   ```
+
+3. In a separate terminal, run a port forward to Hubble Relay.
+
+   ```shell
+   kubectl port-forward -n kube-system deployment/hubble-relay 50051:4245
+   ```
+
+#### Docker 🐳
+
+Build the backend Docker image:
+
+```shell
+make hubble-ui-backend
+```
+
+### Frontend
+
+1. Install dependencies.
+
+```shell
+npm install
+```
+
+2. Start the development server.
+
+```shell
+npm run watch
+```
+
 3. Open [http://localhost:8080](http://localhost:8080)
 
-To build the docker image run:
-1. `make hubble-ui`
+#### Docker 🐳
 
-## Community
+Build the frontend Docker image:
 
-Learn more about [Cilium Community](https://github.com/cilium/cilium#community)
+```shell
+make hubble-ui
+```
 
-## Perform a release
+## 🐝 Community
 
-Push a tag into GitHub and ping a maintainer of the project to [accept the
-GitHub action run](https://github.com/cilium/hubble-ui/actions) which will
-push the images built into the official repositories.
+Learn more about the [Cilium community](https://github.com/cilium/cilium#community).
 
-## License
+## 🌏 Releases
 
-Hubble UI is [Apache License, Version 2.0](https://github.com/cilium/hubble-ui/blob/master/LICENSE)
+Push a tag into GitHub and ping a maintainer to accept the [GitHub action run](https://github.com/cilium/hubble-ui/actions) which pushes the built images into the official repositories.
+
+## ⚖️ License
+
+[Apache License, Version 2.0](https://github.com/cilium/hubble-ui/blob/master/LICENSE)
