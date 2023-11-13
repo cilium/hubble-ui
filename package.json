@@ -37,7 +37,7 @@
     "date-fns": "2.30.0",
     "decompress": "4.2.1",
     "google-protobuf": "3.21.2",
-    "grpc-web": "1.4.2",
+    "grpc-web": "1.5.0",
     "history": "5.3.0",
     "lodash": "4.17.21",
     "mobx": "6.10.2",
