@@ -40,7 +40,7 @@
     "grpc-web": "1.4.2",
     "history": "5.3.0",
     "lodash": "4.17.21",
-    "mobx": "6.10.2",
+    "mobx": "6.11.0",
     "mobx-react": "9.0.1",
     "object-hash": "3.0.0",
     "pluralize": "8.0.0",
