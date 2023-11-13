@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: '18.x'
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       - name: Run tests
         run: npm test
   backend:
@@ -50,7 +50,7 @@ jobs:
         with:
           node-version: '18.x'
       - name: Install NPM dependencies
-        run: npm install
+        run: npm ci
       - name: Check proto files
         working-directory: ./backend
         run: |

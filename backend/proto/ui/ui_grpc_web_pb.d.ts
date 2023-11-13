@@ -1,7 +1,7 @@
 import * as grpcWeb from 'grpc-web';
 
-import * as ui_ui_pb from '../ui/ui_pb';
-import * as ui_status_pb from '../ui/status_pb';
+import * as ui_ui_pb from '../ui/ui_pb'; // proto import: "ui/ui.proto"
+import * as ui_status_pb from '../ui/status_pb'; // proto import: "ui/status.proto"
 
 
 export class UIClient {
