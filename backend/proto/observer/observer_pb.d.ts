@@ -1,10 +1,11 @@
 import * as jspb from 'google-protobuf'
 
-import * as google_protobuf_wrappers_pb from 'google-protobuf/google/protobuf/wrappers_pb'; // proto import: "google/protobuf/wrappers.proto"
-import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb'; // proto import: "google/protobuf/timestamp.proto"
-import * as google_protobuf_field_mask_pb from 'google-protobuf/google/protobuf/field_mask_pb'; // proto import: "google/protobuf/field_mask.proto"
-import * as flow_flow_pb from '../flow/flow_pb'; // proto import: "flow/flow.proto"
-import * as relay_relay_pb from '../relay/relay_pb'; // proto import: "relay/relay.proto"
+import * as google_protobuf_any_pb from 'google-protobuf/google/protobuf/any_pb';
+import * as google_protobuf_wrappers_pb from 'google-protobuf/google/protobuf/wrappers_pb';
+import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb';
+import * as google_protobuf_field_mask_pb from 'google-protobuf/google/protobuf/field_mask_pb';
+import * as flow_flow_pb from '../flow/flow_pb';
+import * as relay_relay_pb from '../relay/relay_pb';
 
 
 export class ServerStatusRequest extends jspb.Message {
@@ -52,6 +53,9 @@ export class ServerStatusResponse extends jspb.Message {
   getVersion(): string;
   setVersion(value: string): ServerStatusResponse;
 
+  getFlowsRate(): number;
+  setFlowsRate(value: number): ServerStatusResponse;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ServerStatusResponse.AsObject;
   static toObject(includeInstance: boolean, msg: ServerStatusResponse): ServerStatusResponse.AsObject;
@@ -70,6 +74,7 @@ export namespace ServerStatusResponse {
     numUnavailableNodes?: google_protobuf_wrappers_pb.UInt32Value.AsObject,
     unavailableNodesList: Array<string>,
     version: string,
+    flowsRate: number,
   }
 }
 
@@ -108,6 +113,11 @@ export class GetFlowsRequest extends jspb.Message {
   hasExperimental(): boolean;
   clearExperimental(): GetFlowsRequest;
 
+  getExtensions(): google_protobuf_any_pb.Any | undefined;
+  setExtensions(value?: google_protobuf_any_pb.Any): GetFlowsRequest;
+  hasExtensions(): boolean;
+  clearExtensions(): GetFlowsRequest;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetFlowsRequest.AsObject;
   static toObject(includeInstance: boolean, msg: GetFlowsRequest): GetFlowsRequest.AsObject;
@@ -126,6 +136,7 @@ export namespace GetFlowsRequest {
     since?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     until?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     experimental?: GetFlowsRequest.Experimental.AsObject,
+    extensions?: google_protobuf_any_pb.Any.AsObject,
   }
 
   export class Experimental extends jspb.Message {

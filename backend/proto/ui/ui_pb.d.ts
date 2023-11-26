@@ -1,9 +1,9 @@
 import * as jspb from 'google-protobuf'
 
-import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb'; // proto import: "google/protobuf/timestamp.proto"
-import * as flow_flow_pb from '../flow/flow_pb'; // proto import: "flow/flow.proto"
-import * as ui_notifications_pb from '../ui/notifications_pb'; // proto import: "ui/notifications.proto"
-import * as ui_status_pb from '../ui/status_pb'; // proto import: "ui/status.proto"
+import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb';
+import * as flow_flow_pb from '../flow/flow_pb';
+import * as ui_notifications_pb from '../ui/notifications_pb';
+import * as ui_status_pb from '../ui/status_pb';
 
 
 export class GetEventsRequest extends jspb.Message {
