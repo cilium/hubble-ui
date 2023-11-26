@@ -333,8 +333,8 @@ export class Flow {
       this.l7?.type === L7FlowType.Request
         ? '->'
         : this.l7?.type === L7FlowType.Response
-        ? '<-'
-        : '??';
+          ? '<-'
+          : '??';
 
     // TODO: check if this is a correct fingerprints for all but http
     return `${direction} ${l7helpers.getEndpointId(l7)}`;
@@ -516,5 +516,21 @@ export class Flow {
 
   public get authTypeLabel(): string {
     return authtypeHelpers.toString(this.ref.authType);
+  }
+
+  public get hasEgressAllowedBy(): boolean {
+    return this.ref.egressAllowedBy.length > 0;
+  }
+
+  public get hasIngressAllowedBy(): boolean {
+    return this.ref.ingressAllowedBy.length > 0;
+  }
+
+  public get egressAllowedBy(): string[] {
+    return this.ref.egressAllowedBy || [];
+  }
+
+  public get ingressAllowedBy(): string[] {
+    return this.ref.ingressAllowedBy || [];
   }
 }

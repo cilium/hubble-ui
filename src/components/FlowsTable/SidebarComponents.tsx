@@ -252,3 +252,29 @@ export const PodEntry = memo<PodItemProps>(
     );
   },
 );
+
+export interface PolicyEntryProps {
+  allowedBy: string[];
+}
+
+export const PolicyEntry = memo<PolicyEntryProps>(
+  function FlowsTableSidebarLabelsEntry(props) {
+    return (
+      <div className={css.policies}>
+        {props.allowedBy.map(policyName => {
+          return <PolicyEntryItem key={policyName} name={policyName} />;
+        })}
+      </div>
+    );
+  },
+);
+
+export interface PolicyEntryItemProps {
+  name: string;
+}
+
+export const PolicyEntryItem = memo<PolicyEntryItemProps>(
+  function FlowsTableSidebarPolicyEntry(props) {
+    return <span className={css.policy}>{props.name}</span>;
+  },
+);

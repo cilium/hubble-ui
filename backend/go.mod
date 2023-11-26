@@ -1,8 +1,6 @@
 module github.com/cilium/hubble-ui/backend
 
-go 1.21.0
-
-toolchain go1.21.4
+go 1.21.4
 
 require (
 	github.com/cilium/cilium v1.15.0-pre.2
