@@ -1,9 +1,11 @@
 module github.com/cilium/hubble-ui/backend
 
-go 1.21
+go 1.21.0
+
+toolchain go1.21.4
 
 require (
-	github.com/cilium/cilium v1.14.4
+	github.com/cilium/cilium v1.15.0-pre.2
 	github.com/cilium/hubble v0.12.2
 	github.com/google/gops v0.3.28
 	github.com/improbable-eng/grpc-web v0.15.0
@@ -20,7 +22,7 @@ require (
 
 require (
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
