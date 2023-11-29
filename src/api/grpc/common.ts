@@ -181,8 +181,8 @@ export const filterEntryWhitelistFilters = (
   const pod = filter.podNamespace
     ? `${filter.podNamespace}/${filter.query}`
     : filters.namespace
-    ? `${filters.namespace}/${filter.query}`
-    : null;
+      ? `${filters.namespace}/${filter.query}`
+      : null;
 
   if (filter.fromRequired) {
     // NOTE: this makes possible to catch flows [outside of ns] -> [ns]
