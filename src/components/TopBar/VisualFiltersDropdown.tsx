@@ -4,7 +4,7 @@ import classnames from 'classnames';
 
 import { usePopover } from '~/ui/hooks/usePopover';
 
-import VisualIcon from '~/assets/icons/visual-icon.svg';
+import { VisualFiltersIcon } from '~/components/Icons/VisualFiltersIcon';
 import { FilterIcon } from './FilterIcon';
 
 import css from './styles.scss';
@@ -90,7 +90,7 @@ export const VisualFiltersDropdown = memo<Props>(
     return (
       <Popover {...popover.props} content={content}>
         <FilterIcon
-          icon={<VisualIcon />}
+          icon={<VisualFiltersIcon />}
           text="Visual"
           onClick={popover.toggle}
           className={classnames({

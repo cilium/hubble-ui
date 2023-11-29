@@ -58,8 +58,8 @@ export const NamespaceSelectorDropdown = memo<Props>(
       currentNamespace && namespaces.includes(currentNamespace)
         ? currentNamespace
         : currentNamespace
-        ? `Waiting ${currentNamespace} namespace…`
-        : 'Choose namespace';
+          ? `Waiting ${currentNamespace} namespace…`
+          : 'Choose namespace';
 
     return (
       <NamespaceSelect

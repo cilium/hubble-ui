@@ -333,8 +333,8 @@ export class Flow {
       this.l7?.type === L7FlowType.Request
         ? '->'
         : this.l7?.type === L7FlowType.Response
-        ? '<-'
-        : '??';
+          ? '<-'
+          : '??';
 
     // TODO: check if this is a correct fingerprints for all but http
     return `${direction} ${l7helpers.getEndpointId(l7)}`;
