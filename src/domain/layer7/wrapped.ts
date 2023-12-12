@@ -1,18 +1,10 @@
 import urlParse from 'url-parse';
 import * as mobx from 'mobx';
 
-import { memoize } from '~/utils/memoize';
+import { ParsedUrl } from '~/utils/url';
 import { Method as HttpMethod, parseMethod } from '~/domain/http';
 import * as l7helpers from '~/domain/helpers/l7';
-import {
-  Layer7,
-  L7FlowType,
-  DNS,
-  HTTP,
-  Kafka,
-  HTTPHeader,
-  L7Kind,
-} from '~/domain/hubble';
+import { Layer7, L7FlowType, DNS, HTTP, Kafka, HTTPHeader, L7Kind } from '~/domain/hubble';
 
 export class WrappedLayer7 implements Layer7 {
   public ref: Layer7;
@@ -25,9 +17,13 @@ export class WrappedLayer7 implements Layer7 {
     });
   }
 
-  @memoize
+  private memoKind: L7Kind | undefined;
   public get kind(): L7Kind {
-    return l7helpers.getKind(this.ref);
+    if (this.memoKind !== undefined) return this.memoKind;
+
+    this.memoKind = l7helpers.getKind(this.ref);
+
+    return this.memoKind;
   }
 
   public get type(): L7FlowType {
@@ -42,11 +38,15 @@ export class WrappedLayer7 implements Layer7 {
     return this.ref.dns;
   }
 
-  @memoize
+  private memoHttp: WrappedHTTP | undefined;
   public get http(): WrappedHTTP | undefined {
     if (this.ref.http == null) return undefined;
 
-    return new WrappedHTTP(this.ref.http);
+    if (this.memoHttp !== undefined) return this.memoHttp;
+
+    this.memoHttp = new WrappedHTTP(this.ref.http);
+
+    return this.memoHttp;
   }
 
   public get kafka(): Kafka | undefined {
@@ -65,18 +65,26 @@ export class WrappedHTTP implements HTTP {
     return this.ref.code;
   }
 
-  @memoize
+  private memoMethod: HttpMethod | undefined;
   public get method(): HttpMethod {
-    return parseMethod(this.ref.method)!;
+    if (this.memoMethod !== undefined) return this.memoMethod;
+
+    this.memoMethod = parseMethod(this.ref.method)!;
+
+    return this.memoMethod;
   }
 
   public get url(): string {
     return this.ref.url;
   }
 
-  @memoize
-  public get parsedUrl(): urlParse<string> {
-    return urlParse(this.ref.url);
+  private memoParsedUrl: ParsedUrl | undefined;
+  public get parsedUrl(): ParsedUrl {
+    if (this.memoParsedUrl !== undefined) return this.memoParsedUrl;
+
+    this.memoParsedUrl = urlParse(this.ref.url);
+
+    return this.memoParsedUrl;
   }
 
   public get protocol(): string {

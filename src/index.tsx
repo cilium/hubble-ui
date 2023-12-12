@@ -1,20 +1,14 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import { observer } from 'mobx-react-lite';
 
-import { StoreProvider, useStore } from '~/store';
-import { RouteHistorySourceKind } from '~/store/stores/route';
-import { NotifierProvider, Notifier } from '~/notifier';
+import { Environment } from '~/environment';
+import { Store } from '~/store';
+import { DataLayer } from '~/data-layer';
+import { Router, RouterKind, RouterProvider } from '~/router';
+import { UILayer } from '~/ui-layer';
+import { Application, ApplicationProvider } from '~/application';
 
-import { DataManagerProvider } from '~/data-manager';
-import { useHooksOnDataManager } from './data-manager/Provider';
-
-import { FeatureFlagsFetcher } from './components/FeatureFlags/FeatureFlagsFetcher';
-import { App } from './components/App';
-
-import * as ui from '~/ui';
-import api from '~/api';
+import { e2e } from '~e2e/client';
 
 import './blueprint.scss';
 import './index.scss';
@@ -25,46 +19,63 @@ declare global {
   }
 }
 
+const buildAPIUrl = (env: Environment): string => {
+  if (!env.isDev) {
+    return `${document.location.origin}/api/`;
+  }
+
+  const schema = env.var('API_SCHEMA') || 'http';
+  const host = env.var('API_HOST') || 'localhost';
+  const port = env.var('API_PORT') || 8090;
+  const path = env.var('API_PATH') || 'api';
+  const slashedPath = path?.startsWith('/') ? path : `/${path}`;
+
+  return `${schema}://${host}:${port}${slashedPath}`;
+};
+
 const run = async () => {
-  ui.setCSSVars(ui.sizes);
+  const env = Environment.new();
+  const store = new Store();
 
-  const Screen = observer(() => {
-    const store = useStore();
-
-    useHooksOnDataManager();
-
-    return (
-      <BrowserRouter>
-        <Routes location={store.route.location}>
-          <Route path="*" element={<App api={api} />} />
-        </Routes>
-      </BrowserRouter>
-    );
+  const apiUrl = buildAPIUrl(env);
+  const dataLayer = DataLayer.new({
+    store,
+    customProtocolBaseURL: apiUrl,
+    customProtocolRequestTimeout: 3000,
+    customProtocolMessagesInJSON: env.isDev,
+    customProtocolCORSEnabled: true,
   });
 
-  // NOTE: we don't have another option to take notifier from except from inside
-  const onFeatureFetchError = (err: Error, notifier: Notifier) => {
-    console.error('features fetch error: ', err);
-    notifier.showError(`Failed to load UI settings: ${err.message}`);
+  const router = new Router(env.isTesting ? RouterKind.Memory : RouterKind.Browser, dataLayer);
+
+  const uiLayer = UILayer.new({
+    router,
+    store,
+    dataLayer,
+    isCSSVarsInjectionEnabled: true,
+  });
+
+  const renderFn = (targetElem: Element, app: Application) => {
+    const root = createRoot(targetElem);
+
+    // NOTE: Use RouterProvider here not to create dependency cycle:
+    // Application -> Router -> <Our app component> -> useApplication
+    root.render(
+      <ApplicationProvider app={app}>
+        <RouterProvider router={app.router} />
+      </ApplicationProvider>,
+    );
   };
 
-  const elems = (
-    <NotifierProvider>
-      <StoreProvider historySource={RouteHistorySourceKind.URL}>
-        <DataManagerProvider api={api}>
-          <FeatureFlagsFetcher api={api.v1} onError={onFeatureFetchError}>
-            <Screen />
-          </FeatureFlagsFetcher>
-        </DataManagerProvider>
-      </StoreProvider>
-    </NotifierProvider>
-  );
-
-  const container = document.getElementById('app');
-  if (!container) throw new Error('Expect #app in DOM');
-  const root = createRoot(container);
-
-  root.render(elems);
+  const app = new Application(env, router, store, dataLayer, uiLayer, renderFn);
+  app
+    .onBeforeMount(_app => {
+      const env = app.environment;
+      e2e.attributes.setEnabled(env.isDev || env.isTesting);
+      uiLayer.onBeforeMount();
+    })
+    .onMounted(app => app.uiLayer.onMounted())
+    .mount('#app');
 };
 
 // TODO: run() if only we are running not as library

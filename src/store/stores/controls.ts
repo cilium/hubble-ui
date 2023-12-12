@@ -3,29 +3,23 @@ import { makeAutoObservable } from 'mobx';
 
 import { Flow } from '~/domain/flows';
 import { Verdict } from '~/domain/hubble';
-import { Filters, FilterEntry, FilterKind } from '~/domain/filtering';
-import { Status } from '~/domain/status';
-import { TransferState } from '~/domain/interactions';
+import { Filters, FilterEntry } from '~/domain/filtering';
+
+import { Application } from '~/domain/common';
 
 // This store maintains data that is configured by control interfaces
-export default class ControlStore {
-  private _namespaces: Array<string> = [];
-
-  public lastStatus: Status | null = null;
-  public currentNamespace: string | null = null;
+export class ControlStore {
+  public currentApp: Application = Application.ServiceMap;
   public selectedTableFlow: Flow | null = null;
   public showCrossNamespaceActivity = true;
 
-  public verdict: Verdict | null = null;
+  public verdicts = new Set<Verdict>();
   public httpStatus: string | null = null;
   public flowFilters: FilterEntry[] = [];
   public showHost = false;
   public showKubeDns = false;
   public showRemoteNode = false;
   public showPrometheusApp = false;
-  public showKubeApiServer = false;
-
-  public transferState: TransferState = new TransferState();
 
   constructor() {
     makeAutoObservable(this, void 0, {
@@ -33,164 +27,147 @@ export default class ControlStore {
     });
   }
 
-  public clone(deep = false): ControlStore {
+  clone(deep = false): ControlStore {
     const store = new ControlStore();
-    const nss = this.namespaces;
+
     const selFlow = this.selectedTableFlow;
     const ffs = this.flowFilters;
 
-    store.namespaces = deep ? _.cloneDeep(nss) : nss.slice();
-    store.currentNamespace = this.currentNamespace;
     store.selectedTableFlow = selFlow ? selFlow.clone() : null;
     store.showCrossNamespaceActivity = this.showCrossNamespaceActivity;
-    store.verdict = deep ? _.cloneDeep(this.verdict) : this.verdict;
+    store.verdicts = deep ? _.cloneDeep(this.verdicts) : this.verdicts;
     store.httpStatus = this.httpStatus;
     store.flowFilters = deep ? ffs.map(f => f.clone()) : ffs.slice();
+    store.currentApp = this.currentApp;
 
     return store;
   }
 
-  public reset() {
-    this.currentNamespace = null;
+  resetUserSelected() {
     this.selectedTableFlow = null;
-    this.verdict = null;
+    this.verdicts = new Set();
     this.httpStatus = null;
     this.flowFilters = [];
   }
 
-  public setCurrentNamespace(ns: string | null) {
-    this.currentNamespace = ns;
+  setCurrentApp(app: Application): [Application, boolean] {
+    const prev = this.currentApp;
+    const isChanged = prev !== app;
+    this.currentApp = app;
+
+    return [prev, isChanged];
   }
 
-  public addNamespace(ns: string) {
-    const nsIdx = this._namespaces.findIndex((nss: string) => nss === ns);
-    if (nsIdx !== -1) return;
-
-    this._namespaces.push(ns);
-  }
-
-  public removeNamespace(ns: string) {
-    const nsIdx = this._namespaces.findIndex((nss: string) => nss === ns);
-    if (nsIdx === -1) return;
-
-    this._namespaces.splice(nsIdx, 1);
-  }
-
-  public selectTableFlow(flow: Flow | null) {
+  selectTableFlow(flow: Flow | null) {
     this.selectedTableFlow = flow;
   }
 
-  public setCrossNamespaceActivity(v: boolean) {
+  setCrossNamespaceActivity(v: boolean) {
     this.showCrossNamespaceActivity = v;
   }
 
-  public setVerdict(v: Verdict | null) {
-    this.verdict = v;
+  public toggleVerdict(verdict: Verdict | null): Set<Verdict> {
+    const nextVerdicts = verdict == null ? new Set<Verdict>() : new Set([verdict]);
+
+    this.verdicts = nextVerdicts;
+    return this.verdicts;
   }
 
-  public setHttpStatus(st: string | null) {
+  setVerdicts(verdicts: Set<Verdict>) {
+    this.verdicts = verdicts;
+  }
+
+  setHttpStatus(st: string | null): string | null {
+    const prev = this.httpStatus;
     this.httpStatus = st;
+
+    return prev;
   }
 
-  public setFlowFilters(ffs: FilterEntry[]) {
+  setFlowFilters(ffs: FilterEntry[]): FilterEntry[] {
+    const prev = this.flowFilters.slice();
     this.flowFilters = ffs;
+
+    return prev;
   }
 
-  public setShowHost(val: boolean): boolean {
+  setShowHost(val: boolean): boolean {
     this.showHost = val;
 
     return val;
   }
 
-  public toggleShowHost(): boolean {
+  toggleShowHost(): boolean {
     return this.setShowHost(!this.showHost);
   }
 
-  public setShowKubeDns(val: boolean): boolean {
+  setShowKubeDns(val: boolean): boolean {
     this.showKubeDns = val;
 
     return val;
   }
 
-  public toggleShowKubeDns(): boolean {
+  toggleShowKubeDns(): boolean {
     return this.setShowKubeDns(!this.showKubeDns);
   }
 
-  public setShowRemoteNode(val: boolean): boolean {
+  setShowRemoteNode(val: boolean): boolean {
     this.showRemoteNode = val;
 
     return val;
   }
 
-  public toggleShowRemoteNode(): boolean {
+  toggleShowRemoteNode(): boolean {
     return this.setShowRemoteNode(!this.showRemoteNode);
   }
 
-  public setShowPrometheusApp(val: boolean): boolean {
+  setShowPrometheusApp(val: boolean): boolean {
     this.showPrometheusApp = val;
 
     return val;
   }
 
-  public toggleShowPrometheusApp(): boolean {
+  toggleShowPrometheusApp(): boolean {
     return this.setShowPrometheusApp(!this.showPrometheusApp);
   }
 
-  public setShowKubeApiServer(s: boolean): boolean {
-    this.showKubeApiServer = s;
-
-    return s;
-  }
-
-  public toggleShowKubeApiServer(): boolean {
-    return this.setShowKubeApiServer(!this.showKubeApiServer);
-  }
-
-  public setFilters(f: Filters) {
-    this.currentNamespace = f.namespace ?? null;
-    this.verdict = f.verdict ?? null;
+  setFilters(f: Filters) {
+    this.verdicts = f.verdicts ?? new Set();
     this.httpStatus = f.httpStatus ?? null;
     this.flowFilters = f.filters || [];
     this.showHost = !f.skipHost;
     this.showKubeDns = !f.skipKubeDns;
     this.showRemoteNode = !f.skipRemoteNode;
     this.showPrometheusApp = !f.skipPrometheusApp;
-    this.showKubeApiServer = !f.skipKubeApiServer;
   }
 
-  public setStatus(st: Status) {
-    this.lastStatus = st;
+  public areSomeFilterEntriesEnabled(filterEntries: FilterEntry[]): boolean {
+    const currentKeys = new Set(this.filteredFlowFilters.map(fe => fe.toString()));
+
+    for (const fe of filterEntries) {
+      const key = fe.toString();
+
+      if (currentKeys.has(key)) return true;
+    }
+
+    return false;
   }
 
-  public get activeCardFilter() {
-    return this.flowFilters.find(f => {
-      return [FilterKind.Dns, FilterKind.Identity].includes(f.kind);
-    });
-  }
-
-  public get namespaces() {
-    return this._namespaces.slice().sort((a, b) => a.localeCompare(b));
-  }
-
-  set namespaces(namespaces: string[]) {
-    this._namespaces = namespaces;
-  }
-
-  public get correctFlowFilters() {
+  public get filteredFlowFilters() {
     return this.flowFilters.filter(f => !f.isTCPFlag);
   }
 
-  public get filters(): Filters {
-    return Filters.fromObject({
-      namespace: this.currentNamespace,
-      verdict: this.verdict,
-      httpStatus: this.httpStatus,
-      filters: this.flowFilters,
-      skipHost: !this.showHost,
-      skipKubeDns: !this.showKubeDns,
-      skipRemoteNode: !this.showRemoteNode,
-      skipPrometheusApp: !this.showPrometheusApp,
-      skipKubeApiServer: !this.showKubeApiServer,
-    });
+  public get activeVerdict(): Verdict | null {
+    for (const v of this.verdicts) {
+      return v;
+    }
+
+    return null;
+  }
+
+  get app() {
+    return {
+      isServiceMap: this.currentApp === Application.ServiceMap,
+    };
   }
 }

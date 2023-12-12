@@ -36,8 +36,7 @@ export default class RouteStore {
   constructor(historySource: RouteHistorySourceKind) {
     makeAutoObservable(this, void 0, { autoBind: true });
 
-    this.history =
-      historySource === 'url' ? createBrowserHistory() : createMemoryHistory();
+    this.history = historySource === 'url' ? createBrowserHistory() : createMemoryHistory();
 
     this._location = this.history.location;
 

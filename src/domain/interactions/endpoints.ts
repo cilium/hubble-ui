@@ -28,8 +28,7 @@ export class IPEndpoint implements Endpoint {
   }
 
   public get id(): string {
-    const ports =
-      this._ports.size === 0 ? '' : `:${[...this._ports].join(',')}`;
+    const ports = this._ports.size === 0 ? '' : `:${[...this._ports].join(',')}`;
 
     return `${this._ip}${ports}`;
   }
@@ -118,34 +117,46 @@ export class L7Endpoint implements Endpoint {
     return new Set(this._verdicts);
   }
 }
-
 export class ServiceEndpoint implements Endpoint {
   public serviceId: string;
   public port: number;
   public l4Protocol: IPProtocol;
   public l7Protocol: L7Kind | null = null;
+  public verdicts: Set<Verdict> = new Set();
 
   public static fromLink(link: HubbleLink | Link): ServiceEndpoint {
     // NOTE: it's probably worth to return two APs: source and destination
-    return new ServiceEndpoint(
-      link.destinationId,
-      link.destinationPort,
-      link.ipProtocol,
-    );
+    const verdicts = link instanceof Link ? link.verdicts : new Set([link.verdict]);
+    return new ServiceEndpoint(link.destinationId, link.destinationPort, link.ipProtocol, verdicts);
   }
 
   public static generateId(serviceId: string, port: number | string) {
     return `ap-${serviceId}-${port}`;
   }
 
-  constructor(serviceId: string, port: number, protocol: IPProtocol) {
+  constructor(serviceId: string, port: number, protocol: IPProtocol, verdicts?: Iterable<Verdict>) {
     this.serviceId = serviceId;
     this.port = port;
     this.l4Protocol = protocol;
 
+    if (verdicts != null) {
+      for (const v of verdicts) {
+        this.verdicts.add(v);
+      }
+    }
+
     mobx.makeAutoObservable(this, void 0, {
       autoBind: true,
     });
+  }
+
+  public update(e: Endpoint) {
+    if (!(e instanceof ServiceEndpoint)) return;
+    if (e.l7Protocol != null && this.l7Protocol == null) {
+      this.l7Protocol = e.l7Protocol;
+    }
+
+    e.verdicts.forEach(v => this.verdicts.add(v));
   }
 
   public clone(): ServiceEndpoint {

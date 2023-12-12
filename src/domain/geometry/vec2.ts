@@ -40,9 +40,11 @@ export class Vec2 implements XY {
     return new Vec2(this.x + arg.x, this.y + arg.y);
   }
 
-  public addInPlace(arg: XY) {
+  public addInPlace(arg: XY): this {
     this.x += arg.x;
     this.y += arg.y;
+
+    return this;
   }
 
   public mul(n: number): Vec2 {

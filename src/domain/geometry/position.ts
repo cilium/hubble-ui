@@ -9,25 +9,31 @@
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 import * as csstype from 'csstype';
 
-const p = (n: number) => Position.new(n);
-
 export class Position {
-  public static readonly Top = p(0b100000);
-  public static readonly Middle = p(0b010000);
-  public static readonly Bottom = p(0b001000);
-  public static readonly Left = p(0b000001);
-  public static readonly Center = p(0b000010);
-  public static readonly Right = p(0b000100);
+  public static readonly Top = Position.new(0b100000);
+  public static readonly Middle = Position.new(0b010000);
+  public static readonly Bottom = Position.new(0b001000);
+  public static readonly Left = Position.new(0b000001);
+  public static readonly Center = Position.new(0b000010);
+  public static readonly Right = Position.new(0b000100);
 
-  public static readonly TopLeft = p(+Position.Top | +Position.Left);
-  public static readonly TopRight = p(+Position.Top | +Position.Right);
-  public static readonly TopCenter = p(+Position.Top | +Position.Center);
-  public static readonly MiddleLeft = p(+Position.Middle | +Position.Left);
-  public static readonly MiddleRight = p(+Position.Middle | +Position.Right);
-  public static readonly MiddleCenter = p(+Position.Middle | +Position.Center);
-  public static readonly BottomLeft = p(+Position.Bottom | +Position.Left);
-  public static readonly BottomRight = p(+Position.Bottom | +Position.Right);
-  public static readonly BottomCenter = p(+Position.Bottom | +Position.Center);
+  public static readonly TopLeft = Position.new(+Position.Top | +Position.Left);
+  // prettier-ignore
+  public static readonly TopRight = Position.new(+Position.Top | +Position.Right);
+  // prettier-ignore
+  public static readonly TopCenter = Position.new(+Position.Top | +Position.Center);
+  // prettier-ignore
+  public static readonly MiddleLeft = Position.new(+Position.Middle | +Position.Left);
+  // prettier-ignore
+  public static readonly MiddleRight = Position.new(+Position.Middle | +Position.Right);
+  // prettier-ignore
+  public static readonly MiddleCenter = Position.new(+Position.Middle | +Position.Center);
+  // prettier-ignore
+  public static readonly BottomLeft = Position.new(+Position.Bottom | +Position.Left);
+  // prettier-ignore
+  public static readonly BottomRight = Position.new(+Position.Bottom | +Position.Right);
+  // prettier-ignore
+  public static readonly BottomCenter = Position.new(+Position.Bottom | +Position.Center);
 
   public static new(n: number) {
     return new Position(n);

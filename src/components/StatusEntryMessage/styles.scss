@@ -1,0 +1,135 @@
+@import '~/styles/common/prelude';
+
+$window-width: 480px;
+$icon-size: 23px;
+
+.statusEntryMessage {
+  @include row(flex-start, flex-start);
+
+  .icon {
+    @include exact-size($icon-size, $icon-size);
+    @include centered;
+
+    margin-right: 10px;
+    margin-top: 3px;
+
+    border-radius: 50%;
+    background: var(--hubble-ui-statuscenterwindow-logentry-icon-bg);
+
+    img {
+      height: 14px;
+    }
+  }
+
+  .spinner {
+    @include centered;
+
+    margin-right: 10px;
+    padding-top: 3px;
+  }
+
+  &.critical .content .meta .intent {
+    color: var(--hubble-ui-statuscenterwindow-intent-critical);
+    border: 1px solid var(--hubble-ui-statuscenterwindow-intent-critical-border);
+    background: var(--hubble-ui-statuscenterwindow-intent-critical-bg);
+  }
+
+  &.highlighted {
+    &.critical,
+    &.error {
+      background: var(--hubble-ui-statuscenterwindow-intent-critical-error-highlight-bg);
+      color: var(--hubble-ui-statuscenterwindow-intent-critical);
+    }
+  }
+
+  &.backgrounded {
+    &.success,
+    &.critical,
+    &.error,
+    &.info {
+      .content {
+        .meta .dateTime,
+        .title,
+        .details,
+        .cardinality {
+          color: white;
+        }
+      }
+    }
+
+    &.warning {
+      .content {
+        .meta .dateTime,
+        .title,
+        .details,
+        .cardinality {
+          color: var(--hubble-ui-text-primary);
+        }
+      }
+    }
+  }
+
+  .content {
+    @include column;
+    flex-grow: 1;
+
+    .meta {
+      @include row(space-between, flex-start);
+      color: var(--hubble-ui-text-tertiary);
+      margin-bottom: 2px;
+
+      .left {
+        @include row(flex-start, center);
+        flex-flow: wrap;
+      }
+
+      .left > div:not(:last-child, .intent) {
+        margin-right: 8px;
+      }
+
+      .dateTime {
+        @include font-inter(500, 12px);
+        color: var(--hubble-ui-text-secondary);
+      }
+
+      .intent,
+      .component {
+        @include font-inter(700, 11px);
+
+        text-transform: uppercase;
+        border-radius: 5px;
+        padding: 1px 4px;
+      }
+
+      .intent {
+        background: var(--hubble-ui-statuscenterwindow-intent-none-bg);
+        color: var(--hubble-ui-statuscenterwindow-intent-none);
+        border: 1px solid var(--hubble-ui-statuscenterwindow-intent-none-border);
+
+        margin-right: 5px;
+      }
+
+      .component {
+        background: var(--hubble-ui-statuscenterwindow-component-bg);
+        color: var(--hubble-ui-statuscenterwindow-component);
+        border: 1px solid var(--hubble-ui-statuscenterwindow-component-border);
+      }
+
+      .cardinality {
+        @include font-inter(600, 12px);
+      }
+    }
+
+    .title {
+      @include font-inter(700, 14px);
+      color: var(--hubble-ui-text-primary);
+
+      margin-bottom: 5px;
+    }
+
+    .details {
+      @include font-inter(400, 13px);
+      color: var(--hubble-ui-text-secondary);
+    }
+  }
+}

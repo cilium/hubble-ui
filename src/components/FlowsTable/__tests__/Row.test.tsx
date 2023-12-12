@@ -44,11 +44,7 @@ const runInteractionTests = (
   }
 };
 
-const runAppearanceTests = (
-  row: HTMLElement,
-  exps: Expectations,
-  selected: boolean,
-) => {
+const runAppearanceTests = (row: HTMLElement, exps: Expectations, selected: boolean) => {
   const sourceTitle = row.querySelector('.cell:nth-child(3)')!;
   const destTitle = row.querySelector('.cell:nth-child(6)')!;
   const destPort = row.querySelector('.cell:nth-child(7)')!;

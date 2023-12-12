@@ -1,24 +1,27 @@
-import React, { memo } from 'react';
+import React from 'react';
+import { observer } from 'mobx-react';
 
 import { Verdict } from '~/domain/hubble';
 import { FilterEntry } from '~/domain/filtering';
 import { Status } from '~/domain/status';
+import { DataMode, TransferState } from '~/domain/interactions';
+import { NamespaceDescriptor } from '~/domain/namespaces';
 
 import { FlowsFilterInput } from './FlowsFilterInput';
 import { VerdictFilterDropdown } from './VerdictFilterDropdown';
 import { VisualFiltersDropdown } from './VisualFiltersDropdown';
 import { NamespaceSelectorDropdown } from './NamespaceSelectorDropdown';
 import { ConnectionIndicator } from './ConnectionIndicator';
-import { DataMode, TransferState } from '~/domain/interactions';
 
+import { e2e } from '~e2e/client';
 import css from './styles.scss';
 
 export interface Props {
   transferState: TransferState;
   status?: Status;
-  namespaces: Array<string>;
-  currentNamespace: string | null;
-  onNamespaceChange?: (ns: string) => void;
+  namespaces: NamespaceDescriptor[];
+  currentNamespace: NamespaceDescriptor | null;
+  onNamespaceChange?: (ns: NamespaceDescriptor) => void;
   selectedVerdict: Verdict | null;
   onVerdictChange?: (verdict: Verdict | null) => void;
   selectedHttpStatus: string | null;
@@ -33,24 +36,16 @@ export interface Props {
   onShowRemoteNodeToggle?: () => void;
   showPrometheusApp: boolean;
   onShowPrometheusAppToggle: () => void;
-  showKubeApiServer: boolean;
-  onShowKubeApiServerToggle?: () => void;
 }
 
-export const TopBar = memo<Props>(function TopBar(props) {
+export const TopBar = observer(function TopBar(props: Props) {
   const RenderedFilters = (
     <>
       <div className={css.spacer} />
       <div className={css.spacer} />
-      <FlowsFilterInput
-        filters={props.flowFilters}
-        onChange={props.onChangeFlowFilters}
-      />
+      <FlowsFilterInput filters={props.flowFilters} onChange={props.onChangeFlowFilters} />
       <div className={css.spacer} />
-      <VerdictFilterDropdown
-        verdict={props.selectedVerdict}
-        onSelect={props.onVerdictChange}
-      />
+      <VerdictFilterDropdown verdict={props.selectedVerdict} onSelect={props.onVerdictChange} />
       <div className={css.border} />
       <VisualFiltersDropdown
         showHost={props.showHost}
@@ -61,14 +56,12 @@ export const TopBar = memo<Props>(function TopBar(props) {
         onShowRemoteNodeToggle={props.onShowRemoteNodeToggle}
         showPrometheusApp={props.showPrometheusApp}
         onShowPrometheusAppToggle={props.onShowPrometheusAppToggle}
-        showKubeApiServer={props.showKubeApiServer}
-        onShowKubeApiServerToggle={props.onShowKubeApiServerToggle}
       />
     </>
   );
 
   return (
-    <div className={css.topbar}>
+    <div className={css.topbar} {...e2e.attributes.topbar.selector()}>
       <div className={css.left}>
         <NamespaceSelectorDropdown
           namespaces={props.namespaces}

@@ -25,3 +25,15 @@ export const authTypeFromPb = (at: PBAuthType): AuthType => {
 
   return t;
 };
+
+export const authTypeFromStr = (str: string): AuthType => {
+  let t = AuthType.Disbaled;
+
+  if (!str) return t;
+  str = str.toLowerCase();
+
+  if (str.startsWith('spire')) t = AuthType.Spire;
+  if (str.startsWith('test')) t = AuthType.TestAlwaysFail;
+
+  return t;
+};

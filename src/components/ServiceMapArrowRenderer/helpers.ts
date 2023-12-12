@@ -1,19 +1,18 @@
 import { XY, Vec2, Line2, utils as geomUtils } from '~/domain/geometry';
-import {
-  AccessPointArrow,
-  ServiceMapArrow,
-} from '~/domain/layout/service-map/arrow';
+import { AccessPointArrow, ServiceMapArrow } from '~/ui-layer/service-map/coordinates/arrow';
 
 import { chunks } from '~/utils/iter-tools';
 import { colors, sizes } from '~/ui/vars';
-import { Verdict } from '~/domain/hubble';
+import { LinkThroughput, Verdict } from '~/domain/hubble';
 
 // NOTE: ArrowHandle is a small triangle rendered on the middle of the arrow
 export type ArrowHandle = [Vec2, Vec2];
 
-export type InnerArrowsLines = d3.Selection<
-  SVGLineElement,
-  AccessPointArrow,
+export type InnerArrowsLines = d3.Selection<SVGLineElement, AccessPointArrow, SVGGElement, unknown>;
+
+export type FlowsIndicatorCircle = d3.Selection<
+  SVGCircleElement,
+  LinkThroughput,
   SVGGElement,
   unknown
 >;
@@ -47,10 +46,7 @@ export const collectHandles = (arrow: ServiceMapArrow): ArrowHandle[] => {
   return handles;
 };
 
-export const arrowHandleId = (
-  handle: ArrowHandle,
-  arrow: ServiceMapArrow,
-): string => {
+export const arrowHandleId = (handle: ArrowHandle, arrow: ServiceMapArrow): string => {
   const [from, to] = handle;
   const mid = geomUtils.linterp2(from, to, 0.5);
 
@@ -58,31 +54,45 @@ export const arrowHandleId = (
   return `${arrow.id}-${Math.trunc(mid.x)},${Math.trunc(mid.y)}`;
 };
 
-const setInnerArrowPosition = (
-  lines: InnerArrowsLines,
-  start: XY,
-): InnerArrowsLines => {
+const setInnerArrowEndsCoords = (lines: InnerArrowsLines): InnerArrowsLines => {
   return lines
-    .attr('x1', start.x)
-    .attr('y1', start.y)
-    .attr('x2', d => d.points[0].x)
-    .attr('y2', d => d.points[0].y);
+    .attr('x1', d => d.start?.x || 0)
+    .attr('y1', d => d.start?.y || 0)
+    .attr('x2', d => d.end?.x || 0)
+    .attr('y2', d => d.end?.y || 0);
 };
 
 const innerArrowColor = (arrow: AccessPointArrow): string => {
-  return arrow.hasAbnormalVerdict
-    ? colors.feetRedStroke
-    : colors.feetNeutralStroke;
+  return arrow.hasAbnormalVerdict ? colors.feetRedStroke : colors.feetNeutralStroke;
 };
 
 const innerArrowStrokeStyle = (arrow: AccessPointArrow): string | null => {
-  return arrow.verdicts.size > 1 ? '5 4' : null;
+  const v = arrow.verdicts;
+  return v.size > 1 && v.has(Verdict.Dropped) ? '7 15' : null;
+};
+
+const innerArrowStrokeWidth = (arrow: AccessPointArrow): number => {
+  return arrow.verdicts.has(Verdict.Dropped) ? sizes.feetInnerWidthThick : sizes.feetInnerWidth;
 };
 
 export const innerArrows = {
-  setPosition: setInnerArrowPosition,
+  setBeginningAndEndCoords: setInnerArrowEndsCoords,
   strokeColor: innerArrowColor,
   strokeStyle: innerArrowStrokeStyle,
+  strokeWidth: innerArrowStrokeWidth,
+};
+
+const setFlowsInfoIndicatorPosition = (
+  self: FlowsIndicatorCircle,
+  coords: XY | null,
+): FlowsIndicatorCircle => {
+  if (coords == null) return self;
+
+  return self.attr('cx', coords.x).attr('cy', coords.y);
+};
+
+export const flowsInfoIndicator = {
+  setPosition: setFlowsInfoIndicatorPosition,
 };
 
 const arrowHandlePath = (handle: ArrowHandle | null): string => {

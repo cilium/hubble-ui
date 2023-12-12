@@ -1,71 +1,65 @@
-import {
-  Notification as PBNotification,
-  NoPermission as PBNoPermission,
-} from '~backend/proto/ui/notifications_pb';
-import { GetStatusResponse as PBStatusResponse } from '~backend/proto/ui/status_pb';
+import * as notifpb from '~backend/proto/ui/notifications_pb';
+import * as statuspb from '~backend/proto/ui/status_pb';
 
-import { Status, FlowStats, NodeStatus } from '~/domain/status';
-import { Notification, NoPermission } from '~/domain/notifications';
+import { HubbleNode, HubbleServerStatus } from '~/domain/hubble';
+import { Status, FlowStats } from '~/domain/status';
+import { NoPermission, Notification } from '~/domain/notifications';
 
-export const fromPb = (notif: PBNotification): Notification | null => {
-  if (notif.hasConnState()) {
-    const connState = notif.getConnState()!;
+export const fromPb = (notif: notifpb.Notification): Notification | null => {
+  const parsed = new Notification();
 
-    return {
-      connState: connState.toObject(),
-    };
+  switch (notif.notification.oneofKind) {
+    case 'connState':
+      parsed.connState = {
+        ...notif.notification.connState,
+        k8sUnavailable: notif.notification.connState.k8SUnavailable,
+        k8sConnected: notif.notification.connState.k8SConnected,
+      };
+      break;
+    case 'dataState':
+      parsed.dataState = notif.notification.dataState;
+      break;
+    case 'status':
+      parsed.status = statusFromPb(notif.notification.status) ?? void 0;
+      break;
+    case 'noPermission':
+      parsed.noPermission = noPermissionFromPb(notif.notification.noPermission);
+      break;
+    case undefined:
+    default:
+      return null;
   }
 
-  if (notif.hasDataState()) {
-    const dataState = notif.getDataState()!;
-
-    return {
-      dataState: dataState.toObject(),
-    };
-  }
-
-  if (notif.hasStatus()) {
-    const status = statusFromPb(notif.getStatus()!)!;
-
-    return {
-      status,
-    };
-  }
-
-  if (notif.hasNoPermission()) {
-    const noPermission = noPermissionFromPb(notif.getNoPermission()!);
-
-    return { noPermission };
-  }
-
-  return null;
+  return parsed;
 };
 
-export const statusFromPb = (status: PBStatusResponse): Status | null => {
-  if (!status.hasFlows()) return null;
-  const flowStats = status.getFlows()!;
+export const statusFromPb = (status: statuspb.GetStatusResponse): Status | null => {
+  if (!status.flows) return null;
+  const flowStats = status.flows;
+
+  const serverStatus = status.serverStatus;
+  if (serverStatus == null) return null;
 
   const flows: FlowStats = {
-    perSecond: flowStats.getPerSecond(),
+    perSecond: flowStats.perSecond,
   };
 
-  const nodes: NodeStatus[] = status.getNodesList().map(ns => {
-    return {
-      name: ns.getName(),
-      isAvailable: ns.getIsAvailable(),
-    };
-  });
+  const nodes =
+    status.nodes?.nodes?.map(node => {
+      return HubbleNode.fromPb(node);
+    }) || [];
 
   return {
     nodes,
+    status: HubbleServerStatus.fromPb(serverStatus),
     flows,
     versions: [],
   };
 };
 
-export const noPermissionFromPb = (noPerms: PBNoPermission): NoPermission => {
+export const noPermissionFromPb = (noPerms: notifpb.NoPermission): NoPermission => {
   return {
-    resource: noPerms.getResource(),
-    error: noPerms.getError(),
+    resource: noPerms.resource,
+    error: noPerms.error,
   };
 };

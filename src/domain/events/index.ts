@@ -1,8 +1,9 @@
 import { HubbleLink, HubbleService } from '../hubble';
 import { StateChange } from '../misc';
+import { NamespaceDescriptor } from '../namespaces';
 
 export interface NamespaceChange {
-  namespace: string;
+  namespace: NamespaceDescriptor;
   change: StateChange;
 }
 

@@ -1,16 +1,11 @@
 import urlParse from 'url-parse';
 import * as mobx from 'mobx';
 
-import {
-  PartialConnections,
-  L7Endpoint,
-} from '~/domain/interactions/new-connections';
+import { PartialConnections, L7Endpoint } from '~/domain/interactions/new-connections';
 import { L7Kind } from '~/domain/hubble';
 
 export class HTTPEndpointGroup {
-  public static createSorted(
-    endpoints?: PartialConnections<L7Endpoint>,
-  ): HTTPEndpointGroup[] {
+  public static createSorted(endpoints?: PartialConnections<L7Endpoint>): HTTPEndpointGroup[] {
     if (endpoints == null) return [];
 
     const pathGroups: Map<string, L7Endpoint[]> = new Map();

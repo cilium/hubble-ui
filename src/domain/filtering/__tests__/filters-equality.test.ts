@@ -1,5 +1,6 @@
 import { Filters, FilterEntry } from '~/domain/filtering';
 import { Verdict } from '~/domain/hubble';
+import { Aggregation } from '~/domain/aggregation';
 
 import * as combinations from '~/utils/iter-tools/combinations';
 
@@ -8,23 +9,11 @@ const nextElem = (idx: number, arr: any[]) => {
 };
 
 const testNullAndUndefinedAreNotEqualToSmth = () => {
-  const namespaces: Array<undefined | null | string> = [
-    undefined,
-    null,
-    'random',
-  ];
+  const namespaces: Array<undefined | null | string> = [undefined, null, 'random'];
 
-  const verdicts: Array<Verdict | undefined | null> = [
-    undefined,
-    null,
-    Verdict.Forwarded,
-  ];
+  const verdicts: Array<Set<Verdict> | undefined> = [undefined, new Set([Verdict.Forwarded])];
 
-  const httpStatuses: Array<undefined | null | string> = [
-    undefined,
-    null,
-    '200',
-  ];
+  const httpStatuses: Array<undefined | null | string> = [undefined, null, '200'];
 
   const filters: Array<undefined | FilterEntry[]> = [
     undefined,
@@ -48,20 +37,11 @@ const testNullAndUndefinedAreNotEqualToSmth = () => {
       skipPrometheusApps.length,
     ])
     .forEach((indices: number[], idx: number) => {
-      const [
-        nsIdx,
-        verdictIdx,
-        hsIdx,
-        filtersIdx,
-        shIdx,
-        skdIdx,
-        skrIdx,
-        skpaIdx,
-      ] = indices;
+      const [nsIdx, verdictIdx, hsIdx, filtersIdx, shIdx, skdIdx, skrIdx, skpaIdx] = indices;
 
       const aFilters: Filters = Filters.fromObject({
         namespace: namespaces[nsIdx],
-        verdict: verdicts[verdictIdx],
+        verdicts: verdicts[verdictIdx],
         httpStatus: httpStatuses[hsIdx],
         filters: filters[filtersIdx],
         skipHost: skipHosts[shIdx],
@@ -72,7 +52,7 @@ const testNullAndUndefinedAreNotEqualToSmth = () => {
 
       const bFilters: Filters = Filters.fromObject({
         namespace: nextElem(nsIdx, namespaces),
-        verdict: nextElem(verdictIdx, verdicts),
+        verdicts: nextElem(verdictIdx, verdicts),
         httpStatus: nextElem(hsIdx, httpStatuses),
         filters: nextElem(filtersIdx, filters),
         skipHost: nextElem(shIdx, skipHosts),
@@ -81,16 +61,12 @@ const testNullAndUndefinedAreNotEqualToSmth = () => {
         skipPrometheusApp: nextElem(skpaIdx, skipPrometheusApps),
       });
 
-      test(`testNullAndUndefinedAreNotEqualToSmth ${
-        idx * 2 + 1
-      } > self-equality`, () => {
+      test(`testNullAndUndefinedAreNotEqualToSmth ${idx * 2 + 1} > self-equality`, () => {
         const sameFilters = aFilters.clone();
         expect(aFilters.equals(sameFilters)).toBe(true);
       });
 
-      test(`testNullAndUndefinedAreNotEqualToSmth ${
-        idx * 2 + 2
-      } > inequality`, () => {
+      test(`testNullAndUndefinedAreNotEqualToSmth ${idx * 2 + 2} > inequality`, () => {
         expect(aFilters.equals(bFilters)).toBe(false);
       });
     });
@@ -99,19 +75,16 @@ const testNullAndUndefinedAreNotEqualToSmth = () => {
 const testCommonFiltersEquality = () => {
   const namespaces: Array<undefined | null | string> = ['random'];
 
-  const verdicts: Array<Verdict | undefined | null> = [
-    Verdict.Forwarded,
-    Verdict.Dropped,
+  const verdicts: Array<Set<Verdict> | undefined> = [
+    new Set([Verdict.Forwarded]),
+    new Set([Verdict.Dropped]),
   ];
 
   const httpStatuses: Array<undefined | null | string> = ['200', '200+', '400'];
 
   const filters: Array<undefined | FilterEntry[]> = [
     [],
-    [
-      FilterEntry.parse('both:dns=google.com')!,
-      FilterEntry.parse('from:ip=255.255.255.255')!,
-    ],
+    [FilterEntry.parse('both:dns=google.com')!, FilterEntry.parse('from:ip=255.255.255.255')!],
     [
       FilterEntry.parse('to:label=k8s-app=core-api')!,
       FilterEntry.parse('from:label=k8s-app=crawler')!,
@@ -123,6 +96,7 @@ const testCommonFiltersEquality = () => {
   const skipKubeDnss: Array<undefined | boolean> = [false, true];
   const skipRemoteApps: Array<undefined | boolean> = [false, true];
   const skipPrometheusApps = [false, true];
+  const aggregations = [null, Aggregation.default()];
 
   combinations
     .arrays([
@@ -134,22 +108,14 @@ const testCommonFiltersEquality = () => {
       skipKubeDnss.length,
       skipRemoteApps.length,
       skipPrometheusApps.length,
+      aggregations.length,
     ])
     .forEach((indices: number[], idx: number) => {
-      const [
-        nsIdx,
-        verdictIdx,
-        hsIdx,
-        filtersIdx,
-        shIdx,
-        skdIdx,
-        skrIdx,
-        skpaIdx,
-      ] = indices;
+      const [nsIdx, verdictIdx, hsIdx, filtersIdx, shIdx, skdIdx, skrIdx, skpaIdx] = indices;
 
       const aFilters: Filters = Filters.fromObject({
         namespace: namespaces[nsIdx],
-        verdict: verdicts[verdictIdx],
+        verdicts: verdicts[verdictIdx],
         httpStatus: httpStatuses[hsIdx],
         filters: filters[filtersIdx],
         skipHost: skipHosts[shIdx],
@@ -160,7 +126,7 @@ const testCommonFiltersEquality = () => {
 
       const bFilters: Filters = Filters.fromObject({
         namespace: nextElem(nsIdx, namespaces),
-        verdict: nextElem(verdictIdx, verdicts),
+        verdicts: nextElem(verdictIdx, verdicts),
         httpStatus: nextElem(hsIdx, httpStatuses),
         filters: nextElem(filtersIdx, filters),
         skipHost: nextElem(shIdx, skipHosts),

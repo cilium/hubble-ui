@@ -16,10 +16,10 @@ const stylesLoaders = ({ enableSass, enableModules }) => {
   const sassOpts = {
     modules: enableModules
       ? {
-          mode: 'local',
-          localIdentName: '[name]_[local]_[hash:base64:5]',
-          exportLocalsConvention: 'camelCase',
-        }
+        mode: 'local',
+        localIdentName: '[name]_[local]_[hash:base64:5]',
+        exportLocalsConvention: 'camelCase',
+      }
       : false,
     importLoaders: 2,
     sourceMap: true,
@@ -29,10 +29,10 @@ const stylesLoaders = ({ enableSass, enableModules }) => {
   const cssOpts = {
     modules: enableModules
       ? {
-          mode: 'local',
-          localIdentName: '[name]_[local]_[hash:base64:5]',
-          exportLocalsConvention: 'camelCase',
-        }
+        mode: 'local',
+        localIdentName: '[name]_[local]_[hash:base64:5]',
+        exportLocalsConvention: 'camelCase',
+      }
       : false,
     importLoaders: 1,
     sourceMap: true,
@@ -50,26 +50,26 @@ const stylesLoaders = ({ enableSass, enableModules }) => {
   ].concat(
     enableSass
       ? [
-          {
-            loader: 'sass-loader',
-            options: {
-              sourceMap: true,
-              implementation: require('sass'),
-              sassOptions: {
-                functions: {
-                  ...require('@geakstr/sass-inline-svg'),
-                  'svg-icon($path, $selectors: null)': inliner(
-                    path.join(__dirname, 'src/icons/blueprint'),
-                    {
-                      optimize: true,
-                      encodingFormat: 'uri',
-                    },
-                  ),
-                },
+        {
+          loader: 'sass-loader',
+          options: {
+            sourceMap: true,
+            implementation: require('sass'),
+            sassOptions: {
+              functions: {
+                ...require('@geakstr/sass-inline-svg'),
+                'svg-icon($path, $selectors: null)': inliner(
+                  path.join(__dirname, 'src/icons/blueprint'),
+                  {
+                    optimize: true,
+                    encodingFormat: 'uri',
+                  },
+                ),
               },
             },
           },
-        ]
+        },
+      ]
       : [],
   );
 };
@@ -82,12 +82,8 @@ module.exports = {
   devtool: isProduction ? 'source-map' : 'inline-source-map',
   output: {
     path: path.resolve(__dirname, './server/public'),
-    filename: isProduction
-      ? 'bundle.[name].[contenthash].js'
-      : 'bundle.[name].js',
-    devtoolModuleFilenameTemplate: isProduction
-      ? undefined
-      : '[absolute-resource-path]',
+    filename: isProduction ? 'bundle.[name].[contenthash].js' : 'bundle.[name].js',
+    devtoolModuleFilenameTemplate: isProduction ? undefined : '[absolute-resource-path]',
     assetModuleFilename: 'static/media/[name].[hash:8][ext][query]',
   },
   stats: {
@@ -98,6 +94,7 @@ module.exports = {
     alias: {
       '~backend': path.resolve(__dirname, './backend'),
       '~': path.resolve(__dirname, './src/'),
+      '~e2e': path.resolve(__dirname, './e2e/'),
     },
   },
   module: {

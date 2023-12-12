@@ -2,18 +2,14 @@ import React from 'react';
 import { observer } from 'mobx-react';
 
 import { Method, sortMethods } from '~/domain/http';
-import { XY } from '~/domain/geometry';
-import { useElemCoords, useDiff } from '~/ui/hooks';
-import { SingleIndicator } from '~/ui/hooks/useIndicator';
+import { RefsCollector } from '~/ui/service-map/collector';
 
 import { HTTPEndpointGroup } from './http-groups';
 import css from './HttpEndpoint.scss';
 
 export interface Props {
   group: HTTPEndpointGroup;
-
-  indicator?: SingleIndicator;
-  onConnectorCoords?: (m: Method, c: XY) => void;
+  collector: RefsCollector;
 }
 
 export const HttpEndpoint = observer(function HttpEndpoint(props: Props) {
@@ -31,8 +27,7 @@ export const HttpEndpoint = observer(function HttpEndpoint(props: Props) {
             <MethodConnector
               key={method}
               method={method}
-              indicator={props.indicator}
-              onConnectorCoords={xy => props.onConnectorCoords?.(method, xy)}
+              connectorRef={props.collector.httpMethodConnector(props.group.url.pathname, method)}
             />
           );
         })}
@@ -43,24 +38,13 @@ export const HttpEndpoint = observer(function HttpEndpoint(props: Props) {
 
 interface MethodConnectorProps {
   method: Method;
-  indicator?: SingleIndicator;
-  onConnectorCoords?: (_: XY) => void;
+  connectorRef: React.MutableRefObject<HTMLDivElement | null>;
 }
 
 const MethodConnector = function MethodConnector(props: MethodConnectorProps) {
-  const circleRef = React.useRef<HTMLDivElement | null>(null);
-
-  const coordsHandle = useElemCoords(circleRef, false, coords => {
-    props.onConnectorCoords?.(coords.center);
-  });
-
-  useDiff(props.indicator?.value, () => {
-    coordsHandle.emit();
-  });
-
   return (
     <div className={css.connector}>
-      <div className={css.circle} ref={circleRef}></div>
+      <div className={css.circle} ref={props.connectorRef}></div>
       <div className={css.method}>{props.method}</div>
     </div>
   );

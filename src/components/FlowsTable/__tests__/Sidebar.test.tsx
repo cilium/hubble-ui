@@ -33,10 +33,7 @@ const renderSidebar = (component: React.ReactElement<any>): HTMLElement => {
   return container!;
 };
 
-const runInteractionTests = (
-  container: HTMLElement,
-  onClose: jest.Mock<void>,
-) => {
+const runInteractionTests = (container: HTMLElement, onClose: jest.Mock<void>) => {
   fireEvent.click(container.querySelector(`.close`)!);
   expect(onClose.mock.calls.length).toBe(1);
 };
@@ -69,11 +66,7 @@ const runTest = (ntest: number, hf: HubbleFlow, exps: Expectations) => {
 
     beforeEach(() => {
       container = renderSidebar(
-        <FlowsTableSidebar
-          flow={flow}
-          onClose={onClose}
-          filters={filters}
-        ></FlowsTableSidebar>,
+        <FlowsTableSidebar flow={flow} onClose={onClose} filters={filters}></FlowsTableSidebar>,
       );
     });
 

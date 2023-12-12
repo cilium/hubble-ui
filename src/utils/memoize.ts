@@ -5,14 +5,9 @@ export function memoize(
   propertyName: string,
   descriptor: TypedPropertyDescriptor<any>,
 ) {
-  if (descriptor.value != null)
-    descriptor.value = getNewFunction(descriptor.value);
-  else if (descriptor.get != null)
-    descriptor.get = getNewFunction(descriptor.get);
-  else
-    throw new Error(
-      'Only put a memoize decorator on a method or get accessor.',
-    );
+  if (descriptor.value != null) descriptor.value = getNewFunction(descriptor.value);
+  else if (descriptor.get != null) descriptor.get = getNewFunction(descriptor.get);
+  else throw new Error('Only put a memoize decorator on a method or get accessor.');
 }
 
 const weakMap = new WeakMap<object, Map<string, unknown>>();
@@ -30,8 +25,7 @@ function getNewFunction(originalFunction: (...args: any[]) => void) {
     if (arguments.length > 0) propName += '_' + JSON.stringify(args);
     let returnedValue: any;
 
-    if (propertyValues.has(propName))
-      returnedValue = propertyValues.get(propName);
+    if (propertyValues.has(propName)) returnedValue = propertyValues.get(propName);
     else {
       returnedValue = originalFunction.apply(this, args);
       propertyValues.set(propName, returnedValue);

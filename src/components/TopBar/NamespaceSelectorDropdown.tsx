@@ -2,23 +2,31 @@ import React, { useCallback, memo } from 'react';
 import { ItemRenderer, ItemPredicate, Select } from '@blueprintjs/select';
 import { Button, MenuItem } from '@blueprintjs/core';
 
+import { NamespaceDescriptor } from '~/domain/namespaces';
 import { usePopover } from '~/ui/hooks/usePopover';
+import * as e2e from '~e2e/client';
 
 import css from './styles.scss';
 
-const NamespaceSelect = Select.ofType<string>();
-
-const renderItem: ItemRenderer<string> = (namespace, itemProps) => {
+const renderItem: ItemRenderer<NamespaceDescriptor> = (ns, itemProps) => {
   const { handleClick, modifiers } = itemProps;
 
   if (!modifiers.matchesPredicate) {
     return null;
   }
 
-  return <MenuItem key={namespace} onClick={handleClick} text={namespace} />;
+  return (
+    <MenuItem
+      key={ns.namespace}
+      onClick={handleClick}
+      text={ns.namespace}
+      {...e2e.attributes.ns.availability(ns.relay, false)}
+    />
+  );
 };
 
-const filterItem: ItemPredicate<string> = (query, value, idx, exactMatch) => {
+const filterItem: ItemPredicate<NamespaceDescriptor> = (query, ns, idx, exactMatch) => {
+  const value = ns.namespace;
   const normalizedTitle = value.toLowerCase();
   const normalizedQuery = query.toLowerCase();
 
@@ -30,59 +38,50 @@ const filterItem: ItemPredicate<string> = (query, value, idx, exactMatch) => {
 };
 
 export interface Props {
-  namespaces: Array<string>;
-  currentNamespace: string | null;
-  onChange?: (ns: string) => void;
+  namespaces: NamespaceDescriptor[];
+  currentNamespace?: NamespaceDescriptor | null;
+  onChange?: (ns: NamespaceDescriptor) => void;
 }
 
-export const NamespaceSelectorDropdown = memo<Props>(
-  function NamespaceSelectorDropdown(props) {
-    const { namespaces, currentNamespace } = props;
+export const NamespaceSelectorDropdown = memo<Props>(function NamespaceSelectorDropdown(props) {
+  const { namespaces, currentNamespace } = props;
 
-    const popover = usePopover();
+  const popover = usePopover();
 
-    // prettier-ignore
-    const onChange = useCallback(
-      (ns: string) => props.onChange?.(ns),
-      [props.onChange]
-    );
+  // prettier-ignore
+  const onChange = useCallback(
+    (ns: NamespaceDescriptor) => props.onChange?.(ns),
+    [props.onChange]
+  );
 
-    const btnIcon = (
-      <img
-        src="icons/misc/namespace-icon.svg"
-        className={css.namespacesDropdownButtonIcon}
+  const btnIcon = (
+    <img src="icons/misc/namespace-icon.svg" className={css.namespacesDropdownButtonIcon} />
+  );
+
+  const dropdownText = currentNamespace?.namespace ?? 'Choose namespace';
+
+  return (
+    <Select<NamespaceDescriptor>
+      resetOnQuery
+      resetOnClose
+      resetOnSelect
+      itemPredicate={filterItem}
+      itemRenderer={renderItem}
+      items={namespaces || []}
+      noResults={<MenuItem disabled={true} text="No matches" />}
+      onItemSelect={onChange}
+      popoverProps={popover.props}
+      inputProps={{ placeholder: 'Filter namespaces…' }}
+    >
+      <Button
+        {...e2e.attributes.ns.availability(!!currentNamespace?.relay, false)}
+        rightIcon="caret-down"
+        icon={btnIcon}
+        text={dropdownText}
+        onClick={popover.toggle}
+        className={css.namespacesDropdownButton}
+        alignText="left"
       />
-    );
-
-    const currentValue =
-      currentNamespace && namespaces.includes(currentNamespace)
-        ? currentNamespace
-        : currentNamespace
-          ? `Waiting ${currentNamespace} namespace…`
-          : 'Choose namespace';
-
-    return (
-      <NamespaceSelect
-        resetOnQuery
-        resetOnClose
-        resetOnSelect
-        itemPredicate={filterItem}
-        itemRenderer={renderItem}
-        items={namespaces || []}
-        noResults={<MenuItem disabled={true} text="No matches" />}
-        onItemSelect={onChange}
-        popoverProps={popover.props}
-        inputProps={{ placeholder: 'Filter namespaces…' }}
-      >
-        <Button
-          rightIcon="caret-down"
-          icon={btnIcon}
-          text={currentValue}
-          onClick={popover.toggle}
-          className={css.namespacesDropdownButton}
-          alignText="left"
-        />
-      </NamespaceSelect>
-    );
-  },
-);
+    </Select>
+  );
+});

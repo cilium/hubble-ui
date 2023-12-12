@@ -1,8 +1,4 @@
-export type ArrayCominationsForEach = (
-  tuple: number[],
-  idx: number,
-  ntotal: number,
-) => void;
+export type ArrayCominationsForEach = (tuple: number[], idx: number, ntotal: number) => void;
 
 export class ArrayCombinations {
   public tupleSizes: number[];

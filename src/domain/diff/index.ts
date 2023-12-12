@@ -33,11 +33,7 @@ export class Diff<T> implements IDiff<T> {
 
     // NOTE: you cannot check if `diff.name === 'diff'` because in production
     // NOTE: build diff function changes its name ><
-    return (
-      obj.diff instanceof Function &&
-      obj.diff.name.charAt != null &&
-      obj.diff.length >= 1
-    );
+    return obj.diff instanceof Function && obj.diff.name.charAt != null && obj.diff.length >= 1;
   }
 
   public static new<T>(init?: T | null): Diff<T> {
@@ -59,6 +55,15 @@ export class Diff<T> implements IDiff<T> {
 
     this._diff = this.computeDiff();
     return this._diff;
+  }
+
+  public replace(rhs: Diff<T>): this {
+    this.before = clone(rhs.before);
+    this.after = clone(rhs.after);
+    this._changed = rhs._changed;
+    this._diff = rhs._diff;
+
+    return this;
   }
 
   public setAfter(after: T | null | undefined): this {
@@ -92,9 +97,11 @@ export class Diff<T> implements IDiff<T> {
     return this;
   }
 
-  public setChanged(ch: boolean): this {
-    this._changed = ch;
+  public setUnchanged(): this {
     this.dropCached();
+    this._changed = false;
+    this.before = this.after;
+
     return this;
   }
 
@@ -112,23 +119,11 @@ export class Diff<T> implements IDiff<T> {
   private computeDiff(): DiffType<T> | null {
     const [before, after] = [this.before, this.after];
 
-    if (
-      before != null &&
-      after != null &&
-      Diff.isDiffable<T, DiffType<T>>(before)
-    ) {
+    if (before != null && after != null && Diff.isDiffable<T, DiffType<T>>(before)) {
       return before.diff(after);
-    } else if (
-      before == null &&
-      after != null &&
-      Diff.isDiffable<T, DiffType<T>>(after)
-    ) {
+    } else if (before == null && after != null && Diff.isDiffable<T, DiffType<T>>(after)) {
       return after.diff(null).invert();
-    } else if (
-      before != null &&
-      after == null &&
-      Diff.isDiffable<T, DiffType<T>>(before)
-    ) {
+    } else if (before != null && after == null && Diff.isDiffable<T, DiffType<T>>(before)) {
       return before.diff(null);
     }
 

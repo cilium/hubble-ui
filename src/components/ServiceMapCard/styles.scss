@@ -4,12 +4,37 @@
   background-color: rgb(255 255 255 / 90%);
 }
 
+.serviceMapCardBackplate {
+  box-shadow: none;
+  background-color: var(--hubble-ui-svcmap-card-bg-primary);
+
+  &:hover {
+    box-shadow: none;
+  }
+
+  &.active {
+    cursor: grabbing;
+    box-shadow: var(--hubble-ui-card-boxshadow-active);
+    opacity: 0.9;
+    transition-duration: 0;
+  }
+}
+
+.serviceMapCardBackground {
+  background-color: var(--hubble-ui-svcmap-card-bg-primary);
+  border: 2px solid var(--hubble-ui-svcmap-card-border);
+}
+
+.serviceMapCardForeground {
+  box-shadow: none;
+  background-color: transparent;
+}
+
 .labels {
   @include row;
   flex-flow: wrap;
 
-  border-top: 1px solid #e4e4e4;
-  padding-top: 10px;
+  padding: 10px 0;
   margin: 0 20px;
 
   .label {

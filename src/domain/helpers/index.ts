@@ -1,28 +1,16 @@
 // TODO: its probably not a good place for such helpers
 // consider moving it outside of domain types
-import {
-  HubbleFlow,
-  Time,
-  HubbleService,
-  HubbleLink,
-  IPProtocol,
-} from '~/domain/hubble';
 
-import {
-  Service as PBRelayService,
-  ServiceLink as PBRelayServiceLink,
-  IPProtocol as PBIPProtocol,
-  StateChange as PBStateChange,
-} from '~backend/proto/ui/ui_pb';
+import { Time, HubbleService, HubbleLink, IPProtocol, Latency } from '~/domain/hubble';
+
+import * as uipb from '~backend/proto/ui/ui_pb';
 
 import { StateChange } from '~/domain/misc';
-import { KV } from '~/domain/misc';
-import { Flow } from '~/domain/flows';
+import { Labels } from '~/domain/labels';
 
 import { authTypeFromPb } from './auth-type';
-
-import * as verdictHelpers from './verdict';
-export { verdictHelpers as verdict };
+import * as verdict from './verdict';
+export { verdict };
 
 import * as notifications from './notifications';
 export { notifications };
@@ -30,84 +18,80 @@ export { notifications };
 import * as flows from './flows';
 export { flows };
 
-import * as tcpFlags from './tcp-flags';
-export { tcpFlags };
+import * as time from './time';
+export { time };
 
-import * as protocol from './protocol';
-export { protocol };
+export * as tcpFlags from './tcp-flags';
+export * as protocol from './protocol';
+export * as namespaces from './namespaces';
+export * as link from './link';
+export * as l7 from './l7';
+export * as workload from './workload';
 
-import * as l7 from './l7';
-export { l7 };
-
-export * as time from './time';
-
-export const stateChangeFromPb = (change: PBStateChange): StateChange => {
+export const stateChangeFromPb = (change: uipb.StateChange): StateChange => {
   switch (change) {
-    case PBStateChange.ADDED:
+    case uipb.StateChange.ADDED:
       return StateChange.Added;
-    case PBStateChange.MODIFIED:
+    case uipb.StateChange.MODIFIED:
       return StateChange.Modified;
-    case PBStateChange.DELETED:
+    case uipb.StateChange.DELETED:
       return StateChange.Deleted;
-    case PBStateChange.EXISTS:
+    case uipb.StateChange.EXISTS:
       return StateChange.Exists;
   }
 
   return StateChange.Unknown;
 };
 
-export const relayServiceFromPb = (svc: PBRelayService): HubbleService => {
-  const obj = svc.toObject();
-  const labels: Array<KV> = [];
-
-  obj.labelsList.forEach(l => {
-    const parts = l.split('=');
-
-    const key = parts[0];
-    const value = parts.slice(1).join('=');
-
-    labels.push({ key, value });
-  });
-
+export const relayServiceFromPb = (svc: uipb.Service): HubbleService => {
   return {
-    id: obj.id,
-    name: obj.name,
-    namespace: obj.namespace,
-    labels,
-    dnsNames: obj.dnsNamesList,
-    egressPolicyEnforced: obj.egressPolicyEnforced,
-    ingressPolicyEnforced: obj.ingressPolicyEnforced,
-    visibilityPolicyStatus: obj.visibilityPolicyStatus,
-    creationTimestamp: obj.creationTimestamp ?? msToPbTimestamp(Date.now()),
+    id: svc.id,
+    name: svc.name,
+    namespace: svc.namespace,
+    labels: Labels.labelsToKV(svc.labels, false),
+    dnsNames: svc.dnsNames,
+    egressPolicyEnforced: svc.egressPolicyEnforced,
+    ingressPolicyEnforced: svc.ingressPolicyEnforced,
+    visibilityPolicyStatus: svc.visibilityPolicyStatus,
+    creationTimestamp: svc.creationTimestamp ?? msToPbTimestamp(Date.now()),
+    workloads: svc.workloads,
+    identity: svc.identity,
   };
 };
 
-export const relayServiceLinkFromPb = (
-  link: PBRelayServiceLink,
-): HubbleLink => {
-  const obj = link.toObject();
-
+export const relayServiceLinkFromPb = (link: uipb.ServiceLink): HubbleLink => {
   return {
-    id: obj.id,
-    sourceId: obj.sourceId,
-    destinationId: obj.destinationId,
-    destinationPort: obj.destinationPort,
-    ipProtocol: ipProtocolFromPb(obj.ipProtocol),
-    verdict: verdictHelpers.verdictFromPb(obj.verdict),
-    authType: authTypeFromPb(obj.authType),
-    isEncrypted: obj.isEncrypted,
+    id: link.id,
+    sourceId: link.sourceId,
+    destinationId: link.destinationId,
+    destinationPort: link.destinationPort,
+    ipProtocol: ipProtocolFromPb(link.ipProtocol),
+    verdict: verdict.verdictFromPb(link.verdict),
+    flowAmount: link.flowAmount,
+    bytesTransfered: link.bytesTransfered,
+    latency: latencyFromPb(link.latency),
+    authType: authTypeFromPb(link.authType),
+    isEncrypted: link.isEncrypted,
   };
 };
 
-export const ipProtocolFromPb = (ipp: PBIPProtocol): IPProtocol => {
+export const latencyFromPb = (lat?: uipb.ServiceLink_Latency | null): Latency => {
+  return {
+    min: time.fromDuration(lat?.min) ?? time.zero(),
+    max: time.fromDuration(lat?.max) ?? time.zero(),
+    avg: time.fromDuration(lat?.avg) ?? time.zero(),
+  };
+};
+
+export const ipProtocolFromPb = (ipp: uipb.IPProtocol): IPProtocol => {
   switch (ipp) {
-    case PBIPProtocol.TCP:
+    case uipb.IPProtocol.TCP:
       return IPProtocol.TCP;
-    case PBIPProtocol.UDP:
+    case uipb.IPProtocol.UDP:
       return IPProtocol.UDP;
-    case PBIPProtocol.ICMP_V4:
+    case uipb.IPProtocol.ICMP_V4:
       return IPProtocol.ICMPv4;
-    case PBIPProtocol.ICMP_V6:
+    case uipb.IPProtocol.ICMP_V6:
       return IPProtocol.ICMPv6;
   }
 
@@ -119,8 +103,4 @@ export const msToPbTimestamp = (ms: number): Time => {
   const nanos = (ms - seconds * 1000) * 1e6;
 
   return { seconds, nanos };
-};
-
-export const flowFromRelay = (hubbleFlow: HubbleFlow): Flow => {
-  return new Flow(hubbleFlow);
 };

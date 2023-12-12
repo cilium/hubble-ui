@@ -12,10 +12,10 @@
     "jsx": "react",
     "paths": {
       "~/*": ["./*"],
-      "~backend/*": ["./../backend/*"]
+      "~backend/*": ["./../backend/*"],
+      "~e2e/*": ["./../e2e/*"]
     },
-    "typeRoots": ["./node_modules/@types"],
-    "types": ["node", "jest"],
+    "types": ["node", "jest", "cypress"],
     "moduleResolution": "node",
     "isolatedModules": false,
     "sourceMap": true,
@@ -36,5 +36,10 @@
     "strictNullChecks": true
   },
   "exclude": ["node_modules/*"],
-  "include": ["src/**/*"]
+  "include": [
+    "src/**/*",
+    "src/**/*.json",
+    "backend/proto/**/*.ts",
+    "e2e/**/*"
+  ]
 }

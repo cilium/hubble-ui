@@ -5,7 +5,7 @@ import (
 	"time"
 
 	cilium_backoff "github.com/cilium/cilium/pkg/backoff"
-	grpc_errors "github.com/cilium/hubble-ui/backend/internal/grpc/errors"
+	"google.golang.org/grpc/backoff"
 )
 
 type Retries struct {
@@ -24,34 +24,80 @@ func New() *Retries {
 	return &Retries{cr}
 }
 
+func NewFromGRPC(grpcBackoff *backoff.Config) *Retries {
+	cr := &cilium_backoff.Exponential{
+		Min:    1.0 * time.Second,
+		Max:    grpcBackoff.MaxDelay,
+		Factor: grpcBackoff.Multiplier,
+		Jitter: grpcBackoff.Jitter > 1e-6,
+	}
+
+	return &Retries{cr}
+}
+
+func (r *Retries) Clone() *Retries {
+	return &Retries{
+		ciliumRetries: &cilium_backoff.Exponential{
+			Min:         r.ciliumRetries.Min,
+			Max:         r.ciliumRetries.Max,
+			Factor:      r.ciliumRetries.Factor,
+			Jitter:      r.ciliumRetries.Jitter,
+			NodeManager: nil,
+			Name:        "",
+		},
+	}
+}
+
 func (r *Retries) Wait(ctx context.Context) error {
 	return r.ciliumRetries.Wait(ctx)
 }
 
-func (r *Retries) RetryIfGrpcUnavailable(
-	ctx context.Context,
-	grpcOperation func(int) error,
-) (bool, error) {
-	attempt := 1
+func (r *Retries) Duration(attempt int) time.Duration {
+	return r.ciliumRetries.Duration(attempt)
+}
+
+func (r *Retries) Retry(ctx context.Context, op func(int) error) error {
+	attempt := 0
 
 	for {
-		err := grpcOperation(attempt)
+		attempt += 1
+		err := op(attempt)
 		if err == nil {
-			break
+			return nil
 		}
 
-		if !grpc_errors.IsUnavailable(err) {
-			return false, err
-		}
-
-		attempt++
 		err = r.ciliumRetries.Wait(ctx)
 		if err != nil {
-			//nolint
-			return true, nil
+			return err
 		}
 	}
+}
 
-	// NOTE: we are here if grpcOperation successfully finished
-	return false, nil
+func (r *Retries) RetryIf(
+	ctx context.Context,
+	op func(int) error,
+	isRecoverableError func(err error) bool,
+) error {
+	attempt := 0
+
+	for {
+		attempt += 1
+		err := op(attempt)
+		if err == nil {
+			return nil
+		}
+
+		if !isRecoverableError(err) {
+			return err
+		}
+
+		err = r.ciliumRetries.Wait(ctx)
+		if err != nil {
+			return err
+		}
+	}
+}
+
+func (r *Retries) Max() time.Duration {
+	return r.ciliumRetries.Max
 }

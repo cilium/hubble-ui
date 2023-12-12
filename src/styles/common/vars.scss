@@ -15,3 +15,15 @@ $blue: #2697e9;
 
 // S I Z E S   A N D   M E T R I C S
 $default-padding: 20px;
+$pt-elevation-shadow-0: 0 0 0 1px rgb(17 20 24 / 15%) !default;
+$pt-elevation-shadow-1: 0 0 0 1px rgb(17 20 24 / 10%),
+  0 1px 1px rgb(17 20 24 / 20%) !default;
+$pt-elevation-shadow-2: 0 0 0 1px rgb(17 20 24 / 10%),
+  0 1px 1px rgb(17 20 24 / 20%),
+  0 2px 6px rgb(17 20 24 / 20%) !default;
+$pt-elevation-shadow-3: 0 0 0 1px rgb(17 20 24 / 10%),
+  0 2px 4px rgb(17 20 24 / 20%),
+  0 8px 24px rgb(17 20 24 / 20%) !default;
+$pt-elevation-shadow-4: 0 0 0 1px rgb(17 20 24 / 10%),
+  0 4px 8px rgb(17 20 24 / 20%),
+  0 18px 46px 6px rgb(17 20 24 / 20%) !default;

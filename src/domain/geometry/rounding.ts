@@ -10,13 +10,7 @@ interface SideIntersections {
   bottom: XY | null;
 }
 
-export const goAroundTheBox = (
-  box: XYWH,
-  from: XY,
-  to: XY,
-  padX: number,
-  padY: number,
-): XY[] => {
+export const goAroundTheBox = (box: XYWH, from: XY, to: XY, padX: number, padY: number): XY[] => {
   const sides = box.sides;
   const pointsBetween: XY[] = [];
 
@@ -42,13 +36,8 @@ export const goAroundTheBox = (
 // NOTE: #          #
 // NOTE: #==========#
 // NOTE:       \
-const getAroundPoint = (
-  from: XY,
-  to: XY,
-  sides: Sides,
-  padX: number,
-  padY: number,
-): XY | null => {
+const getAroundPoint = (from: XY, to: XY, sides: Sides, padX: number, padY: number): XY | null => {
+  // console.log('getAroundPoint ', from, to, sides);
   const xsect = {
     top: segmentsIntersection(from, to, ...sides.top),
     bottom: segmentsIntersection(from, to, ...sides.bottom),
@@ -56,11 +45,17 @@ const getAroundPoint = (
     right: segmentsIntersection(from, to, ...sides.right),
   };
 
+  // console.log(`xsect: `, xsect);
+
   const twoIntersections: XY[] = [];
   xsect.top != null && twoIntersections.push(xsect.top);
+  // console.log(`twoIntersections 1: `, twoIntersections);
   xsect.bottom != null && twoIntersections.push(xsect.bottom);
+  // console.log(`twoIntersections 2: `, twoIntersections);
   xsect.left != null && twoIntersections.push(xsect.left);
+  // console.log(`twoIntersections 3: `, twoIntersections);
   xsect.right != null && twoIntersections.push(xsect.right);
+  // console.log(`twoIntersections 4: `, twoIntersections);
 
   // No intersections effectively
   if (twoIntersections.length < 2) {

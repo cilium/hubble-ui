@@ -1,4 +1,4 @@
-import { HubbleLink, Verdict, IPProtocol, AuthType } from '~/domain/hubble';
+import { HubbleLink, Verdict, IPProtocol, AuthType, LinkThroughput } from '~/domain/hubble';
 
 // NOTE: Link is restricted to only have information about which two services
 // NOTE: is connected
@@ -32,6 +32,10 @@ export class Link {
     updated.verdicts.add(hl.verdict);
     updated.authTypes.add(hl.authType);
 
+    // TODO: What should be performed here: accumulation or reassignment?
+    updated.ref.bytesTransfered += hl.bytesTransfered;
+    updated.ref.flowAmount += hl.flowAmount;
+
     return updated;
   }
 
@@ -61,5 +65,13 @@ export class Link {
 
   public get isDNSRequest() {
     return this.ipProtocol === IPProtocol.UDP && this.destinationPort === 53;
+  }
+
+  public get throughput(): LinkThroughput {
+    return {
+      flowAmount: this.ref.flowAmount,
+      latency: this.ref.latency,
+      bytesTransfered: this.ref.bytesTransfered,
+    };
   }
 }

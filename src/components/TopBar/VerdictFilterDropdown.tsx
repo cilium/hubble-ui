@@ -40,41 +40,39 @@ const filters: FilterOption[] = [
   },
 ];
 
-export const VerdictFilterDropdown = memo<Props>(
-  function VerdictFilterDropdown(props) {
-    const popover = usePopover();
+export const VerdictFilterDropdown = memo<Props>(function VerdictFilterDropdown(props) {
+  const popover = usePopover();
 
-    const getLabel = useCallback(() => {
-      const found = find(filters, f => f.verdict === props.verdict);
-      return found ? found.title : '';
-    }, [props.verdict]);
+  const getLabel = useCallback(() => {
+    const found = find(filters, f => f.verdict === props.verdict);
+    return found ? found.title : '';
+  }, [props.verdict]);
 
-    const content = (
-      <Menu>
-        {filters.map(filter => (
-          <MenuItem
-            key={String(filter.verdict)}
-            active={props.verdict == filter.verdict}
-            text={filter.title}
-            onClick={() => props.onSelect?.(filter.verdict)}
-          />
-        ))}
-      </Menu>
-    );
-
-    return (
-      <Popover {...popover.props} content={content}>
-        <FilterIcon
-          icon={<VerdictFiltersIcon />}
-          text={getLabel()}
-          onClick={popover.toggle}
-          className={classnames({
-            [css.verdictFilterDropped]: props.verdict === Verdict.Dropped,
-            [css.verdictFilterForwarded]: props.verdict === Verdict.Forwarded,
-            [css.verdictFilterAudit]: props.verdict === Verdict.Audit,
-          })}
+  const content = (
+    <Menu>
+      {filters.map(filter => (
+        <MenuItem
+          key={String(filter.verdict)}
+          active={props.verdict == filter.verdict}
+          text={filter.title}
+          onClick={() => props.onSelect?.(filter.verdict)}
         />
-      </Popover>
-    );
-  },
-);
+      ))}
+    </Menu>
+  );
+
+  return (
+    <Popover {...popover.props} content={content}>
+      <FilterIcon
+        icon={<VerdictFiltersIcon />}
+        text={getLabel()}
+        onClick={popover.toggle}
+        className={classnames({
+          [css.verdictFilterDropped]: props.verdict === Verdict.Dropped,
+          [css.verdictFilterForwarded]: props.verdict === Verdict.Forwarded,
+          [css.verdictFilterAudit]: props.verdict === Verdict.Audit,
+        })}
+      />
+    </Popover>
+  );
+});

@@ -1,7 +1,7 @@
-import classnames from 'classnames';
 import React from 'react';
-import { computed } from 'mobx';
+import classnames from 'classnames';
 import { observer } from 'mobx-react';
+import { computed } from 'mobx';
 
 import { Status } from '~/domain/status';
 import { TransferState } from '~/domain/interactions';
@@ -13,9 +13,7 @@ export interface Props {
   transferState: TransferState;
 }
 
-export const ConnectionIndicator = observer(function ConnectionIndicator(
-  props: Props,
-) {
+export const ConnectionIndicator = observer(function ConnectionIndicator(props: Props) {
   const transfer = props.transferState;
   const isReceiving = transfer.isReceiving;
   const isReconnecting = props.transferState.isReconnecting;
@@ -23,33 +21,30 @@ export const ConnectionIndicator = observer(function ConnectionIndicator(
 
   const className = classnames(css.wrapper, {
     [css.receiving]: isReceiving,
-    [css.reconnecting]:
-      transfer.isReconnecting ||
-      transfer.isReconnectDelay ||
-      transfer.isReconnectFailed,
+    [css.reconnecting]: transfer.isReconnecting,
     [css.stopped]: isStopped,
     [css.idle]: transfer.isIdle,
     [css.circleAnimated]: isReceiving || transfer.isReconnecting,
   });
 
-  const unknownReconnectWaiting =
-    transfer.isWaitingForReconnect &&
-    (transfer.reconnectingInMs == null ||
-      transfer.reconnectingInMs < Number.EPSILON);
-
   const label: React.ReactNode = computed(() => {
-    if (isReconnecting) return dots('Reconnecting');
-    if (transfer.isWaitingForReconnect) {
-      const remaining = Math.round(transfer.reconnectingInSeconds!);
+    if (isReconnecting) {
+      const reconnectState = transfer.peekConnectionState();
 
-      return `Reconnecting in ${remaining}s`;
+      if (reconnectState?.delay != null) {
+        const seconds = (reconnectState.delay / 1000).toFixed(1);
+        return dots(`Reconnecting in ${seconds}s`);
+      }
+
+      return dots('Reconnecting');
     }
 
-    if (unknownReconnectWaiting) return dots('Waiting for reconnection');
-    if (transfer.isReconnectFailed) return `Reconnection failed`;
-
-    if (isReceiving && transfer.deploymentStatus != null) {
-      return generateStatusLabel(transfer.deploymentStatus);
+    if (isReceiving) {
+      if (transfer.isDeploymentStatusReady && !!transfer.deploymentStatus) {
+        return generateStatusLabel(transfer.deploymentStatus);
+      } else {
+        return dots('Receiving');
+      }
     }
 
     if (isStopped) return 'Data receiving stopped';
@@ -79,9 +74,8 @@ const dots = (text: string) => {
 };
 
 const generateStatusLabel = (st: Status): React.ReactNode => {
-  const fps = st.flows.perSecond;
-  const [factor, letter] =
-    fps < 1e3 ? [1, ''] : fps < 1e6 ? [1e3, 'K'] : [1e6, 'M'];
+  const fps = st.status.flowsPerSecond;
+  const [factor, letter] = fps < 1e3 ? [1, ''] : fps < 1e6 ? [1e3, 'K'] : [1e6, 'M'];
 
   const flowsRate = numberSep(`${(fps / factor).toFixed(1)}${letter}`);
   const flowsLabel = `${flowsRate} flows/s`;

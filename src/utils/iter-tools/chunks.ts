@@ -1,8 +1,6 @@
-export type ChunksForEachCallback<D> = (
-  chunk: D[],
-  i: number,
-  ntotal: number,
-) => void;
+export type ChunksForEachCallback<D> = (chunk: D[], i: number, ntotal: number) => void;
+
+export type ChunksMapCallback<D, R> = (chunk: D[], i: number, ntotal: number) => R;
 
 export class Chunks<D> {
   private arr: Array<D>;
@@ -17,7 +15,7 @@ export class Chunks<D> {
     this.overlap = overlap;
   }
 
-  forEach(cb: ChunksForEachCallback<D>) {
+  public forEach(cb: ChunksForEachCallback<D>) {
     const overlap = this.overlap;
     const size = this.chunkSize;
     const arr = this.arr;
@@ -42,6 +40,17 @@ export class Chunks<D> {
       cb(chunk, idx, ntotal);
       idx += 1;
     }
+  }
+
+  public map<R>(cb: ChunksMapCallback<D, R>): R[] {
+    const collected: R[] = [];
+
+    this.forEach((chunk, idx, ntotal) => {
+      const result = cb(chunk, idx, ntotal);
+      collected.push(result);
+    });
+
+    return collected;
   }
 }
 

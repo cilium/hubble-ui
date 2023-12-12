@@ -1,11 +1,4 @@
-import {
-  Button,
-  ButtonGroup,
-  Icon,
-  InputGroup,
-  Intent,
-  Popover,
-} from '@blueprintjs/core';
+import { Button, ButtonGroup, Icon, InputGroup, Intent, Popover } from '@blueprintjs/core';
 import classnames from 'classnames';
 import React, { memo, useCallback, useEffect, useState } from 'react';
 
@@ -25,13 +18,10 @@ export const HttpStatusCodeFilterDropdown = memo<Props>(
 
     useEffect(() => setValue(props.httpStatus), [props.httpStatus]);
 
-    const onChange = useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        const nextValue = event.target.value.trim();
-        setValue(nextValue.length > 0 ? nextValue : null);
-      },
-      [],
-    );
+    const onChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+      const nextValue = event.target.value.trim();
+      setValue(nextValue.length > 0 ? nextValue : null);
+    }, []);
 
     const onSubmit = (event: React.FormEvent) => {
       event.preventDefault();
@@ -44,10 +34,7 @@ export const HttpStatusCodeFilterDropdown = memo<Props>(
 
     const content = (
       <div className={classnames(css.httpStatus, css.outer)}>
-        <form
-          onSubmit={onSubmit}
-          className={classnames(css.httpStatus, css.wrapper)}
-        >
+        <form onSubmit={onSubmit} className={classnames(css.httpStatus, css.wrapper)}>
           <InputGroup
             autoFocus
             type="text"
