@@ -4,10 +4,7 @@ import { Ticker } from '~/utils/ticker';
 
 import { TickerEvents } from '../general';
 
-export function useWhenOccured(
-  ticker?: Ticker<TickerEvents>,
-  ms?: number | null,
-) {
+export function useWhenOccured(ticker?: Ticker<TickerEvents>, ms?: number | null) {
   const [elapsedWords, setWords] = useState('');
 
   const setter = useCallback(() => {

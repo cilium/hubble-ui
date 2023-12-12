@@ -56,14 +56,8 @@ describe('extract app name', () => {
 
     appNameTest(['k8s:io.kubernetes.pod.app=EXPECTED_NAME'], 'EXPECTED_NAME');
     appNameTest(['k8s:io.kubernetes.pod.name=EXPECTED_NAME'], 'EXPECTED_NAME');
-    appNameTest(
-      ['k8s:io.kubernetes.pod.functionName=EXPECTED_NAME'],
-      'EXPECTED_NAME',
-    );
-    appNameTest(
-      ['k8s:io.kubernetes.pod.k8s-app=EXPECTED_NAME'],
-      'EXPECTED_NAME',
-    );
+    appNameTest(['k8s:io.kubernetes.pod.functionName=EXPECTED_NAME'], 'EXPECTED_NAME');
+    appNameTest(['k8s:io.kubernetes.pod.k8s-app=EXPECTED_NAME'], 'EXPECTED_NAME');
 
     appNameTest(['app=EXPECTED_NAME'], 'EXPECTED_NAME');
     appNameTest(['name=EXPECTED_NAME'], 'EXPECTED_NAME');

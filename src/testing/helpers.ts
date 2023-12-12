@@ -28,10 +28,7 @@ const nextFlowTimestamp = () => {
   return obj;
 };
 
-export const flowsBetweenPods = (
-  senderPod: string,
-  receiverPod: string,
-): FlowsBetween => {
+export const flowsBetweenPods = (senderPod: string, receiverPod: string): FlowsBetween => {
   const fromAtoB: HubbleFlow = {
     verdict: Verdict.Forwarded,
     dropReason: 0,
@@ -44,14 +41,16 @@ export const flowsBetweenPods = (
     source: {
       id: 0,
       identity: 0,
-      labelsList: [],
+      labels: [],
+      workloads: [],
       namespace: 'sender-namespace',
       podName: senderPod,
     },
     destination: {
       id: 1,
       identity: 1,
-      labelsList: [],
+      labels: [],
+      workloads: [],
       namespace: 'receiver-namespace',
       podName: receiverPod,
     },
@@ -78,14 +77,16 @@ export const flowsBetweenPods = (
     source: {
       id: 1,
       identity: 1,
-      labelsList: [],
+      labels: [],
+      workloads: [],
       namespace: 'receiver-namespace',
       podName: receiverPod,
     },
     destination: {
       id: 0,
       identity: 0,
-      labelsList: [],
+      labels: [],
+      workloads: [],
       namespace: 'sender-namespace',
       podName: senderPod,
     },
@@ -103,10 +104,7 @@ export const flowsBetweenPods = (
   return { fromAtoB, fromBtoA };
 };
 
-export const flowsBetweenServices = (
-  a: HubbleService,
-  b: HubbleService,
-): FlowsBetween => {
+export const flowsBetweenServices = (a: HubbleService, b: HubbleService): FlowsBetween => {
   const fromAtoB: HubbleFlow = {
     verdict: Verdict.Forwarded,
     dropReason: 0,
@@ -119,14 +117,16 @@ export const flowsBetweenServices = (
     source: {
       id: 0,
       identity: 0,
-      labelsList: a.labels.map(kv => `${kv.key}=${kv.value}`),
+      labels: a.labels.map(kv => `${kv.key}=${kv.value}`),
+      workloads: [],
       namespace: a.namespace,
       podName: `sender-pod`,
     },
     destination: {
       id: 1,
       identity: 1,
-      labelsList: b.labels.map(kv => `${kv.key}=${kv.value}`),
+      labels: b.labels.map(kv => `${kv.key}=${kv.value}`),
+      workloads: [],
       namespace: b.namespace,
       podName: `receiver-pod`,
     },
@@ -153,14 +153,16 @@ export const flowsBetweenServices = (
     source: {
       id: 1,
       identity: 1,
-      labelsList: b.labels.map(kv => `${kv.key}=${kv.value}`),
+      labels: b.labels.map(kv => `${kv.key}=${kv.value}`),
+      workloads: [],
       namespace: b.namespace,
       podName: `receiver-pod`,
     },
     destination: {
       id: 0,
       identity: 0,
-      labelsList: a.labels.map(kv => `${kv.key}=${kv.value}`),
+      labels: a.labels.map(kv => `${kv.key}=${kv.value}`),
+      workloads: [],
       namespace: a.namespace,
       podName: `sender-pod`,
     },
@@ -201,14 +203,16 @@ export const flowsFromToService = (from: HubbleService, to: HubbleService) => {
       source: {
         id: 0,
         identity: 0,
-        labelsList: from.labels.map(kv => `${kv.key}=${kv.value}`),
+        labels: from.labels.map(kv => `${kv.key}=${kv.value}`),
+        workloads: [],
         namespace: from.namespace,
         podName: `sender-pod`,
       },
       destination: {
         id: 1,
         identity: 1,
-        labelsList: to.labels.map(kv => `${kv.key}=${kv.value}`),
+        labels: to.labels.map(kv => `${kv.key}=${kv.value}`),
+        workloads: [],
         namespace: to.namespace,
         podName: `receiver-pod`,
       },
@@ -233,14 +237,16 @@ export const flowsFromToService = (from: HubbleService, to: HubbleService) => {
       source: {
         id: 1,
         identity: 1,
-        labelsList: to.labels.map(kv => `${kv.key}=${kv.value}`),
+        labels: to.labels.map(kv => `${kv.key}=${kv.value}`),
+        workloads: [],
         namespace: to.namespace,
         podName: `receiver-pod`,
       },
       destination: {
         id: 0,
         identity: 0,
-        labelsList: from.labels.map(kv => `${kv.key}=${kv.value}`),
+        labels: from.labels.map(kv => `${kv.key}=${kv.value}`),
+        workloads: [],
         namespace: from.namespace,
         podName: `sender-pod`,
       },
@@ -261,15 +267,8 @@ export const flowsFromToService = (from: HubbleService, to: HubbleService) => {
   const stage1Builder = (ipProto: IPProtocol) => {
     return (sourcePort: number, destinationPort: number) => {
       return {
-        forwarded: () =>
-          stage2Builder(
-            ipProto,
-            Verdict.Forwarded,
-            sourcePort,
-            destinationPort,
-          ),
-        dropped: () =>
-          stage2Builder(ipProto, Verdict.Dropped, sourcePort, destinationPort),
+        forwarded: () => stage2Builder(ipProto, Verdict.Forwarded, sourcePort, destinationPort),
+        dropped: () => stage2Builder(ipProto, Verdict.Dropped, sourcePort, destinationPort),
       };
     };
   };
@@ -281,11 +280,7 @@ export const flowsFromToService = (from: HubbleService, to: HubbleService) => {
 };
 
 export const linkFromToService = (from: HubbleService, to: HubbleService) => {
-  const stage2Builder = (
-    ipProto: IPProtocol,
-    port: number,
-    verdict: Verdict,
-  ): HubbleLink => {
+  const stage2Builder = (ipProto: IPProtocol, port: number, verdict: Verdict): HubbleLink => {
     return {
       id: `${from.id} -> ${to.id}:${port} (${Verdict[verdict]})`,
       sourceId: from.id,
@@ -293,6 +288,13 @@ export const linkFromToService = (from: HubbleService, to: HubbleService) => {
       destinationPort: port,
       ipProtocol: ipProto,
       verdict,
+      flowAmount: 2,
+      bytesTransfered: 8192,
+      latency: {
+        min: { seconds: 0, nanos: 5e6 },
+        max: { seconds: 0, nanos: 25e6 },
+        avg: { seconds: 0, nanos: 15e6 },
+      },
       authType: AuthType.Disbaled,
       isEncrypted: false,
     };

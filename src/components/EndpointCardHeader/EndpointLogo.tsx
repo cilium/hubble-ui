@@ -15,7 +15,5 @@ export const EndpointLogo: FunctionComponent<Props> = ({ card }) => {
   const { id } = extractLogo(card);
   const url = (logos as any)[id] as string;
 
-  return (
-    <div className={css.logo} style={{ backgroundImage: `url(${url})` }} />
-  );
+  return <div className={css.logo} style={{ backgroundImage: `url(${url})` }} />;
 };

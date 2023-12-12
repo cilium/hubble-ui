@@ -1,83 +1,50 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react';
 import * as mobx from 'mobx';
+import classnames from 'classnames';
 
 import { Tooltip } from '@blueprintjs/core';
 
 import { AccessPoint } from '~/components/AccessPoint';
 import { EndpointCardHeader } from '~/components/EndpointCardHeader';
+import { Card, CardProps } from '~/components/Card';
+import { Teleport } from '~/components/Teleport';
 
-import { Vec2, XY } from '~/domain/geometry';
 import { ServiceCard } from '~/domain/service-map';
-import { ServiceEndpoint } from '~/domain/interactions/endpoints';
-import { Method as HttpMethod } from '~/domain/http';
+import { L7Endpoint, ServiceEndpoint } from '~/domain/interactions/endpoints';
+import { Connections } from '~/domain/interactions/new-connections';
 
-import { Card, CardComponentProps, CoordsFn } from '~/components/Card';
 import { EndpointCardLabels } from './EndpointCardLabels';
 import { HttpEndpoint } from './HttpEndpoint';
 import { HTTPEndpointGroup } from './http-groups';
 
-import css from './styles.scss';
-import { useIndicator } from '~/ui/hooks';
+import { RefsCollector } from '~/ui/service-map/collector';
 import * as lang from '~/utils/lang';
+import css from './styles.scss';
 
-export type Props = CardComponentProps<ServiceCard>;
+// export type Props = CardComponentProps<ServiceCard>;
+export type Props = CardProps<ServiceCard> & {
+  collector: RefsCollector;
+  l7endpoints?: Connections<L7Endpoint>;
+  currentNamespace?: string | null;
+  isClusterMeshed?: boolean;
+  maxHttpEndpointsVisible?: number;
+  active?: boolean;
+  showAdditionalInfo?: boolean;
+  onGotoProcessTree?: (card: ServiceCard) => void;
+};
 
 export const ServiceMapCard = observer(function ServiceMapCard(props: Props) {
-  const [coordsFn, setCoordsFn] = useState<CoordsFn | null>(() => null);
   const maxHttpEndpoints = props.maxHttpEndpointsVisible ?? Infinity;
-
-  const onEmitCoordsFn = useCallback((fn: CoordsFn) => {
-    setCoordsFn(() => fn);
-  }, []);
-
-  const onClick = useCallback(() => {
-    props.onClick?.(props.card);
-  }, [props.onClick, props.card]);
-
-  const onAccessPointCoords = useCallback(
-    (apId: string, coords: XY) => {
-      if (coordsFn == null) return;
-
-      const [_, svgCoords] = coordsFn(coords);
-      props.onAccessPointCoords?.(apId, Vec2.fromXY(svgCoords));
-    },
-    [coordsFn, props.onAccessPointCoords],
-  );
-
-  const onHttpEndpointCoords = useCallback(
-    (group: HTTPEndpointGroup, method: HttpMethod, coords: XY) => {
-      if (coordsFn == null) return;
-
-      const [_, svgCoords] = coordsFn(coords);
-      props.onHttpEndpointCoords?.(group.url.pathname, method, svgCoords);
-    },
-    [coordsFn, props.onHttpEndpointCoords],
-  );
-
-  const indicator = useIndicator({
-    portConnectors: 1,
-    httpMethodConnectors: 1,
-  });
-
-  // react to placement change
-  useEffect(() => {
-    indicator.emit();
-  }, [props.coords, coordsFn, props.active]);
 
   const accessPoints = mobx
     .computed(() => {
       const aps = [...props.card.accessPoints.values()];
 
       return aps.map((ap: ServiceEndpoint) => {
-        const groups = HTTPEndpointGroup.createSorted(
-          props.l7endpoints?.get(`${ap.port}`),
-        );
+        const groups = HTTPEndpointGroup.createSorted(props.l7endpoints?.get(`${ap.port}`));
 
-        const endpointsWord = lang.pluralize(
-          'endpoint',
-          groups.length - maxHttpEndpoints,
-        );
+        const endpointsWord = lang.pluralize('endpoint', groups.length - maxHttpEndpoints);
 
         return (
           <React.Fragment key={ap.id}>
@@ -86,8 +53,7 @@ export const ServiceMapCard = observer(function ServiceMapCard(props: Props) {
               port={ap.port}
               l4Protocol={ap.l4Protocol}
               l7Protocol={ap.l7Protocol ?? void 0}
-              indicator={indicator.narrow('portConnectors')}
-              onConnectorCoords={xy => onAccessPointCoords(ap.id, xy)}
+              connectorRef={props.collector.accessPointConnector(ap.id)}
             />
 
             {groups.length > 0 && props.active && (
@@ -95,21 +61,13 @@ export const ServiceMapCard = observer(function ServiceMapCard(props: Props) {
                 <div className={css.l7groups}>
                   {groups.slice(0, maxHttpEndpoints).map(group => {
                     return (
-                      <HttpEndpoint
-                        key={group.key}
-                        group={group}
-                        indicator={indicator.narrow('httpMethodConnectors')}
-                        onConnectorCoords={(method, xy) => {
-                          onHttpEndpointCoords(group, method, xy);
-                        }}
-                      />
+                      <HttpEndpoint key={group.key} group={group} collector={props.collector} />
                     );
                   })}
                 </div>
                 {groups.length > maxHttpEndpoints && (
                   <div className={css.endpointsLimited}>
-                    {endpointsWord.num} {endpointsWord.plural}{' '}
-                    {endpointsWord.be} hidden
+                    {endpointsWord.num} {endpointsWord.plural} {endpointsWord.be} hidden
                   </div>
                 )}
               </>
@@ -120,39 +78,53 @@ export const ServiceMapCard = observer(function ServiceMapCard(props: Props) {
     })
     .get();
 
-  // prettier-ignore
-  const onHeightChange = useCallback((h: number) => {
-    props.onHeightChange?.(h);
+  const backplateClasses = classnames({
+    [css.serviceMapCardBackplate]: true,
+    [css.active]: !!props.active,
+  });
 
-    /* WARN: Do not emit new connector coords from here.
-     * Old coords will be received in props.coords,  
-     * hence wrong connector coords will be emitted
-     */
-  }, [props.onHeightChange]);
+  const backgroundClasses = classnames(css.serviceMapCardBackground);
+  const foregroundClasses = classnames(css.serviceMapCardForeground);
 
   return (
-    <Card
-      {...props}
-      isBackplate={false}
-      onHeightChange={onHeightChange}
-      onClick={onClick}
-      onEmitCoordsFn={onEmitCoordsFn}
-    >
-      <EndpointCardHeader
-        card={props.card}
-        currentNamespace={props.currentNamespace}
-      />
-      {accessPoints.length > 0 && (
-        <div className={css.accessPoints}>{accessPoints}</div>
+    <>
+      {/* Render backplate only when card sizes are known */}
+      {!props.isUnsizedMode && (
+        <>
+          <Teleport to={props.underlayRef}>
+            <Card coords={props.coords} card={props.card} className={backplateClasses} />
+          </Teleport>
+
+          <Teleport to={props.backgroundsRef}>
+            <Card coords={props.coords} card={props.card} className={backgroundClasses} />
+          </Teleport>
+        </>
       )}
-      {props.isClusterMeshed && props.card.clusterName && (
-        <div className={css.clusterNameLabel}>
-          <Tooltip content={`Cluster name: ${props.card.clusterName}`}>
-            {props.card.clusterName}
-          </Tooltip>
-        </div>
-      )}
-      {props.active && <EndpointCardLabels labels={props.card.labels} />}
-    </Card>
+
+      <Card
+        {...props}
+        isUnsizedMode={!props.isUnsizedMode}
+        className={foregroundClasses}
+        divRef={props.collector.cardRoot(props.card.id)}
+      >
+        <EndpointCardHeader
+          card={props.card}
+          currentNamespace={props.currentNamespace}
+          onHeadlineClick={() => props.onHeaderClick?.(props.card)}
+        />
+
+        {accessPoints.length > 0 && <div className={css.accessPoints}>{accessPoints}</div>}
+
+        {props.isClusterMeshed && props.card.clusterName && (
+          <div className={css.clusterNameLabel}>
+            <Tooltip content={`Cluster name: ${props.card.clusterName}`}>
+              {props.card.clusterName}
+            </Tooltip>
+          </div>
+        )}
+
+        {props.active && <EndpointCardLabels labels={props.card.labels} />}
+      </Card>
+    </>
   );
 });

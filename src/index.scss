@@ -1,3 +1,5 @@
+@import './styles/common/themes';
+
 :global {
   html {
     box-sizing: border-box;
@@ -21,6 +23,10 @@
     min-height: 100%;
     background-color: #fff;
     font-size: 16px;
+  }
+
+  .light {
+    @include light-theme;
   }
 
   #app {

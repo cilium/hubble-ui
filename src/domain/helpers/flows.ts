@@ -1,22 +1,5 @@
-import {
-  Flow as PBFlow,
-  IPVersion as PBIPVersion,
-  Ethernet as PBEthernet,
-  IP as PBIP,
-  Layer4 as PBLayer4,
-  Layer7 as PBLayer7,
-  TCP as PBTCP,
-  UDP as PBUDP,
-  ICMPv4 as PBICMPv4,
-  ICMPv6 as PBICMPv6,
-  TCPFlags as PBTCPFlags,
-  Endpoint as PBEndpoint,
-  FlowType as PBFlowType,
-  L7FlowType as PBL7FlowType,
-  TrafficDirection as PBTrafficDirection,
-  CiliumEventType as PBCiliumEventType,
-  Service as PBService,
-} from '~backend/proto/flow/flow_pb';
+import _ from 'lodash';
+import * as flowpb from '~backend/proto/flow/flow_pb';
 
 import {
   HubbleFlow,
@@ -47,6 +30,22 @@ import * as misc from '~/domain/misc';
 import * as verdictHelpers from './verdict';
 import { authTypeFromPb } from './auth-type';
 
+export const hubbleFlowFromLogEntry = (entry: string | object): HubbleFlow | null => {
+  if (entry == null) return null;
+
+  let obj: any = entry;
+  if (typeof entry === 'string') {
+    try {
+      obj = JSON.parse(entry);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  const parsed = misc.camelCasify(obj);
+  return hubbleFlowFromObj(parsed);
+};
+
 export const hubbleFlowFromObj = (obj: any): HubbleFlow | null => {
   obj = obj.flow != null ? obj.flow : obj;
 
@@ -54,7 +53,8 @@ export const hubbleFlowFromObj = (obj: any): HubbleFlow | null => {
   if (obj.verdict == null && obj.nodeName == null) return null;
 
   const time = isoTimeToHubbleTime(obj.time) ?? void 0;
-  const verdict = verdictHelpers.verdictFromStr(obj.verdict);
+  const verdict = verdictHelpers.parse(obj.verdict);
+  if (verdict == null) return null;
 
   const ethernet =
     obj.ethernet != null
@@ -79,15 +79,14 @@ export const hubbleFlowFromObj = (obj: any): HubbleFlow | null => {
       : void 0;
 
   const sourceService = flowServiceFromObj(obj.sourceService) ?? void 0;
-  const destinationService =
-    flowServiceFromObj(obj.destinationService) ?? void 0;
+  const destinationService = flowServiceFromObj(obj.destinationService) ?? void 0;
   const trafficDirection = trafficDirectionFromStr(obj.trafficDirection);
   const authType = authTypeFromStr(obj.authType);
 
   return {
     time,
     verdict,
-    dropReason: obj.dropReason,
+    dropReason: obj.dropReasonDesc || obj.dropReason,
     ethernet,
     ip,
     l4,
@@ -95,10 +94,10 @@ export const hubbleFlowFromObj = (obj: any): HubbleFlow | null => {
     destination,
     type,
     nodeName: obj.nodeName,
-    sourceNamesList: obj.sourceNamesList ?? [],
-    destinationNamesList: obj.destinationNamesList ?? [],
+    sourceNamesList: obj.sourceNamesList ?? obj.sourceNames ?? [],
+    destinationNamesList: obj.destinationNamesList ?? obj.destinationNames ?? [],
     l7,
-    reply: !!obj.reply,
+    reply: obj.reply != null ? !!obj.reply : void 0,
     eventType,
     sourceService,
     destinationService,
@@ -122,11 +121,11 @@ export const isoTimeToHubbleTime = (t: string | null): Time | null => {
   return { seconds, nanos };
 };
 
-export const hubbleFlowFromPb = (flow: PBFlow): HubbleFlow => {
+export const hubbleFlowFromPb = (flow: flowpb.Flow): HubbleFlow => {
   let time: any = void 0;
 
-  if (flow.hasTime()) {
-    const timeObj = flow.getTime()!.toObject();
+  if (flow.time != null) {
+    const timeObj = flow.time;
 
     time = {
       seconds: timeObj.seconds,
@@ -134,48 +133,46 @@ export const hubbleFlowFromPb = (flow: PBFlow): HubbleFlow => {
     };
   }
 
-  const verdict = verdictHelpers.verdictFromPb(flow.getVerdict());
-  const ethernet = ethernetFromPb(flow.getEthernet());
-  const ip = ipFromPb(flow.getIp());
-  const l4 = l4FromPb(flow.getL4());
-  const source = endpointFromPb(flow.getSource());
-  const destination = endpointFromPb(flow.getDestination());
-  const type = flowTypeFromPb(flow.getType());
-  const l7 = l7FromPb(flow.getL7());
-  const eventType = ciliumEventTypeFromPb(flow.getEventType());
-  const sourceService = flowServiceFromPb(flow.getSourceService());
-  const destinationService = flowServiceFromPb(flow.getDestinationService());
-  const trafficDirection = trafficDirectionFromPb(flow.getTrafficDirection());
-  const authType = authTypeFromPb(flow.getAuthType());
+  const verdict = verdictHelpers.verdictFromPb(flow.verdict);
+  const ethernet = ethernetFromPb(flow.ethernet);
+  const ip = ipFromPb(flow.iP);
+  const l4 = l4FromPb(flow.l4);
+  const source = endpointFromPb(flow.source);
+  const destination = endpointFromPb(flow.destination);
+  const type = flowTypeFromPb(flow.type);
+  const l7 = l7FromPb(flow.l7);
+  const eventType = ciliumEventTypeFromPb(flow.eventType);
+  const sourceService = flowServiceFromPb(flow.sourceService);
+  const destinationService = flowServiceFromPb(flow.destinationService);
+  const trafficDirection = trafficDirectionFromPb(flow.trafficDirection);
+  const authType = authTypeFromPb(flow.authType);
 
   return {
     time,
     verdict,
-    dropReason: flow.getDropReason(),
+    dropReason: flow.dropReasonDesc || flow.dropReason,
     ethernet,
     ip,
     l4,
     source,
     destination,
     type,
-    nodeName: flow.getNodeName(),
-    sourceNamesList: flow.getSourceNamesList(),
-    destinationNamesList: flow.getDestinationNamesList(),
+    nodeName: flow.nodeName,
+    sourceNamesList: flow.sourceNames,
+    destinationNamesList: flow.destinationNames,
     l7,
-    reply: flow.getReply(),
+    reply: flow.isReply?.value,
     eventType,
     sourceService,
     destinationService,
-    summary: flow.getSummary(),
+    summary: flow.summary,
     trafficDirection,
     authType,
   };
 };
 
-export const flowServiceFromPb = (
-  svc: PBService | undefined,
-): FlowService | undefined => {
-  return svc == null ? undefined : svc!.toObject();
+export const flowServiceFromPb = (svc: flowpb.Service | undefined): FlowService | undefined => {
+  return svc == null ? undefined : svc;
 };
 
 export const flowServiceFromObj = (obj: any): FlowService | null => {
@@ -188,20 +185,20 @@ export const flowServiceFromObj = (obj: any): FlowService | null => {
 };
 
 export const ciliumEventTypeFromPb = (
-  cet: PBCiliumEventType | undefined,
+  cet: flowpb.CiliumEventType | undefined,
 ): CiliumEventType | undefined => {
-  return cet == null ? undefined : cet!.toObject();
+  return cet == null ? undefined : cet;
 };
 
-export const l7FromPb = (l7: PBLayer7 | undefined): Layer7 | undefined => {
+export const l7FromPb = (l7: flowpb.Layer7 | undefined): Layer7 | undefined => {
   if (l7 == null) return undefined;
 
   const obj = {
-    type: l7FlowTypeFromPb(l7.getType()),
-    latencyNs: l7.getLatencyNs(),
-    dns: l7.hasDns() ? l7.getDns()!.toObject() : undefined,
-    http: l7.hasHttp() ? l7httpFromObj(l7.getHttp()?.toObject())! : undefined,
-    kafka: l7.hasKafka() ? l7.getKafka()!.toObject() : undefined,
+    type: l7FlowTypeFromPb(l7.type),
+    latencyNs: l7.latencyNs,
+    dns: l7.record.oneofKind === 'dns' ? l7.record.dns : void 0,
+    http: l7.record.oneofKind === 'http' ? l7httpFromObj(l7.record.http) || void 0 : void 0,
+    kafka: l7.record.oneofKind === 'kafka' ? l7.record.kafka : void 0,
   };
 
   return obj;
@@ -236,24 +233,24 @@ export const l7dnsFromObj = (dns: any): DNS | null => {
 
   return {
     query: dns.query,
-    ipsList: dns.ips ?? dns.ipsList,
+    ips: dns.ips ?? dns.ipsList,
     ttl: dns.ttl ? parseInt(dns.ttl, 10) : 0,
-    cnamesList: dns.cnames ?? dns.cnamesList,
+    cnames: dns.cnames ?? dns.cnamesList,
     observationSource: dns.observationSource,
-    qtypesList: dns.qtypes ?? dns.qtypesList,
-    rrtypesList: dns.rrtypes ?? dns.rrtypesList,
+    qtypes: dns.qtypes ?? dns.qtypesList,
+    rrtypes: dns.rrtypes ?? dns.rrtypesList,
     rcode: dns.rcode ?? -1,
   };
 };
 
-export const l7FlowTypeFromPb = (pb: PBL7FlowType): L7FlowType => {
+export const l7FlowTypeFromPb = (pb: flowpb.L7FlowType): L7FlowType => {
   let ft = L7FlowType.Unknown;
 
-  if (pb === PBL7FlowType.REQUEST) {
+  if (pb === flowpb.L7FlowType.REQUEST) {
     ft = L7FlowType.Request;
-  } else if (pb === PBL7FlowType.RESPONSE) {
+  } else if (pb === flowpb.L7FlowType.RESPONSE) {
     ft = L7FlowType.Response;
-  } else if (pb === PBL7FlowType.SAMPLE) {
+  } else if (pb === flowpb.L7FlowType.SAMPLE) {
     ft = L7FlowType.Sample;
   }
 
@@ -277,14 +274,12 @@ export const l7FlowTypeFromStr = (str: string): L7FlowType => {
   return ft;
 };
 
-export const trafficDirectionFromPb = (
-  pb: PBTrafficDirection,
-): TrafficDirection => {
+export const trafficDirectionFromPb = (pb: flowpb.TrafficDirection): TrafficDirection => {
   let dir = TrafficDirection.Unknown;
 
-  if (pb === PBTrafficDirection.INGRESS) {
+  if (pb === flowpb.TrafficDirection.INGRESS) {
     dir = TrafficDirection.Ingress;
-  } else if (pb === PBTrafficDirection.EGRESS) {
+  } else if (pb === flowpb.TrafficDirection.EGRESS) {
     dir = TrafficDirection.Egress;
   }
 
@@ -305,12 +300,12 @@ export const trafficDirectionFromStr = (str: string): TrafficDirection => {
   return dir;
 };
 
-export const flowTypeFromPb = (ft: PBFlowType): FlowType => {
+export const flowTypeFromPb = (ft: flowpb.FlowType): FlowType => {
   let t = FlowType.Unknown;
 
-  if (ft === PBFlowType.L3_L4) {
+  if (ft === flowpb.FlowType.L3_L4) {
     t = FlowType.L34;
-  } else if (ft === PBFlowType.L7) {
+  } else if (ft === flowpb.FlowType.L7) {
     t = FlowType.L7;
   }
 
@@ -341,10 +336,10 @@ export const authTypeFromStr = (str: string): AuthType => {
   return t;
 };
 
-export const endpointFromPb = (
-  ep: PBEndpoint | undefined,
-): Endpoint | undefined => {
-  return ep == null ? undefined : ep.toObject();
+export const endpointFromPb = (ep: flowpb.Endpoint | undefined): Endpoint | undefined => {
+  if (ep == null) return void 0;
+
+  return { ...ep, id: ep.iD };
 };
 
 export const endpointFromObj = (obj: any): Endpoint | null => {
@@ -354,32 +349,29 @@ export const endpointFromObj = (obj: any): Endpoint | null => {
     id: obj.id,
     identity: obj.identity,
     namespace: obj.namespace,
-    labelsList: (obj.labels || obj.labelsList || []).slice(),
+    labels: (obj.labels || obj.labelsList || []).slice(),
+    workloads: [],
     podName: obj.podName,
   };
 };
 
-export const ethernetFromPb = (
-  e: PBEthernet | undefined,
-): Ethernet | undefined => {
-  if (e == null) return undefined;
-
-  return e!.toObject();
+export const ethernetFromPb = (e: flowpb.Ethernet | undefined): Ethernet | undefined => {
+  return e ?? void 0;
 };
 
-export const ipFromPb = (ip: PBIP | undefined): IP | undefined => {
+export const ipFromPb = (ip: flowpb.IP | undefined): IP | undefined => {
   if (ip == null) return undefined;
 
   let ipVersion = IPVersion.NotUsed;
-  const fipVersion = ip.getIpversion();
+  const fipVersion = ip.ipVersion;
 
-  if (fipVersion === PBIPVersion.IPV4) {
+  if (fipVersion === flowpb.IPVersion.IPv4) {
     ipVersion = IPVersion.V4;
-  } else if (fipVersion == PBIPVersion.IPV6) {
+  } else if (fipVersion == flowpb.IPVersion.IPv6) {
     ipVersion = IPVersion.V6;
   }
 
-  return { ...ip.toObject(), ipVersion };
+  return { ...ip, ipVersion };
 };
 
 export const ipFromObj = (ip: any | null): IP | null => {
@@ -405,7 +397,7 @@ export const ipVersionFromStr = (ipv: string): IPVersion => {
   return IPVersion.NotUsed;
 };
 
-export const l4FromPb = (l4: PBLayer4 | undefined): Layer4 | undefined => {
+export const l4FromPb = (l4: flowpb.Layer4 | undefined): Layer4 | undefined => {
   if (l4 == null) return undefined;
 
   let tcp: TCP | undefined = undefined;
@@ -413,20 +405,20 @@ export const l4FromPb = (l4: PBLayer4 | undefined): Layer4 | undefined => {
   let icmpv4: ICMPv4 | undefined = undefined;
   let icmpv6: ICMPv6 | undefined = undefined;
 
-  if (l4.hasTcp()) {
-    tcp = tcpFromPb(l4.getTcp()!);
+  if (l4.protocol.oneofKind === 'tCP') {
+    tcp = tcpFromPb(l4.protocol.tCP);
   }
 
-  if (l4.hasUdp()) {
-    udp = udpFromPb(l4.getUdp()!);
+  if (l4.protocol.oneofKind === 'uDP') {
+    udp = udpFromPb(l4.protocol.uDP);
   }
 
-  if (l4.hasIcmpv4()) {
-    icmpv4 = icmpv4FromPb(l4.getIcmpv4()!);
+  if (l4.protocol.oneofKind === 'iCMPv4') {
+    icmpv4 = icmpv4FromPb(l4.protocol.iCMPv4);
   }
 
-  if (l4.hasIcmpv6()) {
-    icmpv6 = icmpv6FromPb(l4.getIcmpv6()!);
+  if (l4.protocol.oneofKind === 'iCMPv6') {
+    icmpv6 = icmpv6FromPb(l4.protocol.iCMPv6);
   }
 
   return { tcp, udp, icmpv4, icmpv6 };
@@ -471,44 +463,44 @@ export const l4FromObj = (l4: any): Layer4 | null => {
   return parsed;
 };
 
-export const tcpFlagsFromObject = (obj: any | PBTCPFlags): TCPFlags | null => {
+export const tcpFlagsFromObject = (obj: any | flowpb.TCPFlags): TCPFlags | null => {
   if (obj == null) return null;
 
   if (obj.toObject != null) obj = obj.toObject();
 
   return {
-    fin: !!obj.fin || !!obj['FIN'],
-    syn: !!obj.syn || !!obj['SYN'],
-    rst: !!obj.rst || !!obj['RST'],
-    psh: !!obj.psh || !!obj['PSH'],
-    ack: !!obj.ack || !!obj['ACK'],
-    urg: !!obj.urg || !!obj['URG'],
-    ece: !!obj.ece || !!obj['ECE'],
-    cwr: !!obj.cwr || !!obj['CWR'],
-    ns: !!obj.ns || !!obj['NS'],
+    fin: !!obj.fin || !!obj['FIN'] || !!obj.fIN,
+    syn: !!obj.syn || !!obj['SYN'] || !!obj.sYN,
+    rst: !!obj.rst || !!obj['RST'] || !!obj.rST,
+    psh: !!obj.psh || !!obj['PSH'] || !!obj.pSH,
+    ack: !!obj.ack || !!obj['ACK'] || !!obj.aCK,
+    urg: !!obj.urg || !!obj['URG'] || !!obj.uRG,
+    ece: !!obj.ece || !!obj['ECE'] || !!obj.eCE,
+    cwr: !!obj.cwr || !!obj['CWR'] || !!obj.cWR,
+    ns: !!obj.ns || !!obj['NS'] || !!obj.nS,
   };
 };
 
-export const tcpFromPb = (tcp: PBTCP): TCP => {
+export const tcpFromPb = (tcp: flowpb.TCP): TCP => {
   return {
-    sourcePort: tcp.getSourcePort(),
-    destinationPort: tcp.getDestinationPort(),
-    flags: tcp.hasFlags() ? tcpFlagsFromPb(tcp.getFlags()!) : void 0,
+    sourcePort: tcp.sourcePort,
+    destinationPort: tcp.destinationPort,
+    flags: tcp.flags ? tcpFlagsFromPb(tcp.flags) : void 0,
   };
 };
 
-export const tcpFlagsFromPb = (flags: PBTCPFlags): TCPFlags => {
-  return flags.toObject();
+export const tcpFlagsFromPb = (flags: flowpb.TCPFlags): TCPFlags => {
+  return tcpFlagsFromObject(flags)!;
 };
 
-export const udpFromPb = (udp: PBUDP): UDP => {
-  return udp.toObject();
+export const udpFromPb = (udp: flowpb.UDP): UDP => {
+  return udp;
 };
 
-export const icmpv4FromPb = (icmp: PBICMPv4): ICMPv4 => {
-  return icmp.toObject();
+export const icmpv4FromPb = (icmp: flowpb.ICMPv4): ICMPv4 => {
+  return icmp;
 };
 
-export const icmpv6FromPb = (icmp: PBICMPv6): ICMPv6 => {
+export const icmpv6FromPb = (icmp: flowpb.ICMPv6): ICMPv6 => {
   return icmpv4FromPb(icmp);
 };

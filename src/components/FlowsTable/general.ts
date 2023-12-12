@@ -6,12 +6,13 @@ export enum Column {
   Auth = 'Authentication',
   SrcPod = 'Source Pod',
   SrcIp = 'Source IP',
-  SrcIdentity = 'Source Identity',
+  SrcService = 'Source Identity',
   DstPod = 'Destination Pod',
   DstIp = 'Destination IP',
-  DstIdentity = 'Destination Identity',
+  DstService = 'Destination Identity',
   DstPort = 'Destination Port',
   L7Info = 'L7 info',
+  TrafficDirection = 'Traffic Direction',
   Verdict = 'Verdict',
   TcpFlags = 'TCP Flags',
   Timestamp = 'Timestamp',
@@ -34,8 +35,8 @@ export const getColumnKey = (col: Column): ColumnKey => {
 };
 
 export const defaultVisibleColumns = new Set<Column>([
-  Column.SrcIdentity,
-  Column.DstIdentity,
+  Column.SrcService,
+  Column.DstService,
   Column.DstPort,
   Column.L7Info,
   Column.Verdict,

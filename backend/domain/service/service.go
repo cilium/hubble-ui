@@ -2,27 +2,30 @@ package service
 
 import (
 	"fmt"
+	"sort"
+	"strconv"
 
+	pbFlow "github.com/cilium/cilium/api/v1/flow"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	flowpb "github.com/cilium/cilium/api/v1/flow"
 	"github.com/cilium/hubble-ui/backend/domain/labels"
+	"github.com/cilium/hubble-ui/backend/pkg/misc"
 	pbUi "github.com/cilium/hubble-ui/backend/proto/ui"
 )
 
 type Service struct {
 	LabelProps *labels.LabelProps
 
-	flowRef    *flowpb.Flow
-	endpoint   *flowpb.Endpoint
+	flowRef    *pbFlow.Flow
+	endpoint   *pbFlow.Endpoint
 	dnsNames   []string
 	isSender   bool
 	isReceiver bool
 }
 
 func FromEndpointProtoAndDNS(
-	f *flowpb.Flow,
-	ep *flowpb.Endpoint,
+	f *pbFlow.Flow,
+	ep *pbFlow.Endpoint,
 	dnsNames []string,
 ) *Service {
 	svc := new(Service)
@@ -30,24 +33,24 @@ func FromEndpointProtoAndDNS(
 	svc.endpoint = ep
 	svc.dnsNames = dnsNames
 
-	svc.LabelProps = labels.Props(ep.Labels)
+	svc.LabelProps = labels.Props(ep.GetLabels())
 
 	return svc
 }
 
-func IDsFromFlowProto(f *flowpb.Flow) (string, string) {
-	sourceProps := labels.Props(f.Source.Labels)
-	destProps := labels.Props(f.Destination.Labels)
+func IdsFromFlowProto(f *pbFlow.Flow) (string, string) {
+	sourceProps := labels.Props(f.GetSource().GetLabels())
+	destProps := labels.Props(f.GetDestination().GetLabels())
 
-	senderSvcID := getServiceID(
-		f.Source, f.SourceNames, sourceProps, false,
+	senderSvcId := getServiceId(
+		f.GetSource(), f.GetSourceNames(), sourceProps, false,
 	)
 
-	receiverSvcID := getServiceID(
-		f.Destination, f.DestinationNames, destProps, true,
+	receiverSvcId := getServiceId(
+		f.GetDestination(), f.GetDestinationNames(), destProps, true,
 	)
 
-	return senderSvcID, receiverSvcID
+	return senderSvcId, receiverSvcId
 }
 
 func (s *Service) String() string {
@@ -55,9 +58,9 @@ func (s *Service) String() string {
 		"<%s %p, id: '%v', name: '%v', namespace: '%v', from flow: %p>",
 		s.Side(),
 		s,
-		s.ID(),
+		s.Id(),
 		s.Name(),
-		s.endpoint.Namespace,
+		s.endpoint.GetNamespace(),
 		s.flowRef,
 	)
 }
@@ -78,11 +81,13 @@ func (s *Service) Side() string {
 // TODO: its not ok to have this code here
 func (s *Service) ToProto() *pbUi.Service {
 	return &pbUi.Service{
-		Id:                     s.ID(),
+		Id:                     s.Id(),
 		Name:                   s.Name(),
-		Namespace:              s.endpoint.Namespace,
-		Labels:                 s.endpoint.Labels,
+		Namespace:              s.endpoint.GetNamespace(),
+		Labels:                 s.endpoint.GetLabels(),
 		DnsNames:               s.dnsNames,
+		Workloads:              s.endpoint.GetWorkloads(),
+		Identity:               s.endpoint.GetIdentity(),
 		EgressPolicyEnforced:   false,
 		IngressPolicyEnforced:  false,
 		VisibilityPolicyStatus: "",
@@ -91,12 +96,10 @@ func (s *Service) ToProto() *pbUi.Service {
 }
 
 func (s *Service) Name() string {
-	serviceName := fmt.Sprintf("%v", s.ID())
-
+	serviceName := s.Id()
 	if s.LabelProps.AppName != nil {
 		serviceName = *s.LabelProps.AppName
 	}
-
 	return serviceName
 }
 
@@ -108,28 +111,61 @@ func (s *Service) SetIsReceiver(state bool) {
 	s.isReceiver = state
 }
 
-func (s *Service) ID() string {
-	return getServiceID(s.endpoint, s.dnsNames, s.LabelProps, s.isReceiver)
+func (s *Service) Id() string {
+	return getServiceId(s.endpoint, s.dnsNames, s.LabelProps, s.isReceiver)
 }
 
-func (s *Service) FlowRef() *flowpb.Flow {
+func (s *Service) FlowRef() *pbFlow.Flow {
 	return s.flowRef
 }
 
-func getServiceID(
-	ep *flowpb.Endpoint,
+func (l *Service) IsEnrichedWith(r *Service) bool {
+	lworkloads := l.endpoint.GetWorkloads()
+	rworkloads := r.endpoint.GetWorkloads()
+
+	if len(rworkloads) > len(lworkloads) {
+		return true
+	}
+
+	lworkloadNames := misc.MapArray(lworkloads, func(_ int, w *pbFlow.Workload) string {
+		return w.GetName()
+	})
+
+	rworkloadNames := misc.MapArray(rworkloads, func(_ int, w *pbFlow.Workload) string {
+		return w.GetName()
+	})
+
+	sort.Strings(lworkloadNames)
+	sort.Strings(rworkloadNames)
+
+	return !misc.ArrayEquals(lworkloadNames, rworkloadNames, func(l, r string) bool {
+		return l == r
+	})
+}
+
+// NOTE: This function delivers an id of service in terms of UI service cards
+func getServiceId(
+	ep *pbFlow.Endpoint,
 	dnsNames []string,
 	lblProps *labels.LabelProps,
 	isReceiver bool,
 ) string {
-	if lblProps.IsKubeAPIServer {
-		return fmt.Sprintf("%v", ep.Identity)
+	if !lblProps.IsWorld && ep.GetIdentity() > 0 {
+		return strconv.FormatUint(uint64(ep.GetIdentity()), 10)
 	}
 
-	if !lblProps.IsWorld {
-		return fmt.Sprintf("%v", ep.Identity)
+	// NOTE: By some reason, workloads not available for the same service every time
+	if len(ep.GetWorkloads()) > 0 {
+		wl := ep.GetWorkloads()[0]
+		name := wl.GetName()
+		kind := wl.GetKind()
+
+		if len(name) > 0 && len(kind) > 0 {
+			return fmt.Sprintf("%s/%s", kind, name)
+		}
 	}
 
+	// NOTE: We only use side prefix for world-like services
 	sideStr := "sender"
 	if isReceiver {
 		sideStr = "receiver"

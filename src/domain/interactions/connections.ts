@@ -18,16 +18,9 @@ export class LinkConnections {
     const outgoings = new Connections<Link>();
 
     links.forEach((link: Link) => {
-      const {
-        sourceId: senderId,
-        destinationId: receiverId,
-        destinationPort,
-      } = link;
+      const { sourceId: senderId, destinationId: receiverId, destinationPort } = link;
 
-      const accessPointId = ServiceEndpoint.generateId(
-        receiverId,
-        destinationPort,
-      );
+      const accessPointId = ServiceEndpoint.generateId(receiverId, destinationPort);
       outgoings.upsert(senderId, receiverId, accessPointId, link);
     });
 
@@ -39,5 +32,9 @@ export class LinkConnections {
     this.incomings = outgoings.getInversed();
 
     mobx.makeAutoObservable(this);
+  }
+
+  public get linksList(): Link[] {
+    return this.outgoings.endpointList;
   }
 }

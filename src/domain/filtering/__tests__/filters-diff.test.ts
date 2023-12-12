@@ -1,9 +1,4 @@
-import {
-  Filters,
-  FiltersObject,
-  FiltersDiff,
-  FiltersKey,
-} from '~/domain/filtering';
+import { Filters, FiltersObject, FiltersDiff, FiltersKey } from '~/domain/filtering';
 import { Verdict } from '~/domain/hubble';
 
 import { filterEntries } from '~/testing/data';
@@ -20,14 +15,13 @@ const testFieldsDiff = (testName: string, fobj: Partial<FiltersObject>) => {
 
   const otherFields: FiltersKey[] = [
     'namespace',
-    'verdict',
+    'verdicts',
     'httpStatus',
     'filters',
     'skipHost',
     'skipKubeDns',
     'skipRemoteNode',
     'skipPrometheusApp',
-    'skipKubeApiServer',
   ];
 
   test(testName, () => {
@@ -60,14 +54,13 @@ describe('sanity check', () => {
 
     expect(diff.nothingChanged).toBe(true);
     expect(diff.namespace.changed).toBe(false);
-    expect(diff.verdict.changed).toBe(false);
+    expect(diff.verdicts.changed).toBe(false);
     expect(diff.httpStatus.changed).toBe(false);
     expect(diff.filters.changed).toBe(false);
     expect(diff.skipHost.changed).toBe(false);
     expect(diff.skipKubeDns.changed).toBe(false);
     expect(diff.skipRemoteNode.changed).toBe(false);
     expect(diff.skipPrometheusApp.changed).toBe(false);
-    expect(diff.skipKubeApiServer.changed).toBe(false);
   });
 });
 
@@ -77,14 +70,13 @@ describe('FiltersDiff', () => {
 
     expect(diff.nothingChanged).toBe(true);
     expect(diff.namespace.changed).toBe(false);
-    expect(diff.verdict.changed).toBe(false);
+    expect(diff.verdicts.changed).toBe(false);
     expect(diff.httpStatus.changed).toBe(false);
     expect(diff.filters.changed).toBe(false);
     expect(diff.skipHost.changed).toBe(false);
     expect(diff.skipKubeDns.changed).toBe(false);
     expect(diff.skipRemoteNode.changed).toBe(false);
     expect(diff.skipPrometheusApp.changed).toBe(false);
-    expect(diff.skipKubeApiServer.changed).toBe(false);
   });
 
   test('test 2 - null / default filters', () => {
@@ -110,7 +102,7 @@ describe('FiltersDiff', () => {
   });
 
   testFieldsDiff('test 6 - verdict is changed', {
-    verdict: Verdict.Forwarded,
+    verdicts: new Set([Verdict.Forwarded]),
   });
 
   testFieldsDiff('test 7 - httpStatus is changed', {
@@ -137,44 +129,44 @@ describe('FiltersDiff', () => {
     skipPrometheusApp: true,
   });
 
-  testFieldsDiff('test 13 - 2 fields changed', {
+  testFieldsDiff('test 14 - 2 fields changed', {
     namespace: 'random-namespace',
-    verdict: Verdict.Forwarded,
+    verdicts: new Set([Verdict.Forwarded]),
   });
 
-  testFieldsDiff('test 14 - 3 fields changed', {
+  testFieldsDiff('test 15 - 3 fields changed', {
     namespace: 'random-namespace',
-    verdict: Verdict.Forwarded,
+    verdicts: new Set([Verdict.Forwarded]),
     httpStatus: '200',
   });
 
-  testFieldsDiff('test 15 - 4 fields changed', {
+  testFieldsDiff('test 16 - 4 fields changed', {
     namespace: 'random-namespace',
-    verdict: Verdict.Forwarded,
+    verdicts: new Set([Verdict.Forwarded]),
     httpStatus: '200',
     filters: [filterEntries.fromDnsGoogle!],
   });
 
-  testFieldsDiff('test 16 - 5 fields changed', {
+  testFieldsDiff('test 17 - 5 fields changed', {
     namespace: 'random-namespace',
-    verdict: Verdict.Forwarded,
+    verdicts: new Set([Verdict.Forwarded]),
     httpStatus: '200',
     filters: [filterEntries.fromDnsGoogle!],
     skipHost: true,
   });
 
-  testFieldsDiff('test 17 - 6 fields changed', {
+  testFieldsDiff('test 18 - 6 fields changed', {
     namespace: 'random-namespace',
-    verdict: Verdict.Forwarded,
+    verdicts: new Set([Verdict.Forwarded]),
     httpStatus: '200',
     filters: [filterEntries.fromDnsGoogle!],
     skipHost: true,
     skipKubeDns: true,
   });
 
-  testFieldsDiff('test 18 - 7 fields changed', {
+  testFieldsDiff('test 19 - 7 fields changed', {
     namespace: 'random-namespace',
-    verdict: Verdict.Forwarded,
+    verdicts: new Set([Verdict.Forwarded]),
     httpStatus: '200',
     filters: [filterEntries.fromDnsGoogle!],
     skipHost: true,
@@ -182,9 +174,9 @@ describe('FiltersDiff', () => {
     skipRemoteNode: true,
   });
 
-  testFieldsDiff('test 19 - 8 fields changed', {
+  testFieldsDiff('test 20 - 8 fields changed', {
     namespace: 'random-namespace',
-    verdict: Verdict.Forwarded,
+    verdicts: new Set([Verdict.Forwarded]),
     httpStatus: '200',
     filters: [filterEntries.fromDnsGoogle!],
     skipHost: true,
@@ -193,9 +185,9 @@ describe('FiltersDiff', () => {
     skipPrometheusApp: true,
   });
 
-  testFieldsDiff('test 20 - 9 fields changed', {
+  testFieldsDiff('test 21 - 9 fields changed', {
     namespace: 'random-namespace',
-    verdict: Verdict.Forwarded,
+    verdicts: new Set([Verdict.Forwarded]),
     httpStatus: '200',
     filters: [filterEntries.fromDnsGoogle!],
     skipHost: true,

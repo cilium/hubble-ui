@@ -1,16 +1,19 @@
-import React, { ReactNode, useCallback } from 'react';
+import React, { ReactNode, useRef } from 'react';
 import { observer } from 'mobx-react';
 import { computed } from 'mobx';
 
 import { AbstractCard } from '~/domain/cards';
 import { XYWH } from '~/domain/geometry';
-import { ArrowStrategy, PlacementStrategy } from '~/domain/layout';
 
-import { ArrowsRenderer, ArrowRenderer } from '~/components/ArrowsRenderer';
-import { Card as BaseCard, CardComponentProps } from '~/components/Card';
+import { ArrowsRenderer, AbstractArrowsRenderer, ArrowRenderer } from '~/components/ArrowsRenderer';
+import { CardProps } from '~/components/Card';
 import { NamespaceBackplate } from './NamespaceBackplate';
 
 import { useMapZoom } from './hooks/useMapZoom';
+import { useMutationObserver } from '~/ui/hooks/useMutationObserver';
+import { ArrowStrategy, PlacementStrategy } from '~/ui/layout';
+
+import * as e2e from '~e2e/client';
 
 import { sizes } from '~/ui/vars';
 import css from './styles.scss';
@@ -23,78 +26,101 @@ export interface Props<C extends AbstractCard> {
   wasDragged: boolean;
   visibleHeight: number;
   arrows?: ArrowStrategy;
+  arrowsRenderer?: AbstractArrowsRenderer;
   arrowRenderer?: ArrowRenderer;
-  cardRenderer: (cardProps: CardComponentProps<C>) => ReactNode;
-  isCardActive?: (id: string) => boolean;
-  onCardHeightChange?: (id: string, height: number) => void;
+  cardRenderer: (cardProps: CardProps<C>) => ReactNode;
   onMapDrag?: (val: boolean) => void;
+  onCardMutated?: (muts: MutationRecord[]) => void;
 }
 
-export const MapElements = observer(function MapElements<
-  C extends AbstractCard,
->(props: Props<C>) {
-  const isCardActive = useCallback(
-    (cardId: string): boolean => {
-      return props.isCardActive ? props.isCardActive(cardId) : false;
-    },
-    [props.isCardActive],
-  );
+export const MapElements = observer(function MapElements<C extends AbstractCard>(props: Props<C>) {
+  const underlayRef = useRef<SVGGElement | null>(null);
+  const overlayRef = useRef<SVGGElement | null>(null);
+  const cardsRef = useRef<SVGGElement | null>(null);
+  const backgroundsRef = useRef<SVGGElement | null>(null);
+  const arrowsForegroundRef = useRef<SVGGElement | null>(null);
 
-  const [backplates, cards, unsizedCards] = computed(() => {
-    const backplates: ReactNode[] = [];
+  const [cards, unsizedCards] = computed(() => {
     const cards: ReactNode[] = [];
     const unsizedCards: ReactNode[] = [];
 
     props.cards.forEach(card => {
       const coords = props.placement.cardsBBoxes.get(card.id);
       if (coords == null) {
-        const coords = props.placement.defaultCardXYWH();
-        unsizedCards.push(props.cardRenderer({ card, coords }));
+        unsizedCards.push(
+          props.cardRenderer({
+            card,
+            coords: props.placement.defaultCardXYWH(),
+            isUnsizedMode: true,
+            overlayRef,
+            underlayRef,
+            backgroundsRef,
+          }),
+        );
 
         return;
       }
 
-      backplates.push(
-        <BaseCard
-          key={card.id}
-          coords={coords}
-          active={isCardActive(card.id)}
-          isBackplate={true}
-        />,
+      cards.push(
+        props.cardRenderer({
+          card,
+          coords,
+          className: 'map-card',
+          overlayRef,
+          underlayRef,
+          backgroundsRef,
+        }),
       );
-
-      cards.push(props.cardRenderer({ card, coords }));
     });
 
-    return [backplates, cards, unsizedCards];
+    return [cards, unsizedCards];
   }).get();
+
+  // NOTE: We use only one mutation observer to watch over cards changes and
+  // react on that with arrows rebuilding in the end
+  useMutationObserver({ ref: cardsRef, options: { all: true } }, muts => {
+    props.onCardMutated?.(muts);
+  });
 
   return (
     <>
       {props.namespaceBBox && props.namespace && (
         <NamespaceBackplate
           namespace={props.namespace}
-          xywh={props.namespaceBBox.addMargin(sizes.endpointHPadding / 2)}
+          xywh={props.namespaceBBox.addMargin(sizes.namespaceBackplatePadding)}
         />
       )}
 
-      {backplates}
-      {props.arrows && props.arrowRenderer && (
-        <ArrowsRenderer
-          strategy={props.arrows}
-          renderer={props.arrowRenderer}
-        />
-      )}
-      {cards}
+      <g className="underlay" ref={underlayRef}></g>
+      {props.arrows &&
+        (props.arrowsRenderer != null ? (
+          <props.arrowsRenderer
+            strategy={props.arrows}
+            overlay={overlayRef}
+            arrowsForeground={arrowsForegroundRef}
+          />
+        ) : props.arrowRenderer != null ? (
+          <ArrowsRenderer
+            strategy={props.arrows}
+            renderer={props.arrowRenderer}
+            overlay={overlayRef}
+            arrowsForeground={arrowsForegroundRef}
+          />
+        ) : null)}
 
+      <g className="backgrounds" ref={backgroundsRef}></g>
+      <g className="arrows-foreground" ref={arrowsForegroundRef}></g>
+      <g ref={cardsRef} className="visible-cards" {...e2e.attributes.card.visibleContainer()}>
+        {cards}
+      </g>
+
+      <g className="overlay" ref={overlayRef}></g>
       <g visibility="hidden">{unsizedCards}</g>
     </>
   );
 });
 
-export const Map = observer(function Map<C extends AbstractCard>(
-  props: Props<C>,
-) {
+export const Map = observer(function Map<C extends AbstractCard>(props: Props<C>) {
   const zoom = useMapZoom({
     wasDragged: props.wasDragged,
     onMapDrag: props.onMapDrag,

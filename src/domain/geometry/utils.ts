@@ -43,14 +43,17 @@ export const linterp2 = (from: XY, to: XY, t: number): XY => {
 //           |     \
 // points[0] *      * points[2]
 
-export const roundCorner = (
-  r: number,
-  points: [XY, XY, XY],
-): [XY, XY, number] => {
+export const roundCorner = (r: number, points: [XY, XY, XY]): [XY, XY, number] => {
   const p0 = points[0];
   const p1 = points[1];
   const p2 = points[2];
   const angle = angleBetweenSegments(p0, p1, p2);
+
+  // NOTE: This is a corner case and in fact this `if` will not prevent external
+  // code from possible error. This case is when some of `points` are the same.
+  if (angle < Number.EPSILON) {
+    return [points[0], points[2], Math.PI];
+  }
 
   const offset = r / Math.tan(angle / 2);
   const roundStart = linterp2(p1, p0, offset / distance(p0, p1));

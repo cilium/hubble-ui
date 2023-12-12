@@ -10,32 +10,24 @@ export interface Props extends CommonProps {
   onToggleColumn?: (column: Column) => void;
 }
 
-export const FlowsTableColumnsSelector = memo<Props>(
-  function FlowsTableColumnsSelector(props) {
-    const popover = usePopover();
+export const FlowsTableColumnsSelector = memo<Props>(function FlowsTableColumnsSelector(props) {
+  const popover = usePopover();
 
-    const menuItems = Object.values(Column).map(column => (
-      <Item
-        key={column}
-        column={column}
-        checked={props.visibleColumns.has(column)}
-        onChange={c => props.onToggleColumn?.(c)}
-      />
-    ));
+  const menuItems = Object.values(Column).map(column => (
+    <Item
+      key={column}
+      column={column}
+      checked={props.visibleColumns.has(column)}
+      onChange={c => props.onToggleColumn?.(c)}
+    />
+  ));
 
-    return (
-      <Popover {...popover.props} content={<Menu>{menuItems}</Menu>}>
-        <Button
-          small
-          minimal
-          rightIcon="chevron-down"
-          text="Columns"
-          onClick={popover.toggle}
-        />
-      </Popover>
-    );
-  },
-);
+  return (
+    <Popover {...popover.props} content={<Menu>{menuItems}</Menu>}>
+      <Button small minimal rightIcon="chevron-down" text="Columns" onClick={popover.toggle} />
+    </Popover>
+  );
+});
 
 interface ItemProps {
   column: Column;

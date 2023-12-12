@@ -1,5 +1,6 @@
 import { Verdict } from '~/domain/flows';
 import { Diff, IDiff } from '~/domain/diff';
+
 import { FilterEntry } from './filter-entry';
 import { Filters } from './filters';
 
@@ -7,38 +8,25 @@ export class FiltersDiff implements IDiff<Filters> {
   public static fromFilters(f?: Filters | null): FiltersDiff {
     return new FiltersDiff(
       Diff.new(f?.namespace),
-      Diff.new(f?.verdict),
+      Diff.new(f?.verdicts).setComparator(FiltersDiff.verdictsEqual),
       Diff.new(f?.httpStatus),
       Diff.new(f?.filters).setComparator(FiltersDiff.filterEntriesEqual),
       Diff.new(f?.skipHost),
       Diff.new(f?.skipKubeDns),
       Diff.new(f?.skipRemoteNode),
       Diff.new(f?.skipPrometheusApp),
-      Diff.new(f?.skipKubeApiServer),
     );
   }
 
   public static new(lhs?: Filters | null, rhs?: Filters | null): FiltersDiff {
-    const diff = FiltersDiff.fromFilters(lhs);
-
-    diff.namespace.step(rhs?.namespace);
-    diff.verdict.step(rhs?.verdict);
-    diff.httpStatus.step(rhs?.httpStatus);
-    diff.filters.step(rhs?.filters);
-    diff.skipHost.step(rhs?.skipHost);
-    diff.skipKubeDns.step(rhs?.skipKubeDns);
-    diff.skipRemoteNode.step(rhs?.skipRemoteNode);
-    diff.skipPrometheusApp.step(rhs?.skipPrometheusApp);
-    diff.skipKubeApiServer.step(rhs?.skipKubeApiServer);
-
-    return diff;
+    return FiltersDiff.fromFilters(lhs).step(rhs);
   }
 
   public static newUnchanged(): FiltersDiff {
     return FiltersDiff.new(null, null);
   }
 
-  private static filterEntriesEqual(
+  public static filterEntriesEqual(
     lhs?: FilterEntry[] | null,
     rhs?: FilterEntry[] | null,
   ): boolean {
@@ -68,28 +56,65 @@ export class FiltersDiff implements IDiff<Filters> {
     return true;
   }
 
+  public static verdictsEqual(lhs?: Set<Verdict> | null, rhs?: Set<Verdict> | null): boolean {
+    if (!lhs?.size && !rhs?.size) return true;
+    if (!lhs?.size || !rhs?.size) return false;
+    if (lhs?.size !== rhs?.size) return false;
+    for (const key of lhs) if (!rhs.has(key)) return false;
+    return true;
+  }
+
   constructor(
     public namespace: Diff<string>,
-    public verdict: Diff<Verdict>,
+    public verdicts: Diff<Set<Verdict>>,
     public httpStatus: Diff<string>,
     public filters: Diff<FilterEntry[]>,
     public skipHost: Diff<boolean>,
     public skipKubeDns: Diff<boolean>,
     public skipRemoteNode: Diff<boolean>,
     public skipPrometheusApp: Diff<boolean>,
-    public skipKubeApiServer: Diff<boolean>,
   ) {}
+
+  public tap(fn: (self: FiltersDiff) => void): this {
+    fn(this);
+    return this;
+  }
+
+  public step(rhs?: Filters | null): this {
+    this.namespace.step(rhs?.namespace);
+    this.verdicts.step(rhs?.verdicts);
+    this.httpStatus.step(rhs?.httpStatus);
+    this.filters.step(rhs?.filters);
+    this.skipHost.step(rhs?.skipHost);
+    this.skipKubeDns.step(rhs?.skipKubeDns);
+    this.skipRemoteNode.step(rhs?.skipRemoteNode);
+    this.skipPrometheusApp.step(rhs?.skipPrometheusApp);
+
+    return this;
+  }
 
   public invert(): this {
     this.namespace.invert();
-    this.verdict.invert();
+    this.verdicts.invert();
     this.httpStatus.invert();
     this.filters.invert();
     this.skipHost.invert();
     this.skipKubeDns.invert();
     this.skipRemoteNode.invert();
     this.skipPrometheusApp.invert();
-    this.skipKubeApiServer.invert();
+
+    return this;
+  }
+
+  public setUnchanged(): this {
+    this.namespace.setUnchanged();
+    this.verdicts.setUnchanged();
+    this.httpStatus.setUnchanged();
+    this.filters.setUnchanged();
+    this.skipHost.setUnchanged();
+    this.skipKubeDns.setUnchanged();
+    this.skipRemoteNode.setUnchanged();
+    this.skipPrometheusApp.setUnchanged();
 
     return this;
   }
@@ -97,14 +122,13 @@ export class FiltersDiff implements IDiff<Filters> {
   public get changed() {
     return (
       this.namespace.changed ||
-      this.verdict.changed ||
+      this.verdicts.changed ||
       this.httpStatus.changed ||
       this.filters.changed ||
       this.skipHost.changed ||
       this.skipKubeDns.changed ||
       this.skipRemoteNode.changed ||
-      this.skipPrometheusApp.changed ||
-      this.skipKubeApiServer.changed
+      this.skipPrometheusApp.changed
     );
   }
 

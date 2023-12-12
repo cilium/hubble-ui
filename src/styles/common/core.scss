@@ -8,3 +8,36 @@
 .mono {
   font-family: 'Roboto Mono', monospace;
 }
+
+@mixin fonts() {
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+}
+
+@mixin font($fontFamily, $fontWeight: default, $fontSize: default) {
+  font-family:
+    $fontFamily,
+    -apple-system,
+    BlinkMacSystemFont,
+    Segoe UI,
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    Fira Sans,
+    Droid Sans,
+    Helvetica Neue,
+    sans-serif;
+
+  @if $fontWeight != default {
+    font-weight: $fontWeight;
+  }
+
+  @if $fontSize != default {
+    font-size: $fontSize;
+  }
+}
+
+@mixin font-inter($fontWeight: default, $fontSize: default) {
+  @include font('Inter', $fontWeight, $fontSize);
+}

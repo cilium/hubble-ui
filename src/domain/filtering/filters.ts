@@ -1,18 +1,20 @@
 import { Verdict } from '~/domain/flows';
+
+import { Diffable } from '~/domain/diff';
+
 import { FilterEntry } from './filter-entry';
 import { FiltersDiff } from './filters-diff';
 
 const assignFilterProps = (to: FiltersObject, from: FiltersObject) => {
   Object.assign(to, {
     namespace: from.namespace,
-    verdict: from.verdict,
+    verdicts: from.verdicts,
     httpStatus: from.httpStatus,
     filters: from.filters,
     skipHost: from.skipHost,
     skipKubeDns: from.skipKubeDns,
     skipRemoteNode: from.skipRemoteNode,
     skipPrometheusApp: from.skipPrometheusApp,
-    skipKubeApiServer: from.skipKubeApiServer,
   });
 
   return to;
@@ -20,57 +22,46 @@ const assignFilterProps = (to: FiltersObject, from: FiltersObject) => {
 
 export interface FiltersObject {
   namespace?: string | null;
-  verdict?: Verdict | null;
+  verdicts?: Set<Verdict>;
   httpStatus?: string | null;
   filters?: FilterEntry[];
   skipHost?: boolean;
   skipKubeDns?: boolean;
   skipRemoteNode?: boolean;
   skipPrometheusApp?: boolean;
-  skipKubeApiServer?: boolean;
 }
 
 export type FiltersKey = keyof FiltersObject;
 
-const defaultFilters: FiltersObject = Object.freeze({
-  namespace: null,
-  verdict: null,
-  httpStatus: null,
-  filters: [],
-  skipHost: false,
-  skipKubeDns: false,
-  skipRemoteNode: false,
-  skipPrometheusApp: false,
-  skipKubeApiServer: false,
-});
-
-export class Filters implements FiltersObject {
+export class Filters implements FiltersObject, Diffable<Filters, FiltersDiff> {
   public namespace?: string | null;
-  public verdict?: Verdict | null;
+  public verdicts?: Set<Verdict>;
   public httpStatus?: string | null;
   public filters?: FilterEntry[];
   public skipHost?: boolean;
   public skipKubeDns?: boolean;
   public skipRemoteNode?: boolean;
   public skipPrometheusApp?: boolean;
-  public skipKubeApiServer?: boolean;
 
   public static fromObject(obj: FiltersObject): Filters {
     return new Filters(obj);
   }
 
   public static defaultObject(): FiltersObject {
-    return defaultFilters;
+    return {
+      namespace: null,
+      verdicts: new Set(),
+      httpStatus: null,
+      filters: [],
+      skipHost: false,
+      skipKubeDns: false,
+      skipRemoteNode: false,
+      skipPrometheusApp: false,
+    };
   }
 
   public static default(): Filters {
-    return new Filters(defaultFilters);
-  }
-
-  public diff(rhs?: Filters | null): FiltersDiff {
-    if (rhs == null) return FiltersDiff.fromFilters(this).invert();
-
-    return FiltersDiff.new(this, rhs);
+    return new Filters(Filters.defaultObject());
   }
 
   constructor(obj: FiltersObject) {
@@ -83,38 +74,50 @@ export class Filters implements FiltersObject {
     return this;
   }
 
+  public addFilterEntry(fe: FilterEntry) {
+    if (this.filters == null) {
+      this.filters = [];
+    }
+
+    this.filters.push(fe);
+  }
+
   public toPlainObject(): FiltersObject {
     return assignFilterProps({} as FiltersObject, this);
   }
 
+  // TODO: write tests for a new behavior regarding since/until fields
   public equals(rhs: FiltersObject): boolean {
     if (
       this.namespace != rhs.namespace ||
-      this.verdict != rhs.verdict ||
       this.httpStatus != rhs.httpStatus ||
       this.skipHost != rhs.skipHost ||
       this.skipKubeDns != rhs.skipKubeDns ||
       this.skipRemoteNode != rhs.skipRemoteNode ||
-      this.skipPrometheusApp != rhs.skipPrometheusApp ||
-      this.skipKubeApiServer != rhs.skipKubeApiServer
+      this.skipPrometheusApp != rhs.skipPrometheusApp
     ) {
       return false;
     }
 
-    const aEntries = (this.filters || []).reduce((acc, f) => {
+    const aVerdictsEntries = this.verdicts ?? new Set();
+    const bVerdictsEntries = rhs.verdicts ?? new Set();
+    if (aVerdictsEntries.size !== bVerdictsEntries.size) return false;
+    for (const verdict of aVerdictsEntries) if (!bVerdictsEntries.has(verdict)) return false;
+
+    const aFiltersEntries = (this.filters || []).reduce((acc, f) => {
       acc.add(f.toString());
       return acc;
-    }, new Set());
+    }, new Set<string>());
 
-    const bEntries = (rhs.filters || []).reduce((acc, f) => {
+    const bFiltersEntries = (rhs.filters || []).reduce((acc, f) => {
       acc.add(f.toString());
       return acc;
-    }, new Set());
+    }, new Set<string>());
 
-    if (aEntries.size !== bEntries.size) return false;
+    if (aFiltersEntries.size !== bFiltersEntries.size) return false;
 
-    for (const f of aEntries) {
-      if (!bEntries.has(f)) return false;
+    for (const f of aFiltersEntries) {
+      if (!bFiltersEntries.has(f)) return false;
     }
 
     return true;
@@ -128,5 +131,11 @@ export class Filters implements FiltersObject {
     }
 
     return Filters.fromObject(shallowObj);
+  }
+
+  public diff(rhs?: Filters | null): FiltersDiff {
+    if (rhs == null) return FiltersDiff.fromFilters(this).invert();
+
+    return FiltersDiff.new(this, rhs);
   }
 }

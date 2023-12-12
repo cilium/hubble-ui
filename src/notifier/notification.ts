@@ -1,11 +1,7 @@
 import React from 'react';
 
 export type DismissAction = (id: string) => void;
-export type UpdateAction = (
-  id: string,
-  message: React.ReactNode,
-  timeout?: number,
-) => void;
+export type UpdateAction = (id: string, message: React.ReactNode, timeout?: number) => void;
 export type ShowAction = (dismissHandler?: DismissHandler) => string;
 
 export type DismissHandler = (timeouted: boolean) => void;
@@ -55,10 +51,7 @@ export class Notification {
     this.dismissHandlers.push(handler);
   }
 
-  public update(
-    message: React.ReactNode,
-    timeout?: number,
-  ): Notification | null {
+  public update(message: React.ReactNode, timeout?: number): Notification | null {
     if (this.inactive) return null;
 
     this.updateAction(this.notificationId!, message, timeout);

@@ -11,13 +11,13 @@ import {
   Column,
 } from '~/components/FlowsTable';
 
+import { FlowsTableSidebar, Props as SidebarProps } from '~/components/FlowsTable/Sidebar';
 import {
-  FlowsTableSidebar,
-  Props as SidebarProps,
-} from '~/components/FlowsTable/Sidebar';
+  LoadingOverlay,
+  getProps as getLoadingOverlayProps,
+} from '~/components/Misc/LoadingOverlay';
 
-import { LoadingOverlay } from '~/components/Misc/LoadingOverlay';
-import { DataMode } from '~/domain/interactions';
+import { DataMode, TransferState } from '~/domain/interactions';
 import { usePanelResize, ResizeProps } from './hooks/usePanelResize';
 
 import css from './styles.scss';
@@ -25,8 +25,8 @@ import css from './styles.scss';
 export { DEFAULT_TS_UPDATE_DELAY, TickerEvents, OnFlowsDiffCount };
 
 interface PanelProps {
-  namespace: string;
-  dataMode: DataMode;
+  namespace: string | null;
+  transferState: TransferState;
   flowsWaitTimeout: boolean;
   flowsTableVisibleColumns: Set<Column>;
   onPanelResize?: (resizeProps: ResizeProps) => void;
@@ -49,9 +49,8 @@ export type Props = PanelProps &
     filters: SidebarProps['filters'];
   };
 
-export const DetailsPanelComponent = function (props: Props) {
+export const DetailsPanel = observer(function DetailsPanel(props: Props) {
   const panelResize = usePanelResize();
-  // const flowsTableColumns = useFlowsTableColumns();
 
   const onStreamStop = useCallback(() => {
     props.onStreamStop?.();
@@ -61,8 +60,9 @@ export const DetailsPanelComponent = function (props: Props) {
     props.onPanelResize?.(panelResize.props);
   }, [props.onPanelResize, panelResize.props]);
 
-  const tableLoaded =
-    props.flows.length > 0 && props.dataMode === DataMode.RealtimeStreaming;
+  const dataMode = props.transferState.dataMode;
+  const tableLoaded = props.flows.length > 0 && dataMode === DataMode.CiliumStreaming;
+  const loadingOverlay = getLoadingOverlayProps(props.flowsWaitTimeout, dataMode, props.namespace);
 
   return (
     <div className={css.panel} ref={panelResize.ref} style={panelResize.style}>
@@ -83,16 +83,12 @@ export const DetailsPanelComponent = function (props: Props) {
             selectedFlow={props.selectedFlow}
             onSelectFlow={props.onSelectFlow}
             onFlowsDiffCount={props.onFlowsDiffCount}
-            ticker={props.ticker}
           />
         ) : (
           <LoadingOverlay
-            text={
-              props.flowsWaitTimeout
-                ? `No flows found for ${props.namespace} namespace. Will continue to monitor for new flows…`
-                : 'Waiting for flows to show flows table…'
-            }
-            spinnerIntent={props.flowsWaitTimeout ? 'none' : 'success'}
+            text={loadingOverlay.text.flowsTable}
+            isSpinnerHidden={loadingOverlay.isSpinnerHidden}
+            spinnerIntent={loadingOverlay.spinnerIntent}
           />
         )}
       </div>
@@ -113,10 +109,6 @@ export const DetailsPanelComponent = function (props: Props) {
       )}
     </div>
   );
-};
-
-export const DetailsPanel: FunctionComponent<Props> = observer(
-  DetailsPanelComponent,
-);
+});
 
 export { ResizeProps };

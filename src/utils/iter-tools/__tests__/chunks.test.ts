@@ -102,8 +102,6 @@ describe('chunks', () => {
     });
 
     test('window = 1, overlap = 1', () => {
-      const cb = jest.fn();
-
       expect(() => {
         chunks(arr, 1, 1).forEach(() => {
           return;
@@ -112,8 +110,6 @@ describe('chunks', () => {
     });
 
     test('window = 100, overlap = 100', () => {
-      const cb = jest.fn();
-
       expect(() => {
         chunks(arr, 100, 100).forEach(() => {
           return;

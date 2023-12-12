@@ -1,10 +1,6 @@
 import { segmentsIntersection, XY } from '~/domain/geometry';
 
-const testSegments = (
-  caption: string,
-  p: [XY, XY, XY, XY],
-  expected: XY | null,
-) => {
+const testSegments = (caption: string, p: [XY, XY, XY, XY], expected: XY | null) => {
   const r1 = segmentsIntersection(p[0], p[1], p[2], p[3]);
   const r2 = segmentsIntersection(p[1], p[0], p[3], p[2]);
   const r3 = segmentsIntersection(p[2], p[3], p[0], p[1]);
@@ -162,6 +158,39 @@ describe('segments mode', () => {
       { x: 100, y: 100 },
       { x: 100, y: 0 },
       { x: 105, y: 0 },
+    ],
+    null,
+  );
+
+  testSegments(
+    'regular 4',
+    [
+      { x: 1520, y: 1117 },
+      { x: 2080, y: 1117 },
+      { x: 2120, y: 1167 },
+      { x: 1440, y: 843 },
+    ],
+    { x: 2015.06, y: 1117 },
+  );
+
+  testSegments(
+    'regular 5',
+    [
+      { x: 2080, y: 1117 },
+      { x: 2080, y: 1364 },
+      { x: 2120, y: 1167 },
+      { x: 1440, y: 843 },
+    ],
+    { x: 2080, y: 1147.9411764705883 },
+  );
+
+  testSegments(
+    'regular 6',
+    [
+      { x: 1520, y: 1117 },
+      { x: 1520, y: 1364 },
+      { x: 2120, y: 1167 },
+      { x: 1440, y: 843 },
     ],
     null,
   );

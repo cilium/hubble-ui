@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package customprotocol;
+
+// =========================== Channel ================================
+//                                     / --- Outgoing messages --- \ 
+//                                    { Message 1 } ... { Message M }
+//                                <---
+//                                --->
+//  / --- Incoming messages --- \ 
+// { Message 1 } ... { Message N }
+// ====================================================================
+
+// NOTE: The same structure is used for both Request and Response
+message Message {
+  Meta meta = 1;
+  Body body = 2;
+}
+
+message Meta {
+  // NOTE: This field can be used for debug or ux research purposes.
+  string trace_id = 1;
+
+  // NOTE: This identifier can be used to mark logical channel or stream. For
+  // example when we establish a stream, we also need to route user requests
+  // to stored (cached) streams. The same is applied when used with chunks/etc.
+  string channel_id = 2;
+
+  // NOTE: This is a name of route this message delivered to/from.
+  string route_name = 3;
+
+
+  // NOTE: Should be true if sender handler is terminating 
+  bool is_terminated = 4;
+
+  // NOTE: Indicates that outgoing message is not ready yet. Polling request
+  // must be repeated after poll_delay_ms (see below).
+  bool is_not_ready = 5;
+
+  // NOTE: Error (handler or internal) occured, its details serialized to body
+  bool is_error = 6;
+  repeated Error errors = 7;
+
+  // NOTE: Server will use this field to notify the client on what time it
+  // should wait before doing next poll request.
+  uint64 poll_delay_ms = 8;
+
+  // NOTE: When sent from backend, this flag means that there are no messages
+  // in outgoing channel. Combined with `is_terminated` flag this one can be
+  // used to prevent further polling/closing requests.
+  bool is_empty = 9;
+
+  // NOTE: This fields are useful for organizing page navigation or data
+  // transfer in similar manner
+  string last_datum_id = 100;
+  string next_datum_id = 101;
+}
+
+message Error {
+  Kind kind = 1;
+  int32 code = 2;
+  string message = 3;
+
+  enum Kind {
+    Unknown = 0;
+    Grpc = 1;
+  }
+}
+
+message Body {
+  bytes content = 1;
+}

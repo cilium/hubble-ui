@@ -151,9 +151,7 @@ export class Connections<E extends Endpoint> {
     return inv;
   }
 
-  public forEach(
-    cb: (receivers: PartialConnections<E>, senderId: string) => void,
-  ) {
+  public forEach(cb: (receivers: PartialConnections<E>, senderId: string) => void) {
     this._connections.forEach(cb);
   }
 
@@ -218,9 +216,7 @@ export class GroupedPartialConnections<E extends Endpoint> {
     return this._connections.get(rid);
   }
 
-  public forEach(
-    cb: (receiverPorts: Connections<E>, receiverId: string) => void,
-  ) {
+  public forEach(cb: (receiverPorts: Connections<E>, receiverId: string) => void) {
     this._connections.forEach(cb);
   }
 

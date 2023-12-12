@@ -1,10 +1,5 @@
 import { PopoverProps } from '@blueprintjs/core';
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 
 export function usePopover({
   preventDefault = true,
@@ -47,7 +42,7 @@ export function usePopover({
     (event?: React.SyntheticEvent) => {
       stopPropagation && event?.stopPropagation();
       preventDefault && event?.preventDefault();
-      setIsOpen(!isOpen);
+      setIsOpen(prevState => !prevState);
     },
     [stopPropagation, preventDefault],
   );

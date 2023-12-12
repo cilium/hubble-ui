@@ -2,12 +2,7 @@ import React from 'react';
 
 export function VerdictFiltersIcon() {
   return (
-    <svg
-      width="21"
-      height="16"
-      fill="currentColor"
-      xmlns="http://www.w3.org/2000/svg"
-    >
+    <svg width="21" height="16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
       <rect width="21" height="16" rx="2" />
       <path
         d="M14.857 6.393l-4.238-4.238a.538.538 0 00-.76 0L7.74 4.274c-.21.21-.21.55 0 .76l1.494 1.494L8.12 7.642l-.027-.027a.46.46 0 00-.652 0l-3.314 3.314a.46.46 0 000 .652l1.25 1.25c.18.18.472.18.652 0l3.314-3.315a.46.46 0 000-.651l-.027-.028 1.113-1.113 1.549 1.548c.21.21.55.21.76 0l2.119-2.118c.21-.21.21-.551 0-.761zM16.596 12.998H9.682v-1.222c0-.343.278-.622.622-.622h5.67c.344 0 .623.278.623.622v1.222z"

@@ -1,3 +1,5 @@
+import { Disposer } from './disposer';
+
 export type HandlerTypes<T = any> = {
   [K in keyof T]: (...args: any[]) => any;
 };
@@ -8,6 +10,8 @@ export class EventEmitter<T extends HandlerTypes> {
 
   private cachedEvents: Map<keyof T, any[][]> = new Map();
   private isCaching: boolean;
+
+  private lastDisposerFn?: () => void;
 
   // NOTE: caching mode allows not to lose events when no handlers is assigned
   constructor(caching?: boolean) {
@@ -21,6 +25,10 @@ export class EventEmitter<T extends HandlerTypes> {
     return this;
   }
 
+  public disposer(root?: Disposer): Disposer {
+    return (root ?? Disposer.new()).chain(this.lastDisposerFn);
+  }
+
   public on<K extends keyof T>(event: K, handler: T[K]) {
     if (!this.onHandlers.has(event)) {
       this.onHandlers.set(event, new Set());
@@ -29,9 +37,11 @@ export class EventEmitter<T extends HandlerTypes> {
     this.onHandlers.get(event)?.add(handler);
     this.emitCached(event, handler);
 
-    return () => {
+    this.lastDisposerFn = () => {
       this.off(event, handler);
     };
+
+    return this.lastDisposerFn;
   }
 
   public once<K extends keyof T>(event: K, handler: T[K]) {
@@ -42,9 +52,11 @@ export class EventEmitter<T extends HandlerTypes> {
     this.onceHandlers.get(event)?.add(handler);
     this.emitCached(event, handler, true);
 
-    return () => {
+    this.lastDisposerFn = () => {
       this.off(event, handler);
     };
+
+    return this.lastDisposerFn;
   }
 
   public off<K extends keyof T>(event: K, handler?: T[K] | null) {
@@ -97,6 +109,21 @@ export class EventEmitter<T extends HandlerTypes> {
     });
 
     return cached;
+  }
+
+  protected moveCachedEventsTo(targetEmitter: EventEmitter<T>) {
+    this.getCachedEvents().forEach((payloads, evt) => {
+      payloads.forEach(payload => {
+        targetEmitter.emit(evt, ...(payload as any));
+        this.cachedEvents.set(evt, []);
+      });
+    });
+  }
+
+  protected dropCachedEvents<K extends keyof T>(eventsToDrop: K[]) {
+    eventsToDrop.forEach(evt => {
+      this.cachedEvents.set(evt, []);
+    });
   }
 
   private emitCached<K extends keyof T>(evt: K, handler: T[K], once?: boolean) {

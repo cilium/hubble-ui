@@ -12,6 +12,8 @@ import {
   AuthType,
 } from '~/domain/hubble';
 
+import { MockServiceIdentity } from '~/testing/data/services';
+
 export const selectedNamespace = 'jobs-demo';
 
 export const links: HubbleLink[] = [
@@ -22,6 +24,13 @@ export const links: HubbleLink[] = [
     destinationPort: 443,
     ipProtocol: IPProtocol.TCP,
     verdict: Verdict.Forwarded,
+    flowAmount: 2,
+    bytesTransfered: 8192,
+    latency: {
+      min: { seconds: 0, nanos: 5e6 },
+      max: { seconds: 0, nanos: 25e6 },
+      avg: { seconds: 0, nanos: 15e6 },
+    },
     authType: AuthType.Disbaled,
     isEncrypted: false,
   },
@@ -32,6 +41,13 @@ export const links: HubbleLink[] = [
     destinationPort: 8080,
     ipProtocol: IPProtocol.TCP,
     verdict: Verdict.Forwarded,
+    flowAmount: 2,
+    bytesTransfered: 8192,
+    latency: {
+      min: { seconds: 0, nanos: 5e6 },
+      max: { seconds: 0, nanos: 25e6 },
+      avg: { seconds: 0, nanos: 15e6 },
+    },
     authType: AuthType.Disbaled,
     isEncrypted: false,
   },
@@ -42,6 +58,13 @@ export const links: HubbleLink[] = [
     destinationPort: 8080,
     ipProtocol: IPProtocol.TCP,
     verdict: Verdict.Dropped,
+    flowAmount: 2,
+    bytesTransfered: 8192,
+    latency: {
+      min: { seconds: 0, nanos: 5e6 },
+      max: { seconds: 0, nanos: 25e6 },
+      avg: { seconds: 0, nanos: 15e6 },
+    },
     authType: AuthType.Disbaled,
     isEncrypted: false,
   },
@@ -52,6 +75,13 @@ export const links: HubbleLink[] = [
     destinationPort: 443,
     ipProtocol: IPProtocol.TCP,
     verdict: Verdict.Dropped,
+    flowAmount: 2,
+    bytesTransfered: 8192,
+    latency: {
+      min: { seconds: 0, nanos: 5e6 },
+      max: { seconds: 0, nanos: 25e6 },
+      avg: { seconds: 0, nanos: 15e6 },
+    },
     authType: AuthType.Disbaled,
     isEncrypted: false,
   },
@@ -62,6 +92,13 @@ export const links: HubbleLink[] = [
     destinationPort: 80,
     ipProtocol: IPProtocol.TCP,
     verdict: Verdict.Forwarded,
+    flowAmount: 2,
+    bytesTransfered: 8192,
+    latency: {
+      min: { seconds: 0, nanos: 5e6 },
+      max: { seconds: 0, nanos: 25e6 },
+      avg: { seconds: 0, nanos: 15e6 },
+    },
     authType: AuthType.Disbaled,
     isEncrypted: false,
   },
@@ -72,6 +109,13 @@ export const links: HubbleLink[] = [
     destinationPort: 9981,
     ipProtocol: IPProtocol.TCP,
     verdict: Verdict.Forwarded,
+    flowAmount: 2,
+    bytesTransfered: 8192,
+    latency: {
+      min: { seconds: 0, nanos: 5e6 },
+      max: { seconds: 0, nanos: 25e6 },
+      avg: { seconds: 0, nanos: 15e6 },
+    },
     authType: AuthType.Disbaled,
     isEncrypted: false,
   },
@@ -82,6 +126,13 @@ export const links: HubbleLink[] = [
     destinationPort: 9200,
     ipProtocol: IPProtocol.UDP,
     verdict: Verdict.Forwarded,
+    flowAmount: 2,
+    bytesTransfered: 8192,
+    latency: {
+      min: { seconds: 0, nanos: 5e6 },
+      max: { seconds: 0, nanos: 25e6 },
+      avg: { seconds: 0, nanos: 15e6 },
+    },
     authType: AuthType.Disbaled,
     isEncrypted: false,
   },
@@ -92,6 +143,13 @@ export const links: HubbleLink[] = [
     destinationPort: 9092,
     ipProtocol: IPProtocol.ICMPv4,
     verdict: Verdict.Forwarded,
+    flowAmount: 2,
+    bytesTransfered: 8192,
+    latency: {
+      min: { seconds: 0, nanos: 5e6 },
+      max: { seconds: 0, nanos: 25e6 },
+      avg: { seconds: 0, nanos: 15e6 },
+    },
     authType: AuthType.Disbaled,
     isEncrypted: false,
   },
@@ -102,6 +160,13 @@ export const links: HubbleLink[] = [
     destinationPort: 9982,
     ipProtocol: IPProtocol.ICMPv6,
     verdict: Verdict.Forwarded,
+    flowAmount: 2,
+    bytesTransfered: 8192,
+    latency: {
+      min: { seconds: 0, nanos: 5e6 },
+      max: { seconds: 0, nanos: 25e6 },
+      avg: { seconds: 0, nanos: 15e6 },
+    },
     authType: AuthType.Disbaled,
     isEncrypted: false,
   },
@@ -112,6 +177,13 @@ export const links: HubbleLink[] = [
     destinationPort: 9201,
     ipProtocol: IPProtocol.TCP,
     verdict: Verdict.Forwarded,
+    flowAmount: 2,
+    bytesTransfered: 8192,
+    latency: {
+      min: { seconds: 0, nanos: 5e6 },
+      max: { seconds: 0, nanos: 25e6 },
+      avg: { seconds: 0, nanos: 15e6 },
+    },
     authType: AuthType.Disbaled,
     isEncrypted: false,
   },
@@ -122,6 +194,13 @@ export const links: HubbleLink[] = [
     destinationPort: 9201,
     ipProtocol: IPProtocol.TCP,
     verdict: Verdict.Forwarded,
+    flowAmount: 2,
+    bytesTransfered: 8192,
+    latency: {
+      min: { seconds: 0, nanos: 5e6 },
+      max: { seconds: 0, nanos: 25e6 },
+      avg: { seconds: 0, nanos: 15e6 },
+    },
     authType: AuthType.Disbaled,
     isEncrypted: false,
   },
@@ -132,6 +211,13 @@ export const links: HubbleLink[] = [
     destinationPort: 9201,
     ipProtocol: IPProtocol.TCP,
     verdict: Verdict.Forwarded,
+    flowAmount: 2,
+    bytesTransfered: 8192,
+    latency: {
+      min: { seconds: 0, nanos: 5e6 },
+      max: { seconds: 0, nanos: 25e6 },
+      avg: { seconds: 0, nanos: 15e6 },
+    },
     authType: AuthType.Disbaled,
     isEncrypted: false,
   },
@@ -148,6 +234,8 @@ export const services: HubbleService[] = [
     ingressPolicyEnforced: false,
     visibilityPolicyStatus: '?unknown?',
     creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
+    workloads: [],
+    identity: MockServiceIdentity.World,
   },
   {
     id: 'reserved:world:incoming',
@@ -159,6 +247,8 @@ export const services: HubbleService[] = [
     ingressPolicyEnforced: false,
     visibilityPolicyStatus: '?unknown?',
     creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
+    workloads: [],
+    identity: MockServiceIdentity.World,
   },
   {
     id: 'a8de92d55119c9a6bb6a6dd66bcf012fabefb32d',
@@ -175,6 +265,8 @@ export const services: HubbleService[] = [
     ingressPolicyEnforced: false,
     visibilityPolicyStatus: '?unknown?',
     creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
+    workloads: [],
+    identity: 101,
   },
   {
     id: '91085aa98c983e249442e887d70ebc568f4ef07b',
@@ -191,6 +283,8 @@ export const services: HubbleService[] = [
     ingressPolicyEnforced: false,
     visibilityPolicyStatus: '?unknown?',
     creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
+    workloads: [],
+    identity: 102,
   },
   {
     id: 'ca111583bf9c9a3547c0c10aa5e77aa97d0e6a14',
@@ -207,6 +301,8 @@ export const services: HubbleService[] = [
     ingressPolicyEnforced: true,
     visibilityPolicyStatus: '?unknown?',
     creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
+    workloads: [],
+    identity: 103,
   },
   {
     id: 'd2f41b3210a1447bae8f194e1f611793e381a4f0',
@@ -224,6 +320,8 @@ export const services: HubbleService[] = [
     ingressPolicyEnforced: true,
     visibilityPolicyStatus: '?unknown?',
     creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
+    workloads: [],
+    identity: 104,
   },
   {
     id: '5eee91c15081c2d4fac733c517ecb71ac095053a',
@@ -241,6 +339,8 @@ export const services: HubbleService[] = [
     ingressPolicyEnforced: false,
     visibilityPolicyStatus: '?unknown?',
     creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
+    workloads: [],
+    identity: 105,
   },
   {
     id: 'a31f0187f650569a41eb9ddd48ca470c96c7d753',
@@ -257,6 +357,8 @@ export const services: HubbleService[] = [
     ingressPolicyEnforced: true,
     visibilityPolicyStatus: '?unknown?',
     creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
+    workloads: [],
+    identity: 106,
   },
   {
     id: '3ccf93bf4b7a7e6b832bcfac1df78ddf26450a9e',
@@ -273,6 +375,8 @@ export const services: HubbleService[] = [
     ingressPolicyEnforced: true,
     visibilityPolicyStatus: '?unknown?',
     creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
+    workloads: [],
+    identity: 107,
   },
   {
     id: '669333a2d60b773d01e9a73837cd92fac3d9ecf0',
@@ -289,6 +393,8 @@ export const services: HubbleService[] = [
     ingressPolicyEnforced: false,
     visibilityPolicyStatus: '?unknown?',
     creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
+    workloads: [],
+    identity: 108,
   },
   {
     id: '872ihs09123iou897ykjashk291029oospi09123',
@@ -300,6 +406,8 @@ export const services: HubbleService[] = [
     ingressPolicyEnforced: false,
     visibilityPolicyStatus: '?unknown?',
     creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
+    workloads: [],
+    identity: MockServiceIdentity.RemoteNode,
   },
   {
     id: 'k8sbkjh1279asjk980712375hsakfs98109822nj',
@@ -316,6 +424,8 @@ export const services: HubbleService[] = [
     ingressPolicyEnforced: false,
     visibilityPolicyStatus: '?unknown?',
     creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
+    workloads: [],
+    identity: MockServiceIdentity.KubeDNS,
   },
   {
     id: 'prometheus-app',
@@ -332,6 +442,8 @@ export const services: HubbleService[] = [
     ingressPolicyEnforced: false,
     visibilityPolicyStatus: '?unknown?',
     creationTimestamp: dataHelpers.msToPbTimestamp(Date.now()),
+    workloads: [],
+    identity: 109,
   },
 ];
 
@@ -340,7 +452,8 @@ export const flows: HubbleFlow[] = range(1000).map((): HubbleFlow => {
     source: {
       id: 0,
       identity: 0,
-      labelsList: ['app=kafka'],
+      labels: ['app=kafka'],
+      workloads: [],
       namespace: 'kube-system',
       podName: `kafka-${Math.random() * 10}`,
     },
@@ -351,7 +464,8 @@ export const flows: HubbleFlow[] = range(1000).map((): HubbleFlow => {
     destination: {
       id: 1,
       identity: 1,
-      labelsList: ['app=loader'],
+      labels: ['app=loader'],
+      workloads: [],
       namespace: 'kube-system',
       podName: `loader-${Math.random() * 10}`,
     },
@@ -369,8 +483,7 @@ export const flows: HubbleFlow[] = range(1000).map((): HubbleFlow => {
       },
     },
     verdict: Math.random() <= 0.5 ? Verdict.Forwarded : Verdict.Dropped,
-    trafficDirection:
-      Math.random() <= 0.5 ? TrafficDirection.Egress : TrafficDirection.Ingress,
+    trafficDirection: Math.random() <= 0.5 ? TrafficDirection.Egress : TrafficDirection.Ingress,
     authType: AuthType.Disbaled,
   };
 });

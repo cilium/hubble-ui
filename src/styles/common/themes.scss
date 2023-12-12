@@ -1,0 +1,122 @@
+@import './vars';
+
+@mixin light-theme {
+  color-scheme: light;
+
+  /* System | Colors */
+  --hubble-ui-color-white: #fff;
+  --hubble-ui-color-black: #000;
+  --hubble-ui-color-green: #288f0e;
+  --hubble-ui-color-blue: #215db0;
+
+  // --hubble-ui-color-green: #54a82d;
+  --hubble-ui-color-red: #d2443b;
+
+  /* Colors | Service Map */
+  --hubble-ui-color-purple: #af5fff;
+
+  /* System | Backgrounds */
+  --hubble-ui-background: #fff;
+  --hubble-ui-background-secondary: #f8f9fa;
+  --hubble-ui-background-secondary-selected: #e5ecf1;
+  --hubble-ui-background-secondary-hover: #f3f6f6;
+  --hubble-ui-background-tertiary-1: #e5ebef;
+  --hubble-ui-background-tertiary-2: #ccd7df;
+
+  /* System | Borders */
+  --hubble-ui-border: #cfd3d7;
+  --hubble-ui-border-selected: #ccd7df;
+
+  /* System | Typography */
+  --hubble-ui-text-primary: #000;
+  --hubble-ui-text-secondary: #5c7080;
+  --hubble-ui-text-tertiary: #78868e;
+  --hubble-ui-text-green: #288f0e;
+  --hubble-ui-text-red: #d2443b;
+
+  /* Nav Sidebar | Flows Verdicts | Flows Table */
+  --hubble-ui-verdict-dropped: var(--hubble-ui-color-red);
+  --hubble-ui-verdict-forwarded: var(--hubble-ui-color-green);
+
+  /* Nav Sidebar | Status Center Handle */
+  --hubble-ui-status-circle-green-light: #77d31b;
+  --hubble-ui-status-circle-green-dark: #5cb800;
+  --hubble-ui-status-circle-red-light: #ff3c3c;
+  --hubble-ui-status-circle-red-dark: #e40000;
+  --hubble-ui-connectionindicator-label: #7c8389;
+  --hubble-ui-connectionindicator-flows-nodes-label: #5c7080;
+  --hubble-ui-connectionindicator-color-idle: #c7c7c7;
+  --hubble-ui-connectionindicator-color-receiving: #71bd25;
+  --hubble-ui-connectionindicator-color-reconnecting: #71bd25;
+  --hubble-ui-connectionindicator-color-stopped: #71bd25;
+  --hubble-ui-statuscenterhandle-border: var(--hubble-ui-border);
+  --hubble-ui-statuscenterhandle-caption: var(--hubble-ui-text-primary);
+  --hubble-ui-statuscenterhandle-critical-bg: #e98585;
+  --hubble-ui-statuscenterhandle-critical-border: #df6363;
+  --hubble-ui-statuscenterhandle-critical-text: #fff7f7;
+
+  /* Nav Sidebar | Status Center Window */
+  --hubble-ui-statuscenterwindow-bg: #f8f9fa;
+  --hubble-ui-statuscenterwindow-title: var(--hubble-ui-text-secondary);
+  --hubble-ui-statuscenterwindow-no-entries: var(--hubble-ui-text-tertiary);
+  --hubble-ui-statuscenterwindow-logentry-bg: #cbe0ec;
+  --hubble-ui-statuscenterwindow-logentry-icon-bg: #cbe0ec;
+  --hubble-ui-statuscenterwindow-intent-none-bg: #f7f7f7;
+  --hubble-ui-statuscenterwindow-intent-none-border: #b7b7b7;
+  --hubble-ui-statuscenterwindow-intent-none: #818181;
+  --hubble-ui-statuscenterwindow-intent-critical-bg: #fff6f5;
+  --hubble-ui-statuscenterwindow-intent-critical-error-highlight-bg: #f9f1f1;
+  --hubble-ui-statuscenterwindow-intent-critical-border: #f8bab6;
+  --hubble-ui-statuscenterwindow-intent-critical: #f3574d;
+  --hubble-ui-statuscenterwindow-component-bg: #eaf7ff;
+  --hubble-ui-statuscenterwindow-component-border: #b6c9cf;
+  --hubble-ui-statuscenterwindow-component: var(--hubble-ui-text-tertiary);
+
+  /* Map */
+  --hubble-ui-map-bg: linear-gradient(
+    180deg,
+    var(--hubble-ui-background-tertiary-1) 0%,
+    var(--hubble-ui-background-tertiary-2) 100%
+  );
+  --hubble-ui-svcmap-boxshadow: inset 0 0 23px rgb(8 44 65 / 12%);
+  --hubble-ui-svcmap-traffic-forwarded: #31a413;
+  --hubble-ui-svcmap-traffic-dropped: #c50000;
+  --hubble-ui-svcmap-feet-arrow-outer: #ebeef0;
+  --hubble-ui-svcmap-arrow-handle: #acb1b8;
+
+  /* Card */
+  --hubble-ui-card-boxshadow: none;
+  --hubble-ui-card-boxshadow-hover: #{$pt-elevation-shadow-3};
+  --hubble-ui-card-boxshadow-active: #{$pt-elevation-shadow-1};
+
+  /* Service Map | Card */
+  --hubble-ui-svcmap-card-bg-primary: rgb(251 251 251 / 85%);
+  --hubble-ui-svcmap-card-bg-secondary: #f6f6f6;
+  --hubble-ui-svcmap-card-httpendpt-bg: #fff;
+  --hubble-ui-svcmap-card-label-bg: #eaeaea;
+  --hubble-ui-svcmap-card-nozzle-bg: #e3eaee;
+  --hubble-ui-svcmap-card-border: #acb1b8;
+  --hubble-ui-svcmap-card-container-border: #d4d4d4;
+  --hubble-ui-svcmap-card-divider: #e4e4e4;
+  --hubble-ui-svcmap-card-text-primary: #000;
+  --hubble-ui-svcmap-card-label-text: #929292;
+
+  // EndpointHeader
+  --hubble-ui-svcmap-card-endpt-title: #303030;
+  --hubble-ui-svcmap-card-endpt-subtitle: #969696;
+  --hubble-ui-svcmap-card-endpt-connectors-border: #e4e4e4;
+  --hubble-ui-svcmap-card-endpt-connectors-active: #137cbd;
+
+  // AccessPoint
+  --hubble-ui-svcmap-card-port: #848484;
+  --hubble-ui-svcmap-card-protocol: #000;
+  --hubble-ui-svcmap-card-dot-bg: #c8cdd3;
+  --hubble-ui-svcmap-card-endpoints-limit: #929a9f;
+
+  // HTTP Endpoint
+  --hubble-ui-svcmap-card-httpendpt-border: #d4d4d4;
+  --hubble-ui-svcmap-card-httpendpt-connector-circle-border: var(--hubble-ui-color-purple);
+  --hubble-ui-svcmap-card-httpendpt-connector-circle-outer: var(--hubble-ui-color-purple);
+  --hubble-ui-svcmap-card-httpendpt-connector-circle-inner: #d6c1ff;
+  --hubble-ui-svcmap-card-httpendpt-connector-method: var(--hubble-ui-color-purple);
+ }

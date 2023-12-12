@@ -29,8 +29,24 @@ export class XYWH implements XY, WH {
     return new XYWH(xy.x, xy.y, wh.w, wh.h);
   }
 
+  public static fromDOMRect(dr: DOMRect): XYWH {
+    return new XYWH(dr.x, dr.y, dr.width, dr.height);
+  }
+
   public static empty(): XYWH {
     return new XYWH(0, 0, 0, 0);
+  }
+
+  public applyDOMMatrix(m: DOMMatrix): XYWH {
+    const xy = new DOMPoint(this.x, this.y);
+    const txy = xy.matrixTransform(m);
+
+    // const wh = new DOMPoint(this.w, this.h);
+    // const twh = wh.matrixTransform(m);
+    const w = this.w * m.a;
+    const h = this.h * m.d;
+
+    return XYWH.fromArgs(txy.x, txy.y, w, h);
   }
 
   // The same logic as in CSS
@@ -66,12 +82,7 @@ export class XYWH implements XY, WH {
   public transform(dx: number, dy: number, scale?: number): XYWH {
     scale = scale || 1.0;
 
-    return XYWH.fromArgs(
-      this.x + dx,
-      this.y + dy,
-      this.w * scale,
-      this.h * scale,
-    );
+    return XYWH.fromArgs(this.x + dx, this.y + dy, this.w * scale, this.h * scale);
   }
 
   public setWH(wh: WH): XYWH {
@@ -84,6 +95,35 @@ export class XYWH implements XY, WH {
 
   public setXY(x?: number, y?: number): XYWH {
     return XYWH.fromArgs(x ?? this.x, y ?? this.y, this.w, this.h);
+  }
+
+  public addXY(dx: number, dy: number, inPlace = true): XYWH {
+    if (inPlace) {
+      this.x += dx;
+      this.y += dy;
+
+      return this;
+    }
+
+    return XYWH.fromArgs(this.x + dx, this.y + dy, this.w, this.h);
+  }
+
+  public centerRelativeTo(xy: XY): XY {
+    return {
+      x: this.center.x - xy.x,
+      y: this.center.y - xy.y,
+    };
+  }
+
+  public equals(rhs?: XYWH | null): boolean {
+    if (rhs == null) return false;
+
+    return (
+      tooSmall(this.x - rhs.x) &&
+      tooSmall(this.y - rhs.y) &&
+      tooSmall(this.w - rhs.w) &&
+      tooSmall(this.h - rhs.h)
+    );
   }
 
   public get sides(): Sides {
@@ -124,12 +164,7 @@ export class XYWH implements XY, WH {
   }
 
   public get isEmpty(): boolean {
-    return (
-      tooSmall(this.x) &&
-      tooSmall(this.y) &&
-      tooSmall(this.w) &&
-      tooSmall(this.h)
-    );
+    return tooSmall(this.x) && tooSmall(this.y) && tooSmall(this.w) && tooSmall(this.h);
   }
 
   public get xy(): XY {
@@ -138,5 +173,9 @@ export class XYWH implements XY, WH {
 
   public get wh(): WH {
     return { w: this.w, h: this.h };
+  }
+
+  public get center(): XY {
+    return { x: this.x + this.w / 2, y: this.y + this.h / 2 };
   }
 }

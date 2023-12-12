@@ -7,11 +7,7 @@ export interface Pluralized {
   be: string;
 }
 
-export const pluralize = (
-  word: string,
-  num: number,
-  concat?: boolean,
-): Pluralized => {
+export const pluralize = (word: string, num: number, concat?: boolean): Pluralized => {
   return {
     num,
     plural: _pluralize(word, num, !!concat),

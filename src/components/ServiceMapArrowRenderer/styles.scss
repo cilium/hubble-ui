@@ -1,0 +1,25 @@
+$hovered-control: #01a4ff;
+
+.flowsInfoIndicator {
+  cursor: default;
+
+  &:hover {
+    .circles {
+      .outer {
+        stroke: $hovered-control;
+      }
+
+      .dot {
+        fill: $hovered-control;
+      }
+    }
+  }
+}
+
+.outerInnerLine {
+  stroke: var(--hubble-ui-svcmap-feet-arrow-outer);
+}
+
+.arrowHandle {
+  fill: var(--hubble-ui-svcmap-arrow-handle);
+}

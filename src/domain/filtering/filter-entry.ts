@@ -1,11 +1,14 @@
+import _ from 'lodash';
+
 import { Labels } from '~/domain/labels';
-import { PodSelector } from '~/domain/hubble';
+import { PodSelector, Workload } from '~/domain/hubble';
 
 export enum Kind {
   Label = 'label',
   Ip = 'ip',
   Dns = 'dns',
   Identity = 'identity',
+  Workload = 'workload',
   TCPFlag = 'tcp-flag',
   Pod = 'pod',
 }
@@ -13,15 +16,15 @@ export enum Kind {
 export enum Direction {
   From = 'from',
   To = 'to',
-  Both = 'both',
+  Either = 'either',
 }
 
 export interface Params {
   kind: Kind;
   direction: Direction;
   query: string;
-  negative?: boolean;
   meta?: string;
+  negative?: boolean;
 }
 
 // TODO: write tests for parsing / serializing
@@ -29,71 +32,34 @@ export class FilterEntry {
   public kind: Kind;
   public direction: Direction;
   public query: string;
-  public negative: boolean;
   public meta?: string;
+  public negative: boolean;
 
-  public static parseFull(userInput: string): FilterEntry | null {
-    const negative: boolean = userInput[0] === '!';
-    if (negative) userInput = userInput.substring(1);
+  public static parseMany(src: any, sep = ','): FilterEntry[] {
+    if (!src || !_.isString(src)) return [];
 
-    let [rawDirection] = userInput.split(':');
-    rawDirection = rawDirection || '';
+    return src.split(sep).reduce((acc, part) => {
+      part = part.trim();
+      if (!part) return acc;
 
-    const [rawKind] = userInput.slice(rawDirection.length + 1).split('=');
-    if (!rawKind) return null;
+      const entry = FilterEntry.parse(part);
+      if (!entry) return acc;
 
-    const rawQuery = userInput.slice(rawDirection.length + rawKind.length + 2);
-
-    const direction = FilterEntry.parseDirection(rawDirection);
-    if (!direction) return null;
-
-    const kind = FilterEntry.parseKind(rawKind);
-    if (!kind) return null;
-
-    const query = FilterEntry.parseQuery(kind, rawQuery);
-    if (!query) return null;
-
-    return new FilterEntry({ kind, direction, query, negative });
+      acc.push(entry);
+      return acc;
+    }, [] as FilterEntry[]);
   }
 
   public static parse(userInput: string): FilterEntry | null {
-    const negative: boolean = userInput[0] === '!';
-    if (negative) userInput = userInput.substring(1);
     if (userInput.length === 0) return null;
 
-    let kind: Kind = Kind.Label;
-    let direction: Direction = Direction.Both;
-    let query: string = userInput;
-    let parts = userInput.split(':');
-    let rest: string[] = [];
+    const parts = FilterEntry.parseParts(userInput);
+    if (parts == null) return null;
 
-    const [rawDirection, ...firstRest] = parts;
-    const parsedDirection = FilterEntry.parseDirection(rawDirection);
-    if (parsedDirection) {
-      direction = parsedDirection;
-      rest = firstRest;
-    } else {
-      rest = [rawDirection].concat(firstRest);
-    }
+    const [direction, kind, rest, negative] = parts;
+    const [query, meta] = FilterEntry.parseRest(kind, rest);
 
-    const kindWithQuery = rest.join(':');
-    parts = kindWithQuery.split('=');
-    if (parts.length < 2) {
-      query = FilterEntry.parseQuery(kind, parts[0] || '');
-      return new FilterEntry({ kind, direction, query, negative });
-    }
-
-    const [rawKind, ...secondRest] = parts;
-    const parsedKind = FilterEntry.parseKind(rawKind);
-    if (parsedKind) {
-      kind = parsedKind;
-      rest = secondRest;
-    } else {
-      rest = [rawKind].concat(secondRest);
-    }
-
-    query = FilterEntry.parseQuery(kind, rest.join('='));
-    return new FilterEntry({ kind, direction, query, negative });
+    return new FilterEntry({ kind, direction, query, meta, negative });
   }
 
   public static parseDirection(s: string): Direction | null {
@@ -108,39 +74,52 @@ export class FilterEntry {
     return null;
   }
 
-  public static parseQuery(kind: Kind, query: string): string {
-    const normalized = query
-      .trim()
-      .replace(/^(from:|to:|both:)/g, '')
-      .trim();
+  // NOTE: This function combines base with include/exclude
+  // returning only unique entries
+  public static combine(
+    base: Iterable<FilterEntry> | null | undefined,
+    include: FilterEntry[] | null | undefined = [],
+    exclude: FilterEntry[] | null | undefined = [],
+  ): [FilterEntry[], boolean] {
+    const excludeHashes = new Set((exclude || []).map(f => f.toString()));
+    const result: FilterEntry[] = [];
+    let isChanged = false;
 
-    switch (kind) {
-      case Kind.Label: {
-        return normalized.replace(/^label=/g, '');
+    for (const fe of base || []) {
+      const key = fe.toString();
+      if (excludeHashes.has(key)) {
+        isChanged = true;
+        continue;
       }
-      case Kind.Ip: {
-        return normalized.replace(/^ip=/g, '');
-      }
-      case Kind.Dns: {
-        return normalized.replace(/^dns=/g, '');
-      }
-      case Kind.Identity: {
-        return normalized.replace(/^identity=/g, '');
-      }
-      case Kind.TCPFlag: {
-        return normalized.replace(/^tcp-flag=/g, '');
-      }
-      case Kind.Pod: {
-        return normalized.replace(/^pod=/g, '');
-      }
+
+      result.push(fe);
+
+      // NOTE: This will prevent duplicates
+      excludeHashes.add(key);
     }
+
+    for (const fe of include || []) {
+      const key = fe.toString();
+      if (excludeHashes.has(key)) continue;
+
+      result.push(fe);
+      excludeHashes.add(key);
+      isChanged = true;
+    }
+
+    return [result, isChanged];
+  }
+
+  public static unique(base: Iterable<FilterEntry> | null | undefined): FilterEntry[] {
+    const [result] = FilterEntry.combine(base);
+    return result;
   }
 
   public static newTCPFlag(flag: string): FilterEntry {
     return new FilterEntry({
       kind: Kind.TCPFlag,
       query: flag,
-      direction: Direction.Both,
+      direction: Direction.Either,
       meta: '',
     });
   }
@@ -149,7 +128,7 @@ export class FilterEntry {
     return new FilterEntry({
       kind: Kind.Label,
       query: label,
-      direction: Direction.Both,
+      direction: Direction.Either,
       meta: '',
     });
   }
@@ -158,7 +137,7 @@ export class FilterEntry {
     return new FilterEntry({
       kind: Kind.Pod,
       query: podName,
-      direction: Direction.Both,
+      direction: Direction.Either,
       meta: '',
     });
   }
@@ -171,7 +150,7 @@ export class FilterEntry {
     return new FilterEntry({
       kind: Kind.Identity,
       query: identity,
-      direction: Direction.Both,
+      direction: Direction.Either,
       meta: '',
     });
   }
@@ -180,7 +159,7 @@ export class FilterEntry {
     return new FilterEntry({
       kind: Kind.Dns,
       query: dns,
-      direction: Direction.Both,
+      direction: Direction.Either,
       meta: '',
     });
   }
@@ -189,17 +168,86 @@ export class FilterEntry {
     return new FilterEntry({
       kind: Kind.Ip,
       query: ip,
-      direction: Direction.Both,
+      direction: Direction.Either,
       meta: '',
     });
   }
 
-  constructor({ kind, direction, query, negative, meta }: Params) {
+  public static newWorkload(wl: Workload): FilterEntry {
+    return new FilterEntry({
+      kind: Kind.Workload,
+      query: wl.name,
+      direction: Direction.Either,
+      meta: wl.kind,
+    });
+  }
+
+  private static parseParts(userInput: string): [Direction, Kind, string, boolean] | null {
+    // NOTE: This helper method simplifies the original parsing of raw userInput
+    const negative: boolean = userInput[0] === '!';
+    if (negative) userInput = userInput.substring(1);
+
+    let firstColonIdx = userInput.indexOf(':');
+    let direction = Direction.Either;
+    if (firstColonIdx !== -1) {
+      const dirPart = userInput.slice(0, firstColonIdx);
+      const parsed = FilterEntry.parseDirection(dirPart);
+
+      // NOTE: If dirPart is not a correct direction, firstColonIdx points to wrong position for
+      // lates actions. To understand it, consider parsing this string: `workload=dep:app-dep`
+      if (parsed != null) {
+        direction = parsed;
+      } else {
+        firstColonIdx = -1;
+      }
+    }
+
+    const firstEqualIdx = userInput.indexOf('=');
+    if (firstEqualIdx === -1) {
+      return [direction, Kind.Label, userInput.slice(firstColonIdx + 1), negative];
+    }
+
+    const kindPart = userInput.slice(firstColonIdx + 1, firstEqualIdx);
+    const kind = FilterEntry.parseKind(kindPart);
+
+    return kind == null
+      ? [direction, Kind.Label, userInput.slice(firstColonIdx + 1), negative]
+      : [direction, kind, userInput.slice(firstEqualIdx + 1), negative];
+  }
+
+  private static parseWorkloadQueryAndMeta(value: string): [string, string | undefined] {
+    let sep = ':';
+    let parts = value.split(sep);
+
+    if (parts.length < 2) {
+      sep = '/';
+      parts = value.split(sep);
+    }
+
+    if (parts.length < 2) return [value, void 0];
+
+    const kind = parts[0];
+    const name = parts.slice(1).join(sep);
+
+    // NOTE: Name is a query (visible part of filter in search line)
+    return [name, kind];
+  }
+
+  private static parseRest(kind: Kind, rest: string): [string, string | undefined] {
+    switch (kind) {
+      case Kind.Workload:
+        return FilterEntry.parseWorkloadQueryAndMeta(rest);
+      default:
+        return [rest, void 0];
+    }
+  }
+
+  constructor({ kind, direction, query, meta, negative }: Params) {
     this.kind = kind;
     this.query = query;
     this.direction = direction;
-    this.negative = negative || false;
     this.meta = meta;
+    this.negative = negative || false;
   }
 
   public prepareLabel() {
@@ -233,9 +281,15 @@ export class FilterEntry {
   }
 
   public toString(): string {
-    return `${this.negative ? '!' : ''}${this.direction}:${this.kind}=${
-      this.query
-    }`;
+    return this.isWorkload
+      ? `${this.negative ? '!' : ''}${this.direction}:${this.kind}=${this.meta}:${this.query}`
+      : `${this.negative ? '!' : ''}${this.direction}:${this.kind}=${this.query}`;
+  }
+
+  public asWorkload(): Workload | undefined | null {
+    if (!this.meta || !this.query) return null;
+
+    return { kind: this.meta, name: this.query };
   }
 
   public clone(): FilterEntry {
@@ -243,8 +297,8 @@ export class FilterEntry {
       kind: this.kind,
       direction: this.direction,
       query: this.query,
-      negative: this.negative,
       meta: this.meta,
+      negative: this.negative,
     });
   }
 
@@ -253,7 +307,7 @@ export class FilterEntry {
       this.kind === rhs.kind &&
       this.direction === rhs.direction &&
       this.query === rhs.query &&
-      this.negative == rhs.negative
+      this.negative === rhs.negative
     );
   }
 
@@ -281,16 +335,20 @@ export class FilterEntry {
     return this.kind === Kind.Pod;
   }
 
+  public get isWorkload(): boolean {
+    return this.kind === Kind.Workload;
+  }
+
   public get fromRequired(): boolean {
-    return [Direction.Both, Direction.From].includes(this.direction);
+    return [Direction.Either, Direction.From].includes(this.direction);
   }
 
   public get toRequired(): boolean {
-    return [Direction.Both, Direction.To].includes(this.direction);
+    return [Direction.Either, Direction.To].includes(this.direction);
   }
 
   public get bothRequired(): boolean {
-    return this.direction === Direction.Both;
+    return this.direction === Direction.Either;
   }
 
   public get isFrom(): boolean {

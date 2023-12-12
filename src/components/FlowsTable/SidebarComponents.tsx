@@ -19,26 +19,24 @@ export interface LabelsEntryProps extends DirectionProps {
   onClick: (label: KV) => void;
 }
 
-export const LabelsEntry = memo<LabelsEntryProps>(
-  function FlowsTableSidebarLabelsEntry(props) {
-    return (
-      <div className={css.labels}>
-        {props.labels.map(label => {
-          const isSelected = props.selected.has(Labels.concatKV(label));
+export const LabelsEntry = memo<LabelsEntryProps>(function FlowsTableSidebarLabelsEntry(props) {
+  return (
+    <div className={css.labels}>
+      {props.labels.map(label => {
+        const isSelected = props.selected.has(Labels.concatKV(label));
 
-          return (
-            <LabelsEntryItem
-              key={Labels.concatKV(label)}
-              label={label}
-              onClick={props.onClick}
-              isSelected={isSelected}
-            />
-          );
-        })}
-      </div>
-    );
-  },
-);
+        return (
+          <LabelsEntryItem
+            key={Labels.concatKV(label)}
+            label={label}
+            onClick={props.onClick}
+            isSelected={isSelected}
+          />
+        );
+      })}
+    </div>
+  );
+});
 
 export interface LabelsEntryItemProps extends DirectionProps {
   label: KV;
@@ -131,27 +129,25 @@ export interface VerdictEntryProps {
   onClick?: () => void;
 }
 
-export const VerdictEntry = memo<VerdictEntryProps>(
-  function FlowsTableSidebarVerdictEntry(props) {
-    const className = classnames(css.verdict, {
-      [css.clickable]: !!props.onClick,
-      [css.selected]: props.isSelected,
-      [css.forwardedVerdict]: props.verdict === Verdict.Forwarded,
-      [css.droppedVerdict]: props.verdict === Verdict.Dropped,
-      [css.auditVerdict]: props.verdict === Verdict.Audit,
-    });
+export const VerdictEntry = memo<VerdictEntryProps>(function FlowsTableSidebarVerdictEntry(props) {
+  const className = classnames(css.verdict, {
+    [css.clickable]: !!props.onClick,
+    [css.selected]: props.isSelected,
+    [css.forwardedVerdict]: props.verdict === Verdict.Forwarded,
+    [css.droppedVerdict]: props.verdict === Verdict.Dropped,
+    [css.auditVerdict]: props.verdict === Verdict.Audit,
+  });
 
-    const onClick = useCallback(() => {
-      props.onClick?.();
-    }, [props.onClick]);
+  const onClick = useCallback(() => {
+    props.onClick?.();
+  }, [props.onClick]);
 
-    return (
-      <span className={className} onClick={props.onClick}>
-        {verdictHelpers.toString(props.verdict)}
-      </span>
-    );
-  },
-);
+  return (
+    <span className={className} onClick={props.onClick}>
+      {verdictHelpers.toString(props.verdict)}
+    </span>
+  );
+});
 
 export interface IPItemProps {
   ip: string;
@@ -159,24 +155,22 @@ export interface IPItemProps {
   onClick?: () => void;
 }
 
-export const IPEntry = memo<IPItemProps>(
-  function FlowsTableSidebarIPEntry(props) {
-    const onClick = useCallback(() => {
-      props.onClick?.();
-    }, [props.onClick]);
+export const IPEntry = memo<IPItemProps>(function FlowsTableSidebarIPEntry(props) {
+  const onClick = useCallback(() => {
+    props.onClick?.();
+  }, [props.onClick]);
 
-    const className = classnames(css.ip, {
-      [css.clickable]: !!props.onClick,
-      [css.selected]: props.isSelected,
-    });
+  const className = classnames(css.ip, {
+    [css.clickable]: !!props.onClick,
+    [css.selected]: props.isSelected,
+  });
 
-    return (
-      <span className={className} onClick={onClick}>
-        {props.ip}
-      </span>
-    );
-  },
-);
+  return (
+    <span className={className} onClick={onClick}>
+      {props.ip}
+    </span>
+  );
+});
 
 export interface DnsItemProps {
   dns: string;
@@ -184,24 +178,22 @@ export interface DnsItemProps {
   onClick?: () => void;
 }
 
-export const DnsBodyItem = memo<DnsItemProps>(
-  function FlowsTableSidebarDnsBodyItem(props) {
-    const onClick = useCallback(() => {
-      props.onClick?.();
-    }, [props.onClick]);
+export const DnsBodyItem = memo<DnsItemProps>(function FlowsTableSidebarDnsBodyItem(props) {
+  const onClick = useCallback(() => {
+    props.onClick?.();
+  }, [props.onClick]);
 
-    const className = classnames(css.dns, {
-      [css.clickable]: !!props.onClick,
-      [css.selected]: props.isSelected,
-    });
+  const className = classnames(css.dns, {
+    [css.clickable]: !!props.onClick,
+    [css.selected]: props.isSelected,
+  });
 
-    return (
-      <span className={className} onClick={onClick}>
-        {props.dns}
-      </span>
-    );
-  },
-);
+  return (
+    <span className={className} onClick={onClick}>
+      {props.dns}
+    </span>
+  );
+});
 
 export interface IdentityItemProps {
   identity: number;
@@ -234,21 +226,19 @@ export interface PodItemProps {
   onClick?: (_: PodSelector) => void;
 }
 
-export const PodEntry = memo<PodItemProps>(
-  function FlowsTableSidebarPodEntry(props) {
-    const onClick = useCallback(() => {
-      props.onClick?.(props.podSelector);
-    }, [props.podSelector, props.onClick]);
+export const PodEntry = memo<PodItemProps>(function FlowsTableSidebarPodEntry(props) {
+  const onClick = useCallback(() => {
+    props.onClick?.(props.podSelector);
+  }, [props.podSelector, props.onClick]);
 
-    const className = classnames(css.podd, {
-      [css.clickable]: !!props.onClick,
-      [css.selected]: props.isSelected,
-    });
+  const className = classnames(css.podd, {
+    [css.clickable]: !!props.onClick,
+    [css.selected]: props.isSelected,
+  });
 
-    return (
-      <span className={className} onClick={onClick}>
-        {props.podSelector.pod}
-      </span>
-    );
-  },
-);
+  return (
+    <span className={className} onClick={onClick}>
+      {props.podSelector.pod}
+    </span>
+  );
+});

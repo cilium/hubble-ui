@@ -1,7 +1,15 @@
-import { HubbleService, IPProtocol, Verdict } from '~/domain/hubble';
-import { Link } from '~/domain/link';
+import { HubbleService } from '~/domain/hubble';
 import { Labels, ReservedLabel, SpecialLabel, KV } from '~/domain/labels';
 import { msToPbTimestamp } from '~/domain/helpers';
+
+export enum MockServiceIdentity {
+  World = 0,
+  Host = 1,
+  RemoteNode = 2,
+  KubeDNS = 3,
+  Regular1 = 4,
+  Regular2 = 5,
+}
 
 const restOfService = {
   egressPolicyEnforced: false,
@@ -20,6 +28,8 @@ export const regular: HubbleService = {
     { key: 'lbl-key', value: 'random-value' },
   ],
   dnsNames: [],
+  workloads: [{ kind: 'StatefulSets', name: 'regular' }],
+  identity: MockServiceIdentity.Regular1,
   ...restOfService,
 };
 
@@ -33,6 +43,8 @@ export const regular1: HubbleService = {
     { key: 'lbl-key', value: 'random-value' },
   ],
   dnsNames: [],
+  workloads: [],
+  identity: MockServiceIdentity.Regular1,
   ...restOfService,
 };
 
@@ -42,6 +54,8 @@ export const world: HubbleService = {
   namespace: 'world-service-ns',
   labels: [Labels.toKV(ReservedLabel.World)],
   dnsNames: ['www.google.com'],
+  workloads: [],
+  identity: MockServiceIdentity.World,
   ...restOfService,
 };
 
@@ -51,6 +65,8 @@ export const apiTwitter: HubbleService = {
   namespace: '',
   labels: [Labels.toKV(ReservedLabel.World)],
   dnsNames: ['api.twitter.com'],
+  workloads: [],
+  identity: MockServiceIdentity.World,
   ...restOfService,
 };
 
@@ -60,6 +76,8 @@ export const host: HubbleService = {
   namespace: 'host-service-ns',
   labels: [Labels.toKV(ReservedLabel.Host)],
   dnsNames: [],
+  workloads: [],
+  identity: MockServiceIdentity.Host,
   ...restOfService,
 };
 
@@ -69,6 +87,8 @@ export const remoteNode: HubbleService = {
   namespace: 'remote-node-service-ns',
   labels: [Labels.toKV(ReservedLabel.RemoteNode)],
   dnsNames: [],
+  workloads: [],
+  identity: MockServiceIdentity.RemoteNode,
   ...restOfService,
 };
 
@@ -78,27 +98,8 @@ export const kubeDNS: HubbleService = {
   namespace: 'kube-dns-service-ns',
   labels: [Labels.toKV(SpecialLabel.KubeDNS)],
   dnsNames: [],
-  ...restOfService,
-};
-
-export const kubeApiServer: HubbleService = {
-  id: 'kube-apiserver',
-  name: 'kube-apiserver',
-  namespace: 'kube-apiserver-ns',
-  labels: [Labels.toKV(ReservedLabel.KubeApiServer)],
-  dnsNames: [],
-  ...restOfService,
-};
-
-export const worldKubeApiServer: HubbleService = {
-  id: 'kube-apiserver',
-  name: 'kube-apiserver',
-  namespace: 'kube-apiserver-ns',
-  labels: [
-    Labels.toKV(ReservedLabel.KubeApiServer),
-    Labels.toKV(ReservedLabel.World),
-  ],
-  dnsNames: [],
+  workloads: [],
+  identity: MockServiceIdentity.KubeDNS,
   ...restOfService,
 };
 

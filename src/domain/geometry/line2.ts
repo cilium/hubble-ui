@@ -46,9 +46,6 @@ export class Line2 {
   }
 
   public get direction(): Vec2 {
-    const p1 = new Vec2(0, -this.c / this.b);
-    const p2 = new Vec2(-this.c / this.a, 0);
-
-    return p1.sub(p2).normalize();
+    return Vec2.from(-1 * this.b, this.a).normalize();
   }
 }

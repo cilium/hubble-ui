@@ -1,30 +1,63 @@
 import { render, RenderResult } from '@testing-library/react';
-import React, { FunctionComponent } from 'react';
+import React from 'react';
 
-import { StoreProvider } from '~/store';
-import { RouteHistorySourceKind } from '~/store/stores/route';
-import { NotifierProvider } from '~/notifier';
-import { DataManagerProvider } from '~/data-manager';
+import { Store } from '~/store';
+import { StoreContext } from '~/store/hooks';
+import { Application, ApplicationProvider } from '~/application';
+import { Router, RouterKind } from '~/router';
+
 import * as data from './data';
 import * as helpers from './helpers';
+import { Environment } from '~/environment';
+import { DataLayer } from '~/data-layer/data-layer';
+import { UILayer } from '~/ui-layer/ui-layer';
 
-import api from '~/api';
+const customRender = (elem: React.ReactElement<any>, options?: any): RenderResult => {
+  const apiUrl = `${document.location.origin}/hubble-ui-api`;
+  const store = new Store();
+  const env = Environment.new();
 
-const AllProviders = ({ children }: React.PropsWithChildren<{}>) => {
-  return (
-    <StoreProvider historySource={RouteHistorySourceKind.URL}>
-      <NotifierProvider>
-        <DataManagerProvider api={api}>{children}</DataManagerProvider>
-      </NotifierProvider>
-    </StoreProvider>
-  );
+  const dataLayer = DataLayer.new({
+    store,
+    customProtocolBaseURL: apiUrl,
+    customProtocolRequestTimeout: 1000,
+    customProtocolMessagesInJSON: true,
+    customProtocolCORSEnabled: true,
+  });
+
+  const router = new Router(RouterKind.Memory, dataLayer);
+  const uiLayer = UILayer.new({
+    router,
+    store,
+    dataLayer,
+    isCSSVarsInjectionEnabled: true,
+  });
+
+  const renderFn = (_targetElem: Element, app: Application) => {
+    return render(<ApplicationProvider app={app}>{elem}</ApplicationProvider>, { ...options });
+  };
+
+  const app = new Application(env, router, store, dataLayer, uiLayer, renderFn);
+  return app.mount(document.body);
 };
 
-const customRender = (
-  ui: React.ReactElement<any>,
-  options?: any,
-): RenderResult => {
-  return render(ui, { wrapper: AllProviders, ...options });
+type ReturnsStore = () => Store;
+export const spyStore = (): ReturnsStore => {
+  const spy = jest.spyOn(React, 'useContext');
+
+  return () => {
+    const calls = spy.mock.calls;
+    const returns = spy.mock.results;
+
+    let idx = -1;
+    calls.forEach((c, i) => {
+      if (c[0] === StoreContext) {
+        idx = i;
+      }
+    });
+
+    return returns[idx].value;
+  };
 };
 
 export * from '@testing-library/react';

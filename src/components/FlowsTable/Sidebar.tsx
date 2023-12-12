@@ -3,12 +3,7 @@ import React, { memo, useCallback, useMemo, useEffect, useState } from 'react';
 
 import { Flow, Verdict } from '~/domain/flows';
 import { Filters, FilterEntry, FilterDirection } from '~/domain/filtering';
-import {
-  TCPFlagName,
-  PodSelector,
-  IPProtocol,
-  AuthType,
-} from '~/domain/hubble';
+import { TCPFlagName, PodSelector, IPProtocol, AuthType } from '~/domain/hubble';
 import { KV, Labels } from '~/domain/labels';
 
 import {
@@ -40,7 +35,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
   const { flow } = props;
 
   const tcpFilterDirection = FilterDirection.From;
-  const isVerdictSelected = props.filters.verdict === flow.verdict;
+  const isVerdictSelected = !!props.filters.verdicts?.has(flow.verdict);
   const protocol = props.flow.protocolStr;
 
   const onVerdictClick = useCallback(() => {
@@ -56,9 +51,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
   const [podSelection, setPodSelection] = useState<Set<string>>(new Set());
   const [identitySelection, setIdSelection] = useState<Set<number>>(new Set());
   const [ipSelection, setIpSelection] = useState<Set<string>>(new Set());
-  const [tcpFlagSelection, setTCPSelection] = useState<Set<TCPFlagName>>(
-    new Set(),
-  );
+  const [tcpFlagSelection, setTCPSelection] = useState<Set<TCPFlagName>>(new Set());
 
   const [isDnsSelected, setDnsSelected] = useState(false);
 
@@ -93,25 +86,19 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
       FilterDirection.From,
     );
 
-    const flowDestPodEntry = FilterEntry.newPod(destPodName!).setDirection(
-      FilterDirection.To,
-    );
+    const flowDestPodEntry = FilterEntry.newPod(destPodName!).setDirection(FilterDirection.To);
 
-    const flowSourceIdtyEntry = FilterEntry.newIdentity(
-      `${sourceIdentity!}`,
-    ).setDirection(FilterDirection.From);
-
-    const flowDestIdtyEntry = FilterEntry.newIdentity(
-      `${destIdentity!}`,
-    ).setDirection(FilterDirection.To);
-
-    const flowSourceIpEntry = FilterEntry.newIP(sourceIp!).setDirection(
+    const flowSourceIdtyEntry = FilterEntry.newIdentity(`${sourceIdentity!}`).setDirection(
       FilterDirection.From,
     );
 
-    const flowDestIpEntry = FilterEntry.newIP(destIp!).setDirection(
+    const flowDestIdtyEntry = FilterEntry.newIdentity(`${destIdentity!}`).setDirection(
       FilterDirection.To,
     );
+
+    const flowSourceIpEntry = FilterEntry.newIP(sourceIp!).setDirection(FilterDirection.From);
+
+    const flowDestIpEntry = FilterEntry.newIP(destIp!).setDirection(FilterDirection.To);
 
     props.filters.filters?.forEach(filter => {
       if (sourcePodName != null && flowSourcePodEntry.equals(filter)) {
@@ -281,8 +268,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
   }, [props.flow, props.onDnsClick, isDnsSelected]);
 
   const isICMPProtocol =
-    props.flow.protocol === IPProtocol.ICMPv4 ||
-    props.flow.protocol === IPProtocol.ICMPv6;
+    props.flow.protocol === IPProtocol.ICMPv4 || props.flow.protocol === IPProtocol.ICMPv6;
 
   return (
     <div className={css.sidebar}>
@@ -451,9 +437,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
       )}
       {flow.hasDestination && flow.protocol && (
         <section className={css.block}>
-          <span className={css.title}>
-            Destination {!isICMPProtocol && 'port • '}protocol
-          </span>
+          <span className={css.title}>Destination {!isICMPProtocol && 'port • '}protocol</span>
           <div className={css.body}>
             {flow.destinationPort && `${flow.destinationPort} • `}
             {protocol && `${protocol}`}

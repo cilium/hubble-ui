@@ -1,44 +1,80 @@
-import * as mobx from 'mobx';
+import { makeAutoObservable } from 'mobx';
+
 import { Status } from '~/domain/status';
 
+import { ReconnectState, StreamKind } from './reconnect-state';
+
 export enum DataMode {
-  RealtimeStreaming = 'realtime-streaming',
+  CiliumStreaming = 'cilium-streaming',
   Disabled = 'disabled',
 }
 
 export enum ConnectionState {
   Receiving = 'receiving',
   Reconnecting = 'reconnecting',
-  ReconnectDelay = 'reconnect-delay',
-  ReconnectFailed = 'reconnect-failed',
   Stopped = 'stopped',
   Idle = 'idle',
+}
+
+export interface DataModeOptions {
+  liveMode?: boolean;
 }
 
 export class TransferState {
   public dataMode: DataMode;
   public connectionState: ConnectionState;
-  public reconnectingInMs?: number;
+
   public deploymentStatus: Status | null;
+
+  public reconnectStates: Map<StreamKind, ReconnectState> = new Map();
 
   constructor() {
     this.dataMode = DataMode.Disabled;
     this.connectionState = ConnectionState.Idle;
-    this.reconnectingInMs = void 0;
     this.deploymentStatus = null;
 
-    mobx.makeAutoObservable(this, void 0, {
+    makeAutoObservable(this, void 0, {
       autoBind: true,
     });
   }
 
-  // NOTE: this method sets stable connection state
-  public setStable() {
-    this.setReceiving();
+  public updateReconnectState(
+    s: StreamKind,
+    cb: (old?: ReconnectState) => Partial<ReconnectState>,
+  ): ReconnectState {
+    const existing = this.reconnectStates.get(s);
+    const updated: ReconnectState = {
+      attempt: 1,
+      stream: s,
+      ...cb(existing || void 0),
+    };
+
+    this.reconnectStates.set(s, updated);
+    return existing || updated;
   }
 
-  public setDataMode(mode: DataMode) {
+  public dropReconnectState(stream: StreamKind): ReconnectState | null {
+    const existing = this.reconnectStates.get(stream);
+    this.reconnectStates.delete(stream);
+
+    return existing || null;
+  }
+
+  public setDataMode(mode: DataMode): boolean {
+    const prev = this.dataMode;
     this.dataMode = mode;
+
+    const isChanged = prev !== mode;
+    console.log(`setting data mode: ${mode}, isChanged: ${isChanged}`);
+    return isChanged;
+  }
+
+  public peekConnectionState(): ReconnectState | null {
+    return [...this.reconnectStates.values()][0] || null;
+  }
+
+  public setConnectionState(state: ConnectionState) {
+    this.connectionState = state;
   }
 
   public disable() {
@@ -46,8 +82,8 @@ export class TransferState {
     this.setConnectionState(ConnectionState.Idle);
   }
 
-  public switchToRealtimeStreaming() {
-    this.setDataMode(DataMode.RealtimeStreaming);
+  public switchToCiliumStreaming() {
+    this.setDataMode(DataMode.CiliumStreaming);
     this.setReceiving();
   }
 
@@ -63,39 +99,21 @@ export class TransferState {
     this.setConnectionState(ConnectionState.Reconnecting);
   }
 
-  public setWaitingForReconnect(ms?: number) {
-    this.setConnectionState(ConnectionState.ReconnectDelay);
-
-    if (ms != null) {
-      this.reconnectingInMs = ms;
-    }
-  }
-
-  public setReconnectFailed() {
-    this.setConnectionState(ConnectionState.ReconnectFailed);
-  }
-
-  public setConnectionState(state: ConnectionState) {
-    this.connectionState = state;
-  }
-
   public setDeploymentStatus(st: Status | null) {
     this.deploymentStatus = st;
   }
 
-  public get reconnectingInSeconds(): number | null {
-    if (this.reconnectingInMs == null) return null;
-
-    return this.reconnectingInMs / 1000;
-  }
-
   // NOTE: dataMode getters
-  public get isRealtimeStreaming(): boolean {
-    return this.dataMode === DataMode.RealtimeStreaming;
+  public get isCiliumStreaming(): boolean {
+    return this.dataMode === DataMode.CiliumStreaming;
   }
 
   public get isDisabled(): boolean {
     return this.dataMode === DataMode.Disabled;
+  }
+
+  public get isDeploymentStatusReady(): boolean {
+    return !!this.deploymentStatus?.status.isFulfilled;
   }
 
   // NOTE: connectionState getters
@@ -109,18 +127,6 @@ export class TransferState {
 
   public get isReconnecting(): boolean {
     return this.connectionState === ConnectionState.Reconnecting;
-  }
-
-  public get isWaitingForReconnect(): boolean {
-    return this.connectionState === ConnectionState.ReconnectDelay;
-  }
-
-  public get isReconnectDelay() {
-    return this.isWaitingForReconnect;
-  }
-
-  public get isReconnectFailed() {
-    return this.connectionState === ConnectionState.ReconnectFailed;
   }
 
   public get isStopped(): boolean {

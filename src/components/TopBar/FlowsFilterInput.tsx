@@ -26,22 +26,13 @@ export const FlowsFilterInput = (props: Props) => {
   }, [props.onChange]);
 
   const createNewItemRenderer = useCallback(
-    (
-      query: string,
-      active: boolean,
-      handleClick: React.MouseEventHandler<HTMLElement>,
-    ) => {
+    (query: string, active: boolean, handleClick: React.MouseEventHandler<HTMLElement>) => {
       if (props.filters.some(({ query: text }) => text === query)) {
         return undefined;
       }
 
       return (
-        <MenuItem
-          onClick={handleClick}
-          active={active}
-          text={`Search "${query}"`}
-          icon="search"
-        />
+        <MenuItem onClick={handleClick} active={active} text={`Search "${query}"`} icon="search" />
       );
     },
     [props.filters],
@@ -119,10 +110,7 @@ const itemRenderer: ItemRenderer<FilterEntry | null> = () => {
 function tagRenderer(item: FilterEntry | null) {
   if (!item) return null;
 
-  const query =
-    item.kind === FilterKind.Label
-      ? Labels.normalizeKey(item.query)
-      : item.query;
+  const query = item.kind === FilterKind.Label ? Labels.normalizeKey(item.query) : item.query;
 
   return (
     <div className={css.tag}>
