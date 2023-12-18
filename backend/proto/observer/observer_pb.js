@@ -12,6 +12,8 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
+var google_protobuf_any_pb = require('google-protobuf/google/protobuf/any_pb.js');
+goog.object.extend(proto, google_protobuf_any_pb);
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 goog.object.extend(proto, google_protobuf_wrappers_pb);
 var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/timestamp_pb.js');
@@ -545,7 +547,8 @@ proto.observer.ServerStatusResponse.toObject = function(includeInstance, msg) {
     numConnectedNodes: (f = msg.getNumConnectedNodes()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     numUnavailableNodes: (f = msg.getNumUnavailableNodes()) && google_protobuf_wrappers_pb.UInt32Value.toObject(includeInstance, f),
     unavailableNodesList: (f = jspb.Message.getRepeatedField(msg, 7)) == null ? undefined : f,
-    version: jspb.Message.getFieldWithDefault(msg, 8, "")
+    version: jspb.Message.getFieldWithDefault(msg, 8, ""),
+    flowsRate: jspb.Message.getFloatingPointFieldWithDefault(msg, 9, 0.0)
   };
 
   if (includeInstance) {
@@ -615,6 +618,10 @@ proto.observer.ServerStatusResponse.deserializeBinaryFromReader = function(msg, 
     case 8:
       var value = /** @type {string} */ (reader.readString());
       msg.setVersion(value);
+      break;
+    case 9:
+      var value = /** @type {number} */ (reader.readDouble());
+      msg.setFlowsRate(value);
       break;
     default:
       reader.skipField();
@@ -700,6 +707,13 @@ proto.observer.ServerStatusResponse.serializeBinaryToWriter = function(message, 
   if (f.length > 0) {
     writer.writeString(
       8,
+      f
+    );
+  }
+  f = message.getFlowsRate();
+  if (f !== 0.0) {
+    writer.writeDouble(
+      9,
       f
     );
   }
@@ -907,6 +921,24 @@ proto.observer.ServerStatusResponse.prototype.setVersion = function(value) {
 };
 
 
+/**
+ * optional double flows_rate = 9;
+ * @return {number}
+ */
+proto.observer.ServerStatusResponse.prototype.getFlowsRate = function() {
+  return /** @type {number} */ (jspb.Message.getFloatingPointFieldWithDefault(this, 9, 0.0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.observer.ServerStatusResponse} returns this
+ */
+proto.observer.ServerStatusResponse.prototype.setFlowsRate = function(value) {
+  return jspb.Message.setProto3FloatField(this, 9, value);
+};
+
+
 
 /**
  * List of repeated fields within this message type.
@@ -955,7 +987,8 @@ proto.observer.GetFlowsRequest.toObject = function(includeInstance, msg) {
     flow_flow_pb.FlowFilter.toObject, includeInstance),
     since: (f = msg.getSince()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
     until: (f = msg.getUntil()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
-    experimental: (f = msg.getExperimental()) && proto.observer.GetFlowsRequest.Experimental.toObject(includeInstance, f)
+    experimental: (f = msg.getExperimental()) && proto.observer.GetFlowsRequest.Experimental.toObject(includeInstance, f),
+    extensions: (f = msg.getExtensions()) && google_protobuf_any_pb.Any.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1028,6 +1061,11 @@ proto.observer.GetFlowsRequest.deserializeBinaryFromReader = function(msg, reade
       var value = new proto.observer.GetFlowsRequest.Experimental;
       reader.readMessage(value,proto.observer.GetFlowsRequest.Experimental.deserializeBinaryFromReader);
       msg.setExperimental(value);
+      break;
+    case 150000:
+      var value = new google_protobuf_any_pb.Any;
+      reader.readMessage(value,google_protobuf_any_pb.Any.deserializeBinaryFromReader);
+      msg.setExtensions(value);
       break;
     default:
       reader.skipField();
@@ -1117,6 +1155,14 @@ proto.observer.GetFlowsRequest.serializeBinaryToWriter = function(message, write
       999,
       f,
       proto.observer.GetFlowsRequest.Experimental.serializeBinaryToWriter
+    );
+  }
+  f = message.getExtensions();
+  if (f != null) {
+    writer.writeMessage(
+      150000,
+      f,
+      google_protobuf_any_pb.Any.serializeBinaryToWriter
     );
   }
 };
@@ -1511,6 +1557,43 @@ proto.observer.GetFlowsRequest.prototype.clearExperimental = function() {
  */
 proto.observer.GetFlowsRequest.prototype.hasExperimental = function() {
   return jspb.Message.getField(this, 999) != null;
+};
+
+
+/**
+ * optional google.protobuf.Any extensions = 150000;
+ * @return {?proto.google.protobuf.Any}
+ */
+proto.observer.GetFlowsRequest.prototype.getExtensions = function() {
+  return /** @type{?proto.google.protobuf.Any} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_any_pb.Any, 150000));
+};
+
+
+/**
+ * @param {?proto.google.protobuf.Any|undefined} value
+ * @return {!proto.observer.GetFlowsRequest} returns this
+*/
+proto.observer.GetFlowsRequest.prototype.setExtensions = function(value) {
+  return jspb.Message.setWrapperField(this, 150000, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.observer.GetFlowsRequest} returns this
+ */
+proto.observer.GetFlowsRequest.prototype.clearExtensions = function() {
+  return this.setExtensions(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.observer.GetFlowsRequest.prototype.hasExtensions = function() {
+  return jspb.Message.getField(this, 150000) != null;
 };
 
 

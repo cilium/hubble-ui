@@ -1,6 +1,6 @@
 import * as jspb from 'google-protobuf'
 
-import * as ui_status_pb from '../ui/status_pb'; // proto import: "ui/status.proto"
+import * as ui_status_pb from '../ui/status_pb';
 
 
 export class Notification extends jspb.Message {

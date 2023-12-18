@@ -1,7 +1,8 @@
 import * as jspb from 'google-protobuf'
 
-import * as google_protobuf_wrappers_pb from 'google-protobuf/google/protobuf/wrappers_pb'; // proto import: "google/protobuf/wrappers.proto"
-import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb'; // proto import: "google/protobuf/timestamp.proto"
+import * as google_protobuf_any_pb from 'google-protobuf/google/protobuf/any_pb';
+import * as google_protobuf_wrappers_pb from 'google-protobuf/google/protobuf/wrappers_pb';
+import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb';
 
 
 export class Flow extends jspb.Message {
@@ -131,6 +132,21 @@ export class Flow extends jspb.Message {
   getSummary(): string;
   setSummary(value: string): Flow;
 
+  getExtensions(): google_protobuf_any_pb.Any | undefined;
+  setExtensions(value?: google_protobuf_any_pb.Any): Flow;
+  hasExtensions(): boolean;
+  clearExtensions(): Flow;
+
+  getEgressAllowedByList(): Array<Policy>;
+  setEgressAllowedByList(value: Array<Policy>): Flow;
+  clearEgressAllowedByList(): Flow;
+  addEgressAllowedBy(value?: Policy, index?: number): Policy;
+
+  getIngressAllowedByList(): Array<Policy>;
+  setIngressAllowedByList(value: Array<Policy>): Flow;
+  clearIngressAllowedByList(): Flow;
+  addIngressAllowedBy(value?: Policy, index?: number): Policy;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Flow.AsObject;
   static toObject(includeInstance: boolean, msg: Flow): Flow.AsObject;
@@ -173,6 +189,9 @@ export namespace Flow {
     socketCookie: number,
     cgroupId: number,
     summary: string,
+    extensions?: google_protobuf_any_pb.Any.AsObject,
+    egressAllowedByList: Array<Policy.AsObject>,
+    ingressAllowedByList: Array<Policy.AsObject>,
   }
 }
 
@@ -600,6 +619,38 @@ export namespace ICMPv6 {
   }
 }
 
+export class Policy extends jspb.Message {
+  getName(): string;
+  setName(value: string): Policy;
+
+  getNamespace(): string;
+  setNamespace(value: string): Policy;
+
+  getLabelsList(): Array<string>;
+  setLabelsList(value: Array<string>): Policy;
+  clearLabelsList(): Policy;
+  addLabels(value: string, index?: number): Policy;
+
+  getRevision(): number;
+  setRevision(value: number): Policy;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Policy.AsObject;
+  static toObject(includeInstance: boolean, msg: Policy): Policy.AsObject;
+  static serializeBinaryToWriter(message: Policy, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Policy;
+  static deserializeBinaryFromReader(message: Policy, reader: jspb.BinaryReader): Policy;
+}
+
+export namespace Policy {
+  export type AsObject = {
+    name: string,
+    namespace: string,
+    labelsList: Array<string>,
+    revision: number,
+  }
+}
+
 export class EventTypeFilter extends jspb.Message {
   getType(): number;
   setType(value: number): EventTypeFilter;
@@ -779,6 +830,11 @@ export class FlowFilter extends jspb.Message {
   clearHttpPathList(): FlowFilter;
   addHttpPath(value: string, index?: number): FlowFilter;
 
+  getHttpUrlList(): Array<string>;
+  setHttpUrlList(value: Array<string>): FlowFilter;
+  clearHttpUrlList(): FlowFilter;
+  addHttpUrl(value: string, index?: number): FlowFilter;
+
   getTcpFlagsList(): Array<TCPFlags>;
   setTcpFlagsList(value: Array<TCPFlags>): FlowFilter;
   clearTcpFlagsList(): FlowFilter;
@@ -835,6 +891,7 @@ export namespace FlowFilter {
     destinationIdentityList: Array<number>,
     httpMethodList: Array<string>,
     httpPathList: Array<string>,
+    httpUrlList: Array<string>,
     tcpFlagsList: Array<TCPFlags.AsObject>,
     nodeNameList: Array<string>,
     ipVersionList: Array<IPVersion>,
@@ -1587,6 +1644,7 @@ export enum DropReason {
   INVALID_CLUSTER_ID = 192,
   UNSUPPORTED_PROTOCOL_FOR_DSR_ENCAP = 193,
   NO_EGRESS_GATEWAY = 194,
+  UNENCRYPTED_TRAFFIC = 195,
   TTL_EXCEEDED = 196,
   NO_NODE_ID = 197,
 }
@@ -1704,4 +1762,6 @@ export enum DebugEventType {
   DBG_SK_LOOKUP4 = 62,
   DBG_SK_LOOKUP6 = 63,
   DBG_SK_ASSIGN = 64,
+  DBG_L7_LB = 65,
+  DBG_SKIP_POLICY = 66,
 }

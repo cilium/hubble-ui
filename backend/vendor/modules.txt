@@ -1,8 +1,8 @@
 # github.com/cenkalti/backoff/v4 v4.2.1
 ## explicit; go 1.18
 github.com/cenkalti/backoff/v4
-# github.com/cilium/cilium v1.14.4
-## explicit; go 1.20
+# github.com/cilium/cilium v1.15.0-pre.2
+## explicit; go 1.21.0
 github.com/cilium/cilium/api/v1/flow
 github.com/cilium/cilium/api/v1/observer
 github.com/cilium/cilium/api/v1/relay
@@ -15,10 +15,11 @@ github.com/cilium/cilium/pkg/lock
 github.com/cilium/cilium/pkg/logging
 github.com/cilium/cilium/pkg/logging/logfields
 github.com/cilium/cilium/pkg/rand
+github.com/cilium/cilium/pkg/time
 # github.com/cilium/hubble v0.12.2
 ## explicit; go 1.20
 github.com/cilium/hubble/pkg/time
-# github.com/davecgh/go-spew v1.1.1
+# github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 ## explicit
 github.com/davecgh/go-spew/spew
 # github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f

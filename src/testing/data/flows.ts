@@ -49,6 +49,8 @@ export const icmpv4Flow: HubbleFlow = {
   },
   trafficDirection: TrafficDirection.Ingress,
   authType: AuthType.Disbaled,
+  egressAllowedBy: [],
+  ingressAllowedBy: [],
 };
 
 export const icmpv6Flow: HubbleFlow = {
@@ -96,6 +98,8 @@ export const hubbleOne: HubbleFlow = {
   },
   trafficDirection: TrafficDirection.Ingress,
   authType: AuthType.Disbaled,
+  egressAllowedBy: [],
+  ingressAllowedBy: [],
 };
 
 export const hubbleNoSourceName: HubbleFlow = {

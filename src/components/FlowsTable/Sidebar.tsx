@@ -19,6 +19,7 @@ import {
   DnsBodyItem,
   IdentityEntry,
   PodEntry,
+  PolicyEntry,
 } from './SidebarComponents';
 
 import css from './styles.scss';
@@ -457,6 +458,23 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
           <div className={css.body}>
             {flow.destinationPort && `${flow.destinationPort} • `}
             {protocol && `${protocol}`}
+          </div>
+        </section>
+      )}
+      <hr />
+      {flow.hasEgressAllowedBy && (
+        <section className={css.block}>
+          <span className={css.title}>Egress allowed by policies</span>
+          <div className={css.body}>
+            <PolicyEntry allowedBy={flow.egressAllowedBy} />
+          </div>
+        </section>
+      )}
+      {flow.hasIngressAllowedBy && (
+        <section className={css.block}>
+          <span className={css.title}>Ingress allowed by policies</span>
+          <div className={css.body}>
+            <PolicyEntry allowedBy={flow.ingressAllowedBy} />
           </div>
         </section>
       )}
