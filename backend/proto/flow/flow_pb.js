@@ -6081,7 +6081,7 @@ proto.flow.CiliumEventType.prototype.setSubType = function(value) {
  * @private {!Array<number>}
  * @const
  */
-proto.flow.FlowFilter.repeatedFields_ = [29,1,2,7,10,16,26,3,4,8,11,17,27,30,5,6,9,12,13,14,15,18,19,20,21,22,31,23,24,25,28];
+proto.flow.FlowFilter.repeatedFields_ = [29,1,2,7,10,16,26,3,4,8,11,17,27,30,5,6,9,12,13,14,15,18,19,20,21,22,31,32,23,24,25,28];
 
 
 
@@ -6144,6 +6144,8 @@ proto.flow.FlowFilter.toObject = function(includeInstance, msg) {
     httpMethodList: (f = jspb.Message.getRepeatedField(msg, 21)) == null ? undefined : f,
     httpPathList: (f = jspb.Message.getRepeatedField(msg, 22)) == null ? undefined : f,
     httpUrlList: (f = jspb.Message.getRepeatedField(msg, 31)) == null ? undefined : f,
+    httpHeaderList: jspb.Message.toObjectList(msg.getHttpHeaderList(),
+    proto.flow.HTTPHeader.toObject, includeInstance),
     tcpFlagsList: jspb.Message.toObjectList(msg.getTcpFlagsList(),
     proto.flow.TCPFlags.toObject, includeInstance),
     nodeNameList: (f = jspb.Message.getRepeatedField(msg, 24)) == null ? undefined : f,
@@ -6295,6 +6297,11 @@ proto.flow.FlowFilter.deserializeBinaryFromReader = function(msg, reader) {
     case 31:
       var value = /** @type {string} */ (reader.readString());
       msg.addHttpUrl(value);
+      break;
+    case 32:
+      var value = new proto.flow.HTTPHeader;
+      reader.readMessage(value,proto.flow.HTTPHeader.deserializeBinaryFromReader);
+      msg.addHttpHeader(value);
       break;
     case 23:
       var value = new proto.flow.TCPFlags;
@@ -6532,6 +6539,14 @@ proto.flow.FlowFilter.serializeBinaryToWriter = function(message, writer) {
     writer.writeRepeatedString(
       31,
       f
+    );
+  }
+  f = message.getHttpHeaderList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      32,
+      f,
+      proto.flow.HTTPHeader.serializeBinaryToWriter
     );
   }
   f = message.getTcpFlagsList();
@@ -7565,6 +7580,44 @@ proto.flow.FlowFilter.prototype.addHttpUrl = function(value, opt_index) {
  */
 proto.flow.FlowFilter.prototype.clearHttpUrlList = function() {
   return this.setHttpUrlList([]);
+};
+
+
+/**
+ * repeated HTTPHeader http_header = 32;
+ * @return {!Array<!proto.flow.HTTPHeader>}
+ */
+proto.flow.FlowFilter.prototype.getHttpHeaderList = function() {
+  return /** @type{!Array<!proto.flow.HTTPHeader>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.flow.HTTPHeader, 32));
+};
+
+
+/**
+ * @param {!Array<!proto.flow.HTTPHeader>} value
+ * @return {!proto.flow.FlowFilter} returns this
+*/
+proto.flow.FlowFilter.prototype.setHttpHeaderList = function(value) {
+  return jspb.Message.setRepeatedWrapperField(this, 32, value);
+};
+
+
+/**
+ * @param {!proto.flow.HTTPHeader=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.flow.HTTPHeader}
+ */
+proto.flow.FlowFilter.prototype.addHttpHeader = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 32, opt_value, proto.flow.HTTPHeader, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.flow.FlowFilter} returns this
+ */
+proto.flow.FlowFilter.prototype.clearHttpHeaderList = function() {
+  return this.setHttpHeaderList([]);
 };
 
 
@@ -12630,7 +12683,8 @@ proto.flow.DropReason = {
   NO_EGRESS_GATEWAY: 194,
   UNENCRYPTED_TRAFFIC: 195,
   TTL_EXCEEDED: 196,
-  NO_NODE_ID: 197
+  NO_NODE_ID: 197,
+  DROP_RATE_LIMITED: 198
 };
 
 /**

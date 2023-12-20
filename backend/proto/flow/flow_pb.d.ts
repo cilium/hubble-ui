@@ -1,8 +1,8 @@
 import * as jspb from 'google-protobuf'
 
-import * as google_protobuf_any_pb from 'google-protobuf/google/protobuf/any_pb';
-import * as google_protobuf_wrappers_pb from 'google-protobuf/google/protobuf/wrappers_pb';
-import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb';
+import * as google_protobuf_any_pb from 'google-protobuf/google/protobuf/any_pb'; // proto import: "google/protobuf/any.proto"
+import * as google_protobuf_wrappers_pb from 'google-protobuf/google/protobuf/wrappers_pb'; // proto import: "google/protobuf/wrappers.proto"
+import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb'; // proto import: "google/protobuf/timestamp.proto"
 
 
 export class Flow extends jspb.Message {
@@ -835,6 +835,11 @@ export class FlowFilter extends jspb.Message {
   clearHttpUrlList(): FlowFilter;
   addHttpUrl(value: string, index?: number): FlowFilter;
 
+  getHttpHeaderList(): Array<HTTPHeader>;
+  setHttpHeaderList(value: Array<HTTPHeader>): FlowFilter;
+  clearHttpHeaderList(): FlowFilter;
+  addHttpHeader(value?: HTTPHeader, index?: number): HTTPHeader;
+
   getTcpFlagsList(): Array<TCPFlags>;
   setTcpFlagsList(value: Array<TCPFlags>): FlowFilter;
   clearTcpFlagsList(): FlowFilter;
@@ -892,6 +897,7 @@ export namespace FlowFilter {
     httpMethodList: Array<string>,
     httpPathList: Array<string>,
     httpUrlList: Array<string>,
+    httpHeaderList: Array<HTTPHeader.AsObject>,
     tcpFlagsList: Array<TCPFlags.AsObject>,
     nodeNameList: Array<string>,
     ipVersionList: Array<IPVersion>,
@@ -1647,6 +1653,7 @@ export enum DropReason {
   UNENCRYPTED_TRAFFIC = 195,
   TTL_EXCEEDED = 196,
   NO_NODE_ID = 197,
+  DROP_RATE_LIMITED = 198,
 }
 export enum TrafficDirection { 
   TRAFFIC_DIRECTION_UNKNOWN = 0,

@@ -1,6 +1,6 @@
 import * as grpcWeb from 'grpc-web';
 
-import * as observer_observer_pb from '../observer/observer_pb';
+import * as observer_observer_pb from '../observer/observer_pb'; // proto import: "observer/observer.proto"
 
 
 export class ObserverClient {
