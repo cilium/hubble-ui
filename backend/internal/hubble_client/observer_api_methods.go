@@ -7,7 +7,7 @@ import (
 	"github.com/cilium/cilium/api/v1/observer"
 	"github.com/sirupsen/logrus"
 
-	"github.com/cilium/hubble-ui/backend/internal/server/flow_stream"
+	"github.com/cilium/hubble-ui/backend/internal/flow_stream"
 	"github.com/cilium/hubble-ui/backend/internal/statuschecker"
 )
 
