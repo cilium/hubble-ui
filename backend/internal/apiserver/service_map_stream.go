@@ -20,7 +20,7 @@ import (
 	cp "github.com/cilium/hubble-ui/backend/internal/customprotocol"
 	"github.com/cilium/hubble-ui/backend/internal/hubble_client"
 	"github.com/cilium/hubble-ui/backend/internal/msg"
-	"github.com/cilium/hubble-ui/backend/internal/server/flow_stream"
+	"github.com/cilium/hubble-ui/backend/internal/flow_stream"
 	"github.com/cilium/hubble-ui/backend/internal/statuschecker"
 )
 

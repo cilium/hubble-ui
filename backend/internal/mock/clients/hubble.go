@@ -9,7 +9,7 @@ import (
 	"github.com/cilium/hubble-ui/backend/internal/hubble_client"
 	"github.com/cilium/hubble-ui/backend/internal/mock/sources"
 	"github.com/cilium/hubble-ui/backend/internal/mock/streams"
-	"github.com/cilium/hubble-ui/backend/internal/server/flow_stream"
+	"github.com/cilium/hubble-ui/backend/internal/flow_stream"
 	"github.com/cilium/hubble-ui/backend/internal/statuschecker"
 	"github.com/cilium/hubble-ui/backend/pkg/rate_limiter"
 )
