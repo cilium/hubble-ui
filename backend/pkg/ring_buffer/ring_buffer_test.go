@@ -176,6 +176,7 @@ func (td *TestDescriptor[T]) Run(t *testing.T) {
 					i,
 					elem,
 				)
+				return
 			}
 
 			if *inside != elem {

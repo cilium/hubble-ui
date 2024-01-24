@@ -82,7 +82,7 @@ func (r *Router) garbageCollector(ctx context.Context) {
 	}
 }
 
-func (r *Router) collectGarbage(ctx context.Context, maxInactivePeriod time.Duration) uint {
+func (r *Router) collectGarbage(_ctx context.Context, maxInactivePeriod time.Duration) uint {
 	ndropped := uint(0)
 
 	for _, route := range r.routes {

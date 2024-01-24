@@ -15,7 +15,7 @@ type CollectedData struct {
 	nsEvents []*common.NSEvent
 }
 
-func runSource(t *testing.T, src MockedSource) CollectedData {
+func runSource(_t *testing.T, src MockedSource) CollectedData {
 	nsEvents := []*common.NSEvent{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
@@ -41,13 +41,14 @@ func testNsName(i int) string {
 	return fmt.Sprintf("ns-%d", i)
 }
 
-func prepareNSEvents(start, num int) []*common.NSEvent {
+// NOTE: _num is used to shut golangci-lint saying it has only one value for num
+func prepareNSEvents(start, _num int) []*common.NSEvent {
 	evts := []*common.NSEvent{}
 
-	for i := 0; i < num; i += 1 {
+	for i := 0; i < _num; i += 1 {
 		evts = append(
 			evts,
-			factories.CreateNSEvent(events.Added, testNsName(start+i), true),
+			factories.CreateNSEvent(events.Added, testNsName(start+i)),
 		)
 	}
 

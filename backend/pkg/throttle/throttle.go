@@ -41,11 +41,8 @@ func (d *Throttle) Stop() {
 	d.ticker.Stop()
 }
 
-func (d *Throttle) ensureTicker() bool {
+func (d *Throttle) ensureTicker() {
 	if d.ticker == nil {
 		d.ticker = time.NewTicker(d.delay)
-		return true
 	}
-
-	return false
 }

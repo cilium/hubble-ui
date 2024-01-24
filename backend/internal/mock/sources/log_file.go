@@ -2,9 +2,9 @@ package sources
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
 
 	"github.com/cilium/cilium/api/v1/observer"
+	"github.com/sirupsen/logrus"
 
 	"github.com/cilium/hubble-ui/backend/internal/events_log_file"
 	"github.com/cilium/hubble-ui/backend/internal/log_file"

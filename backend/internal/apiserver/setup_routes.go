@@ -58,7 +58,7 @@ func (srv *APIServer) setRouteHandlers() error {
 
 func (srv *APIServer) wrapHandler(
 	handler WrappedRouteHandler,
-	opts WrappedRouteOptions,
+	_opts WrappedRouteOptions,
 ) cp.RouteHandler {
 	return func(ch *cp.Channel) error {
 		rctx, err := srv.ensureHandlerData(ch)
