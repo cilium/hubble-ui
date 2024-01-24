@@ -62,11 +62,11 @@ func (r *Router) parseMessageFromRequest(req *http.Request) (
 	return msg, false, err
 }
 
-func (r *Router) matchRoute(msg *message.Message) (*route.Route, error) {
+func (r *Router) matchRoute(msg *message.Message) *route.Route {
 	routeName := msg.RouteName()
 	route := r.routes.Get(routeName)
 
-	return route, nil
+	return route
 }
 
 func (r *Router) respondWithMessage(

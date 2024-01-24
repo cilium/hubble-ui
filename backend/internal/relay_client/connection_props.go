@@ -16,8 +16,8 @@ import (
 )
 
 type ConnectionProps struct {
-	Config        *config.Config
-	Log           logrus.FieldLogger
+	Config *config.Config
+	Log    logrus.FieldLogger
 }
 
 func (cp *ConnectionProps) Tag(ctx context.Context) (grpc_client.ConnectionTag, error) {
@@ -47,10 +47,10 @@ func (cp *ConnectionProps) DialOptions(ctx context.Context) ([]grpc.DialOption, 
 		MinConnectTimeout: 5 * time.Second,
 	}
 
-	dialOpts := append([]grpc.DialOption{
+	dialOpts := []grpc.DialOption{
 		transportDialOpt,
 		grpc.WithConnectParams(connectParams),
-	})
+	}
 
 	return dialOpts, nil
 }

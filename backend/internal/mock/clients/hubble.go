@@ -6,10 +6,10 @@ import (
 	"github.com/cilium/cilium/api/v1/observer"
 	"github.com/sirupsen/logrus"
 
+	"github.com/cilium/hubble-ui/backend/internal/flow_stream"
 	"github.com/cilium/hubble-ui/backend/internal/hubble_client"
 	"github.com/cilium/hubble-ui/backend/internal/mock/sources"
 	"github.com/cilium/hubble-ui/backend/internal/mock/streams"
-	"github.com/cilium/hubble-ui/backend/internal/flow_stream"
 	"github.com/cilium/hubble-ui/backend/internal/statuschecker"
 	"github.com/cilium/hubble-ui/backend/pkg/rate_limiter"
 )

@@ -58,9 +58,7 @@ func (tc *TestsController) LogFields() logrus.Fields {
 func (tc *TestsController) applyTestSettings(ts *TestSettings) {
 	switch ts.Preset {
 	case NamespaceListCheck:
-		if err := tc.enableNamespaceListCheckCase(ts); err != nil {
-			tc.log.WithError(err).Error("failed to enable namespace list check case")
-		}
+		tc.enableNamespaceListCheckCase(ts)
 	case TenantJobs:
 		if err := tc.enableTenantJobsCase(ts); err != nil {
 			tc.log.WithError(err).Error("failed to enable tenant jobs case")

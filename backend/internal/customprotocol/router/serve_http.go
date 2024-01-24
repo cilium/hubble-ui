@@ -38,13 +38,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	log := r.log.WithFields(msg.LogFields())
 
 	// NOTE: Careful, all those shared methods should be thread safe
-	route, err := r.matchRoute(msg)
-	if err != nil {
-		log.WithError(err).Error("failed to match route")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
+	route := r.matchRoute(msg)
 	if route == nil {
 		log.Warn("requested route not found")
 		w.WriteHeader(http.StatusNotFound)

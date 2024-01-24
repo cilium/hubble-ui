@@ -52,7 +52,7 @@ func (r *Route) Poll(ctx context.Context, msg *message.Message) (
 // * It reads incoming messages but doesn't send anything back
 // * It both reads incoming and sends outgoing messages
 func (r *Route) resumeStream(
-	ctx context.Context, msg *message.Message,
+	_ctx context.Context, msg *message.Message,
 ) (*message.Message, error) {
 	ch, isNew, err := r.getChannel(msg)
 
@@ -81,7 +81,7 @@ func (r *Route) resumeStream(
 }
 
 func (r *Route) resumeOneshot(
-	ctx context.Context, msg *message.Message,
+	_ctx context.Context, msg *message.Message,
 ) (*message.Message, error) {
 	ch, isNew, err := r.getChannel(msg)
 	if err != nil {

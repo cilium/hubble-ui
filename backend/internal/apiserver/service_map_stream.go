@@ -18,9 +18,9 @@ import (
 	"github.com/cilium/hubble-ui/backend/internal/api_helpers"
 	"github.com/cilium/hubble-ui/backend/internal/apiserver/req_context"
 	cp "github.com/cilium/hubble-ui/backend/internal/customprotocol"
+	"github.com/cilium/hubble-ui/backend/internal/flow_stream"
 	"github.com/cilium/hubble-ui/backend/internal/hubble_client"
 	"github.com/cilium/hubble-ui/backend/internal/msg"
-	"github.com/cilium/hubble-ui/backend/internal/flow_stream"
 	"github.com/cilium/hubble-ui/backend/internal/statuschecker"
 )
 

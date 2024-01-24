@@ -11,7 +11,7 @@ import (
 	"github.com/cilium/hubble-ui/backend/pkg/rate_limiter"
 )
 
-func (tc *TestsController) enableTenantJobsCase(ts *TestSettings) error {
+func (tc *TestsController) enableTenantJobsCase(_ts *TestSettings) error {
 	flowsLogFile, fgsLogFile, err := tc.openLogFiles("/tenant-jobs")
 	if err != nil {
 		return err

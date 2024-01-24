@@ -73,6 +73,7 @@ func pushFrontAndBackElements(t *testing.T, d *Deque[int], initcap int) {
 				initcap,
 				i,
 			)
+			return
 		}
 
 		if *e != i+1 {
@@ -164,6 +165,7 @@ func popBackElements(t *testing.T, d *Deque[int], amount int) {
 				i,
 				amount-i,
 			)
+			return
 		}
 
 		if *e != i+1 {
@@ -193,6 +195,7 @@ func pushBackElements(t *testing.T, d *Deque[int], amount int) {
 				i,
 				i+1,
 			)
+			return
 		}
 
 		if *e != i+1 {
@@ -229,6 +232,7 @@ func pushElements(t *testing.T, d *Deque[int], amount int) {
 				i,
 				i+1,
 			)
+			return
 		}
 
 		if *e != i+1 {
@@ -261,6 +265,7 @@ func popElements(t *testing.T, d *Deque[int], amount int) {
 				i,
 				amount-i,
 			)
+			return
 		}
 
 		if *e != amount-i {

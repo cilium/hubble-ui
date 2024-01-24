@@ -12,9 +12,6 @@ type Notifications struct {
 	reconnectingToRelayNotif *Notification
 	connectedToRelayNotif    *Notification
 
-	reconnectingToTimescapeNotif *Notification
-	connectedToTimescapeNotif    *Notification
-
 	k8sUnavailableNotif *Notification
 	k8sConnectedNotif   *Notification
 

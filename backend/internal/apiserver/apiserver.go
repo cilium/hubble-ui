@@ -34,6 +34,7 @@ type APIServer struct {
 type HttpHandlerMiddleware = func(http.Handler) http.Handler
 
 func New(
+	//nolint:contextcheck
 	bctx context.Context,
 	log logrus.FieldLogger,
 	cfg *config.Config,
