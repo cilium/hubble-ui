@@ -1,7 +1,7 @@
-import distanceInWords from 'date-fns/formatDistance';
+import { formatDistance } from 'date-fns/formatDistance';
 
 export const elapsedInWords = (t: Date, since: Date = new Date()): string => {
-  return distanceInWords(since, t, {
+  return formatDistance(since, t, {
     includeSeconds: true,
   });
 };
