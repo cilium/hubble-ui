@@ -195,6 +195,7 @@ export const CiliumDropReasonCodes = {
   192: CiliumDropReason.InvalidClusterID,
   193: CiliumDropReason.UnsupportedProtocolForDSREncapsulation,
   194: CiliumDropReason.NoEgressGateway,
+  195: CiliumDropReason.UnencryptedTraffic,
   196: CiliumDropReason.TTLExceeded,
   197: CiliumDropReason.NoNodeID,
 };
