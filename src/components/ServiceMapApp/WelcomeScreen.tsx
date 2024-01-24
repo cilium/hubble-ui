@@ -17,8 +17,6 @@ export interface Props {
 export const WelcomeScreen = observer(function WelcomeScreen(props: Props) {
   const someNamespacesLoaded = props.namespaces.length > 0;
 
-  console.log(e2e.attributes.ns.listSelector());
-
   return (
     <div className={css.wrapper}>
       <div className={css.content}>

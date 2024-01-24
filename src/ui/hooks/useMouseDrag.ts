@@ -50,61 +50,58 @@ export const useMouseDrag = (
   }, []);
 
   const emit = useCallback(
-    _.throttle(
-      (press: XY | null, current: XY | null, release: XY | null) => {
-        if (press == null || current == null) return;
+    _.throttle((press: XY | null, current: XY | null, release: XY | null) => {
+      if (press == null || current == null) return;
 
-        const prevCurrent = currentCoords.current;
-        const diff =
-          prevCurrent != null && press == pressCoords.current
+      const prevCurrent = currentCoords.current;
+      const diff =
+        prevCurrent != null && press == pressCoords.current
+          ? {
+              x: prevCurrent.x - current.x,
+              y: prevCurrent.y - current.y,
+            }
+          : {
+              x: 0,
+              y: 0,
+            };
+
+      pressCoords.current = press;
+      currentCoords.current = current;
+      releaseCoords.current = release;
+
+      const p = cb(
+        {
+          diff,
+          client: {
+            press: press,
+            current: current,
+            release: release,
+          },
+          page: pageCoords
             ? {
-                x: prevCurrent.x - current.x,
-                y: prevCurrent.y - current.y,
+                press: toPageCoords(press),
+                current: toPageCoords(current),
+                release: current != null ? toPageCoords(current) : null,
               }
-            : {
-                x: 0,
-                y: 0,
-              };
+            : void 0,
+        },
+        {
+          isStart: press != null && press == current,
+          isMoving: press != null && press != current && release == null,
+          isEnd: release != null,
+        },
+      );
 
-        pressCoords.current = press;
-        currentCoords.current = current;
-        releaseCoords.current = release;
-
-        const p = cb(
-          {
-            diff,
-            client: {
-              press: press,
-              current: current,
-              release: release,
-            },
-            page: pageCoords
-              ? {
-                  press: toPageCoords(press),
-                  current: toPageCoords(current),
-                  release: current != null ? toPageCoords(current) : null,
-                }
-              : void 0,
-          },
-          {
-            isStart: press != null && press == current,
-            isMoving: press != null && press != current && release == null,
-            isEnd: release != null,
-          },
-        );
-
-        if (release != null) {
-          if (p instanceof Promise) {
-            p.finally(() => {
-              reset();
-            });
-          } else {
+      if (release != null) {
+        if (p instanceof Promise) {
+          p.finally(() => {
             reset();
-          }
+          });
+        } else {
+          reset();
         }
-      },
-      opts?.throttling ?? 0,
-    ),
+      }
+    }, opts?.throttling ?? 0),
     [pressCoords.current, currentCoords.current, releaseCoords.current],
   );
 

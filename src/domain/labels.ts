@@ -237,7 +237,6 @@ export class Labels {
   public static getReservedAppName(lbl: KV, normalizeLabel = true): string | null {
     const kv = normalizeLabel ? Labels.normalizeLabel(lbl) : lbl;
 
-    if (Labels.isKubeApiServerLabel(kv, false)) return 'host/kube-apiserver';
     if (Labels.isReserved(kv, undefined, false)) return kv.key.replace('reserved:', '');
 
     return null;

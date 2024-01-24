@@ -7,12 +7,12 @@ module.exports = {
   ],
   roots: ['<rootDir>/src'],
   moduleNameMapper: {
-    '\\.(png|jpg|gif|ttf|woff|woff2)$':
-      '<rootDir>/scripts/assets-transformer.js',
+    '\\.(png|jpg|gif|ttf|woff|woff2)$': '<rootDir>/scripts/assets-transformer.js',
     '\\.(css|styl|less|sass|scss)$': 'identity-obj-proxy',
     '\\.svg$': '<rootDir>/scripts/svg-mock.js',
     '^~/(.*)$': '<rootDir>/src/$1',
     '^~backend/(.*)$': '<rootDir>/backend/$1',
+    '^~e2e/(.*)$': '<rootDir>/e2e/$1',
   },
   transform: {
     '^.+\\.tsx?$': [
