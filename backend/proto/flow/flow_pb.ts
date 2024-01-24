@@ -19,6 +19,7 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { UInt32Value } from "../google/protobuf/wrappers_pb";
 import { Int32Value } from "../google/protobuf/wrappers_pb";
+import { Any } from "../google/protobuf/any_pb";
 import { BoolValue } from "../google/protobuf/wrappers_pb";
 import { Timestamp } from "../google/protobuf/timestamp_pb";
 /**
@@ -223,6 +224,26 @@ export interface Flow {
      * @generated from protobuf field: string Summary = 100000 [deprecated = true, json_name = "Summary"];
      */
     summary: string;
+    /**
+     * extensions can be used to add arbitrary additional metadata to flows.
+     * This can be used to extend functionality for other Hubble compatible
+     * APIs, or experiment with new functionality without needing to change the public API.
+     *
+     * @generated from protobuf field: google.protobuf.Any extensions = 150000;
+     */
+    extensions?: Any;
+    /**
+     * The CiliumNetworkPolicies allowing the egress of the flow.
+     *
+     * @generated from protobuf field: repeated flow.Policy egress_allowed_by = 21001;
+     */
+    egressAllowedBy: Policy[];
+    /**
+     * The CiliumNetworkPolicies allowing the ingress of the flow.
+     *
+     * @generated from protobuf field: repeated flow.Policy ingress_allowed_by = 21002;
+     */
+    ingressAllowedBy: Policy[];
 }
 /**
  * @generated from protobuf message flow.Layer4
@@ -268,8 +289,7 @@ export interface Layer4 {
     };
 }
 /**
- * Message for L7 flow, which roughly corresponds to Cilium's accesslog LogRecord:
- *   https://github.com/cilium/cilium/blob/728c79e427438ab6f8d9375b62fccd6fed4ace3a/pkg/proxy/accesslog/record.go#L141
+ * Message for L7 flow, which roughly corresponds to Cilium's accesslog [LogRecord](https://github.com/cilium/cilium/blob/728c79e427438ab6f8d9375b62fccd6fed4ace3a/pkg/proxy/accesslog/record.go#L141):
  *
  * @generated from protobuf message flow.Layer7
  */
@@ -310,10 +330,9 @@ export interface Layer7 {
     };
 }
 /**
- * TraceContext contains trace context propagation data, ie information about a
+ * TraceContext contains trace context propagation data, i.e. information about a
  * distributed trace.
- * For more information about trace context, check the W3C Trace Context
- * specification: https://www.w3.org/TR/trace-context/
+ * For more information about trace context, check the [W3C Trace Context specification](https://www.w3.org/TR/trace-context/).
  *
  * @generated from protobuf message flow.TraceContext
  */
@@ -531,7 +550,28 @@ export interface ICMPv6 {
     code: number;
 }
 /**
- * EventTypeFilter is a filter describing a particular event type
+ * @generated from protobuf message flow.Policy
+ */
+export interface Policy {
+    /**
+     * @generated from protobuf field: string name = 1;
+     */
+    name: string;
+    /**
+     * @generated from protobuf field: string namespace = 2;
+     */
+    namespace: string;
+    /**
+     * @generated from protobuf field: repeated string labels = 3;
+     */
+    labels: string[];
+    /**
+     * @generated from protobuf field: uint64 revision = 4;
+     */
+    revision: number;
+}
+/**
+ * EventTypeFilter is a filter describing a particular event type.
  *
  * @generated from protobuf message flow.EventTypeFilter
  */
@@ -559,7 +599,7 @@ export interface EventTypeFilter {
     subType: number;
 }
 /**
- * CiliumEventType from which the flow originated
+ * CiliumEventType from which the flow originated.
  *
  * @generated from protobuf message flow.CiliumEventType
  */
@@ -606,7 +646,8 @@ export interface FlowFilter {
      * source_pod filters by a list of source pod name prefixes, optionally
      * within a given namespace (e.g. "xwing", "kube-system/coredns-").
      * The pod name can be omitted to only filter by namespace
-     * (e.g. "kube-system/")
+     * (e.g. "kube-system/") or the namespace can be omitted to filter for
+     * pods in any namespace (e.g. "/xwing")
      *
      * @generated from protobuf field: repeated string source_pod = 2;
      */
@@ -757,6 +798,18 @@ export interface FlowFilter {
      */
     httpPath: string[];
     /**
+     * http_url is a list of regular expressions to filter on the HTTP URL.
+     *
+     * @generated from protobuf field: repeated string http_url = 31;
+     */
+    httpUrl: string[];
+    /**
+     * http_header is a list of key:value pairs to filter on the HTTP headers.
+     *
+     * @generated from protobuf field: repeated flow.HTTPHeader http_header = 32;
+     */
+    httpHeader: HTTPHeader[];
+    /**
      * tcp_flags filters flows based on TCP header flags
      *
      * @generated from protobuf field: repeated flow.TCPFlags tcp_flags = 23;
@@ -783,8 +836,7 @@ export interface FlowFilter {
     traceId: string[];
 }
 /**
- * DNS flow. This is basically directly mapped from Cilium's LogRecordDNS:
- *     https://github.com/cilium/cilium/blob/04f3889d627774f79e56d14ddbc165b3169e2d01/pkg/proxy/accesslog/record.go#L264
+ * DNS flow. This is basically directly mapped from Cilium's [LogRecordDNS](https://github.com/cilium/cilium/blob/04f3889d627774f79e56d14ddbc165b3169e2d01/pkg/proxy/accesslog/record.go#L264):
  *
  * @generated from protobuf message flow.DNS
  */
@@ -856,8 +908,7 @@ export interface HTTPHeader {
     value: string;
 }
 /**
- * L7 information for HTTP flows. It corresponds to Cilium's accesslog.LogRecordHTTP type.
- *   https://github.com/cilium/cilium/blob/728c79e427438ab6f8d9375b62fccd6fed4ace3a/pkg/proxy/accesslog/record.go#L206
+ * L7 information for HTTP flows. It corresponds to Cilium's [accesslog.LogRecordHTTP](https://github.com/cilium/cilium/blob/728c79e427438ab6f8d9375b62fccd6fed4ace3a/pkg/proxy/accesslog/record.go#L206) type.
  *
  * @generated from protobuf message flow.HTTP
  */
@@ -884,8 +935,7 @@ export interface HTTP {
     headers: HTTPHeader[];
 }
 /**
- * L7 information for Kafka flows. It corresponds to Cilium's accesslog.LogRecordKafka type.
- *   https://github.com/cilium/cilium/blob/728c79e427438ab6f8d9375b62fccd6fed4ace3a/pkg/proxy/accesslog/record.go#L229
+ * L7 information for Kafka flows. It corresponds to Cilium's [accesslog.LogRecordKafka](https://github.com/cilium/cilium/blob/728c79e427438ab6f8d9375b62fccd6fed4ace3a/pkg/proxy/accesslog/record.go#L229) type.
  *
  * @generated from protobuf message flow.Kafka
  */
@@ -1278,7 +1328,7 @@ export enum FlowType {
     SOCK = 3
 }
 /**
- * These types correspond to definitions in pkg/policy/l4.go
+ * These types correspond to definitions in pkg/policy/l4.go.
  *
  * @generated from protobuf enum flow.AuthType
  */
@@ -1392,8 +1442,7 @@ export enum TraceObservationPoint {
     TO_NETWORK = 11
 }
 /**
- * This enum corresponds to Cilium's L7 accesslog FlowType:
- *   https://github.com/cilium/cilium/blob/728c79e427438ab6f8d9375b62fccd6fed4ace3a/pkg/proxy/accesslog/record.go#L26
+ * This enum corresponds to Cilium's L7 accesslog [FlowType](https://github.com/cilium/cilium/blob/728c79e427438ab6f8d9375b62fccd6fed4ace3a/pkg/proxy/accesslog/record.go#L26):
  *
  * @generated from protobuf enum flow.L7FlowType
  */
@@ -1764,13 +1813,28 @@ export enum DropReason {
      */
     NO_EGRESS_GATEWAY = 194,
     /**
+     * @generated from protobuf enum value: UNENCRYPTED_TRAFFIC = 195;
+     */
+    UNENCRYPTED_TRAFFIC = 195,
+    /**
      * @generated from protobuf enum value: TTL_EXCEEDED = 196;
      */
     TTL_EXCEEDED = 196,
     /**
      * @generated from protobuf enum value: NO_NODE_ID = 197;
      */
-    NO_NODE_ID = 197
+    NO_NODE_ID = 197,
+    /**
+     * @generated from protobuf enum value: DROP_RATE_LIMITED = 198;
+     */
+    DROP_RATE_LIMITED = 198,
+    /**
+     * A BPF program wants to tail call into bpf_host, but the host datapath
+     * hasn't been loaded yet.
+     *
+     * @generated from protobuf enum value: DROP_HOST_NOT_READY = 202;
+     */
+    DROP_HOST_NOT_READY = 202
 }
 /**
  * @generated from protobuf enum flow.TrafficDirection
@@ -1889,7 +1953,7 @@ export enum LostEventSource {
 }
 /**
  * AgentEventType is the type of agent event. These values are shared with type
- * AgentNotification in pkg/monitor/api/types.go
+ * AgentNotification in pkg/monitor/api/types.go.
  *
  * @generated from protobuf enum flow.AgentEventType
  */
@@ -2243,7 +2307,15 @@ export enum DebugEventType {
     /**
      * @generated from protobuf enum value: DBG_SK_ASSIGN = 64;
      */
-    DBG_SK_ASSIGN = 64
+    DBG_SK_ASSIGN = 64,
+    /**
+     * @generated from protobuf enum value: DBG_L7_LB = 65;
+     */
+    DBG_L7_LB = 65,
+    /**
+     * @generated from protobuf enum value: DBG_SKIP_POLICY = 66;
+     */
+    DBG_SKIP_POLICY = 66
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class Flow$Type extends MessageType<Flow> {
@@ -2280,11 +2352,14 @@ class Flow$Type extends MessageType<Flow> {
             { no: 31, name: "sock_xlate_point", kind: "enum", T: () => ["flow.SocketTranslationPoint", SocketTranslationPoint] },
             { no: 32, name: "socket_cookie", kind: "scalar", T: 4 /*ScalarType.UINT64*/, L: 2 /*LongType.NUMBER*/ },
             { no: 33, name: "cgroup_id", kind: "scalar", T: 4 /*ScalarType.UINT64*/, L: 2 /*LongType.NUMBER*/ },
-            { no: 100000, name: "Summary", kind: "scalar", jsonName: "Summary", T: 9 /*ScalarType.STRING*/ }
+            { no: 100000, name: "Summary", kind: "scalar", jsonName: "Summary", T: 9 /*ScalarType.STRING*/ },
+            { no: 150000, name: "extensions", kind: "message", T: () => Any },
+            { no: 21001, name: "egress_allowed_by", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Policy },
+            { no: 21002, name: "ingress_allowed_by", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Policy }
         ]);
     }
     create(value?: PartialMessage<Flow>): Flow {
-        const message = { uuid: "", verdict: 0, dropReason: 0, authType: 0, type: 0, nodeName: "", sourceNames: [], destinationNames: [], reply: false, trafficDirection: 0, policyMatchType: 0, traceObservationPoint: 0, dropReasonDesc: 0, debugCapturePoint: 0, proxyPort: 0, sockXlatePoint: 0, socketCookie: 0, cgroupId: 0, summary: "" };
+        const message = { uuid: "", verdict: 0, dropReason: 0, authType: 0, type: 0, nodeName: "", sourceNames: [], destinationNames: [], reply: false, trafficDirection: 0, policyMatchType: 0, traceObservationPoint: 0, dropReasonDesc: 0, debugCapturePoint: 0, proxyPort: 0, sockXlatePoint: 0, socketCookie: 0, cgroupId: 0, summary: "", egressAllowedBy: [], ingressAllowedBy: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Flow>(this, message, value);
@@ -2390,6 +2465,15 @@ class Flow$Type extends MessageType<Flow> {
                     break;
                 case /* string Summary = 100000 [deprecated = true, json_name = "Summary"];*/ 100000:
                     message.summary = reader.string();
+                    break;
+                case /* google.protobuf.Any extensions */ 150000:
+                    message.extensions = Any.internalBinaryRead(reader, reader.uint32(), options, message.extensions);
+                    break;
+                case /* repeated flow.Policy egress_allowed_by */ 21001:
+                    message.egressAllowedBy.push(Policy.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated flow.Policy ingress_allowed_by */ 21002:
+                    message.ingressAllowedBy.push(Policy.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2499,6 +2583,15 @@ class Flow$Type extends MessageType<Flow> {
         /* string Summary = 100000 [deprecated = true, json_name = "Summary"]; */
         if (message.summary !== "")
             writer.tag(100000, WireType.LengthDelimited).string(message.summary);
+        /* google.protobuf.Any extensions = 150000; */
+        if (message.extensions)
+            Any.internalBinaryWrite(message.extensions, writer.tag(150000, WireType.LengthDelimited).fork(), options).join();
+        /* repeated flow.Policy egress_allowed_by = 21001; */
+        for (let i = 0; i < message.egressAllowedBy.length; i++)
+            Policy.internalBinaryWrite(message.egressAllowedBy[i], writer.tag(21001, WireType.LengthDelimited).fork(), options).join();
+        /* repeated flow.Policy ingress_allowed_by = 21002; */
+        for (let i = 0; i < message.ingressAllowedBy.length; i++)
+            Policy.internalBinaryWrite(message.ingressAllowedBy[i], writer.tag(21002, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3416,6 +3509,74 @@ class ICMPv6$Type extends MessageType<ICMPv6> {
  */
 export const ICMPv6 = new ICMPv6$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class Policy$Type extends MessageType<Policy> {
+    constructor() {
+        super("flow.Policy", [
+            { no: 1, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "namespace", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "labels", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "revision", kind: "scalar", T: 4 /*ScalarType.UINT64*/, L: 2 /*LongType.NUMBER*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Policy>): Policy {
+        const message = { name: "", namespace: "", labels: [], revision: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Policy>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Policy): Policy {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string name */ 1:
+                    message.name = reader.string();
+                    break;
+                case /* string namespace */ 2:
+                    message.namespace = reader.string();
+                    break;
+                case /* repeated string labels */ 3:
+                    message.labels.push(reader.string());
+                    break;
+                case /* uint64 revision */ 4:
+                    message.revision = reader.uint64().toNumber();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Policy, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string name = 1; */
+        if (message.name !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.name);
+        /* string namespace = 2; */
+        if (message.namespace !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.namespace);
+        /* repeated string labels = 3; */
+        for (let i = 0; i < message.labels.length; i++)
+            writer.tag(3, WireType.LengthDelimited).string(message.labels[i]);
+        /* uint64 revision = 4; */
+        if (message.revision !== 0)
+            writer.tag(4, WireType.Varint).uint64(message.revision);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message flow.Policy
+ */
+export const Policy = new Policy$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class EventTypeFilter$Type extends MessageType<EventTypeFilter> {
     constructor() {
         super("flow.EventTypeFilter", [
@@ -3560,6 +3721,8 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
             { no: 20, name: "destination_identity", kind: "scalar", repeat: 1 /*RepeatType.PACKED*/, T: 13 /*ScalarType.UINT32*/ },
             { no: 21, name: "http_method", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 22, name: "http_path", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 31, name: "http_url", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 32, name: "http_header", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => HTTPHeader },
             { no: 23, name: "tcp_flags", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TCPFlags },
             { no: 24, name: "node_name", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 25, name: "ip_version", kind: "enum", repeat: 1 /*RepeatType.PACKED*/, T: () => ["flow.IPVersion", IPVersion] },
@@ -3567,7 +3730,7 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
         ]);
     }
     create(value?: PartialMessage<FlowFilter>): FlowFilter {
-        const message = { uuid: [], sourceIp: [], sourcePod: [], sourceFqdn: [], sourceLabel: [], sourceService: [], sourceWorkload: [], destinationIp: [], destinationPod: [], destinationFqdn: [], destinationLabel: [], destinationService: [], destinationWorkload: [], trafficDirection: [], verdict: [], eventType: [], httpStatusCode: [], protocol: [], sourcePort: [], destinationPort: [], reply: [], dnsQuery: [], sourceIdentity: [], destinationIdentity: [], httpMethod: [], httpPath: [], tcpFlags: [], nodeName: [], ipVersion: [], traceId: [] };
+        const message = { uuid: [], sourceIp: [], sourcePod: [], sourceFqdn: [], sourceLabel: [], sourceService: [], sourceWorkload: [], destinationIp: [], destinationPod: [], destinationFqdn: [], destinationLabel: [], destinationService: [], destinationWorkload: [], trafficDirection: [], verdict: [], eventType: [], httpStatusCode: [], protocol: [], sourcePort: [], destinationPort: [], reply: [], dnsQuery: [], sourceIdentity: [], destinationIdentity: [], httpMethod: [], httpPath: [], httpUrl: [], httpHeader: [], tcpFlags: [], nodeName: [], ipVersion: [], traceId: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<FlowFilter>(this, message, value);
@@ -3675,6 +3838,12 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
                     break;
                 case /* repeated string http_path */ 22:
                     message.httpPath.push(reader.string());
+                    break;
+                case /* repeated string http_url */ 31:
+                    message.httpUrl.push(reader.string());
+                    break;
+                case /* repeated flow.HTTPHeader http_header */ 32:
+                    message.httpHeader.push(HTTPHeader.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 case /* repeated flow.TCPFlags tcp_flags */ 23:
                     message.tcpFlags.push(TCPFlags.internalBinaryRead(reader, reader.uint32(), options));
@@ -3802,6 +3971,12 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
         /* repeated string http_path = 22; */
         for (let i = 0; i < message.httpPath.length; i++)
             writer.tag(22, WireType.LengthDelimited).string(message.httpPath[i]);
+        /* repeated string http_url = 31; */
+        for (let i = 0; i < message.httpUrl.length; i++)
+            writer.tag(31, WireType.LengthDelimited).string(message.httpUrl[i]);
+        /* repeated flow.HTTPHeader http_header = 32; */
+        for (let i = 0; i < message.httpHeader.length; i++)
+            HTTPHeader.internalBinaryWrite(message.httpHeader[i], writer.tag(32, WireType.LengthDelimited).fork(), options).join();
         /* repeated flow.TCPFlags tcp_flags = 23; */
         for (let i = 0; i < message.tcpFlags.length; i++)
             TCPFlags.internalBinaryWrite(message.tcpFlags[i], writer.tag(23, WireType.LengthDelimited).fork(), options).join();

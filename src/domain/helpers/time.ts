@@ -1,4 +1,4 @@
-import formatDate from 'date-fns/format';
+import { formatDate } from 'date-fns/format';
 
 import { Timestamp as PBTimestamp } from 'google-protobuf/google/protobuf/timestamp_pb';
 import gdurpb from 'google-protobuf/google/protobuf/duration_pb';
