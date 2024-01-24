@@ -5,16 +5,6 @@ module.exports = {
     '<rootDir>/src/**/?(*.)(spec|test).(j|t)s?(x)',
     '<rootDir>/src/**/__tests__/**/*.(j|t)s?(x)',
   ],
-  globals: {
-    'ts-jest': {
-      tsconfig: 'tsconfig.test.json',
-      useESM: true,
-      isolatedModules: true,
-      babelConfig: {
-        presets: ['@babel/preset-env', '@babel/preset-react'],
-      },
-    },
-  },
   roots: ['<rootDir>/src'],
   moduleNameMapper: {
     '\\.(png|jpg|gif|ttf|woff|woff2)$':
@@ -25,7 +15,17 @@ module.exports = {
     '^~backend/(.*)$': '<rootDir>/backend/$1',
   },
   transform: {
-    '^.+\\.tsx?$': 'ts-jest/legacy',
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        tsconfig: 'tsconfig.test.json',
+        useESM: true,
+        isolatedModules: true,
+        babelConfig: {
+          presets: ['@babel/preset-env', '@babel/preset-react'],
+        },
+      },
+    ],
     '^.+\\.(js|jsx)$': 'babel-jest',
   },
   transformIgnorePatterns: [],
