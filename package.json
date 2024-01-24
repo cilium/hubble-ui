@@ -24,6 +24,9 @@
       "npm run --silent lint:scss:fix"
     ]
   },
+  "config": {
+    "protocVersion": "25.2"
+  },
   "dependencies": {
     "@babel/runtime": "7.23.8",
     "@blueprintjs/core": "5.8.2",
