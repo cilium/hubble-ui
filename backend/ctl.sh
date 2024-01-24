@@ -67,7 +67,7 @@ function check_outer_dependencies() {
 }
 
 function build_proto_inner() {
-  echo "Building proto..."
+  echo "Building, protoc version: $($PROTOC --version)"
 
   for dir in observer flow relay; do
     mkdir -p ./proto/$dir
