@@ -2,7 +2,7 @@ import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import parseUrl from 'url-parse';
 import React from 'react';
-import formatDate from 'date-fns/format';
+import { formatDate } from 'date-fns/format';
 
 import { Flow, Verdict } from '~/domain/flows';
 import { L7FlowType, Layer7 } from '~/domain/hubble';

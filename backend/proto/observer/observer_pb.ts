@@ -25,6 +25,7 @@ import { LostEvent } from "../flow/flow_pb";
 import { NodeStatusEvent } from "../relay/relay_pb";
 import { Flow } from "../flow/flow_pb";
 import { FieldMask } from "../google/protobuf/field_mask_pb";
+import { Any } from "../google/protobuf/any_pb";
 import { Timestamp } from "../google/protobuf/timestamp_pb";
 import { FlowFilter } from "../flow/flow_pb";
 import { UInt32Value } from "../google/protobuf/wrappers_pb";
@@ -94,6 +95,13 @@ export interface ServerStatusResponse {
      * @generated from protobuf field: string version = 8;
      */
     version: string;
+    /**
+     * Approximate rate of flows seen by Hubble per second over the last minute.
+     * In a multi-node context, this is the sum of all flows rates.
+     *
+     * @generated from protobuf field: double flows_rate = 9;
+     */
+    flowsRate: number;
 }
 /**
  * @generated from protobuf message observer.GetFlowsRequest
@@ -159,6 +167,14 @@ export interface GetFlowsRequest {
      * @generated from protobuf field: observer.GetFlowsRequest.Experimental experimental = 999;
      */
     experimental?: GetFlowsRequest_Experimental;
+    /**
+     * extensions can be used to add arbitrary additional metadata to GetFlowsRequest.
+     * This can be used to extend functionality for other Hubble compatible
+     * APIs, or experiment with new functionality without needing to change the public API.
+     *
+     * @generated from protobuf field: google.protobuf.Any extensions = 150000;
+     */
+    extensions?: Any;
 }
 /**
  * Experimental contains fields that are not stable yet. Support for
@@ -589,11 +605,12 @@ class ServerStatusResponse$Type extends MessageType<ServerStatusResponse> {
             { no: 5, name: "num_connected_nodes", kind: "message", T: () => UInt32Value },
             { no: 6, name: "num_unavailable_nodes", kind: "message", T: () => UInt32Value },
             { no: 7, name: "unavailable_nodes", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "version", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 8, name: "version", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "flows_rate", kind: "scalar", T: 1 /*ScalarType.DOUBLE*/ }
         ]);
     }
     create(value?: PartialMessage<ServerStatusResponse>): ServerStatusResponse {
-        const message = { numFlows: 0, maxFlows: 0, seenFlows: 0, uptimeNs: 0, unavailableNodes: [], version: "" };
+        const message = { numFlows: 0, maxFlows: 0, seenFlows: 0, uptimeNs: 0, unavailableNodes: [], version: "", flowsRate: 0 };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ServerStatusResponse>(this, message, value);
@@ -627,6 +644,9 @@ class ServerStatusResponse$Type extends MessageType<ServerStatusResponse> {
                     break;
                 case /* string version */ 8:
                     message.version = reader.string();
+                    break;
+                case /* double flows_rate */ 9:
+                    message.flowsRate = reader.double();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -664,6 +684,9 @@ class ServerStatusResponse$Type extends MessageType<ServerStatusResponse> {
         /* string version = 8; */
         if (message.version !== "")
             writer.tag(8, WireType.LengthDelimited).string(message.version);
+        /* double flows_rate = 9; */
+        if (message.flowsRate !== 0)
+            writer.tag(9, WireType.Bit64).double(message.flowsRate);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -685,7 +708,8 @@ class GetFlowsRequest$Type extends MessageType<GetFlowsRequest> {
             { no: 6, name: "whitelist", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => FlowFilter },
             { no: 7, name: "since", kind: "message", T: () => Timestamp },
             { no: 8, name: "until", kind: "message", T: () => Timestamp },
-            { no: 999, name: "experimental", kind: "message", T: () => GetFlowsRequest_Experimental }
+            { no: 999, name: "experimental", kind: "message", T: () => GetFlowsRequest_Experimental },
+            { no: 150000, name: "extensions", kind: "message", T: () => Any }
         ]);
     }
     create(value?: PartialMessage<GetFlowsRequest>): GetFlowsRequest {
@@ -724,6 +748,9 @@ class GetFlowsRequest$Type extends MessageType<GetFlowsRequest> {
                 case /* observer.GetFlowsRequest.Experimental experimental */ 999:
                     message.experimental = GetFlowsRequest_Experimental.internalBinaryRead(reader, reader.uint32(), options, message.experimental);
                     break;
+                case /* google.protobuf.Any extensions */ 150000:
+                    message.extensions = Any.internalBinaryRead(reader, reader.uint32(), options, message.extensions);
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -760,6 +787,9 @@ class GetFlowsRequest$Type extends MessageType<GetFlowsRequest> {
         /* observer.GetFlowsRequest.Experimental experimental = 999; */
         if (message.experimental)
             GetFlowsRequest_Experimental.internalBinaryWrite(message.experimental, writer.tag(999, WireType.LengthDelimited).fork(), options).join();
+        /* google.protobuf.Any extensions = 150000; */
+        if (message.extensions)
+            Any.internalBinaryWrite(message.extensions, writer.tag(150000, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
