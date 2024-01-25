@@ -1,0 +1,31 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    extraMounts:
+    - hostPath: TESTING_DATA_PATH
+      containerPath: /var/log/hubble-ui-testing
+      readOnly: true
+    kubeadmConfigPatches:
+      # To make sure that there is no taint for master node.
+      # Otherwise additional worker node might be required for conformance testing.
+      - |
+        apiVersion: kubeadm.k8s.io/v1beta2
+        kind: InitConfiguration
+        nodeRegistration:
+          taints: []
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 80
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 443
+        protocol: TCP
+networking:
+  disableDefaultCNI: true
+  kubeProxyMode: "none"

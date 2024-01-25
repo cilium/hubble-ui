@@ -41,25 +41,5 @@ const customRender = (elem: React.ReactElement<any>, options?: any): RenderResul
   return app.mount(document.body);
 };
 
-type ReturnsStore = () => Store;
-export const spyStore = (): ReturnsStore => {
-  const spy = jest.spyOn(React, 'useContext');
-
-  return () => {
-    const calls = spy.mock.calls;
-    const returns = spy.mock.results;
-
-    let idx = -1;
-    calls.forEach((c, i) => {
-      if (c[0] === StoreContext) {
-        idx = i;
-      }
-    });
-
-    return returns[idx].value;
-  };
-};
-
-export * from '@testing-library/react';
 export { React, customRender as render };
 export { data, helpers };

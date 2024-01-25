@@ -24,13 +24,14 @@ const buildAPIUrl = (env: Environment): string => {
     return `${document.location.origin}/api/`;
   }
 
-  const schema = env.var('API_SCHEMA') || 'http';
-  const host = env.var('API_HOST') || 'localhost';
-  const port = env.var('API_PORT') || 8090;
+  const schemaRaw = env.var('API_SCHEMA') || document.location.protocol || 'http';
+  const schema = schemaRaw.endsWith(':') ? schemaRaw : `${schemaRaw}:`;
+  const host = env.var('API_HOST') || document.location.host;
+  const port = env.var('API_PORT') || document.location.port;
   const path = env.var('API_PATH') || 'api';
   const slashedPath = path?.startsWith('/') ? path : `/${path}`;
 
-  return `${schema}://${host}:${port}${slashedPath}`;
+  return `${schema}//${host}${port ? `:${port}` : ''}${slashedPath}`;
 };
 
 const run = async () => {

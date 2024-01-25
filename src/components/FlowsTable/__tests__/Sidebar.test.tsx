@@ -1,3 +1,6 @@
+import React from 'react';
+import { act, fireEvent } from '@testing-library/react';
+
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { FlowsTableSidebar } from '~/components/FlowsTable/Sidebar';
 
@@ -5,7 +8,7 @@ import { Flow } from '~/domain/flows';
 import { HubbleFlow } from '~/domain/hubble';
 import { Filters } from '~/domain/filtering';
 
-import { act, data, fireEvent, React, render } from '~/testing';
+import { data, render } from '~/testing';
 
 interface Expectations {
   title: string;
