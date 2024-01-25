@@ -1,11 +1,12 @@
 {
-  // "extends": "../tsconfig.test.json",
   "compilerOptions": {
+    "target": "esnext",
     "lib": ["esnext", "dom"],
     "types": ["cypress", "node"],
     "paths": {
       "~e2e/*": ["./*"],
     },
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "sourceMap": false
   },

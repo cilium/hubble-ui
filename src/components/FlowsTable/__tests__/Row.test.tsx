@@ -1,10 +1,11 @@
-import { act, React, render, data, fireEvent } from '~/testing';
+import React from 'react';
+import { act, fireEvent } from '@testing-library/react';
+import { render, data } from '~/testing';
 import { Row } from '~/components/FlowsTable/Row';
 import { Column } from '~/components/FlowsTable';
 
 import { Flow } from '~/domain/flows';
 import { HubbleFlow } from '~/domain/hubble';
-import { elapsedInWords } from '~/utils/time';
 
 const tsUpdateDelay = 5000;
 

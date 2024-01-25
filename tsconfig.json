@@ -15,7 +15,7 @@
       "~backend/*": ["./../backend/*"],
       "~e2e/*": ["./../e2e/*"]
     },
-    "types": ["node", "jest", "cypress"],
+    "types": ["node"],
     "moduleResolution": "node",
     "isolatedModules": false,
     "sourceMap": true,
@@ -35,11 +35,11 @@
     "strictPropertyInitialization": true,
     "strictNullChecks": true
   },
-  "exclude": ["node_modules/*"],
+  "exclude": ["**/node_modules", "**/__tests__", "**/*.test.ts", "e2e/**/*"],
   "include": [
     "src/**/*",
     "src/**/*.json",
     "backend/proto/**/*.ts",
-    "e2e/**/*"
+    "e2e/client"
   ]
 }

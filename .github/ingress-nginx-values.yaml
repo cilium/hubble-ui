@@ -1,0 +1,20 @@
+controller:
+  hostNetwork: true
+  service:
+    type: NodePort
+  publishService:
+    enabled: false
+  extraArgs:
+    publish-status-address: localhost
+  nodeSelector:
+    ingress-ready: "true"
+  tolerations:
+    - key: "node-role.kubernetes.io/master"
+      operator: "Equal"
+      effect: "NoSchedule"
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Equal"
+      effect: "NoSchedule"
+  updateStrategy:
+    type: Recreate
+  terminationGracePeriodSeconds: 30
