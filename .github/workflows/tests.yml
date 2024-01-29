@@ -28,7 +28,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
       - name: Setup Go
-        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+        uses: actions/setup-go@6c1fd22b67f7a7c42ad9a45c0f4197434035e429
         with:
           go-version: '1.21'
       - name: Check Go module vendoring
