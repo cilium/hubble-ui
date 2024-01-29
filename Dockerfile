@@ -26,7 +26,7 @@ COPY . .
 ARG NODE_ENV=production
 RUN npm run build
 
-FROM docker.io/nginxinc/nginx-unprivileged:1.25.3-alpine3.18-slim@sha256:57a630cf4a357007959cac5b8a6d91ff381a55699b31545792fa9b88b26c5f5c
+FROM docker.io/nginxinc/nginx-unprivileged:1.25.3-alpine3.18-slim@sha256:5758611372e1b389025e349987fb63aebb54ff35c15f92384b8ae184693827c3
 USER root
 RUN apk upgrade --no-cache
 USER 101
