@@ -28,7 +28,7 @@
     "protocVersion": "25.2"
   },
   "dependencies": {
-    "@babel/runtime": "7.23.8",
+    "@babel/runtime": "7.23.9",
     "@blueprintjs/core": "5.8.2",
     "@blueprintjs/icons": "5.7.0",
     "@blueprintjs/select": "5.0.23",
