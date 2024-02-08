@@ -116,7 +116,7 @@ export const ServiceMapArrowDuckFeet = observer(function ServiceMapArrowDuckFeet
         .append('div')
         .style('position', 'absolute')
         .style('z-index', '10')
-        .style('visibility', 'hidden')
+        .style('display', 'none')
         .style('color', '#fff')
         .style('background', '#000')
         .style('border-radius', '3px')
@@ -137,14 +137,14 @@ export const ServiceMapArrowDuckFeet = observer(function ServiceMapArrowDuckFeet
         .attr('x', arrow => arrow.end!.x - 8)
         .attr('y', arrow => arrow.end!.y - 20)
         .text((arrow: AccessPointArrow) => (arrow.hasAuth ? '\uf232' : ''))
-        .on('mouseover', () => padlockTooltip.style('visibility', 'visible'))
+        .on('mouseover', () => padlockTooltip.style('display', 'block'))
         .on('mousemove', evt => {
           return padlockTooltip
             .style('top', evt.pageY - 10 + 'px')
             .style('left', evt.pageX + 10 + 'px');
         })
         .on('mouseout', () => {
-          return padlockTooltip.style('visibility', 'hidden');
+          return padlockTooltip.style('display', 'none');
         });
 
       backgroundLines.exit().remove();
