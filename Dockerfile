@@ -6,7 +6,8 @@
 # BUILDPLATFORM is an automatic platform ARG enabled by Docker BuildKit.
 # Represents the plataform where the build is happening, do not mix with
 # TARGETARCH
-FROM --platform=${BUILDPLATFORM} docker.io/library/node:18.19.0-alpine3.18@sha256:4bdb3f3105718f0742bc8d64bb4e36e8f955ebbee295325e40ae80bc8ef78833 as stage1
+# skopeo inspect --override-os linux docker://docker.io/library/node:20.11.0-alpine3.18 | jq -r '.Digest'
+FROM --platform=${BUILDPLATFORM} docker.io/library/node:20.11.0-alpine3.18@sha256:3aae0ea51b2952660b4b65988963b78b269cf84cc7f36f208462601a12e1531a as stage1
 RUN apk add bash
 WORKDIR /app
 
@@ -26,7 +27,8 @@ COPY . .
 ARG NODE_ENV=production
 RUN npm run build
 
-FROM docker.io/nginxinc/nginx-unprivileged:1.25.3-alpine3.18-slim@sha256:5758611372e1b389025e349987fb63aebb54ff35c15f92384b8ae184693827c3
+# skopeo inspect --override-os linux docker://docker.io/nginxinc/nginx-unprivileged:1.25.3-alpine3.18-slim | jq -r '.Digest'
+FROM docker.io/nginxinc/nginx-unprivileged:1.25.3-alpine3.18-slim@sha256:1732fb26b6098b17b6cd81e099fe886a19b9e82d59a0773ef69bda785aa26173
 USER root
 RUN apk upgrade --no-cache
 USER 101
