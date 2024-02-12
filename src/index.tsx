@@ -26,12 +26,12 @@ const buildAPIUrl = (env: Environment): string => {
 
   const schemaRaw = env.var('API_SCHEMA') || document.location.protocol || 'http';
   const schema = schemaRaw.endsWith(':') ? schemaRaw : `${schemaRaw}:`;
-  const host = env.var('API_HOST') || document.location.host;
+  const hostname = env.var('API_HOST') || document.location.hostname;
   const port = env.var('API_PORT') || document.location.port;
   const path = env.var('API_PATH') || 'api';
   const slashedPath = path?.startsWith('/') ? path : `/${path}`;
 
-  return `${schema}//${host}${port ? `:${port}` : ''}${slashedPath}`;
+  return `${schema}//${hostname}${port ? `:${port}` : ''}${slashedPath}`;
 };
 
 const run = async () => {
