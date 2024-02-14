@@ -5,8 +5,7 @@ import decompress from 'decompress';
 
 const VERSION = '3.11.4';
 
-const DL_PREFIX =
-  'https://github.com/protocolbuffers/protobuf/releases/download';
+const DL_PREFIX = 'https://github.com/protocolbuffers/protobuf/releases/download';
 
 const PLATFORM =
   {
@@ -53,9 +52,7 @@ async function download(url, targetFile) {
         if (code > 300 && code < 400 && !!response.headers.location) {
           return resolve(download(response.headers.location, targetFile));
         }
-        const fileWriter = fs
-          .createWriteStream(targetFile)
-          .on('finish', () => resolve());
+        const fileWriter = fs.createWriteStream(targetFile).on('finish', () => resolve());
         response.pipe(fileWriter);
       })
       .on('error', error => reject(error));

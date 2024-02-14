@@ -7,7 +7,6 @@
 //
 // +Position.Any needs only for jest, as it doesnt recognize toPrimitive coerce
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-import * as csstype from 'csstype';
 
 export class Position {
   public static readonly Top = Position.new(0b100000);

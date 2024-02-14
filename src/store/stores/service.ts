@@ -143,7 +143,7 @@ export class ServiceStore {
     return this.cardWorkloadsMap.get(key);
   }
 
-  public clear(opts?: ClearOptions) {
+  public clear() {
     this.cards = [];
   }
 

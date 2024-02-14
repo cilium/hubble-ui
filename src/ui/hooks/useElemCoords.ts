@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect } from 'react';
+import React, { useCallback, useLayoutEffect } from 'react';
 
 import { WH, XY, XYWH } from '~/domain/geometry';
 import { tooSmall } from '~/domain/misc';

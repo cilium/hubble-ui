@@ -1,7 +1,6 @@
 import React, { memo } from 'react';
 
 import { XYWH } from '~/domain/geometry';
-import { sizes } from '~/ui/vars';
 
 import css from './styles.scss';
 

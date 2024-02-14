@@ -78,7 +78,7 @@ export class LocationState {
     return this._id;
   }
 
-  public clone(_deep?: boolean): LocationState {
+  public clone(): LocationState {
     const cloned = new LocationState();
     cloned._id = this._id;
     cloned.params = this.params ? new Map(this.params) : void 0;

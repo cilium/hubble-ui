@@ -4,7 +4,7 @@ import { observer } from 'mobx-react';
 import { Verdict } from '~/domain/hubble';
 import { FilterEntry } from '~/domain/filtering';
 import { Status } from '~/domain/status';
-import { DataMode, TransferState } from '~/domain/interactions';
+import { TransferState } from '~/domain/interactions';
 import { NamespaceDescriptor } from '~/domain/namespaces';
 
 import { FlowsFilterInput } from './FlowsFilterInput';

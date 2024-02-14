@@ -6,11 +6,11 @@ import { Router } from '~/router';
 import { EventEmitter } from '~/utils/emitter';
 
 import { ServiceCard } from '~/domain/service-map';
-import { Application, Direction } from '~/domain/common';
+import { Application } from '~/domain/common';
 import { FilterEntry } from '~/domain/filtering/filter-entry';
 
 import { RefsCollector } from '~/ui/service-map/collector';
-import { Options, CommonUtils } from '~/ui-layer/common';
+import { Options } from '~/ui-layer/common';
 import { StatusCenter } from '~/ui-layer/status-center';
 
 import { ServiceMapPlacementStrategy, ServiceMapArrowStrategy } from './coordinates';
@@ -97,7 +97,7 @@ export class ServiceMap extends EventEmitter<Handlers> {
     this.router.commit();
   }
 
-  public cardsMutationsObserved(_muts: MutationRecord[]) {
+  public cardsMutationsObserved() {
     this.collector.cardsMutationsObserved();
   }
 
@@ -116,7 +116,7 @@ export class ServiceMap extends EventEmitter<Handlers> {
     return this.store.controls.areSomeFilterEntriesEnabled(card.filterEntries);
   }
 
-  public async appToggled(_prev: Application, next: Application, isChanged: boolean) {
+  public async appToggled(_prev: Application, next: Application) {
     // if (!isChanged) return;
 
     switch (next) {

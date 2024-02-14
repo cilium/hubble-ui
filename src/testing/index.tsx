@@ -2,7 +2,6 @@ import { render, RenderResult } from '@testing-library/react';
 import React from 'react';
 
 import { Store } from '~/store';
-import { StoreContext } from '~/store/hooks';
 import { Application, ApplicationProvider } from '~/application';
 import { Router, RouterKind } from '~/router';
 

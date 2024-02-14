@@ -1,6 +1,4 @@
 import { XY } from './general';
-import { XYWH, Sides } from './xywh';
-import { Vec2 } from './vec2';
 
 // TODO: optimize it
 export const angleBetweenSegments = (p0: XY, p1: XY, p2: XY): number => {

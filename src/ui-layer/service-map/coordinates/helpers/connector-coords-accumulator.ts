@@ -71,7 +71,7 @@ export class ConnectorCoordsAccumulator {
   // NOTE: We simple subtract a half of entire connectors height here to make
   // NOTE: them all centered on vertical axis.
   public adjustVertically() {
-    this.cardConnectorIds.forEach((connectorIds, _cardId) => {
+    this.cardConnectorIds.forEach(connectorIds => {
       connectorIds.forEach(connectorId => {
         const connectorCoords = this.cardConnectorCoords.get(connectorId);
         if (connectorCoords == null) {

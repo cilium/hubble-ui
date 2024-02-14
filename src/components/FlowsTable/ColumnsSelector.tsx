@@ -3,7 +3,7 @@ import React, { memo, useCallback } from 'react';
 
 import { usePopover } from '~/ui/hooks/usePopover';
 
-import { CommonProps, Column, columnKeys, getColumnLabel } from './general';
+import { CommonProps, Column, getColumnLabel } from './general';
 
 export interface Props extends CommonProps {
   visibleColumns: Set<Column>;

@@ -13,8 +13,6 @@ import { Store, StoreFrame } from '~/store';
 import { Retries } from '~/utils/retry';
 import { EventEmitter } from '~/utils/emitter';
 
-import { NamespaceDescriptor } from '~/domain/namespaces';
-
 export enum Event {
   FlowsDiff = 'flows-diff-count',
   FlowFiltersShouldBeChanged = 'filter-entries-should-be-changed',
@@ -255,7 +253,7 @@ export class ServiceMap extends EventEmitter<Handlers> {
     this.emit(Event.FlowFiltersShouldBeChanged, flowFilters);
   }
 
-  private pickDataModeForNamespace(ns?: NamespaceDescriptor | null): DataMode {
+  private pickDataModeForNamespace(): DataMode {
     return DataMode.CiliumStreaming;
   }
 

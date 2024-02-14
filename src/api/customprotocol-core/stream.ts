@@ -385,7 +385,7 @@ export class Stream<H extends HandlerTypes = {}> extends EventEmitter<Union<Hand
     return false;
   }
 
-  protected messageBuilder(msg: Message, _isFirst: boolean): Message {
+  protected messageBuilder(msg: Message): Message {
     return msg;
   }
 
