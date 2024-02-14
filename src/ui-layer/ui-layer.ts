@@ -4,7 +4,6 @@ import { Store } from '~/store';
 import * as ui from '~/ui';
 
 import { DataMode, TransferState } from '~/domain/interactions';
-import { FeatureFlags } from '~/domain/features';
 import { Application } from '~/domain/common';
 
 import { StatusCenter } from './status-center';
@@ -114,10 +113,10 @@ export class UILayer {
       return;
     }
 
-    this.setupEverything(this.store.uiSettings.featureFlags);
+    this.setupEverything();
   }
 
-  private setupEverything(ff: FeatureFlags) {
+  private setupEverything() {
     // NOTE: The only thing `applyLocalParameters` doesnt do is setting current
     // application inside control store. This allows to decide whether we need
     // to switch there or not here, on higher level of responsibility.
@@ -166,7 +165,7 @@ export class UILayer {
   private async appToggled(prevApp: Application, nextApp: Application, isChanged: boolean) {
     console.log(`appToggled`, prevApp, nextApp, isChanged);
 
-    await this.serviceMap.appToggled(prevApp, nextApp, isChanged);
+    await this.serviceMap.appToggled(prevApp, nextApp);
   }
 
   private applyLocalParameters(): void {

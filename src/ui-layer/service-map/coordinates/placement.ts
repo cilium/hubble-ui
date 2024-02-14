@@ -1,5 +1,4 @@
 import { action, computed, observable, reaction, makeObservable, runInAction } from 'mobx';
-import _ from 'lodash';
 
 import { Method as HttpMethod } from '~/domain/http';
 import { XYWH, XY, dummy as geom } from '~/domain/geometry';

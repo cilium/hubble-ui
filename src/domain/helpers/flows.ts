@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import * as flowpb from '~backend/proto/flow/flow_pb';
 
 import {

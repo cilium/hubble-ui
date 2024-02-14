@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { Location, NavigateOptions } from 'react-router-dom';
 
 import { EventEmitter } from '~/utils/emitter';
@@ -140,7 +139,7 @@ export class Router extends EventEmitter<Handlers> {
     this._transaction.push(RouteAction.dropSearchParams());
   }
 
-  public commit(_commitOpts?: CommitOptions): this {
+  public commit(): this {
     const actions = this._transaction.splice(0, this._transaction.length);
     if (actions.length === 0) return this;
 

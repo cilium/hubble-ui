@@ -4,7 +4,6 @@ import { FixedSizeList } from 'react-window';
 
 import { Flow } from '~/domain/flows';
 import { sizes } from '~/ui';
-import { Ticker } from '~/utils/ticker';
 
 import { CommonProps, TickerEvents } from './general';
 import { useScroll, OnFlowsDiffCount } from './hooks/useScroll';

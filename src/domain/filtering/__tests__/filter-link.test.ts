@@ -8,7 +8,6 @@ import {
 
 import { Verdict } from '~/domain/hubble';
 import { Link } from '~/domain/link';
-import { Flow } from '~/domain/flows';
 import { Dictionary } from '~/domain/misc';
 import { links } from '~/testing/data';
 

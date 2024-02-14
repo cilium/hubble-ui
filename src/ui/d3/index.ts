@@ -9,7 +9,7 @@ export const setupHovering = <S extends d3.Selection<any, any, any, any>>(
   let isMouseOver = false;
 
   self
-    .on('mouseover', e => {
+    .on('mouseover', () => {
       if (isMouseOver) return;
       isMouseOver = true;
 

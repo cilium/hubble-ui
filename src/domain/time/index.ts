@@ -1,5 +1,3 @@
-import _ from 'lodash';
-
 export type Time = {
   seconds: number;
   nanos: number;

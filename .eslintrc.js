@@ -6,6 +6,7 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
   ],
+  plugins: ['unused-imports'],
   parserOptions: {
     ecmaVersion: 2018,
     sourceType: 'module',
@@ -24,6 +25,9 @@ module.exports = {
     '@typescript-eslint/no-namespace': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-unused-vars': 'off',
+    'no-unused-vars': 'off',
+    'unused-imports/no-unused-imports': 'error',
+    'unused-imports/no-unused-vars': ['error', { ignoreRestSiblings: true }],
     '@typescript-eslint/ban-types': 'off',
     '@typescript-eslint/no-use-before-define': [
       'error',

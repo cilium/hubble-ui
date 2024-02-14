@@ -138,10 +138,6 @@ export const VerdictEntry = memo<VerdictEntryProps>(function FlowsTableSidebarVe
     [css.auditVerdict]: props.verdict === Verdict.Audit,
   });
 
-  const onClick = useCallback(() => {
-    props.onClick?.();
-  }, [props.onClick]);
-
   return (
     <span className={className} onClick={props.onClick}>
       {verdictHelpers.toString(props.verdict)}

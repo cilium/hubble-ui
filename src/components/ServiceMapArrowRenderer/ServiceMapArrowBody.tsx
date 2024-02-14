@@ -1,14 +1,12 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
 import classnames from 'classnames';
-import * as mobx from 'mobx';
 import * as d3 from 'd3';
 
 import { XY } from '~/domain/geometry';
-import { link } from '~/domain/helpers';
 
 import { ArrowRendererProps } from '~/components/ArrowsRenderer';
-import { ServiceMapArrow, AccessPointArrow } from '~/ui-layer/service-map/coordinates/arrow';
+import { ServiceMapArrow } from '~/ui-layer/service-map/coordinates/arrow';
 import { colors, sizes } from '~/ui/vars';
 
 import * as helpers from './helpers';
@@ -21,14 +19,6 @@ export const ServiceMapArrowBody = observer(function ServiceMapArrowBody(props: 
   const handlesGroup = useRef<SVGGElement | null>(null);
   const endingFigures = useRef<SVGGElement | null>(null);
   const innerArrows = useRef<SVGGElement | null>(null);
-
-  const arrow = mobx
-    .computed(() => {
-      if (!(props.arrow instanceof ServiceMapArrow)) return null;
-
-      return props.arrow;
-    })
-    .get();
 
   const renderArrow = useCallback((arrow: ServiceMapArrow) => {
     // NOTE: Here we use data bind with one element in array just to have
@@ -85,7 +75,7 @@ export const ServiceMapArrowBody = observer(function ServiceMapArrowBody(props: 
     const startPlate = d3
       .select(endingFigures.current!)
       .selectAll<SVGPathElement, XY>('path.start-plate')
-      .data([arrow.start], _ => `${arrow.id}-start-plate`);
+      .data([arrow.start], () => `${arrow.id}-start-plate`);
 
     startPlate.attr('d', helpers.svg.startPlatePath);
 

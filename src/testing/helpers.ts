@@ -1,5 +1,5 @@
-import _ from 'lodash';
 import { E2E_PREFIX } from '~/testing/constants';
+
 import {
   HubbleService,
   HubbleFlow,

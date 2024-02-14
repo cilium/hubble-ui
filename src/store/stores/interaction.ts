@@ -123,23 +123,6 @@ export class InteractionStore {
   }
 
   public addFlows(newFlows: Flow[], sortDesc = true) {
-    // Append new flows by mutating current array
-    // const flowsMaxCount = Math.min(
-    //   InteractionStore.FLOWS_MAX_COUNT,
-    //   newFlows.length,
-    // );
-
-    // for (let i = 0; i < flowsMaxCount; i += 1) {
-    //   const shiftI = i + flowsMaxCount;
-    //   if (this._flows[i] && shiftI < InteractionStore.FLOWS_MAX_COUNT) {
-    //     if (shiftI < this._flows.length) {
-    //       this._flows[shiftI] = this._flows[i];
-    //     } else {
-    //       this._flows.push(this._flows[i]);
-    //     }
-    //   }
-    //   this._flows[i] = newFlows[i];
-    // }
     const sortFn = sortDesc
       ? (a: Flow, b: Flow) => b.compare(a)
       : (a: Flow, b: Flow) => a.compare(b);
@@ -158,8 +141,6 @@ export class InteractionStore {
     const now = Date.now();
     const timeDiff = now - this.flowsInfo.lastTime;
     if (timeDiff >= 1000) {
-      const flowsDiff = this.flowsInfo.tmpFlowsCnt - this.flowsInfo.flowsCnt;
-
       this.flowsInfo.lastTime = now;
       this.flowsInfo.flowsCnt = this.flowsInfo.tmpFlowsCnt;
 

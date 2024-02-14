@@ -62,7 +62,7 @@ const runAppearanceTests = (row: HTMLElement, exps: Expectations, selected: bool
   }
 };
 
-const runTemporalTests = (row: HTMLElement, flow: Flow) => {
+const runTemporalTests = (row: HTMLElement) => {
   jest.clearAllTimers();
   const tsLabel = row.querySelector('.cell:nth-child(12)')!;
 
@@ -76,7 +76,7 @@ const runTest = (ntest: number, hf: HubbleFlow, exps: Expectations) => {
   const isSelected = [false, true];
 
   isSelected.forEach(selected => {
-    const onSelect = jest.fn((flow: Flow | null) => void 0);
+    const onSelect = jest.fn(() => void 0);
     const selectedStr = selected ? 'selected' : 'not-selected';
 
     describe(`FlowsTable: Row (${selectedStr}) / test ${ntest}`, () => {
@@ -98,7 +98,7 @@ const runTest = (ntest: number, hf: HubbleFlow, exps: Expectations) => {
       });
 
       test(`temporal`, () => {
-        runTemporalTests(row, flow);
+        runTemporalTests(row);
       });
 
       test(`interactions`, () => {

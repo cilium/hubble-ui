@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import classnames from 'classnames';
 import React, { useLayoutEffect, useRef } from 'react';
 import { observer } from 'mobx-react';

@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import * as React from 'react';
 
-import { XY, WH, XYWH } from '~/domain/geometry';
+import { WH, XYWH } from '~/domain/geometry';
 
 import { ElemCoords } from './useElemCoords';
 import { tooSmall } from '~/domain/misc';

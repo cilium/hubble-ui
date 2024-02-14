@@ -107,7 +107,7 @@ export const filter = (
       const links = incomings.get(senderId);
       if (links == null) return;
 
-      links.forEach((link, apId) => {
+      links.forEach(link => {
         if (blacklistLinks.has(link.id)) return;
 
         const passed = filterLink(link, filters);

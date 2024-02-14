@@ -24,7 +24,7 @@ export default defineConfig({
       username: 'admin@example.com',
       password: 'password',
     },
-    setupNodeEvents: (on, _config) => {
+    setupNodeEvents: on => {
       on('file:preprocessor', async f => await webpackConfiguration(f));
     },
   },

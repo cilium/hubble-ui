@@ -53,7 +53,7 @@ describe('fill empty frame', () => {
     const rhs = prepareFrame([], [new Flow(tflows.hubbleOne)], [], filterObj);
 
     lhs.applyFrame(rhs, Filters.fromObject(filterObj));
-    const { flows, links, svcs } = extractData(lhs);
+    const { flows } = extractData(lhs);
 
     expect(flows.length).toBe(1);
   });
@@ -74,7 +74,7 @@ describe('fill empty frame', () => {
     const rhs = prepareFrame([], [new Flow(tflows.hubbleOne)], [], filterObj);
 
     lhs.applyFrame(rhs, Filters.fromObject(filterObj));
-    const { flows, links, svcs } = extractData(lhs);
+    const { flows } = extractData(lhs);
 
     expect(flows.length).toBe(0);
   });
@@ -3604,7 +3604,7 @@ describe('filter entries > world', () => {
 });
 
 describe('filter entries > DNS', () => {
-  const { regular, regular1, kubeDNS, apiTwitter, world } = tsvcs;
+  const { regular, regular1, apiTwitter } = tsvcs;
 
   test('test 1 - regular -> apiTwitter (to filter)', () => {
     const filterObj = {
@@ -3860,12 +3860,12 @@ describe('filter entries > DNS', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: regToTwitter, fromBtoA: twitterToReg } = thelpers
+    const { fromAtoB: regToTwitter } = thelpers
       .flowsFromToService(regular, apiTwitter)
       .tcp(54000, 8081)
       .forwarded();
 
-    const { fromAtoB: reg1ToTwitter, fromBtoA: twitterToReg1 } = thelpers
+    const { fromBtoA: twitterToReg1 } = thelpers
       .flowsFromToService(regular1, apiTwitter)
       .tcp(54001, 8081)
       .forwarded();
@@ -3975,12 +3975,12 @@ describe('filter entries > DNS', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: regToTwitter, fromBtoA: twitterToReg } = thelpers
+    const { fromAtoB: regToTwitter } = thelpers
       .flowsFromToService(regular, apiTwitter)
       .tcp(54000, 8081)
       .forwarded();
 
-    const { fromAtoB: reg1ToTwitter, fromBtoA: twitterToReg1 } = thelpers
+    const { fromBtoA: twitterToReg1 } = thelpers
       .flowsFromToService(regular1, apiTwitter)
       .tcp(54001, 8081)
       .forwarded();
@@ -4090,12 +4090,12 @@ describe('filter entries > DNS', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: regToTwitter, fromBtoA: twitterToReg } = thelpers
+    const { fromAtoB: regToTwitter } = thelpers
       .flowsFromToService(regular, apiTwitter)
       .tcp(54000, 8081)
       .forwarded();
 
-    const { fromAtoB: reg1ToTwitter, fromBtoA: twitterToReg1 } = thelpers
+    const { fromBtoA: twitterToReg1 } = thelpers
       .flowsFromToService(regular1, apiTwitter)
       .tcp(54001, 8081)
       .forwarded();
@@ -4205,12 +4205,12 @@ describe('filter entries > DNS', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: regToTwitter, fromBtoA: twitterToReg } = thelpers
+    const { fromAtoB: regToTwitter } = thelpers
       .flowsFromToService(regular, apiTwitter)
       .tcp(54000, 8081)
       .forwarded();
 
-    const { fromAtoB: reg1ToTwitter, fromBtoA: twitterToReg1 } = thelpers
+    const { fromBtoA: twitterToReg1 } = thelpers
       .flowsFromToService(regular1, apiTwitter)
       .tcp(54001, 8081)
       .forwarded();
@@ -4448,7 +4448,7 @@ describe('filter entries > DNS', () => {
 });
 
 describe('filter entries > pod (only flows)', () => {
-  const { regular, regular1, kubeDNS, apiTwitter, world } = tsvcs;
+  const { regular, world } = tsvcs;
   const [senderPod, receiverPod] = ['crawler-12345', 'service-54321'];
 
   const fromSenderPod = FilterEntry.newPod(senderPod).setDirection(FilterDirection.From);
@@ -4509,7 +4509,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
+    const { fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
 
@@ -4618,7 +4618,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
+    const { fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
 
@@ -4727,7 +4727,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
+    const { fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
 
@@ -4836,7 +4836,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
+    const { fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
 
@@ -4945,7 +4945,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
+    const { fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
 
@@ -5054,7 +5054,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
+    const { fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
 
@@ -5163,7 +5163,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
+    const { fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
 
@@ -5272,7 +5272,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
+    const { fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
 

@@ -1,4 +1,4 @@
-import { makeAutoObservable, makeObservable } from 'mobx';
+import { makeObservable } from 'mobx';
 import { GrpcWrappedError } from '~/api/grpc/error';
 
 import { Notification } from '~/domain/notifications';
@@ -65,7 +65,7 @@ export class StatusCenter extends EventEmitter<Handlers> {
 
     // NOTE: We are going to show critical pending entry until it is done, no
     // NOTE: matter if it is seen or not.
-    for (const [_, pendingEntry] of this._pendingEntries) {
+    for (const [, pendingEntry] of this._pendingEntries) {
       if (pendingEntry.isCritical || pendingEntry.isError) return pendingEntry;
     }
 

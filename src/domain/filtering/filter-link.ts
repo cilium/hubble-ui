@@ -1,5 +1,5 @@
 import { Link } from '~/domain/service-map';
-import { FilterEntry, Kind as FilterKind, Direction as FilterDirection } from './filter-entry';
+import { FilterEntry, Kind as FilterKind } from './filter-entry';
 
 import { Filters } from '~/domain/filtering';
 
