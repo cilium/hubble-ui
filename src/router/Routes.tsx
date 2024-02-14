@@ -10,16 +10,6 @@ export type Props = {
   RootComponent: JSX.Element;
 };
 
-const pathname = (href: string | undefined) => {
-  if (href == null) return undefined;
-  try {
-    return new URL(href).pathname;
-  } catch (e) {
-    console.error('Failed to determine base path', e);
-    return undefined;
-  }
-};
-
 export const Routes = function Routes(props: Props) {
   const router = createBrowserRouter([
     {

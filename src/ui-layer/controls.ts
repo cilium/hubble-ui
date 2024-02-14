@@ -1,7 +1,7 @@
 import * as mobx from 'mobx';
 
 import { DataLayer } from '~/data-layer';
-import { ApplicationPath, Router } from '~/router';
+import { Router } from '~/router';
 import * as storage from '~/storage/local';
 import { Store } from '~/store';
 
@@ -11,7 +11,6 @@ import { Verdict } from '~/domain/hubble';
 import { DataMode } from '~/domain/interactions';
 import { StateChange } from '~/domain/misc';
 import { NamespaceDescriptor } from '~/domain/namespaces';
-import { Notification } from '~/domain/notifications';
 import { FilterEntry } from '~/domain/filtering/filter-entry';
 
 import { Options } from './common';

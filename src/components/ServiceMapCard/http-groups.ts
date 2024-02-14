@@ -8,7 +8,6 @@ export class HTTPEndpointGroup {
   public static createSorted(endpoints?: PartialConnections<L7Endpoint>): HTTPEndpointGroup[] {
     if (endpoints == null) return [];
 
-    const pathGroups: Map<string, L7Endpoint[]> = new Map();
     const sortedEndpoints: L7Endpoint[] = [];
 
     endpoints?.get(L7Kind.HTTP)?.forEach(ep => {

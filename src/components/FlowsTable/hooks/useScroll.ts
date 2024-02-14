@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, MutableRefObject } from 'react';
+import { useRef, useEffect, MutableRefObject } from 'react';
 import { FixedSizeListProps } from 'react-window';
 
 import { sizes } from '~/ui';

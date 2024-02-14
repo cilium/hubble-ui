@@ -1,5 +1,5 @@
 import { Icon } from '@blueprintjs/core';
-import React, { memo, useCallback, useMemo, useEffect, useState } from 'react';
+import React, { memo, useCallback, useEffect, useState } from 'react';
 
 import { Flow, Verdict } from '~/domain/flows';
 import { Filters, FilterEntry, FilterDirection } from '~/domain/filtering';
@@ -51,7 +51,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
   const [podSelection, setPodSelection] = useState<Set<string>>(new Set());
   const [identitySelection, setIdSelection] = useState<Set<number>>(new Set());
   const [ipSelection, setIpSelection] = useState<Set<string>>(new Set());
-  const [tcpFlagSelection, setTCPSelection] = useState<Set<TCPFlagName>>(new Set());
+  const [tcpFlagSelection] = useState<Set<TCPFlagName>>(new Set());
 
   const [isDnsSelected, setDnsSelected] = useState(false);
 

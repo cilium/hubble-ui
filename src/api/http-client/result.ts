@@ -1,5 +1,3 @@
-import _ from 'lodash';
-
 import { camelCasify } from '~/domain/misc';
 import { Result } from '~/utils';
 

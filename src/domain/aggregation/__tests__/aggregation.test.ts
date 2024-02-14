@@ -1,10 +1,7 @@
 import {
   Aggregation,
   AggregatorType,
-  Aggregator,
   StateChange,
-  StateChangeKey,
-  TypeKey,
   StateChangeSet,
   AggregatorTypeSet,
 } from '~/domain/aggregation';

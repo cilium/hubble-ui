@@ -385,6 +385,8 @@ export class Stream<H extends HandlerTypes = {}> extends EventEmitter<Union<Hand
     return false;
   }
 
+  // TODO: fix inheritance - _isFirst is used in Stream implementation so can't be removed here
+  // eslint-disable-next-line unused-imports/no-unused-vars
   protected messageBuilder(msg: Message, _isFirst: boolean): Message {
     return msg;
   }

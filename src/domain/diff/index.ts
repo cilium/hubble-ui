@@ -1,7 +1,6 @@
-import _ from 'lodash';
 import { equals, clone, CompareFn } from '~/domain/misc';
 
-export interface IDiff<T> {
+export interface IDiff {
   changed: boolean;
   // before: T | null | undefined;
   // after: T | null | undefined;
@@ -10,7 +9,7 @@ export interface IDiff<T> {
 }
 
 // NOTE: diff accepts lhs to support diffing between null and Self
-export interface Diffable<Self, D extends IDiff<Self>> {
+export interface Diffable<Self, D extends IDiff> {
   diff: (rhs?: Self | null) => D;
 }
 
@@ -18,7 +17,7 @@ type DiffType<T> = T extends Diffable<T, infer U> ? U : never;
 
 // NOTE: well, for now it's not actually a diff, this class can just say if
 // NOTE: values before and after are different
-export class Diff<T> implements IDiff<T> {
+export class Diff<T> implements IDiff {
   private _changed?: boolean;
   private _diff?: DiffType<T> | null;
   private _compareFn?: CompareFn<T>;
@@ -26,7 +25,7 @@ export class Diff<T> implements IDiff<T> {
   public before: T | null | undefined;
   public after: T | null | undefined;
 
-  public static isDiffable<T, U extends IDiff<T>>(
+  public static isDiffable<T, U extends IDiff>(
     obj?: Partial<Diffable<T, U>> | null,
   ): obj is Diffable<T, U> {
     if (obj == null || obj.diff == null) return false;

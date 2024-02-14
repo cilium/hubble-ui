@@ -84,7 +84,7 @@ export class ServiceMapArrowStrategy extends ArrowStrategy {
       return combined;
     }
 
-    arrows.forEach((arrow, _arrowId) => {
+    arrows.forEach(arrow => {
       arrow.accessPointArrows.forEach((apArrow, apArrowId) => {
         if (apArrow.connectorId == null) return;
 

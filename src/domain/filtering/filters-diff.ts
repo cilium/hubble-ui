@@ -4,7 +4,7 @@ import { Diff, IDiff } from '~/domain/diff';
 import { FilterEntry } from './filter-entry';
 import { Filters } from './filters';
 
-export class FiltersDiff implements IDiff<Filters> {
+export class FiltersDiff implements IDiff {
   public static fromFilters(f?: Filters | null): FiltersDiff {
     return new FiltersDiff(
       Diff.new(f?.namespace),

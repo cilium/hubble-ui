@@ -93,7 +93,7 @@ export class StoreFrame extends EventEmitter<Handlers> {
 
     this.interactions.clear();
 
-    this.services.clear(opts);
+    this.services.clear();
 
     if (!!opts.namespaces) {
       this.namespaces.clear();

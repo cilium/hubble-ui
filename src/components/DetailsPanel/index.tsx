@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react';
-import React, { FunctionComponent, useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 
 import { DragPanel } from '~/components/DragPanel';
 import {

@@ -4,7 +4,6 @@ import { Dictionary } from '~/domain/misc';
 import { Verdict } from '~/domain/hubble';
 import { Flow } from '~/domain/flows';
 
-import * as combinations from '~/utils/iter-tools/combinations';
 import { flows } from '~/testing/data';
 import * as thelpers from '~/testing/helpers';
 
@@ -1156,7 +1155,7 @@ describe('filterFlow', () => {
   );
 
   testFilterEntry(
-    (flowName: string, tnum: number) => `workload > to workload matches`,
+    () => `workload > to workload matches`,
     FilterEntry.parse(`to:workload=svc:receiver`)!,
     true,
     {
@@ -1165,7 +1164,7 @@ describe('filterFlow', () => {
   );
 
   testFilterEntry(
-    (flowName: string, tnum: number) => `workload > to workload doesn't match`,
+    () => `workload > to workload doesn't match`,
     FilterEntry.parse(`to:workload=svc:receiver`)!,
     false,
     {
@@ -1174,7 +1173,7 @@ describe('filterFlow', () => {
   );
 
   testFilterEntry(
-    (flowName: string, tnum: number) => `workload > to workload doesn't match`,
+    () => `workload > to workload doesn't match`,
     FilterEntry.parse(`to:workload=svc:sender`)!,
     false,
     {
@@ -1183,7 +1182,7 @@ describe('filterFlow', () => {
   );
 
   testFilterEntry(
-    (flowName: string, tnum: number) => `workload > from workload matches`,
+    () => `workload > from workload matches`,
     FilterEntry.parse(`from:workload=svc:sender`)!,
     true,
     {
@@ -1192,7 +1191,7 @@ describe('filterFlow', () => {
   );
 
   testFilterEntry(
-    (flowName: string, tnum: number) => `workload > from workload doesn't match`,
+    () => `workload > from workload doesn't match`,
     FilterEntry.parse(`from:workload=svc:receiver`)!,
     false,
     {
@@ -1201,7 +1200,7 @@ describe('filterFlow', () => {
   );
 
   testFilterEntry(
-    (flowName: string, tnum: number) => `workload > either workload matches with receiver`,
+    () => `workload > either workload matches with receiver`,
     FilterEntry.parse(`either:workload=svc:receiver`)!,
     true,
     {
@@ -1210,7 +1209,7 @@ describe('filterFlow', () => {
   );
 
   testFilterEntry(
-    (flowName: string, tnum: number) => `workload > either workload matches with sender`,
+    () => `workload > either workload matches with sender`,
     FilterEntry.parse(`either:workload=svc:sender`)!,
     true,
     {
@@ -1219,7 +1218,7 @@ describe('filterFlow', () => {
   );
 
   testFilterEntry(
-    (flowName: string, tnum: number) => `workload > either workload doesn't match`,
+    () => `workload > either workload doesn't match`,
     FilterEntry.parse(`either:workload=svc:unknown`)!,
     false,
     {

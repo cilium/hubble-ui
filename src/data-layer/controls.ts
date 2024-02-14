@@ -59,8 +59,8 @@ export class Controls extends EventEmitter<Handlers> {
       .controlStream()
       .onNamespaceChanges(nsChanges => {
         nsChanges.forEach(nsChange => {
-          const { namespace: nsDescriptor, change } = nsChange;
-          this.store.applyNamespaceChange(nsDescriptor, change);
+          const { namespace: nsDescriptor } = nsChange;
+          this.store.applyNamespaceChange(nsDescriptor);
         });
       })
       .onNotification(notif => {

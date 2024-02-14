@@ -1,6 +1,5 @@
 import React, { createContext, PropsWithChildren, useContext, useEffect } from 'react';
 import { Outlet, useSearchParams, useLocation, useNavigate } from 'react-router-dom';
-import _ from 'lodash';
 
 import { Router } from './router';
 import { Routes } from './Routes';

@@ -78,7 +78,7 @@ const run = async () => {
   const app = new Application(env, router, store, dataLayer, uiLayer, renderFn);
 
   app
-    .onBeforeMount(_app => {
+    .onBeforeMount(() => {
       uiLayer.onBeforeMount();
     })
     .onMounted(app => {
