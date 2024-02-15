@@ -83,7 +83,7 @@ export class ServiceMap extends EventEmitter<Handlers> {
 
   public async appOpened() {
     const dataMode = this.transferState.isDisabled
-      ? this.pickDataModeForNamespace(this.store.namespaces.current)
+      ? this.pickDataModeForNamespace()
       : this.transferState.dataMode;
 
     await this.ensureDataFetch(dataMode);

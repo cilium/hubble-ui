@@ -124,7 +124,7 @@ export class Stream<H extends HandlerTypes = {}> extends EventEmitter<Union<Hand
             // NOTE: IsNotReady set to true means that this is simple Poll request
             if (!isFirst) msg.setIsNotReady(true);
 
-            return this.messageBuilder(msg, isFirst);
+            return this.messageBuilder(msg);
           },
           req => {
             this.pendingRequests.add(req);
@@ -385,7 +385,9 @@ export class Stream<H extends HandlerTypes = {}> extends EventEmitter<Union<Hand
     return false;
   }
 
-  protected messageBuilder(msg: Message): Message {
+  // TODO: fix inheritance - isFirst can't be removed because subclass use it
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  protected messageBuilder(msg: Message, _isFirst?: boolean): Message {
     return msg;
   }
 

@@ -25,7 +25,7 @@ export class Oneshot<H extends HandlerTypes = {}> extends Stream<H> {
             // NOTE: IsNotReady set to true means that this is simple Poll request
             if (!isFirst) msg.setIsNotReady(true);
 
-            return this.messageBuilder(msg, isFirst);
+            return this.messageBuilder(msg);
           },
           req => {
             this.pendingRequests.add(req);
