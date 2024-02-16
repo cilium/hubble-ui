@@ -36,10 +36,5 @@
     "strictNullChecks": true
   },
   "exclude": ["**/node_modules", "**/__tests__", "**/*.test.ts", "e2e/**/*"],
-  "include": [
-    "src/**/*",
-    "src/**/*.json",
-    "backend/proto/**/*.ts",
-    "e2e/client"
-  ]
+  "include": ["src/**/*", "src/**/*.json", "backend/proto/**/*.ts", "e2e/client"]
 }

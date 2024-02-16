@@ -16,7 +16,7 @@ export const createQueryParams = (opts?: Opts) => {
 
 const createInnerParamString = (opts?: Opts): string => {
   if (opts == null) return '';
-  let e2e = !opts?.preset ? '' : `preset=${opts.preset}`;
+  const e2e = !opts?.preset ? '' : `preset=${opts.preset}`;
 
   return e2e;
 };

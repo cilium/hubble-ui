@@ -6,7 +6,7 @@ export class NSAttributes {
   constructor(
     private readonly sel: SelectorFn,
     private readonly attrs: AttrsFn,
-  ) { }
+  ) {}
 
   public listSelector() {
     return this.sel(NSAttributes.NS_LIST_SELECTOR);

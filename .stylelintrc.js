@@ -1,5 +1,10 @@
 module.exports = {
-  extends: ['stylelint-config-standard-scss', 'stylelint-config-css-modules'],
+  extends: [
+    'stylelint-config-standard',
+    'stylelint-config-standard-scss',
+    'stylelint-config-css-modules',
+    'stylelint-config-prettier-scss',
+  ],
   plugins: ['stylelint-scss'],
   rules: {
     'declaration-empty-line-before': null,
