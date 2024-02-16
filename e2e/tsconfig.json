@@ -4,11 +4,11 @@
     "lib": ["esnext", "dom"],
     "types": ["cypress", "node"],
     "paths": {
-      "~e2e/*": ["./*"],
+      "~e2e/*": ["./*"]
     },
     "moduleResolution": "node",
     "esModuleInterop": true,
     "sourceMap": false
   },
-  "include": ["**/*.ts"],
+  "include": ["**/*.ts"]
 }

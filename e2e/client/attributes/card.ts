@@ -7,7 +7,7 @@ export class CardAttributes {
   constructor(
     private readonly sel: SelectorFn,
     private readonly attrs: AttrsFn,
-  ) { }
+  ) {}
 
   public selector() {
     return this.sel(CardAttributes.ROOT_CONTAINER_SEL);

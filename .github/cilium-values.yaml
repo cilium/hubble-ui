@@ -3,34 +3,34 @@ operator:
 
 hubble:
   enabled: true
-  listenAddress: ""
+  listenAddress: ''
   relay:
     enabled: true
   ui:
     enabled: true
     backend:
       extraVolumeMounts:
-      - name: testing-data
-        mountPath: "/var/log/hubble-ui-testing"
-        readOnly: true
+        - name: testing-data
+          mountPath: '/var/log/hubble-ui-testing'
+          readOnly: true
       extraVolumes:
-      - name: testing-data
-        hostPath:
-          path: /var/log/hubble-ui-testing
-          type: Directory
+        - name: testing-data
+          hostPath:
+            path: /var/log/hubble-ui-testing
+            type: Directory
       extraEnv:
-      - name: E2E_TEST_MODE
-        value: "true"
-      - name: E2E_LOGFILES_BASEPATH
-        value: /var/log/hubble-ui-testing/log_files
-      - name: CORS_ENABLED
-        value: "true"
+        - name: E2E_TEST_MODE
+          value: 'true'
+        - name: E2E_LOGFILES_BASEPATH
+          value: /var/log/hubble-ui-testing/log_files
+        - name: CORS_ENABLED
+          value: 'true'
     frontend:
       extraEnv:
-      - name: E2E_TEST_MODE
-        value: "true"
-      - name: NODE_ENV
-        value: "e2e"
+        - name: E2E_TEST_MODE
+          value: 'true'
+        - name: NODE_ENV
+          value: 'e2e'
     ingress:
       enabled: true
       className: nginx

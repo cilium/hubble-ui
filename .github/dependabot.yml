@@ -5,12 +5,12 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
-    rebase-strategy: "disabled"
+    rebase-strategy: 'disabled'
     labels:
-    - ci/dependabot
-    - dependencies
-    - kind/enhancement
-    - release-note/misc
+      - ci/dependabot
+      - dependencies
+      - kind/enhancement
+      - release-note/misc
     groups:
       dev-deps:
         dependency-type: 'development'
@@ -21,20 +21,20 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
-    rebase-strategy: "disabled"
+    rebase-strategy: 'disabled'
     ignore:
-      - dependency-name: "github.com/cilium/cilium"
-      - dependency-name: "github.com/cilium/hubble"
+      - dependency-name: 'github.com/cilium/cilium'
+      - dependency-name: 'github.com/cilium/hubble'
     labels:
-    - ci/dependabot
-    - dependencies
-    - kind/enhancement
-    - release-note/misc
+      - ci/dependabot
+      - dependencies
+      - kind/enhancement
+      - release-note/misc
     groups:
       k8s-deps:
         patterns:
-          - "k8s.io/*"
-          - "sigs.k8s.io/*"
+          - 'k8s.io/*'
+          - 'sigs.k8s.io/*'
       all-go-deps:
         patterns:
           - '*'
@@ -43,12 +43,12 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
-    rebase-strategy: "disabled"
+    rebase-strategy: 'disabled'
     labels:
-    - ci/dependabot
-    - dependencies
-    - kind/enhancement
-    - release-note/misc
+      - ci/dependabot
+      - dependencies
+      - kind/enhancement
+      - release-note/misc
     groups:
       all-github-actions:
         patterns:
@@ -58,22 +58,22 @@ updates:
     schedule:
       interval: weekly
     commit-message:
-      prefix: "docker:"
+      prefix: 'docker:'
     open-pull-requests-limit: 5
     rebase-strategy: disabled
     labels:
-    - ci/dependabot
-    - dependencies
-    - kind/enhancement
+      - ci/dependabot
+      - dependencies
+      - kind/enhancement
   - package-ecosystem: docker
     directory: /backend
     schedule:
       interval: weekly
     commit-message:
-      prefix: "backend/docker:"
+      prefix: 'backend/docker:'
     open-pull-requests-limit: 5
     rebase-strategy: disabled
     labels:
-    - ci/dependabot
-    - dependencies
-    - kind/enhancement
+      - ci/dependabot
+      - dependencies
+      - kind/enhancement

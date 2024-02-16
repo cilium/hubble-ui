@@ -1,4 +1,4 @@
-name: tests
+name: E2E tests
 on:
   push:
     branches:
@@ -6,6 +6,8 @@ on:
   pull_request:
     branches:
       - master
+  workflow_dispatch:
+
 env:
   HELM_VERSION: v3.13.0
   KIND_VERSION: v0.20.0
@@ -58,9 +60,9 @@ jobs:
         run: |
           MASTER_IP="$(docker inspect kind-control-plane | jq '.[0].NetworkSettings.Networks.kind.IPAddress' -r)"
           MASTER_IP_DASHED=$(echo $MASTER_IP | sed 's/\./\-/g')
-      
+
           echo "Master IP: $MASTER_IP; Dashed: $MASTER_IP_DASHED"
-      
+
           echo "MASTER_IP=$MASTER_IP" >> "$GITHUB_ENV"
           echo "HUBBLE_UI_HOST=hubble-ui.$MASTER_IP_DASHED.sslip.io" >> "$GITHUB_ENV"
       - name: Wait for quay images of frontend and backend

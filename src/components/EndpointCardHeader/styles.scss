@@ -2,9 +2,7 @@
 
 $icon-side-padding: 10px;
 $wrapper-padding: 10px 20px;
-$heading-max-width: calc(
-  100% - var(--endpoint-icon-width) - #{$icon-side-padding} * 2
-);
+$heading-max-width: calc(100% - var(--endpoint-icon-width) - #{$icon-side-padding} * 2);
 
 .wrapper {
   @include column;

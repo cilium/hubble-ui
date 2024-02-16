@@ -7,11 +7,12 @@ describe('service map', () => {
     nsList.children().should('have.lengthOf', 1);
     nsList.children().first().should('contain', 'tenant-jobs').click();
 
-    topbar.root().queryAttrs(attributes.ns.availability(true, false)).should('contain', 'tenant-jobs');
+    topbar
+      .root()
+      .queryAttrs(attributes.ns.availability(true, false))
+      .should('contain', 'tenant-jobs');
 
-    const cards = cy
-      .queryAttrs(attributes.card.visibleContainer())
-      .children();
+    const cards = cy.queryAttrs(attributes.card.visibleContainer()).children();
 
     const coreapi = serviceMap.queryCard(cards, 'coreapi').should('have.lengthOf', 1);
     const entityOp = serviceMap.queryCard(cards, 'entity-operator').should('have.lengthOf', 1);
