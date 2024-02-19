@@ -4,7 +4,6 @@
   "scripts": {
     "test": "jest",
     "cypress": "cypress run",
-    "prepare": "husky install",
     "postinstall": "patch-package && bash ./scripts/post-install.sh",
     "watch:server": "servor ./server/public index.html 8080",
     "watch:client": "NODE_ENV=development webpack --progress",
@@ -96,7 +95,6 @@
     "eslint-plugin-react": "7.33.2",
     "fs-extra": "11.2.0",
     "html-webpack-plugin": "5.6.0",
-    "husky": "9.0.10",
     "identity-obj-proxy": "3.0.0",
     "jest": "29.7.0",
     "jest-environment-jsdom": "29.7.0",
