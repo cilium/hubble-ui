@@ -20,7 +20,7 @@ const renderItem: ItemRenderer<NamespaceDescriptor> = (ns, itemProps) => {
       key={ns.namespace}
       onClick={handleClick}
       text={ns.namespace}
-      {...e2e.attributes.ns.availability(ns.relay, false)}
+      {...e2e.attributes.ns.entry(ns.namespace)}
     />
   );
 };
@@ -74,7 +74,6 @@ export const NamespaceSelectorDropdown = memo<Props>(function NamespaceSelectorD
       inputProps={{ placeholder: 'Filter namespaces…' }}
     >
       <Button
-        {...e2e.attributes.ns.availability(!!currentNamespace?.relay, false)}
         rightIcon="caret-down"
         icon={btnIcon}
         text={dropdownText}

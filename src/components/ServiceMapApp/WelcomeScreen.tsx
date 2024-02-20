@@ -54,8 +54,12 @@ const NamespaceItem = observer(function NamespaceItem(props: NamespaceItemProps)
   );
 
   return (
-    <li {...e2e.attributes.ns.availability(props.namespace.relay, false)}>
-      <a href={`/${props.namespace.namespace}`} onClick={onClick}>
+    <li>
+      <a
+        href={`/${props.namespace.namespace}`}
+        onClick={onClick}
+        {...e2e.attributes.ns.entry(props.namespace.namespace)}
+      >
         {props.namespace.namespace}
       </a>
     </li>

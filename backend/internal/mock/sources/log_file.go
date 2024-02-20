@@ -23,6 +23,7 @@ type LogFileSource struct {
 
 type LogFileSourceOpts struct {
 	FlowsRateLimit rate_limiter.RateLimit
+	DebugHandler   func(int, *events_log_file.EventEntry)
 }
 
 func LogFile(
@@ -53,7 +54,10 @@ func (lfs *LogFileSource) Run(ctx context.Context) {
 		panic("failed to create an iterator over log file: " + err.Error())
 	}
 
-	defer lfs.log.Info("source is exhausted")
+	nEntries := 0
+	nFlows := 0
+	nProcEvents := 0
+	nUnparsed := 0
 
 	it := events_log_file.NewEventsIterator(_it)
 	flowsRateLimiter := rate_limiter.New(lfs.opts.FlowsRateLimit)
@@ -65,8 +69,11 @@ func (lfs *LogFileSource) Run(ctx context.Context) {
 
 	for it.HasNext() {
 		entry := it.Next()
+		nEntries += 1
 
 		if entry.Flow != nil {
+			nFlows += 1
+
 			if err := flowsRateLimiter.Wait(ctx); err != nil {
 				lfs.log.WithError(err).Error("flowsRateLimiter.Wait() error")
 				return
@@ -77,7 +84,18 @@ func (lfs *LogFileSource) Run(ctx context.Context) {
 				return
 			}
 		}
+
+		if lfs.opts.DebugHandler != nil {
+			lfs.opts.DebugHandler(nEntries-1, entry)
+		}
 	}
+
+	lfs.log.
+		WithField("nentries", nEntries).
+		WithField("nflows", nFlows).
+		WithField("nprocevents", nProcEvents).
+		WithField("nunparsed", nUnparsed).
+		Info("log file source is exhausted")
 }
 
 func (lfs *LogFileSource) sendFlow(ctx context.Context, flow *observer.GetFlowsResponse) error {

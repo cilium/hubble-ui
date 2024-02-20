@@ -20,13 +20,14 @@ func (it *EventsLogFileIterator) Next() *EventEntry {
 		return nil
 	}
 
-	flow, _ := tryParseFlow(next)
+	flow, err1 := tryParseFlow(next)
 	if flow != nil {
 		return flow
 	}
 
 	return &EventEntry{
-		Unparsed: &next,
+		FlowParseError: err1,
+		Unparsed:       &next,
 	}
 }
 

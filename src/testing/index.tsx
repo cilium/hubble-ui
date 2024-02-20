@@ -1,5 +1,5 @@
-import { render, RenderResult } from '@testing-library/react';
 import React from 'react';
+import { render, RenderResult } from '@testing-library/react';
 
 import { Store } from '~/store';
 import { StoreContext } from '~/store/hooks';
@@ -41,5 +41,5 @@ const customRender = (elem: React.ReactElement<any>, options?: any): RenderResul
   return app.mount(document.body);
 };
 
-export { React, customRender as render };
+export { customRender as render };
 export { data, helpers };

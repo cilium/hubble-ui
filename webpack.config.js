@@ -95,7 +95,7 @@ module.exports = {
     alias: {
       '~backend': path.resolve(__dirname, './backend'),
       '~': path.resolve(__dirname, './src/'),
-      '~e2e': path.resolve(__dirname, './e2e/'),
+      '~e2e': path.resolve(__dirname, './src/testing/e2e/'),
     },
   },
   module: {

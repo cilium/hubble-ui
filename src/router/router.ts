@@ -169,7 +169,6 @@ export class Router extends EventEmitter<Handlers> {
 
     const state = LocationState.empty().setParams(stateParams);
     this._latestLocationStateFootprint = state.id;
-    // debugger;
     console.log(`LocationState will be pushed with id: `, state.id);
 
     // NOTE: Every commit will create a new entry in history and mark it with keyed state

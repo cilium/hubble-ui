@@ -13,9 +13,11 @@ import { colors } from '~/ui/vars';
 import { ArrowRendererProps } from '~/components/ArrowsRenderer';
 import { Teleport } from '~/components/Teleport';
 
+import { reactionRef } from '~/ui/react/refs';
+import { e2e } from '~/testing/e2e/client';
+
 import * as helpers from './helpers';
 import css from './styles.scss';
-import { reactionRef } from '~/ui/react/refs';
 
 export type Props = Omit<ArrowRendererProps, 'arrow'> & {
   arrows: Map<string, AccessPointArrow>;
@@ -29,6 +31,8 @@ export const ServiceMapArrowDuckFeet = observer(function ServiceMapArrowDuckFeet
   const innerArrowsRef = reactionRef<SVGGElement | null>(null, e => {
     renderInnerArrows(e, props.arrows);
   });
+
+  const e2eAttrs = e2e.attributes.serviceMap;
 
   const renderEndingConnectorCap = useCallback(
     (target: SVGGElement | null, connectorId: string, arrows: Map<string, AccessPointArrow>) => {
@@ -105,6 +109,10 @@ export const ServiceMapArrowDuckFeet = observer(function ServiceMapArrowDuckFeet
         .enter()
         .append('line')
         .attr('class', 'inner')
+        .attr(
+          e2eAttrs.innerLineAttrName(),
+          e2e.attributes.nullOr(arr => arr.accessPointId),
+        )
         .attr('stroke', helpers.innerArrows.strokeColor)
         .attr('stroke-width', helpers.innerArrows.strokeWidth)
         .attr('stroke-dasharray', helpers.innerArrows.strokeStyle)
@@ -158,8 +166,12 @@ export const ServiceMapArrowDuckFeet = observer(function ServiceMapArrowDuckFeet
 
   return (
     <Teleport to={props.arrowsForeground}>
-      <g className={classes}>
-        <g className="arrows-to-access-points" ref={innerArrowsRef}></g>
+      <g className={classes} {...e2eAttrs.duckFeet(props.connectorId)}>
+        <g
+          className="arrows-to-access-points"
+          ref={innerArrowsRef}
+          {...e2eAttrs.linesToAccessPointsSelector()}
+        ></g>
         <g className="connector-cap" ref={connectorCapRef}></g>
       </g>
     </Teleport>

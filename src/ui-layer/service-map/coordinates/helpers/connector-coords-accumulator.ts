@@ -1,7 +1,7 @@
 import { XY, Vec2 } from '~/domain/geometry';
 import { LinkConnections } from '~/domain/interactions/connections';
-import { ids } from '~/domain/ids';
 
+import { ids } from '~/ui/ids';
 import { sizes } from '~/ui/vars';
 
 import { ServiceMapPlacementStrategy } from '..';

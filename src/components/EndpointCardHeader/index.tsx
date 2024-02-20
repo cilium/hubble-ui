@@ -23,7 +23,7 @@ export const EndpointCardHeader = memo(function EndpointCardHeader(props: Props)
   });
 
   return (
-    <div className={css.wrapper} {...e2e.attributes.serviceMap.cardHeader(card.caption)}>
+    <div className={css.wrapper} {...e2e.attributes.serviceMap.card(card)}>
       <div className={css.headline} onClick={props.onHeadlineClick}>
         <EndpointLogo card={card} />
 

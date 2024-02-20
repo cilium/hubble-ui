@@ -109,7 +109,11 @@ export const MapElements = observer(function MapElements<C extends AbstractCard>
         ) : null)}
 
       <g className="backgrounds" ref={backgroundsRef}></g>
-      <g className="arrows-foreground" ref={arrowsForegroundRef}></g>
+      <g
+        className="arrows-foreground"
+        ref={arrowsForegroundRef}
+        {...e2e.attributes.map.arrowsForegroundSelector()}
+      />
       <g ref={cardsRef} className="visible-cards" {...e2e.attributes.card.visibleContainer()}>
         {cards}
       </g>

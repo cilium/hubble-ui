@@ -12,6 +12,7 @@ const (
 	NoPreset           TestPreset = ""
 	TenantJobs         TestPreset = "tenant-jobs"
 	NamespaceListCheck TestPreset = "ns-list-check"
+	PartiallyDropped   TestPreset = "partially-dropped"
 )
 
 type TestSettings struct {
