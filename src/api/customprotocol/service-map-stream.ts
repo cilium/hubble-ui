@@ -139,16 +139,16 @@ export class ServiceMapStream extends Stream<Handlers> {
     nss: uipb.NamespaceState[],
     notifs: notifpb.Notification[],
   ) {
-    if (flows.length > 0) {
-      this.emitFlows(flows);
-    }
-
     if (svcs.length > 0) {
       this.emitServices(svcs);
     }
 
     if (links.length > 0) {
       this.emitServiceLinks(links);
+    }
+
+    if (flows.length > 0) {
+      this.emitFlows(flows);
     }
 
     if (nss.length > 0) {

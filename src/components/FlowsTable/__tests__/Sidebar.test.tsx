@@ -1,7 +1,6 @@
 import React from 'react';
 import { act, fireEvent } from '@testing-library/react';
 
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { FlowsTableSidebar } from '~/components/FlowsTable/Sidebar';
 
 import { Flow } from '~/domain/flows';

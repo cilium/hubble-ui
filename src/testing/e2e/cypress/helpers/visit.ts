@@ -5,6 +5,7 @@ export type Opts = {
 export enum Preset {
   TenantJobs = 'tenant-jobs',
   NSListCheck = 'ns-list-check',
+  PartiallyDroppedHttp = 'partially-dropped',
 }
 
 export const createQueryParams = (opts?: Opts) => {

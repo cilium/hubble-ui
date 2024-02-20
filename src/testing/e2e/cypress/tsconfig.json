@@ -1,26 +1,15 @@
 {
   "compilerOptions": {
-    "composite": true,
-    "incremental": true,
-    "declaration": true,
     "module": "esnext",
     "target": "esnext",
-    "lib": ["dom", "esnext"],
-    "rootDir": "./",
-    "baseUrl": "./src",
-    "outDir": "./build",
-    "jsx": "react",
-    "paths": {
-      "~/*": ["./*"],
-      "~backend/*": ["./../backend/*"],
-      "~e2e/*": ["./testing/e2e/*"]
-    },
-    "types": ["node", "jest"],
+    "lib": ["esnext", "dom"],
+    "types": ["cypress", "node"],
     "moduleResolution": "node",
     "isolatedModules": false,
     "sourceMap": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "useDefineForClassFields": true,
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -33,8 +22,14 @@
     "strictBindCallApply": true,
     "strictFunctionTypes": true,
     "strictPropertyInitialization": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "~/*": ["./../../../*"],
+      "~backend/*": ["./../../../../backend/*"],
+      "~e2e/*": ["./../*"]
+    }
   },
-  "exclude": ["node_modules", "src/testing/e2e/cypress", "src/testing/e2e/config"],
-  "include": ["src/**/*", "src/**/*.json", "backend/proto/**/*.ts"]
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
 }

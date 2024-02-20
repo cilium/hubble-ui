@@ -40,6 +40,9 @@ jobs:
         uses: azure/setup-helm@v3
         with:
           version: ${{ env.HELM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - name: Clone cilium/hubble-ui
         uses: actions/checkout@v4
       - name: Fetch backend log-files and overwrite kind config
@@ -101,7 +104,6 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           record: true
-          working-directory: e2e
           config: baseUrl=https://${{ env.HUBBLE_UI_HOST }}
           browser: chrome
         env:
@@ -111,7 +113,6 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           record: true
-          working-directory: e2e
           config: baseUrl=https://${{ env.HUBBLE_UI_HOST}}
           browser: firefox
         env:

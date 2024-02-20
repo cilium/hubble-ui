@@ -1,6 +1,6 @@
-import { configure, autorun, toJS, makeAutoObservable } from 'mobx';
+import { configure, toJS, makeAutoObservable } from 'mobx';
 
-import { Filters, FilterEntry, FiltersDiff } from '~/domain/filtering';
+import { Filters, FiltersDiff } from '~/domain/filtering';
 import { ServiceCard, ServiceMap } from '~/domain/service-map';
 import { StateChange } from '~/domain/misc';
 import { setupDebugProp } from '~/domain/misc';
@@ -139,9 +139,6 @@ export class Store {
       printMapData: () => {
         this.printMapData();
       },
-      // printLayoutData: () => {
-      // this.printLayoutData();
-      // },
       getFlowsFromTable: () => {
         return this.getFlowsFromTable();
       },
@@ -187,20 +184,7 @@ export class Store {
     console.log(JSON.stringify(data, null, 2));
   }
 
-  // TODO: Recreate this mechanics in a proper place
-  // private printLayoutData() {
-  //   const data = {
-  //     cardsBBoxes: this.placement.cardsBBoxes,
-  //     accessPointCoords: this.placement.accessPointCoords,
-  //     arrows: this.arrows.arrowsMap,
-  //     connections: this.currentFrame.interactions.connections,
-  //   };
-  //
-  //   console.log(JSON.stringify(data, null, 2));
-  //   console.log(data);
-  // }
-
   private getFlowsFromTable() {
-    return this.currentFrame.interactions.flows.map(f => toJS(f.ref));
+    return this.currentFrame.interactions.flows.map(f => toJS(f.parsableRef));
   }
 }

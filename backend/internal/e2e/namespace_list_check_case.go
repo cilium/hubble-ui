@@ -9,7 +9,7 @@ import (
 
 func (tc *TestsController) enableNamespaceListCheckCase(_ts *TestSettings) {
 	nsSource := sources.Namespaces([]*ns_common.NSEvent{
-		factories.CreateNSEvent(events.Added, "ns-relay"),
+		factories.CreateNSEvent(events.Added, "relay"),
 	})
 
 	tc.clients.SetSource(nsSource)

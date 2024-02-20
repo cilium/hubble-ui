@@ -56,40 +56,54 @@ func (tc *TestsController) LogFields() logrus.Fields {
 }
 
 func (tc *TestsController) applyTestSettings(ts *TestSettings) {
+	var err error
+
 	switch ts.Preset {
 	case NamespaceListCheck:
 		tc.enableNamespaceListCheckCase(ts)
 	case TenantJobs:
-		if err := tc.enableTenantJobsCase(ts); err != nil {
-			tc.log.WithError(err).Error("failed to enable tenant jobs case")
-		}
+		err = tc.enableTenantJobsCase(ts)
+	case PartiallyDropped:
+		err = tc.enablePartiallyDroppedCase()
+	}
+
+	if err != nil {
+		tc.log.
+			WithError(err).
+			WithField("preset", ts.Preset).
+			Error("failed to enable test case by preset")
 	}
 }
 
 func (tc *TestsController) openLogFiles(pathPart string) (
 	*log_file.LogFile, *log_file.LogFile, error,
 ) {
-	flowsPath := filepath.Join(tc.logFilesPath, pathPart, "hubble-events.json.log")
-	flowsLogFile, err := log_file.OpenLogFile(flowsPath)
+	flowsLogFile, err := tc.openLogFile(pathPart, "hubble-events.json.log")
 	if err != nil {
-		tc.log.
-			WithError(err).
-			WithField("path", flowsPath).
-			Error("failed to open flows log file")
-
 		return nil, nil, err
 	}
 
-	eventsPath := filepath.Join(tc.logFilesPath, pathPart, "fgs-events.json.log")
-	eventsLogFile, err := log_file.OpenLogFile(eventsPath)
+	eventsLogFile, err := tc.openLogFile(pathPart, "fgs-events.json.log")
 	if err != nil {
-		tc.log.
-			WithError(err).
-			WithField("path", eventsPath).
-			Error("failed to open fgs events log file")
-
 		return nil, nil, err
 	}
 
 	return flowsLogFile, eventsLogFile, nil
+}
+
+func (tc *TestsController) openLogFile(pathParts ...string) (*log_file.LogFile, error) {
+	pathParts = append([]string{tc.logFilesPath}, pathParts...)
+	fpath := filepath.Join(pathParts...)
+
+	logFile, err := log_file.OpenLogFile(fpath)
+	if err != nil {
+		tc.log.
+			WithError(err).
+			WithField("path", fpath).
+			Error("failed to open log file")
+
+		return nil, err
+	}
+
+	return logFile, nil
 }

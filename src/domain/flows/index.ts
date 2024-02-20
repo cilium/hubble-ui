@@ -41,6 +41,15 @@ export class Flow {
     this._id = flowId;
   }
 
+  // NOTE: HubbleFlow type transforms `time` field into `Time` type, which
+  // cannot pe parsed into original Flow later
+  public get parsableRef(): any {
+    return {
+      ...this.ref,
+      time: this.ref.time ? timeHelpers.timeToDate(this.ref.time) : this.ref.time,
+    };
+  }
+
   public compare(rhs: Flow): number {
     return timeHelpers.compareTimes(this.time ?? null, rhs.time ?? null);
   }

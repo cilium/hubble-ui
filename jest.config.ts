@@ -1,4 +1,6 @@
-module.exports = {
+import type { Config } from 'jest';
+
+const config: Config = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
   testMatch: [
@@ -12,7 +14,7 @@ module.exports = {
     '\\.svg$': '<rootDir>/scripts/svg-mock.js',
     '^~/(.*)$': '<rootDir>/src/$1',
     '^~backend/(.*)$': '<rootDir>/backend/$1',
-    '^~e2e/(.*)$': '<rootDir>/e2e/$1',
+    '^~e2e/(.*)$': `<rootDir>/src/testing/e2e/$1`,
   },
   transform: {
     '^.+\\.tsx?$': [
@@ -31,3 +33,5 @@ module.exports = {
   transformIgnorePatterns: [],
   setupFilesAfterEnv: ['./scripts/jest.setup.js'],
 };
+
+export default config;

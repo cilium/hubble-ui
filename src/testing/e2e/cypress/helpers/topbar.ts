@@ -7,3 +7,5 @@ export class Topbar {
     return rootRef;
   }
 }
+
+export const topbar = new Topbar();

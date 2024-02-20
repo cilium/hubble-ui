@@ -1,13 +1,12 @@
 import React from 'react';
-import { act, fireEvent } from '@testing-library/react';
 import { render, data } from '~/testing';
+import { act, fireEvent } from '@testing-library/react';
+
 import { Row } from '~/components/FlowsTable/Row';
 import { Column } from '~/components/FlowsTable';
 
 import { Flow } from '~/domain/flows';
 import { HubbleFlow } from '~/domain/hubble';
-
-const tsUpdateDelay = 5000;
 
 jest.useFakeTimers();
 
