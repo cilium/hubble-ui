@@ -71,13 +71,18 @@ const run = async () => {
   };
 
   const app = new Application(env, router, store, dataLayer, uiLayer, renderFn);
+
+  router.onInitialized(() => {
+    e2e.attributes.setEnabled(router.mockModeParam != null);
+  });
+
   app
     .onBeforeMount(_app => {
-      const env = app.environment;
-      e2e.attributes.setEnabled(env.isDev || env.isTesting);
       uiLayer.onBeforeMount();
     })
-    .onMounted(app => app.uiLayer.onMounted())
+    .onMounted(app => {
+      app.uiLayer.onMounted();
+    })
     .mount('#app');
 };
 
