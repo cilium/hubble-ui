@@ -1,12 +1,11 @@
 import { Button, Classes, MenuItem } from '@blueprintjs/core';
 import { ItemRenderer, MultiSelect2 } from '@blueprintjs/select';
 import { trim } from 'lodash';
-import React, { useCallback, useState, memo } from 'react';
-import classnames from 'classnames';
+import React, { useCallback, useState } from 'react';
 
 import { TagDirection } from './TagDirection';
 
-import { FilterDirection, FilterEntry, FilterKind } from '~/domain/filtering';
+import { FilterEntry, FilterKind } from '~/domain/filtering';
 import { Labels } from '~/domain/labels';
 
 import css from './FlowsFilterInput.scss';

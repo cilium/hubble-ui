@@ -198,7 +198,7 @@ export const ServiceMapApp = observer(function ServiceMapApp() {
             visibleHeight={mapVisibleHeight ?? 0}
             wasDragged={mapWasDragged}
             onMapDrag={onMapDrag}
-            onCardMutated={muts => ui.serviceMap.cardsMutationsObserved(muts)}
+            onCardMutated={() => ui.serviceMap.cardsMutationsObserved()}
           />
         ) : (
           <LoadingOverlay

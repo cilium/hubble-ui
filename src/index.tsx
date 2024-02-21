@@ -70,7 +70,7 @@ const run = async () => {
 
   const app = new Application(env, router, store, dataLayer, uiLayer, renderFn);
   app
-    .onBeforeMount(_app => {
+    .onBeforeMount(() => {
       const env = app.environment;
       e2e.attributes.setEnabled(env.isDev || env.isTesting);
       uiLayer.onBeforeMount();

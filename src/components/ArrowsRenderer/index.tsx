@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { observer } from 'mobx-react';
 import React, { useRef } from 'react';
 

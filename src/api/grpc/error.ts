@@ -1,4 +1,4 @@
-import { GrpcError, GrpcStatus, StatusCode, GrpcMetadata } from './common';
+import { GrpcError, GrpcStatus, StatusCode } from './common';
 
 // TODO: provide additional getters if needed
 export class GrpcWrappedError implements Error {

@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 
 export type Props = {

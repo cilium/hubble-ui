@@ -14,7 +14,6 @@ describe('consistency tests for setItem / getItem', () => {
   });
 
   test('flows table visible columns 2', () => {
-    const getItem = jest.spyOn(Storage.prototype, 'getItem');
     const setItem = jest.spyOn(Storage.prototype, 'setItem');
 
     const arr = [Column.SrcService];
@@ -28,7 +27,6 @@ describe('consistency tests for setItem / getItem', () => {
   });
 
   test('flows table visible columns 3', () => {
-    const getItem = jest.spyOn(Storage.prototype, 'getItem');
     const setItem = jest.spyOn(Storage.prototype, 'setItem');
 
     const arr = [Column.SrcPod, Column.DstPod];

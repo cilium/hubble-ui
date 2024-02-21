@@ -80,7 +80,7 @@ export class RefsCollector extends EventEmitter<Handlers> {
     const existing = this.cardRoots.get(cardId);
     if (existing != null) return existing;
 
-    const newRef = reactionRef(null, _elem => {
+    const newRef = reactionRef(null, () => {
       this.throttledCardsUpdated?.();
     });
 
@@ -92,7 +92,7 @@ export class RefsCollector extends EventEmitter<Handlers> {
     const existing = this.accessPoints.get(apId);
     if (existing != null) return existing;
 
-    const newRef = reactionRef(null, _elem => {
+    const newRef = reactionRef(null, () => {
       this.throttledCardsUpdated?.();
     });
 
@@ -112,7 +112,7 @@ export class RefsCollector extends EventEmitter<Handlers> {
     const existing = pathnames?.get(httpMethod);
     if (existing != null) return existing;
 
-    const newRef = reactionRef(null, _elem => {
+    const newRef = reactionRef(null, () => {
       this.throttledCardsUpdated?.();
     });
 

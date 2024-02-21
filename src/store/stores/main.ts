@@ -1,6 +1,6 @@
-import { configure, autorun, toJS, makeAutoObservable } from 'mobx';
+import { configure, toJS, makeAutoObservable } from 'mobx';
 
-import { Filters, FilterEntry, FiltersDiff } from '~/domain/filtering';
+import { Filters, FiltersDiff } from '~/domain/filtering';
 import { ServiceCard, ServiceMap } from '~/domain/service-map';
 import { StateChange } from '~/domain/misc';
 import { setupDebugProp } from '~/domain/misc';
@@ -22,8 +22,6 @@ export type FlushOptions = {
   preserveActiveCards?: boolean;
 };
 
-export type Props = {};
-
 export class Store {
   public controls: ControlStore;
 
@@ -35,7 +33,7 @@ export class Store {
 
   public uiSettings: SettingsStore;
 
-  constructor(_props?: Props) {
+  constructor() {
     makeAutoObservable(this, void 0, { autoBind: true });
 
     this.controls = new ControlStore();
@@ -94,8 +92,8 @@ export class Store {
     this.currentFrame.applyFrame(this.globalFrame, filters);
   }
 
-  public applyNamespaceChange(ns: NamespaceDescriptor, change: StateChange) {
-    this.namespaces.applyChange(ns, change);
+  public applyNamespaceChange(ns: NamespaceDescriptor) {
+    this.namespaces.applyChange(ns);
   }
 
   public setFeatures(features: FeatureFlags) {

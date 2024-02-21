@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback } from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import * as d3 from 'd3';
@@ -40,7 +40,7 @@ export const ServiceMapArrowDuckFeet = observer(function ServiceMapArrowDuckFeet
       const endingConnector = d3
         .select(target)
         .selectAll<SVGCircleElement, XY>('circle.ending-connector')
-        .data([connectorPosition], _ => `${connectorId}-ending-connector`);
+        .data([connectorPosition], () => `${connectorId}-ending-connector`);
 
       endingConnector.attr('cx', d => d.x).attr('cy', d => d.y);
 
