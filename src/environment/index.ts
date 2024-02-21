@@ -4,18 +4,14 @@ export class Environment {
   }
 
   public get isTesting(): boolean {
-    const nenv = this.var('NODE_ENV');
-    const e2eTestMode = this.var('E2E_TEST_MODE') === 'true';
+    const nenv = process.env.NODE_ENV;
+    const e2eTestMode = process.env.E2E_TEST_MODE === 'true';
 
     return nenv?.startsWith('test') || nenv?.startsWith('e2e') || e2eTestMode;
   }
 
   public get isDev(): boolean {
-    const nenv = this.var('NODE_ENV') || 'dev';
+    const nenv = process.env.NODE_ENV || 'dev';
     return nenv.startsWith('dev');
-  }
-
-  public var(name: string): string | undefined {
-    return process.env[name];
   }
 }

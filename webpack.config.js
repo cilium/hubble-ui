@@ -9,8 +9,9 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 /* eslint-enable @typescript-eslint/no-var-requires */
 
-const isProduction = process.env.NODE_ENV === 'production';
-const isDevelopment = process.env.NODE_ENV === 'development';
+const nodeEnv = process.env.NODE_ENV || 'development';
+const isProduction = nodeEnv.startsWith('prod');
+const isDevelopment = nodeEnv.startsWith('dev');
 
 const stylesLoaders = ({ enableSass, enableModules }) => {
   const sassOpts = {
