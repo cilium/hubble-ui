@@ -25,12 +25,6 @@ hubble:
           value: /var/log/hubble-ui-testing/log_files
         - name: CORS_ENABLED
           value: 'true'
-    frontend:
-      extraEnv:
-        - name: E2E_TEST_MODE
-          value: 'true'
-        - name: NODE_ENV
-          value: 'e2e'
     ingress:
       enabled: true
       className: nginx

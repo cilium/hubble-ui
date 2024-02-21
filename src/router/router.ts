@@ -74,6 +74,10 @@ export class Router extends EventEmitter<Handlers> {
     this.setupEventHandlers();
   }
 
+  public get mockModeParam() {
+    return this.searchParams.get('e2e');
+  }
+
   public get isInMemory() {
     return this.kind === RouterKind.Memory;
   }
