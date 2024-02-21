@@ -24,11 +24,13 @@ const buildAPIUrl = (env: Environment): string => {
     return `${document.location.origin}/api/`;
   }
 
-  const schemaRaw = env.var('API_SCHEMA') || document.location.protocol || 'http';
+  // NOTE: Do not edit those `process.env.VAR_NAME` variable accesses
+  // because they only work if you have such a direct call for them.
+  const schemaRaw = process.env.API_SCHEMA || document.location.protocol || 'http';
   const schema = schemaRaw.endsWith(':') ? schemaRaw : `${schemaRaw}:`;
-  const hostname = env.var('API_HOST') || document.location.hostname;
-  const port = env.var('API_PORT') || document.location.port;
-  const path = env.var('API_PATH') || 'api';
+  const hostname = process.env.API_HOST || document.location.hostname;
+  const port = process.env.API_PORT || document.location.port;
+  const path = process.env.API_PATH || 'api';
   const slashedPath = path?.startsWith('/') ? path : `/${path}`;
 
   return `${schema}//${hostname}${port ? `:${port}` : ''}${slashedPath}`;
