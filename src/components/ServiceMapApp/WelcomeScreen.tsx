@@ -4,10 +4,16 @@ import { observer } from 'mobx-react';
 
 import { NamespaceDescriptor } from '~/domain/namespaces';
 
-import { e2e } from '~e2e/client';
-
 import css from './WelcomeScreen.scss';
 import hubbleLogo from '~/assets/images/hubble-logo.png';
+import { getTestAttributes } from '~/utils/test';
+
+export enum E2E {
+  namespaceAvailabilityTestSelector = 'availability',
+  namespaceAvailabilityTestValue = 'r',
+  namespaceNameTestSelector = 'name',
+  namespaceListTestId = 'ns-list',
+}
 
 export interface Props {
   namespaces: NamespaceDescriptor[];
@@ -24,7 +30,7 @@ export const WelcomeScreen = observer(function WelcomeScreen(props: Props) {
         <h1 className={css.title}>Welcome!</h1>
         <p className={css.description}>To begin select one of the namespaces:</p>
         {someNamespacesLoaded ? (
-          <ul className={css.namespacesList} {...e2e.attributes.ns.listSelector()}>
+          <ul className={css.namespacesList} {...getTestAttributes(E2E.namespaceListTestId)}>
             {props.namespaces.map(ns => (
               <NamespaceItem key={ns.namespace} namespace={ns} onClick={props.onNamespaceChange} />
             ))}
@@ -58,7 +64,10 @@ const NamespaceItem = observer(function NamespaceItem(props: NamespaceItemProps)
       <a
         href={`/${props.namespace.namespace}`}
         onClick={onClick}
-        {...e2e.attributes.ns.entry(props.namespace.namespace)}
+        {...getTestAttributes({
+          [E2E.namespaceAvailabilityTestSelector]: E2E.namespaceAvailabilityTestValue,
+          [E2E.namespaceNameTestSelector]: props.namespace.namespace,
+        })}
       >
         {props.namespace.namespace}
       </a>

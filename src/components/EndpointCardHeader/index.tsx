@@ -5,8 +5,13 @@ import { ServiceCard } from '~/domain/service-map';
 
 import { EndpointLogo } from './EndpointLogo';
 
-import * as e2e from '~e2e/client';
 import css from './styles.scss';
+import { getTestAttributes } from '~/utils/test';
+
+export enum E2E {
+  cardHeaderTestSelector = 'card-header',
+  cardIdTestSelector = 'card-id',
+}
 
 export interface Props {
   card: ServiceCard;
@@ -23,7 +28,13 @@ export const EndpointCardHeader = memo(function EndpointCardHeader(props: Props)
   });
 
   return (
-    <div className={css.wrapper} {...e2e.attributes.serviceMap.card(card)}>
+    <div
+      className={css.wrapper}
+      {...getTestAttributes({
+        [E2E.cardHeaderTestSelector]: card.caption,
+        [E2E.cardIdTestSelector]: card.id,
+      })}
+    >
       <div className={css.headline} onClick={props.onHeadlineClick}>
         <EndpointLogo card={card} />
 
