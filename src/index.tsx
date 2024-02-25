@@ -8,8 +8,6 @@ import { Router, RouterKind, RouterProvider } from '~/router';
 import { UILayer } from '~/ui-layer';
 import { Application, ApplicationProvider } from '~/application';
 
-import { e2e } from '~e2e/client';
-
 import './blueprint.scss';
 import './index.scss';
 
@@ -78,10 +76,6 @@ const run = async () => {
   };
 
   const app = new Application(env, router, store, dataLayer, uiLayer, renderFn);
-
-  router.onInitialized(() => {
-    e2e.attributes.setEnabled(router.mockModeParam != null);
-  });
 
   app
     .onBeforeMount(_app => {

@@ -1,34 +1,35 @@
-import { attributes } from '~e2e/client';
 import { IPProtocol } from '~/domain/hubble';
-import { serviceMap } from '../../helpers/service-map';
-import { Preset } from '../../helpers/visit';
+import { serviceMap } from '~/testing/e2e/helpers/service-map';
+import { Preset } from '~/testing/e2e/helpers/visit';
+import { E2E as MapE2E } from '~/components/Map';
+import { E2E as AccessPointE2E, getAccessPointTestAttributes } from '~/components/AccessPoint';
+
+import { E2E as ServiceMapE2E } from '~/components/ServiceMapArrowRenderer/ServiceMapArrowDuckFeet';
 
 describe('service map with partially dropped traffic', () => {
   const checkHttpEndpointAndDashedArrow = (httpShouldBeThere: boolean) => {
-    const cards = cy.queryAttrs(attributes.card.visibleContainer()).children();
+    const cards = cy.query(MapE2E.visibleCardsTestId).children();
 
     // Verify pod workers:
     serviceMap.queryCard('pod-worker', cards).should('have.lengthOf', 1);
     const echo = serviceMap.queryCard('echo', cards).should('have.lengthOf', 1);
 
     const ap = echo
-      .queryAttrs(attributes.serviceMap.accessPoint(8080, IPProtocol.TCP))
+      .queryAttrs(getAccessPointTestAttributes(8080, IPProtocol.TCP))
       .should('have.lengthOf', 1);
 
-    ap.queryAttrs(attributes.serviceMap.portSelector()).contains('8080');
-    ap.queryAttrs(attributes.serviceMap.l4ProtoSelector()).contains('TCP');
+    ap.query(AccessPointE2E.accessPointPortTestId).contains('8080');
+    ap.query(AccessPointE2E.accessPointL4ProtoTestId).contains('TCP');
 
     if (httpShouldBeThere) {
-      ap.queryAttrs(attributes.serviceMap.l7ProtoSelector()).contains('HTTP');
+      ap.query(AccessPointE2E.accessPointL7ProtoTestId).contains('HTTP');
     }
 
     serviceMap.queryCardId(cards, 'echo').then(echoCardId => {
       if (echoCardId == null) return;
 
       let dashedArrow = serviceMap.queryArrowDuckFeet(echoCardId, 8080);
-      let linesContainer = dashedArrow.queryAttrs(
-        attributes.serviceMap.linesToAccessPointsSelector(),
-      );
+      let linesContainer = dashedArrow.query(ServiceMapE2E.accessPointTestId);
 
       // NOTE: The only line should be dashed one
       serviceMap
@@ -40,11 +41,11 @@ describe('service map with partially dropped traffic', () => {
       serviceMap.queryCardHeader('echo', cards).click();
 
       dashedArrow = serviceMap.queryArrowDuckFeet(echoCardId, 8080);
-      linesContainer = dashedArrow.queryAttrs(attributes.serviceMap.linesToAccessPointsSelector());
+      linesContainer = dashedArrow.query(ServiceMapE2E.accessPointTestId);
 
       // NOTE: When card is expanded, there should be 3 inner arrows
       linesContainer
-        .queryAttrKeys([attributes.serviceMap.innerLineAttrName()])
+        .queryAttrKeys([ServiceMapE2E.innerLineTestSelector])
         .should('have.lengthOf', 3);
     });
   };

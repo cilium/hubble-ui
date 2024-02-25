@@ -4,9 +4,15 @@ import { Button, MenuItem } from '@blueprintjs/core';
 
 import { NamespaceDescriptor } from '~/domain/namespaces';
 import { usePopover } from '~/ui/hooks/usePopover';
-import * as e2e from '~e2e/client';
 
 import css from './styles.scss';
+import { getTestAttributes } from '~/utils/test';
+
+export enum E2E {
+  namespaceAvailabilityTestSelector = 'availability',
+  namespaceAvailabilityTestValue = 'r',
+  namespaceNameTestSelector = 'name',
+}
 
 const renderItem: ItemRenderer<NamespaceDescriptor> = (ns, itemProps) => {
   const { handleClick, modifiers } = itemProps;
@@ -20,7 +26,10 @@ const renderItem: ItemRenderer<NamespaceDescriptor> = (ns, itemProps) => {
       key={ns.namespace}
       onClick={handleClick}
       text={ns.namespace}
-      {...e2e.attributes.ns.entry(ns.namespace)}
+      {...getTestAttributes({
+        [E2E.namespaceAvailabilityTestSelector]: E2E.namespaceAvailabilityTestValue,
+        [E2E.namespaceNameTestSelector]: ns.namespace,
+      })}
     />
   );
 };

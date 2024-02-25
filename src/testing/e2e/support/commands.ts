@@ -1,25 +1,21 @@
 import _ from 'lodash';
-import { attributes } from '~e2e/client/attributes';
+import { E2E_PREFIX } from '~/testing/constants';
 
 export type QueryOpts = {
   inViewport?: boolean;
 };
 
-const dataSelPrefix = attributes.dataSelPrefix;
-const dataAttrPrefix = attributes.dataAttrPrefix;
-
-Cypress.Commands.add('query', (selector: string, ...args) => {
-  return cy.get(`[data-${dataSelPrefix}="${selector}"]`, ...args);
+Cypress.Commands.add('query', (testId: string, ...args) => {
+  return cy.get(`[${E2E_PREFIX}="${testId}"]`, ...args);
 });
 
 Cypress.Commands.add('queryLike', (selector: string, ...args) => {
-  return cy.get(`[data-${dataSelPrefix}*="${selector}"]`, ...args);
+  return cy.get(`[${E2E_PREFIX}*="${selector}"]`, ...args);
 });
 
-const selAttrPrefix = `data-${dataAttrPrefix}`;
 const attrsToSelector = (attrs: object): string => {
   const sel = Object.entries(attrs).reduce((sels, pair) => {
-    const attrKey = pair[0].startsWith(selAttrPrefix) ? pair[0] : `${selAttrPrefix}-${pair[0]}`;
+    const attrKey = pair[0].startsWith(E2E_PREFIX) ? pair[0] : `${E2E_PREFIX}-${pair[0]}`;
 
     const sel = `[${attrKey}="${pair[1]}"]`;
     return sels.concat(sel);
@@ -33,19 +29,17 @@ Cypress.Commands.add('queryAttrs', (attrs: object, ...args) => {
 });
 
 Cypress.Commands.add('queryAttrKeys', (attrs: string[], ...args) => {
-  const sel = attrs
-    .map(attr => {
-      const attrName = attributes.attrNameFn(attr);
-
-      return `[${attrName}]`;
-    })
-    .join('');
+  const sel = attrs.map(attr => `[${E2E_PREFIX}-${attr}]`).join('');
 
   return cy.get(sel, ...args);
 });
 
 Cypress.Commands.add('parentAttrs', { prevSubject: true }, (subj, attrs: object) => {
   return subj.parent(attrsToSelector(attrs));
+});
+
+Cypress.Commands.add('parentQuery', { prevSubject: true }, (subj, testId: string) => {
+  return subj.parent(`[${E2E_PREFIX}="${testId}"]`);
 });
 
 Cypress.Commands.add('inViewport', { prevSubject: true }, (subj: JQuery<HTMLElement>) => {
@@ -72,7 +66,7 @@ Cypress.Commands.add(
   'attrValue',
   { prevSubject: true },
   (subj: JQuery<HTMLElement>, attrName: string) => {
-    const key = `${attributes.dataAttrPrefix}-${attrName}`;
+    const key = `${E2E_PREFIX}-${attrName}`;
     const dataset = subj.data();
 
     // NOTE: We have to do this conversion since jQuery transforms dataset.

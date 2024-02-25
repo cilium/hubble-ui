@@ -1,10 +1,12 @@
 import type { Config } from 'jest';
+import { pathsToModuleNameMapper } from 'ts-jest';
+import tsconfig from './tsconfig.json';
 
 const config: Config = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
   testMatch: [
-    '<rootDir>/src/**/?(*.)(spec|test).(j|t)s?(x)',
+    '<rootDir>/src/**/*.(spec|test).(j|t)s?(x)',
     '<rootDir>/src/**/__tests__/**/*.(j|t)s?(x)',
   ],
   roots: ['<rootDir>/src'],
@@ -12,10 +14,9 @@ const config: Config = {
     '\\.(png|jpg|gif|ttf|woff|woff2)$': '<rootDir>/scripts/assets-transformer.js',
     '\\.(css|styl|less|sass|scss)$': 'identity-obj-proxy',
     '\\.svg$': '<rootDir>/scripts/svg-mock.js',
-    '^~/(.*)$': '<rootDir>/src/$1',
-    '^~backend/(.*)$': '<rootDir>/backend/$1',
-    '^~e2e/(.*)$': `<rootDir>/src/testing/e2e/$1`,
+    ...pathsToModuleNameMapper(tsconfig.compilerOptions.paths, { prefix: '<rootDir>/src' }),
   },
+  modulePaths: [tsconfig.compilerOptions.baseUrl],
   transform: {
     '^.+\\.tsx?$': [
       'ts-jest',

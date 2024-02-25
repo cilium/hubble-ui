@@ -4,7 +4,7 @@ import { observer } from 'mobx-react';
 import { Verdict } from '~/domain/hubble';
 import { FilterEntry } from '~/domain/filtering';
 import { Status } from '~/domain/status';
-import { DataMode, TransferState } from '~/domain/interactions';
+import { TransferState } from '~/domain/interactions';
 import { NamespaceDescriptor } from '~/domain/namespaces';
 
 import { FlowsFilterInput } from './FlowsFilterInput';
@@ -13,8 +13,8 @@ import { VisualFiltersDropdown } from './VisualFiltersDropdown';
 import { NamespaceSelectorDropdown } from './NamespaceSelectorDropdown';
 import { ConnectionIndicator } from './ConnectionIndicator';
 
-import { e2e } from '~e2e/client';
 import css from './styles.scss';
+import { getTestAttributes } from '~/utils/test';
 
 export interface Props {
   transferState: TransferState;
@@ -36,6 +36,10 @@ export interface Props {
   onShowRemoteNodeToggle?: () => void;
   showPrometheusApp: boolean;
   onShowPrometheusAppToggle: () => void;
+}
+
+export enum E2E {
+  topbarRootTestId = 'topbar',
 }
 
 export const TopBar = observer(function TopBar(props: Props) {
@@ -61,7 +65,7 @@ export const TopBar = observer(function TopBar(props: Props) {
   );
 
   return (
-    <div className={css.topbar} {...e2e.attributes.topbar.selector()}>
+    <div className={css.topbar} {...getTestAttributes(E2E.topbarRootTestId)}>
       <div className={css.left}>
         <NamespaceSelectorDropdown
           namespaces={props.namespaces}
