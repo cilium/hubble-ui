@@ -13,10 +13,14 @@ import { useMapZoom } from './hooks/useMapZoom';
 import { useMutationObserver } from '~/ui/hooks/useMutationObserver';
 import { ArrowStrategy, PlacementStrategy } from '~/ui/layout';
 
-import * as e2e from '~e2e/client';
-
 import { sizes } from '~/ui/vars';
 import css from './styles.scss';
+import { getTestAttributes } from '~/utils/test';
+
+export enum E2E {
+  visibleCardsTestId = 'visible-cards',
+  arrowForegroundTestId = 'arrows-foreground',
+}
 
 export interface Props<C extends AbstractCard> {
   placement: PlacementStrategy;
@@ -112,9 +116,9 @@ export const MapElements = observer(function MapElements<C extends AbstractCard>
       <g
         className="arrows-foreground"
         ref={arrowsForegroundRef}
-        {...e2e.attributes.map.arrowsForegroundSelector()}
+        {...getTestAttributes(E2E.arrowForegroundTestId)}
       />
-      <g ref={cardsRef} className="visible-cards" {...e2e.attributes.card.visibleContainer()}>
+      <g ref={cardsRef} className="visible-cards" {...getTestAttributes(E2E.visibleCardsTestId)}>
         {cards}
       </g>
 

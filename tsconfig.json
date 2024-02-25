@@ -12,8 +12,7 @@
     "jsx": "react",
     "paths": {
       "~/*": ["./*"],
-      "~backend/*": ["./../backend/*"],
-      "~e2e/*": ["./testing/e2e/*"]
+      "~backend/*": ["./../backend/*"]
     },
     "types": ["node", "jest"],
     "moduleResolution": "node",
@@ -33,8 +32,10 @@
     "strictBindCallApply": true,
     "strictFunctionTypes": true,
     "strictPropertyInitialization": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true
   },
-  "exclude": ["node_modules", "src/testing/e2e/cypress", "src/testing/e2e/config"],
+  "exclude": ["node_modules", "src/testing/e2e"],
   "include": ["src/**/*", "src/**/*.json", "backend/proto/**/*.ts"]
 }

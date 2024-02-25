@@ -14,15 +14,21 @@ import { ArrowRendererProps } from '~/components/ArrowsRenderer';
 import { Teleport } from '~/components/Teleport';
 
 import { reactionRef } from '~/ui/react/refs';
-import { e2e } from '~/testing/e2e/client';
 
 import * as helpers from './helpers';
 import css from './styles.scss';
+import { getTestAttributes } from '~/utils/test';
 
 export type Props = Omit<ArrowRendererProps, 'arrow'> & {
   arrows: Map<string, AccessPointArrow>;
   connectorId: string;
 };
+
+export enum E2E {
+  duckFeetTestSelector = 'duck-feet-to-connector-id',
+  accessPointTestId = 'ap-lines',
+  innerLineTestSelector = 'inner-line',
+}
 
 export const ServiceMapArrowDuckFeet = observer(function ServiceMapArrowDuckFeet(props: Props) {
   const connectorCapRef = reactionRef<SVGGElement | null>(null, e => {
@@ -31,8 +37,6 @@ export const ServiceMapArrowDuckFeet = observer(function ServiceMapArrowDuckFeet
   const innerArrowsRef = reactionRef<SVGGElement | null>(null, e => {
     renderInnerArrows(e, props.arrows);
   });
-
-  const e2eAttrs = e2e.attributes.serviceMap;
 
   const renderEndingConnectorCap = useCallback(
     (target: SVGGElement | null, connectorId: string, arrows: Map<string, AccessPointArrow>) => {
@@ -109,10 +113,21 @@ export const ServiceMapArrowDuckFeet = observer(function ServiceMapArrowDuckFeet
         .enter()
         .append('line')
         .attr('class', 'inner')
-        .attr(
-          e2eAttrs.innerLineAttrName(),
-          e2e.attributes.nullOr(arr => arr.accessPointId),
-        )
+        .each(function (d: any) {
+          // eslint-disable-next-line @typescript-eslint/no-this-alias
+          const self: any = this;
+          const e2eAttributes =
+            d.accessPointId &&
+            getTestAttributes({
+              [E2E.innerLineTestSelector]: d.accessPointId,
+            });
+
+          if (e2eAttributes) {
+            Object.keys(e2eAttributes).forEach(e2eAttr => {
+              d3.select(self).attr(e2eAttr, e2eAttributes[e2eAttr]);
+            });
+          }
+        })
         .attr('stroke', helpers.innerArrows.strokeColor)
         .attr('stroke-width', helpers.innerArrows.strokeWidth)
         .attr('stroke-dasharray', helpers.innerArrows.strokeStyle)
@@ -166,11 +181,14 @@ export const ServiceMapArrowDuckFeet = observer(function ServiceMapArrowDuckFeet
 
   return (
     <Teleport to={props.arrowsForeground}>
-      <g className={classes} {...e2eAttrs.duckFeet(props.connectorId)}>
+      <g
+        className={classes}
+        {...getTestAttributes({ [E2E.duckFeetTestSelector]: props.connectorId })}
+      >
         <g
           className="arrows-to-access-points"
           ref={innerArrowsRef}
-          {...e2eAttrs.linesToAccessPointsSelector()}
+          {...getTestAttributes(E2E.accessPointTestId)}
         ></g>
         <g className="connector-cap" ref={connectorCapRef}></g>
       </g>
