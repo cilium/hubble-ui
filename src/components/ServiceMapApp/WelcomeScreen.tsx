@@ -6,7 +6,7 @@ import { NamespaceDescriptor } from '~/domain/namespaces';
 
 import css from './WelcomeScreen.scss';
 import hubbleLogo from '~/assets/images/hubble-logo.png';
-import { getTestAttributes } from '~/utils/test';
+import { getTestAttributes } from '~/testing/helpers';
 
 export enum E2E {
   namespaceAvailabilityTestSelector = 'availability',

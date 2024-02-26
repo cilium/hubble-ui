@@ -9,7 +9,7 @@ import { sizes } from '~/ui';
 import type { CardProps, DivRef, SVGGElementRef, CoordsFn } from './general';
 
 import css from './styles.scss';
-import { getTestAttributes } from '~/utils/test';
+import { getTestAttributes } from '~/testing/helpers';
 
 export type { CardProps, DivRef, SVGGElementRef, CoordsFn };
 

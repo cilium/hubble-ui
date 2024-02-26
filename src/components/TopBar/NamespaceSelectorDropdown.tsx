@@ -6,7 +6,7 @@ import { NamespaceDescriptor } from '~/domain/namespaces';
 import { usePopover } from '~/ui/hooks/usePopover';
 
 import css from './styles.scss';
-import { getTestAttributes } from '~/utils/test';
+import { getTestAttributes } from '~/testing/helpers';
 
 export enum E2E {
   namespaceAvailabilityTestSelector = 'availability',

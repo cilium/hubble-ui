@@ -6,7 +6,7 @@ import { ServiceCard } from '~/domain/service-map';
 import { EndpointLogo } from './EndpointLogo';
 
 import css from './styles.scss';
-import { getTestAttributes } from '~/utils/test';
+import { getTestAttributes } from '~/testing/helpers';
 
 export enum E2E {
   cardHeaderTestSelector = 'card-header',

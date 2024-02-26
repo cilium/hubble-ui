@@ -15,7 +15,7 @@ import { ArrowStrategy, PlacementStrategy } from '~/ui/layout';
 
 import { sizes } from '~/ui/vars';
 import css from './styles.scss';
-import { getTestAttributes } from '~/utils/test';
+import { getTestAttributes } from '~/testing/helpers';
 
 export enum E2E {
   visibleCardsTestId = 'visible-cards',
