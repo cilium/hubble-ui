@@ -113,7 +113,7 @@ export const ServiceMapArrowDuckFeet = observer(function ServiceMapArrowDuckFeet
         .enter()
         .append('line')
         .attr('class', 'inner')
-        .each(function (d: any) {
+        .each(function (d) {
           // eslint-disable-next-line @typescript-eslint/no-this-alias
           const self: any = this;
           const e2eAttributes =
