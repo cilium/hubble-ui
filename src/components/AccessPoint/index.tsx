@@ -1,9 +1,8 @@
 import React, { useLayoutEffect, useRef } from 'react';
-import * as mobx from 'mobx';
 import { observer } from 'mobx-react';
 
 import * as helpers from '~/domain/helpers';
-import { AuthType, IPProtocol, L7Kind, Verdict } from '~/domain/hubble';
+import { IPProtocol, L7Kind, Verdict } from '~/domain/hubble';
 import * as l7helpers from '~/domain/helpers/l7';
 
 import css from './styles.scss';
@@ -21,33 +20,8 @@ export enum E2E {
   accessPointPortTestId = 'port',
   accessPointL4ProtoTestId = 'proto-l4',
   accessPointL7ProtoTestId = 'proto-l7',
+  accessPoint = 'access-point',
 }
-
-export const getAccessPointTestAttributes = (
-  port: number,
-  l4protocol: IPProtocol,
-  l7protocol?: L7Kind,
-  _verdicts?: Set<Verdict>,
-  _authTypes?: Set<AuthType>,
-) => {
-  const obj: any = {
-    port,
-    l4protocol: helpers.protocol.toString(l4protocol),
-  };
-
-  if (l7protocol != null) {
-    obj.l7protocol = helpers.l7.l7KindToString(l7protocol);
-  }
-
-  if (_verdicts != null) {
-    obj.verdicts =
-      Array.from(_verdicts || [])
-        .map(v => helpers.verdict.toString(v))
-        .join('-') || void 0;
-  }
-
-  return obj;
-};
 
 export const AccessPoint = observer(function AccessPoint(props: Props) {
   const connectorRef = useRef<HTMLDivElement>(null);
@@ -61,21 +35,13 @@ export const AccessPoint = observer(function AccessPoint(props: Props) {
     props.connectorRef.current = connectorRef.current;
   }, [props.connectorRef]);
 
-  const dataTestAttributes = mobx
-    .computed(() => {
-      return getTestAttributes(
-        getAccessPointTestAttributes(
-          props.port,
-          props.l4Protocol,
-          props.l7Protocol,
-          props.verdicts,
-        ),
-      );
-    })
-    .get();
-
   return (
-    <div className={css.accessPoint} {...dataTestAttributes}>
+    <div
+      className={css.accessPoint}
+      {...getTestAttributes(
+        `${E2E.accessPoint}-${helpers.protocol.toString(props.l4Protocol)}-${props.port}`,
+      )}
+    >
       <div className={css.icons}>
         <div className={css.circle} ref={connectorRef}>
           <img src="icons/misc/access-point.svg" />
