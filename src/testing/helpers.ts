@@ -1,5 +1,4 @@
 import _ from 'lodash';
-import { isTestingEnv } from '~/environment';
 import { E2E_PREFIX } from '~/testing/constants';
 import {
   HubbleService,
@@ -315,6 +314,16 @@ export const linkFromToService = (from: HubbleService, to: HubbleService) => {
     tcp: stage1Builder(IPProtocol.TCP),
     udp: stage1Builder(IPProtocol.UDP),
   };
+};
+
+const isTestingEnv = () => {
+  const nenv = process.env.NODE_ENV;
+  const e2eTestMode = process.env.E2E_TEST_MODE === 'true';
+  const mockModeParam = new URLSearchParams(document.location.search).get('e2e');
+
+  return (
+    nenv?.startsWith('test') || nenv?.startsWith('e2e') || e2eTestMode || mockModeParam != null
+  );
 };
 
 /**

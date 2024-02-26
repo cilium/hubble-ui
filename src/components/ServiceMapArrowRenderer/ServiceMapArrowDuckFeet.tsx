@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback } from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import * as d3 from 'd3';
