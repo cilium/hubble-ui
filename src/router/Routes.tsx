@@ -1,5 +1,5 @@
 import React from 'react';
-import { createMemoryRouter, createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import { ServiceMapApp } from '~/components/ServiceMapApp';
 
@@ -21,28 +21,18 @@ const pathname = (href: string | undefined) => {
 };
 
 export const Routes = function Routes(props: Props) {
-  const createRouter = props.router.isInMemory ? createMemoryRouter : createBrowserRouter;
-  const opts = props.router.isInMemory
-    ? undefined
-    : {
-        basename: pathname(document.querySelector('base')?.href),
-      };
-
-  const router = createRouter(
-    [
-      {
-        path: '/',
-        element: props.RootComponent,
-        children: [
-          {
-            path: ApplicationPath.ServiceMap,
-            element: <ServiceMapApp />,
-          },
-        ],
-      },
-    ],
-    opts,
-  );
+  const router = createBrowserRouter([
+    {
+      path: '/',
+      element: props.RootComponent,
+      children: [
+        {
+          path: ApplicationPath.ServiceMap,
+          element: <ServiceMapApp />,
+        },
+      ],
+    },
+  ]);
 
   return <RouterProvider router={router} />;
 };
