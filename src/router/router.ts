@@ -21,11 +21,6 @@ import {
 import { LocationState } from './state';
 import { TransactionRunner } from './transaction';
 
-export enum RouterKind {
-  Memory = 'memory',
-  Browser = 'browser',
-}
-
 export enum ApplicationPath {
   ServiceMap = '/',
 }
@@ -65,21 +60,10 @@ export class Router extends EventEmitter<Handlers> {
 
   private _transaction: RouteAction[] = [];
 
-  constructor(
-    private kind: RouterKind,
-    private dataLayer: DataLayer,
-  ) {
+  constructor(private dataLayer: DataLayer) {
     super(true);
 
     this.setupEventHandlers();
-  }
-
-  public get mockModeParam() {
-    return this.searchParams.get('e2e');
-  }
-
-  public get isInMemory() {
-    return this.kind === RouterKind.Memory;
   }
 
   public get isInitialized() {

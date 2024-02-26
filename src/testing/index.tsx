@@ -2,9 +2,8 @@ import React from 'react';
 import { render, RenderResult } from '@testing-library/react';
 
 import { Store } from '~/store';
-import { StoreContext } from '~/store/hooks';
 import { Application, ApplicationProvider } from '~/application';
-import { Router, RouterKind } from '~/router';
+import { Router } from '~/router';
 
 import * as data from './data';
 import * as helpers from './helpers';
@@ -25,7 +24,7 @@ const customRender = (elem: React.ReactElement<any>, options?: any): RenderResul
     customProtocolCORSEnabled: true,
   });
 
-  const router = new Router(RouterKind.Memory, dataLayer);
+  const router = new Router(dataLayer);
   const uiLayer = UILayer.new({
     router,
     store,
