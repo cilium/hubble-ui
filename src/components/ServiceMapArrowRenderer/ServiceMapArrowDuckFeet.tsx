@@ -17,7 +17,7 @@ import { reactionRef } from '~/ui/react/refs';
 
 import * as helpers from './helpers';
 import css from './styles.scss';
-import { getTestAttributes } from '~/utils/test';
+import { getTestAttributes } from '~/testing/helpers';
 
 export type Props = Omit<ArrowRendererProps, 'arrow'> & {
   arrows: Map<string, AccessPointArrow>;
