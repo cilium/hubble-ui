@@ -2,7 +2,8 @@ import { IPProtocol } from '~/domain/hubble';
 import { serviceMap } from '~/testing/e2e/helpers/service-map';
 import { Preset } from '~/testing/e2e/helpers/visit';
 import { E2E as MapE2E } from '~/components/Map';
-import { E2E as AccessPointE2E, getAccessPointTestAttributes } from '~/components/AccessPoint';
+import { E2E as AccessPointE2E } from '~/components/AccessPoint';
+import * as helpers from '~/domain/helpers';
 
 import { E2E as ServiceMapE2E } from '~/components/ServiceMapArrowRenderer/ServiceMapArrowDuckFeet';
 
@@ -15,7 +16,7 @@ describe('service map with partially dropped traffic', () => {
     const echo = serviceMap.queryCard('echo', cards).should('have.lengthOf', 1);
 
     const ap = echo
-      .queryAttrs(getAccessPointTestAttributes(8080, IPProtocol.TCP))
+      .query(`${AccessPointE2E.accessPoint}-${helpers.protocol.toString(IPProtocol.TCP)}-8080`)
       .should('have.lengthOf', 1);
 
     ap.query(AccessPointE2E.accessPointPortTestId).contains('8080');
