@@ -14,7 +14,7 @@ import { NamespaceSelectorDropdown } from './NamespaceSelectorDropdown';
 import { ConnectionIndicator } from './ConnectionIndicator';
 
 import css from './styles.scss';
-import { getTestAttributes } from '~/utils/test';
+import { getTestAttributes } from '~/testing/helpers';
 
 export interface Props {
   transferState: TransferState;

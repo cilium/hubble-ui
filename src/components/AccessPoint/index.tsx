@@ -7,7 +7,7 @@ import { AuthType, IPProtocol, L7Kind, Verdict } from '~/domain/hubble';
 import * as l7helpers from '~/domain/helpers/l7';
 
 import css from './styles.scss';
-import { getTestAttributes } from '~/utils/test';
+import { getTestAttributes } from '~/testing/helpers';
 
 export interface Props {
   port: number;
