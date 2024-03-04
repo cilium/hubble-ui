@@ -37,7 +37,7 @@ jobs:
           version: ${{ env.KIND_VERSION }}
           install_only: true
       - name: Install helm
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v4
         with:
           version: ${{ env.HELM_VERSION }}
       - uses: actions/setup-node@v4
