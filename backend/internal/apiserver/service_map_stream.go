@@ -51,8 +51,7 @@ func (srv *APIServer) ServiceMapStream(
 	eventsRequested := api_helpers.GetFlagsWhichEventsRequested(req.GetEventTypes())
 	dcache := cache.New()
 
-	// NOTE: just flush buffered flows each 500ms
-	flows, err := data_throttler.New[*pb_flow.Flow](50*time.Millisecond, 500)
+	flows, err := data_throttler.New[*pb_flow.Flow](100*time.Millisecond, 5000)
 	if err != nil {
 		return err
 	}
