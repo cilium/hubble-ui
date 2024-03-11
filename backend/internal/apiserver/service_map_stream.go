@@ -51,7 +51,10 @@ func (srv *APIServer) ServiceMapStream(
 	eventsRequested := api_helpers.GetFlagsWhichEventsRequested(req.GetEventTypes())
 	dcache := cache.New()
 
-	flows, err := data_throttler.New[*pb_flow.Flow](100*time.Millisecond, 5000)
+	flows, err := data_throttler.New[*pb_flow.Flow](
+		srv.cfg.FlowsThrottleDelay,
+		uint(srv.cfg.FlowsThrottleSize),
+	)
 	if err != nil {
 		return err
 	}

@@ -24,6 +24,8 @@ type PropGetters struct {
 	ClientPollDelays         []time.Duration
 	E2ETestModeEnabled       EnvVarGetter[bool]
 	E2ELogfilesBasepath      EnvVarGetter[string]
+	FlowsThrottleDelay       EnvVarGetter[time.Duration]
+	FlowsThrottleSize        EnvVarGetter[uint64]
 }
 
 type EnvVarGetter[T any] func() EnvVarResult[T]
@@ -92,6 +94,31 @@ func Uint16Or(envName string, def uint16) EnvVarGetter[uint16] {
 		}
 
 		return EnvVarResult[uint16]{
+			IsRequired:  false,
+			IsPresented: ok,
+			VarName:     envName,
+			Value:       intValue,
+			ParseErr:    err,
+		}
+	}
+}
+
+func Uint64Or(envName string, def uint64) EnvVarGetter[uint64] {
+	return func() EnvVarResult[uint64] {
+		val, ok := os.LookupEnv(envName)
+		intValue := def
+		var err error
+
+		if ok {
+			parsed, _err := strconv.ParseUint(val, 10, 64)
+			if _err == nil {
+				intValue = parsed
+			} else {
+				err = _err
+			}
+		}
+
+		return EnvVarResult[uint64]{
 			IsRequired:  false,
 			IsPresented: ok,
 			VarName:     envName,
