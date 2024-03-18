@@ -3,7 +3,7 @@ module github.com/cilium/hubble-ui/backend
 go 1.21.7
 
 require (
-	github.com/cilium/cilium v1.15.0
+	github.com/cilium/cilium v1.15.2
 	github.com/cilium/hubble v0.13.0
 	github.com/google/gops v0.3.28
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
