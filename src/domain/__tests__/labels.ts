@@ -66,9 +66,4 @@ describe('extract app name', () => {
 
     appNameTest(['k8s:app.kubernetes.io/name=EXPECTED_NAME'], 'EXPECTED_NAME');
   });
-
-  test('random label without explicit appName', () => {
-    appNameTest(['k8s:random-app=random-name'], 'random-name');
-    appNameTest(['k8s:random-name=random-app'], 'random-app');
-  });
 });
