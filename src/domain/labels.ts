@@ -54,7 +54,6 @@ export class Labels {
   ];
 
   public static readonly appNameNormalizedKeys = new Set([
-    'component',
     'app',
     'name',
     'functionname',
