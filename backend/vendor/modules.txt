@@ -13,7 +13,7 @@ github.com/blang/semver/v4
 # github.com/cespare/xxhash/v2 v2.2.0
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
-# github.com/cilium/cilium v1.15.2
+# github.com/cilium/cilium v1.15.3
 ## explicit; go 1.21.0
 github.com/cilium/cilium/api/v1/client
 github.com/cilium/cilium/api/v1/client/bgp
@@ -147,6 +147,7 @@ github.com/cilium/cilium/pkg/logging
 github.com/cilium/cilium/pkg/logging/logfields
 github.com/cilium/cilium/pkg/mac
 github.com/cilium/cilium/pkg/maps/bwmap
+github.com/cilium/cilium/pkg/maps/callsmap
 github.com/cilium/cilium/pkg/maps/lxcmap
 github.com/cilium/cilium/pkg/metrics
 github.com/cilium/cilium/pkg/metrics/metric
@@ -875,7 +876,7 @@ k8s.io/api/scheduling/v1beta1
 k8s.io/api/storage/v1
 k8s.io/api/storage/v1alpha1
 k8s.io/api/storage/v1beta1
-# k8s.io/apiextensions-apiserver v0.29.1
+# k8s.io/apiextensions-apiserver v0.29.2
 ## explicit; go 1.21
 k8s.io/apiextensions-apiserver/pkg/apis/apiextensions
 k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1

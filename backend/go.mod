@@ -3,7 +3,7 @@ module github.com/cilium/hubble-ui/backend
 go 1.21.7
 
 require (
-	github.com/cilium/cilium v1.15.2
+	github.com/cilium/cilium v1.15.3
 	github.com/cilium/hubble v0.13.0
 	github.com/google/gops v0.3.28
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
@@ -136,7 +136,7 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/apiextensions-apiserver v0.29.1 // indirect
+	k8s.io/apiextensions-apiserver v0.29.2 // indirect
 	k8s.io/klog/v2 v2.120.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20240209001042-7a0d5b415232 // indirect
 	k8s.io/utils v0.0.0-20240102154912-e7106e64919e // indirect
