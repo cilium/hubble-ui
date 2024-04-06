@@ -1,8 +1,10 @@
+@import './styles/common/themes';
+
 :global {
   html {
     box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial,
-      sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif,
+      'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
     height: 100%;
   }
 
@@ -21,6 +23,11 @@
     min-height: 100%;
     background-color: #fff;
     font-size: 16px;
+    overscroll-behavior: none;
+  }
+
+  .light {
+    @include light-theme;
   }
 
   #app {

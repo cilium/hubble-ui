@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  Intent,
-  OverlayToaster,
-  OverlayToasterProps,
-  IconName,
-} from '@blueprintjs/core';
+import { Intent, OverlayToaster, OverlayToasterProps, IconName } from '@blueprintjs/core';
 
 import {
   Notification,
@@ -15,6 +10,9 @@ import {
 } from '~/notifier/notification';
 import { NotifierPosition } from '~/notifier/general';
 import * as helpers from '~/notifier/helpers';
+import { StatusEntry } from '~/ui/status-center';
+
+import { StatusEntryMessage } from '~/components/StatusEntryMessage/StatusEntryMessage';
 
 interface NotificationData {
   intent: Intent;
@@ -40,20 +38,14 @@ export class Notifier {
   public static readonly maxNotificationsOnScreen = 5;
 
   public static prepareToasterProps(props: Props): OverlayToasterProps {
-    const position = helpers.position(
-      props.position ?? NotifierPosition.TopCenter,
-    );
+    const position = helpers.position(props.position ?? NotifierPosition.TopCenter);
 
-    const maxToasts =
-      props.maxNotifications ?? Notifier.maxNotificationsOnScreen;
+    const maxToasts = props.maxNotifications ?? Notifier.maxNotificationsOnScreen;
 
     return { position, maxToasts };
   }
 
-  private static optionsToData(
-    opts: Options,
-    message: Message,
-  ): NotificationData {
+  private static optionsToData(opts: Options, message: Message): NotificationData {
     return {
       timeout: opts.timeout ?? Notifier.timeout,
       icon: opts.icon ?? 'info-sign',
@@ -67,6 +59,45 @@ export class Notifier {
 
   public setBackend(toaster: OverlayToaster) {
     this.toaster = toaster;
+  }
+
+  public showStatusEntry(e: StatusEntry, wasPending = false) {
+    const message = (
+      <StatusEntryMessage
+        entry={e}
+        iconHidden={true}
+        componentHidden={true}
+        intentHidden={true}
+        backgrounded={true}
+      />
+    );
+
+    const notif = this.cached(e.key);
+    if (notif != null) {
+      const timeout =
+        wasPending && !e.isPending ? Notifier.timeout : e.isPending ? 0 : Notifier.timeout;
+
+      notif.update(message, timeout);
+
+      return;
+    }
+
+    const opts: Options = {
+      key: e.key || void 0,
+      timeout: e.isPending || e.isPersistent ? 0 : Notifier.timeout,
+    };
+
+    if (e.isError || e.isCritical) {
+      this.showError(message, opts);
+    } else if (e.isWarning) {
+      this.showWarning(message, opts);
+    } else if (e.isSuccess) {
+      this.showSuccess(message, opts);
+    } else if (e.isInfo) {
+      this.showInfo(message, opts);
+    } else {
+      this.showSimple(message, opts);
+    }
   }
 
   public showSimple(message: Message, opts?: Options): Notification {
@@ -125,8 +156,8 @@ export class Notifier {
     return this.createNotification(message, opts);
   }
 
-  public cached(key: string): Notification | null {
-    return this.notificationsCache.get(key) ?? null;
+  public cached(key?: string | null): Notification | null {
+    return key ? this.notificationsCache.get(key) || null : null;
   }
 
   public hideBykeys(...keys: string[]) {
@@ -172,13 +203,12 @@ export class Notifier {
       return this.toaster!.dismiss(id);
     };
 
-    const update: UpdateAction = (
-      id: string,
-      message: Message,
-      timeout?: number,
-    ) => {
+    const update: UpdateAction = (key: string, message?: Message, timeout?: number) => {
       timeout = timeout ?? d.timeout;
-      this.toaster!.show({ message, intent, timeout }, id);
+      message = message ?? d.message;
+      const icon = d.icon;
+
+      this.toaster!.show({ message, intent, timeout, icon }, key);
     };
 
     return [show, dismiss, update];

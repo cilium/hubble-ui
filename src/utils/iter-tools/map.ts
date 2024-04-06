@@ -7,6 +7,14 @@ export class MapUtils<K, V> {
     return new MapUtils(m);
   }
 
+  public static pickFirst<K, V>(m: Map<K, V>): V | null | undefined {
+    for (const key of m.keys()) {
+      return m.get(key);
+    }
+
+    return null;
+  }
+
   constructor(map: Map<K, V>) {
     this._map = map;
   }

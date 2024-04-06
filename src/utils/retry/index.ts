@@ -1,14 +1,26 @@
-import { TimerId } from '~/utils/common';
+import { EventEmitter } from '~/utils/emitter';
 
-import { Delayer, RetryFn, TickFn, DelayInfo } from './common';
+import { RetriesFailed } from './error';
+import { Delayer, RetryFn } from './common';
 import { Delayer as ExponentialDelayer } from './exponential';
 
-export class Retries {
+export enum Event {
+  AttemptStarted = 'attempt-started',
+  AttemptFailed = 'attempt-failed',
+  AttemptDelay = 'attempt-delay',
+  AttemptSuccess = 'attempt-success',
+}
+
+export type Handlers = {
+  [Event.AttemptStarted]: (attempt: number) => void;
+  [Event.AttemptFailed]: (attempt: number, isLast: boolean, stopped: boolean, err: any) => void;
+  [Event.AttemptDelay]: (attempt: number, delay: number) => void;
+  [Event.AttemptSuccess]: (attempt: number) => void;
+};
+
+export class Retries extends EventEmitter<Handlers> {
   private delayer: Delayer;
   private attempt = 1;
-  private onTickHandlers: Set<TickFn> = new Set();
-  private tickDelay = 100;
-  private tickTimer: TimerId | null = null;
 
   public readonly maxAttempts: number;
 
@@ -23,6 +35,8 @@ export class Retries {
   }
 
   constructor(delayer: Delayer, maxAttempts = Infinity) {
+    super(true);
+
     this.delayer = delayer;
     this.maxAttempts = maxAttempts;
   }
@@ -34,6 +48,7 @@ export class Retries {
   public async try<T>(fn: RetryFn<T>): Promise<T | null> {
     while (this.canDoAttempt) {
       let stop = false;
+      this.emit(Event.AttemptStarted, this.attempt);
 
       try {
         let result = fn(this.attempt, () => {
@@ -44,11 +59,14 @@ export class Retries {
           result = await result;
         }
 
+        this.emit(Event.AttemptSuccess, this.attempt);
         return result;
       } catch (err) {
+        this.emit(Event.AttemptFailed, this.attempt, this.isLastAttempt, stop, err);
+
         if (stop || this.isLastAttempt) throw err;
 
-        this.runTicking(this.delayer.nextDelay());
+        this.emit(Event.AttemptDelay, this.attempt, this.delayer.nextDelay());
         await this.delayer.wait();
       }
 
@@ -56,20 +74,7 @@ export class Retries {
       if (stop) return null;
     }
 
-    throw new Error('maxAttempts limit exceeded');
-  }
-
-  public onTick(tickFn: TickFn) {
-    this.onTickHandlers.add(tickFn);
-    return this;
-  }
-
-  public offTick(tickFn: TickFn) {
-    return this.onTickHandlers.delete(tickFn);
-  }
-
-  public offTicks() {
-    this.onTickHandlers.clear();
+    throw new RetriesFailed().setAttemptLimitReached(true);
   }
 
   public reset() {
@@ -77,47 +82,38 @@ export class Retries {
     this.attempt = 1;
   }
 
+  public nextDelay() {
+    return this.delayer.nextDelay();
+  }
+
+  public async wait() {
+    await this.delayer.wait();
+  }
+
+  public onAttemptDelay(fn: Handlers[Event.AttemptDelay]): this {
+    this.on(Event.AttemptDelay, fn);
+    return this;
+  }
+
+  public onAttemptSuccess(fn: Handlers[Event.AttemptSuccess]): this {
+    this.on(Event.AttemptSuccess, fn);
+    return this;
+  }
+
+  public onAttemptFailed(fn: Handlers[Event.AttemptFailed]): this {
+    this.on(Event.AttemptFailed, fn);
+    return this;
+  }
+
   public get canDoAttempt(): boolean {
-    return (
-      !Number.isFinite(this.maxAttempts) || this.attempt <= this.maxAttempts
-    );
+    return !Number.isFinite(this.maxAttempts) || this.attempt <= this.maxAttempts;
   }
 
   public get isLastAttempt(): boolean {
     return this.attempt === this.maxAttempts;
   }
-
-  private runTicking(delay: number) {
-    const tickInfo: DelayInfo = {
-      delay,
-      tick: this.tickDelay,
-      elapsed: 0,
-      remaining: delay,
-    };
-
-    // NOTE: call all handlers to notify that we just get to waiting state
-    this.onTickHandlers.forEach(fn => fn(tickInfo));
-
-    this.tickTimer = setInterval(() => {
-      tickInfo.elapsed += tickInfo.tick;
-      tickInfo.remaining = Math.max(0, tickInfo.remaining - tickInfo.tick);
-
-      this.onTickHandlers.forEach(fn => fn(tickInfo));
-
-      if (tickInfo.remaining < Number.EPSILON && this.tickTimer) {
-        clearInterval(this.tickTimer);
-      } else if (tickInfo.remaining < tickInfo.tick && this.tickTimer) {
-        clearInterval(this.tickTimer);
-
-        setTimeout(() => {
-          tickInfo.elapsed = delay;
-          tickInfo.remaining = 0;
-          this.onTickHandlers.forEach(fn => fn(tickInfo));
-        }, tickInfo.remaining);
-      }
-    }, this.tickDelay);
-  }
 }
 
 export { Delayer, StopFn, RetryFn, DelayInfo } from './common';
 export { ExponentialDelayer };
+export { RetriesFailed };

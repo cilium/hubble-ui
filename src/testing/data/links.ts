@@ -8,6 +8,13 @@ export const tcpForwarded: HubbleLink = {
   destinationPort: 8080,
   ipProtocol: IPProtocol.TCP,
   verdict: Verdict.Forwarded,
+  flowAmount: 2,
+  bytesTransfered: 8192,
+  latency: {
+    min: { seconds: 0, nanos: 5e6 },
+    max: { seconds: 0, nanos: 25e6 },
+    avg: { seconds: 0, nanos: 15e6 },
+  },
   authType: AuthType.Disbaled,
   isEncrypted: false,
 };

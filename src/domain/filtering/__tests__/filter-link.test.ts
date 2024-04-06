@@ -12,17 +12,12 @@ import { Flow } from '~/domain/flows';
 import { Dictionary } from '~/domain/misc';
 import { links } from '~/testing/data';
 
-const runUnusedFiltersTests = (
-  filters: FiltersObject[],
-  links: Dictionary<Link>,
-) => {
+const runUnusedFiltersTests = (filters: FiltersObject[], links: Dictionary<Link>) => {
   Object.keys(links).forEach((linkName: string) => {
     const link = links[linkName];
 
     filters.forEach((f: FiltersObject, fidx: number) => {
-      test(`unused filter fields test, link: ${linkName}, filters: ${
-        fidx + 1
-      }`, () => {
+      test(`unused filter fields test, link: ${linkName}, filters: ${fidx + 1}`, () => {
         const stay = filterLink(link, Filters.fromObject(f));
         expect(stay).toBe(true);
       });
@@ -59,7 +54,7 @@ describe('filterLink', () => {
 
   test('verdict > matches 1', () => {
     const filters: Filters = Filters.fromObject({
-      verdict: Verdict.Forwarded,
+      verdicts: new Set([Verdict.Forwarded]),
     });
 
     const stay = filterLink(tcpForwarded, filters);
@@ -68,7 +63,7 @@ describe('filterLink', () => {
 
   test('verdict > matches 2', () => {
     const filters: Filters = Filters.fromObject({
-      verdict: Verdict.Dropped,
+      verdicts: new Set([Verdict.Dropped]),
     });
 
     const stay = filterLink(tcpDropped, filters);
@@ -77,7 +72,7 @@ describe('filterLink', () => {
 
   test('verdict > matches 3', () => {
     const filters: Filters = Filters.fromObject({
-      verdict: Verdict.Error,
+      verdicts: new Set([Verdict.Error]),
     });
 
     const stay = filterLink(tcpError, filters);
@@ -86,7 +81,7 @@ describe('filterLink', () => {
 
   test('verdict > matches 4', () => {
     const filters: Filters = Filters.fromObject({
-      verdict: Verdict.Unknown,
+      verdicts: new Set([Verdict.Unknown]),
     });
 
     const stay = filterLink(tcpUnknown, filters);
@@ -95,7 +90,7 @@ describe('filterLink', () => {
 
   test('verdict > matches 5', () => {
     const filters: Filters = Filters.fromObject({
-      verdict: Verdict.Forwarded,
+      verdicts: new Set([Verdict.Forwarded]),
     });
 
     const stay = filterLink(tcpForwardedDropped, filters);
@@ -104,7 +99,7 @@ describe('filterLink', () => {
 
   test('verdict > matches 6', () => {
     const filters: Filters = Filters.fromObject({
-      verdict: Verdict.Dropped,
+      verdicts: new Set([Verdict.Dropped]),
     });
 
     const stay = filterLink(tcpForwardedDropped, filters);
@@ -113,7 +108,7 @@ describe('filterLink', () => {
 
   test('verdict > matches 7', () => {
     const filters: Filters = Filters.fromObject({
-      verdict: Verdict.Forwarded,
+      verdicts: new Set([Verdict.Forwarded]),
     });
 
     const stay = filterLink(tcpMixed, filters);
@@ -122,7 +117,7 @@ describe('filterLink', () => {
 
   test('verdict > matches 8', () => {
     const filters: Filters = Filters.fromObject({
-      verdict: Verdict.Dropped,
+      verdicts: new Set([Verdict.Dropped]),
     });
 
     const stay = filterLink(tcpMixed, filters);
@@ -131,7 +126,7 @@ describe('filterLink', () => {
 
   test('verdict > matches 9', () => {
     const filters: Filters = Filters.fromObject({
-      verdict: Verdict.Error,
+      verdicts: new Set([Verdict.Error]),
     });
 
     const stay = filterLink(tcpMixed, filters);
@@ -140,7 +135,7 @@ describe('filterLink', () => {
 
   test('verdict > matches 10', () => {
     const filters: Filters = Filters.fromObject({
-      verdict: Verdict.Unknown,
+      verdicts: new Set([Verdict.Unknown]),
     });
 
     const stay = filterLink(tcpMixed, filters);
@@ -149,7 +144,7 @@ describe('filterLink', () => {
 
   test('verdict > doesnt match 1', () => {
     const filters: Filters = Filters.fromObject({
-      verdict: Verdict.Forwarded,
+      verdicts: new Set([Verdict.Forwarded]),
     });
 
     const stay = filterLink(tcpDropped, filters);
@@ -158,7 +153,7 @@ describe('filterLink', () => {
 
   test('verdict > doesnt match 2', () => {
     const filters: Filters = Filters.fromObject({
-      verdict: Verdict.Unknown,
+      verdicts: new Set([Verdict.Unknown]),
     });
 
     const stay = filterLink(tcpDropped, filters);
@@ -167,7 +162,7 @@ describe('filterLink', () => {
 
   test('verdict > doesnt match 3', () => {
     const filters: Filters = Filters.fromObject({
-      verdict: Verdict.Error,
+      verdicts: new Set([Verdict.Error]),
     });
 
     const stay = filterLink(tcpDropped, filters);
@@ -176,7 +171,7 @@ describe('filterLink', () => {
 
   test('verdict > doesnt match 4', () => {
     const filters: Filters = Filters.fromObject({
-      verdict: Verdict.Dropped,
+      verdicts: new Set([Verdict.Dropped]),
     });
 
     const stay = filterLink(tcpForwarded, filters);
@@ -185,7 +180,7 @@ describe('filterLink', () => {
 
   test('verdict > doesnt match 5', () => {
     const filters: Filters = Filters.fromObject({
-      verdict: Verdict.Unknown,
+      verdicts: new Set([Verdict.Unknown]),
     });
 
     const stay = filterLink(tcpForwarded, filters);
@@ -194,7 +189,7 @@ describe('filterLink', () => {
 
   test('verdict > doesnt match 6', () => {
     const filters: Filters = Filters.fromObject({
-      verdict: Verdict.Error,
+      verdicts: new Set([Verdict.Error]),
     });
 
     const stay = filterLink(tcpForwarded, filters);
@@ -203,7 +198,7 @@ describe('filterLink', () => {
 
   test('verdict > doesnt match 7', () => {
     const filters: Filters = Filters.fromObject({
-      verdict: Verdict.Error,
+      verdicts: new Set([Verdict.Error]),
     });
 
     const stay = filterLink(tcpForwardedDropped, filters);
@@ -212,7 +207,7 @@ describe('filterLink', () => {
 
   test('verdict > doesnt match 8', () => {
     const filters: Filters = Filters.fromObject({
-      verdict: Verdict.Unknown,
+      verdicts: new Set([Verdict.Unknown]),
     });
 
     const stay = filterLink(tcpForwardedDropped, filters);
@@ -234,8 +229,7 @@ describe('filterLink', () => {
   );
 
   testFilterEntry(
-    (linkName: string, n: number) =>
-      `identity > to doesnt match ${n} (${linkName})`,
+    (linkName: string, n: number) => `identity > to doesnt match ${n} (${linkName})`,
     FilterEntry.parse(`to:identity=dst-456-wrong`)!,
     false,
     {
@@ -249,10 +243,9 @@ describe('filterLink', () => {
   );
 
   testFilterEntry(
-    (linkName: string, n: number) =>
-      `identity > negative > to match ${n} (${linkName})`,
+    (linkName: string, n: number) => `identity > negative > to match ${n} (${linkName})`,
     FilterEntry.parse(`!to:identity=dst-456`)!,
-    false,
+    true,
     {
       tcpForwarded,
       tcpDropped,
@@ -264,8 +257,7 @@ describe('filterLink', () => {
   );
 
   testFilterEntry(
-    (linkName: string, n: number) =>
-      `identity > negative > to doesnt match ${n} (${linkName})`,
+    (linkName: string, n: number) => `identity > negative > to doesnt match ${n} (${linkName})`,
     FilterEntry.parse(`!to:identity=dst-456-wrong`)!,
     true,
     {
@@ -289,8 +281,7 @@ describe('filterLink', () => {
   );
 
   testFilterEntry(
-    (linkName: string, n: number) =>
-      `identity > to doesnt match ${n} (${linkName})`,
+    (linkName: string, n: number) => `identity > to doesnt match ${n} (${linkName})`,
     FilterEntry.parse(`to:identity=src-123-wrong`)!,
     false,
     {
@@ -300,8 +291,7 @@ describe('filterLink', () => {
   );
 
   testFilterEntry(
-    (linkName: string, n: number) =>
-      `identity > from matches ${n} (${linkName})`,
+    (linkName: string, n: number) => `identity > from matches ${n} (${linkName})`,
     FilterEntry.parse(`from:identity=src-123`)!,
     true,
     {
@@ -317,8 +307,7 @@ describe('filterLink', () => {
   );
 
   testFilterEntry(
-    (linkName: string, n: number) =>
-      `identity > from doesnt match ${n} (${linkName})`,
+    (linkName: string, n: number) => `identity > from doesnt match ${n} (${linkName})`,
     FilterEntry.parse(`from:identity=src-123-wrong`)!,
     false,
     {
@@ -334,9 +323,8 @@ describe('filterLink', () => {
   );
 
   testFilterEntry(
-    (linkName: string, n: number) =>
-      `identity > both matches ${n} (${linkName})`,
-    FilterEntry.parse(`both:identity=src-123`)!,
+    (linkName: string, n: number) => `identity > either matches ${n} (${linkName})`,
+    FilterEntry.parse(`either:identity=src-123`)!,
     true,
     {
       tcpForwarded,
@@ -351,9 +339,8 @@ describe('filterLink', () => {
   );
 
   testFilterEntry(
-    (linkName: string, n: number) =>
-      `identity > both doesnt match ${n} (${linkName})`,
-    FilterEntry.parse(`both:identity=src-123-wrong`)!,
+    (linkName: string, n: number) => `identity > either doesnt match ${n} (${linkName})`,
+    FilterEntry.parse(`either:identity=src-123-wrong`)!,
     false,
     {
       tcpForwarded,
@@ -394,7 +381,7 @@ describe('filterLink', () => {
         filters: [FilterEntry.parse('to:dns=www.google.com')!],
       },
       {
-        filters: [FilterEntry.parse('both:dns=www.google.com')!],
+        filters: [FilterEntry.parse('either:dns=www.google.com')!],
       },
       {
         filters: [FilterEntry.parse('from:label=k8s:k8s-app=random-app')!],
@@ -403,7 +390,7 @@ describe('filterLink', () => {
         filters: [FilterEntry.parse('to:label=k8s:k8s-app=random-app')!],
       },
       {
-        filters: [FilterEntry.parse('both:label=k8s:k8s-app=random-app')!],
+        filters: [FilterEntry.parse('either:label=k8s:k8s-app=random-app')!],
       },
       {
         filters: [FilterEntry.parse('from:ip=153.82.167.250')!],
@@ -412,7 +399,7 @@ describe('filterLink', () => {
         filters: [FilterEntry.parse('to:ip=153.82.167.250')!],
       },
       {
-        filters: [FilterEntry.parse('both:ip=153.82.167.250')!],
+        filters: [FilterEntry.parse('either:ip=153.82.167.250')!],
       },
       {
         filters: [

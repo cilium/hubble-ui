@@ -15,6 +15,26 @@ func FromProto(f *pbFlow.Flow) *Flow {
 	return &Flow{f}
 }
 
+func Wrap(many []*pbFlow.Flow) []*Flow {
+	w := make([]*Flow, len(many))
+
+	for i, pbf := range many {
+		w[i] = FromProto(pbf)
+	}
+
+	return w
+}
+
+func Unwrap(many []*Flow) []*pbFlow.Flow {
+	u := make([]*pbFlow.Flow, len(many))
+
+	for i, f := range many {
+		u[i] = f.Ref()
+	}
+
+	return u
+}
+
 func (f *Flow) BuildServices() (*service.Service, *service.Service) {
 	sender := f.BuildSenderService()
 	receiver := f.BuildReceiverService()

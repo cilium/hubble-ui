@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  useRef,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { sizes } from '~/ui/vars';
 
 import * as storage from '~/storage/local';

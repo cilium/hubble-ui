@@ -15,6 +15,8 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
 import "flow/flow.proto";
 import "ui/notifications.proto";
 import "ui/status.proto";
@@ -42,22 +44,28 @@ message GetEventsRequest{
     GetStatusRequest status_request = 5;
 }
 
-message GetEventsResponse{
-    string node = 1;
-    google.protobuf.Timestamp timestamp = 2;
-    oneof event {
-        flow.Flow flow = 3;
-        K8sNamespaceState k8s_namespace_state = 4;
-        ServiceState service_state = 5;
-        // It's unclear how we can define what it means for service links to get
-        // added/deleted. For now I'm deferring the decision for whether a particular
-        // link should be included in the service map to the client. Maybe the server
-        // can periodically send service_link events for active links to keep-alive,
-        // and the client can expire older links based on their timestamp.
-        ServiceLinkState  service_link_state = 6;
-        Flows flows = 7;
-        Notification notification = 8;
-    }
+message GetEventsResponse {
+  string node = 1;
+  google.protobuf.Timestamp timestamp = 2;
+
+  repeated Event events = 3;
+}
+
+message Event {
+  oneof event {
+    flow.Flow flow = 3;
+    NamespaceState namespace_state = 4;
+    ServiceState service_state = 5;
+    // It's unclear how we can define what it means for service links to get
+    // added/deleted. For now I'm deferring the decision for whether a
+    // particular link should be included in the service map to the client.
+    // Maybe the server can periodically send service_link events for active
+    // links to keep-alive, and the client can expire older links based on their
+    // timestamp.
+    ServiceLinkState service_link_state = 6;
+    Flows flows = 7;
+    Notification notification = 8;
+  }
 }
 
 message Flows {
@@ -85,15 +93,15 @@ enum EventType {
     STATUS = 6;
 }
 
-message K8sNamespace {
-    string id = 1;
-    string name = 2;
-    google.protobuf.Timestamp creation_timestamp = 3;
+message NamespaceDescriptor {
+  string id = 1;
+  string name = 2;
+  google.protobuf.Timestamp creation_timestamp = 3;
 }
 
-message K8sNamespaceState {
-    K8sNamespace namespace = 1;
-    StateChange type = 2;
+message NamespaceState {
+  NamespaceDescriptor namespace = 1;
+  StateChange type = 2;
 }
 
 // IP protocols. The values of enums do not correspond to actual IP protocol numbers.
@@ -120,6 +128,8 @@ message Service {
     string visibility_policy_status = 8;
     // We probably can't reliably set creation timestamp.
     google.protobuf.Timestamp creation_timestamp = 9;
+    repeated flow.Workload workloads = 10;
+    uint32 identity = 12;
 }
 
 message ServiceState {
@@ -141,8 +151,19 @@ message ServiceLink {
     uint32 destination_port = 4;
     IPProtocol ip_protocol = 5;
     flow.Verdict verdict = 6;
-    flow.AuthType auth_type = 7;
-    bool is_encrypted = 8;
+
+    uint64 flow_amount = 7;
+    Latency latency = 8;
+    uint64 bytes_transfered = 9;
+
+    flow.AuthType auth_type = 10;
+    bool is_encrypted = 11;
+
+    message Latency {
+        google.protobuf.Duration min = 1;
+        google.protobuf.Duration max = 2;
+        google.protobuf.Duration avg = 3;
+    }
 }
 
 message ServiceLinkState {
@@ -176,6 +197,6 @@ message GetControlStreamResponse {
     }
 
     message NamespaceStates {
-        repeated K8sNamespaceState namespaces = 1;
+        repeated NamespaceState namespaces = 1;
     }
 }

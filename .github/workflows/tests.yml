@@ -15,9 +15,9 @@ jobs:
         with:
           submodules: true
       - name: Use Node.js
-        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
+        uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8
         with:
-          node-version: '18.x'
+          node-version: '20.x'
       - name: Install dependencies
         run: npm ci
       - name: Run tests
@@ -28,7 +28,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
       - name: Setup Go
-        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe
+        uses: actions/setup-go@6c1fd22b67f7a7c42ad9a45c0f4197434035e429
         with:
           go-version: '1.21'
       - name: Check Go module vendoring
@@ -39,18 +39,25 @@ jobs:
           go mod verify
           test -z "$(git status --porcelain)" || (echo "please run 'go mod tidy && go mod vendor', and submit your changes"; exit 1)
       - name: Run Go static checks
-        uses: golangci/golangci-lint-action@3a919529898de77ec3da873e3063ca4b10e7f5cc
+        uses: golangci/golangci-lint-action@3cfe3a4abbb849e10058ce4af15d205b6da42804
         with:
           working-directory: ./backend
           version: v1.54.2
           args: --config=.golangci.yml --verbose --out-${NO_FUTURE}format colored-line-number
           skip-cache: true
       - name: Setup Node.js
-        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
+        uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8
         with:
-          node-version: '18.x'
+          node-version: '20.x'
       - name: Install NPM dependencies
         run: npm ci
+      - name: npm run prettier
+        run: |
+          npm run prettier
+          git status --porcelain
+          test -z "$(git status --porcelain)" || (echo "please run `npm run prettier` and submit changes"; exit 1)
+      - name: npm run lint
+        run: npm run lint
       - name: Check proto files
         working-directory: ./backend
         run: |

@@ -1,9 +1,5 @@
-import { Flow, Verdict } from '~/domain/flows';
-import {
-  FilterEntry,
-  Kind as FilterKind,
-  Direction as FilterDirection,
-} from './filter-entry';
+import { Flow } from '~/domain/flows';
+import { FilterEntry, Kind as FilterKind, Direction as FilterDirection } from './filter-entry';
 
 import { Link, ServiceCard } from '~/domain/service-map';
 import { LinkConnections } from '~/domain/interactions/connections';
@@ -39,7 +35,6 @@ export const filter = (
 ): FilterResult => {
   const filteredFlows: Flow[] = [];
   const filteredLinks: Link[] = [];
-  const services: ServiceCard[] = [];
 
   // NOTE: flows have enough information to be filtered separately
   flows.forEach(f => {
@@ -127,7 +122,7 @@ export const filter = (
         const receiver = ensureService(clonedServices, cardsMap, receiverId);
         if (receiver == null) return;
 
-        receiver.addAccessPointFromLink(link);
+        receiver.upsertAccessPointFromLink(link);
         filteredLinks.push(link);
       });
     });
@@ -141,11 +136,7 @@ export const filter = (
 };
 
 // NOTE: connections is { receiverId -> Set(of all sender IDs)
-const addSender = (
-  connections: Map<string, Set<string>>,
-  receiverId: string,
-  senderId: string,
-) => {
+const addSender = (connections: Map<string, Set<string>>, receiverId: string, senderId: string) => {
   if (!connections.has(receiverId)) {
     connections.set(receiverId, new Set());
   }

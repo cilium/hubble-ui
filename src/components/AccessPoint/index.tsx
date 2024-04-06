@@ -1,44 +1,50 @@
-import React, { FunctionComponent, useRef } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
+import * as mobx from 'mobx';
+import { observer } from 'mobx-react';
+
+import * as e2e from '~e2e/client';
 
 import { XY } from '~/domain/geometry';
-import { IPProtocol, L7Kind } from '~/domain/hubble';
+import { IPProtocol, L7Kind, Verdict } from '~/domain/hubble';
 import * as l7helpers from '~/domain/helpers/l7';
 
-import { useElemCoords, useDiff } from '~/ui/hooks';
-import { SingleIndicator } from '~/ui/hooks/useIndicator';
 import css from './styles.scss';
 
 export interface Props {
   port: number;
   l4Protocol: IPProtocol;
   l7Protocol?: L7Kind;
-
-  indicator?: SingleIndicator;
-  onConnectorCoords?: (_: XY) => void;
+  verdicts?: Set<Verdict>;
+  connectorRef?: React.MutableRefObject<HTMLDivElement | null>;
 }
 
-export function AccessPointComponent(props: Props) {
-  const imgContainer = useRef<HTMLDivElement>(null);
+export const AccessPoint = observer(function AccessPoint(props: Props) {
+  const connectorRef = useRef<HTMLDivElement>(null);
 
-  const handle = useElemCoords(imgContainer, false, coords => {
-    props.onConnectorCoords?.(coords.center);
-  });
+  const showPort = props.l4Protocol !== IPProtocol.ICMPv4 && props.l4Protocol !== IPProtocol.ICMPv6;
 
-  useDiff(props.indicator?.value, () => {
-    handle.emit();
-  });
+  const showL7Protocol = props.l7Protocol != null && props.l7Protocol !== L7Kind.Unknown;
 
-  const showPort =
-    props.l4Protocol !== IPProtocol.ICMPv4 &&
-    props.l4Protocol !== IPProtocol.ICMPv6;
+  useLayoutEffect(() => {
+    if (props.connectorRef == null || connectorRef.current == null) return;
+    props.connectorRef.current = connectorRef.current;
+  }, [props.connectorRef]);
 
-  const showL7Protocol =
-    props.l7Protocol != null && props.l7Protocol !== L7Kind.Unknown;
+  const e2eAttrs = mobx
+    .computed(() => {
+      return e2e.attributes.serviceMap.accessPoint(
+        props.port,
+        props.l4Protocol,
+        props.l7Protocol,
+        props.verdicts,
+      );
+    })
+    .get();
 
   return (
-    <div className={css.accessPoint}>
+    <div className={css.accessPoint} {...e2eAttrs}>
       <div className={css.icons}>
-        <div className={css.circle} ref={imgContainer}>
+        <div className={css.circle} ref={connectorRef}>
           <img src="icons/misc/access-point.svg" />
         </div>
 
@@ -50,16 +56,20 @@ export function AccessPointComponent(props: Props) {
       <div className={css.data}>
         {showPort && (
           <>
-            <div className={css.port}>{props.port}</div>
+            <div className={css.port} {...e2e.attributes.serviceMap.portSelector()}>
+              {props.port}
+            </div>
             <div className={css.dot} />
           </>
         )}
-        <div className={css.protocol}>{IPProtocol[props.l4Protocol]}</div>
+        <div className={css.protocol} {...e2e.attributes.serviceMap.l4ProtoSelector()}>
+          {IPProtocol[props.l4Protocol]}
+        </div>
 
         {props.l7Protocol && showL7Protocol && (
           <>
             <div className={css.dot} />
-            <div className={css.protocol}>
+            <div className={css.protocol} {...e2e.attributes.serviceMap.l7ProtoSelector()}>
               {l7helpers.l7KindToString(props.l7Protocol)}
             </div>
           </>
@@ -67,6 +77,4 @@ export function AccessPointComponent(props: Props) {
       </div>
     </div>
   );
-}
-
-export const AccessPoint = React.memo(AccessPointComponent);
+});

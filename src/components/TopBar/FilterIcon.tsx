@@ -12,8 +12,7 @@ export interface Props {
 
 export const FilterIcon = memo<Props>(function FilterIcon(props) {
   const text = props.text;
-  const icon =
-    typeof props.icon === 'string' ? <img src={props.icon} /> : props.icon;
+  const icon = typeof props.icon === 'string' ? <img src={props.icon} /> : props.icon;
 
   const className = classnames(css.icon, props.className, {
     [css.clickable]: !!props.onClick,

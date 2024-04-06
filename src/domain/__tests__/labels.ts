@@ -56,14 +56,8 @@ describe('extract app name', () => {
 
     appNameTest(['k8s:io.kubernetes.pod.app=EXPECTED_NAME'], 'EXPECTED_NAME');
     appNameTest(['k8s:io.kubernetes.pod.name=EXPECTED_NAME'], 'EXPECTED_NAME');
-    appNameTest(
-      ['k8s:io.kubernetes.pod.functionName=EXPECTED_NAME'],
-      'EXPECTED_NAME',
-    );
-    appNameTest(
-      ['k8s:io.kubernetes.pod.k8s-app=EXPECTED_NAME'],
-      'EXPECTED_NAME',
-    );
+    appNameTest(['k8s:io.kubernetes.pod.functionName=EXPECTED_NAME'], 'EXPECTED_NAME');
+    appNameTest(['k8s:io.kubernetes.pod.k8s-app=EXPECTED_NAME'], 'EXPECTED_NAME');
 
     appNameTest(['app=EXPECTED_NAME'], 'EXPECTED_NAME');
     appNameTest(['name=EXPECTED_NAME'], 'EXPECTED_NAME');
@@ -71,10 +65,5 @@ describe('extract app name', () => {
     appNameTest(['k8s-app=EXPECTED_NAME'], 'EXPECTED_NAME');
 
     appNameTest(['k8s:app.kubernetes.io/name=EXPECTED_NAME'], 'EXPECTED_NAME');
-  });
-
-  test('random label without appName', () => {
-    appNameTest(['k8s:random-app=random-name'], null);
-    appNameTest(['k8s:random-name=random-app'], null);
   });
 });

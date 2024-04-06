@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { animated } from 'react-spring';
+import { animated } from '@react-spring/web';
 import { useDrag } from '@use-gesture/react';
 
 import {

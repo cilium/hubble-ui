@@ -9,8 +9,4 @@ export enum ApplicationKind {
   Redis = 'redis',
   Zookeeper = 'zookeeper',
   Prometheus = 'prometheus',
-  Grafana = 'grafana',
-  Loki = 'loki',
-  Tempo = 'tempo',
-  Mimir = 'mimir',
 }

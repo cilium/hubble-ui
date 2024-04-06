@@ -1,32 +1,42 @@
-import _ from 'lodash';
 import { observable, action, makeObservable } from 'mobx';
 
-import InteractionStore from '~/store/stores/interaction';
-import ServiceStore from '~/store/stores/service';
-import ControlStore from '~/store/stores/controls';
+import { InteractionStore } from '~/store/stores/interaction';
+import { ServiceStore } from '~/store/stores/service';
+import { NamespaceStore } from '~/store/stores/namespace';
+import { ControlStore } from '~/store/stores/controls';
 
 import { Filters, filter } from '~/domain/filtering';
-import { HubbleService, HubbleLink } from '~/domain/hubble';
-import { StateChange } from '~/domain/misc';
-import { ServiceCard, Link } from '~/domain/service-map';
+import { HubbleService } from '~/domain/hubble';
+import { Link, ServiceMap } from '~/domain/service-map';
 import { Flow } from '~/domain/flows';
 import { EventEmitter } from '~/utils/emitter';
+import { NamespaceDescriptor } from '~/domain/namespaces';
+import { ServiceChange, ServiceLinkChange } from '~/domain/events';
 
 export enum EventKind {
   FlowsAdded = 'flows-added',
-  LinkChanged = 'link-changed',
+  FlowSummariesAdded = 'flow-summaries-added',
+  LinksChanged = 'links-changed',
   ServiceChange = 'services-changed',
   ServicesSet = 'services-set',
+  PolicyChanged = 'policy-changed',
+  Flushed = 'flushed',
 }
 
-type Events = {
+type Handlers = {
   [EventKind.FlowsAdded]: (_: Flow[]) => void;
-  [EventKind.LinkChanged]: (_: HubbleLink, ch: StateChange) => void;
-  [EventKind.ServiceChange]: (_: HubbleService, ch: StateChange) => void;
+  [EventKind.LinksChanged]: (_: ServiceLinkChange[]) => void;
+  [EventKind.ServiceChange]: (_: ServiceChange[]) => void;
   [EventKind.ServicesSet]: (_: HubbleService[]) => void;
+  [EventKind.Flushed]: (opts?: FlushOptions) => void;
 };
 
-export class StoreFrame extends EventEmitter<Events> {
+export type FlushOptions = {
+  namespaces?: boolean;
+  preserveActiveCards?: boolean;
+};
+
+export class StoreFrame extends EventEmitter<Handlers> {
   @observable
   public interactions: InteractionStore;
 
@@ -34,72 +44,107 @@ export class StoreFrame extends EventEmitter<Events> {
   public services: ServiceStore;
 
   @observable
+  public namespaces: NamespaceStore;
+
+  @observable
   public controls: ControlStore;
 
   public static empty(): StoreFrame {
     return new StoreFrame(
+      new NamespaceStore(),
       new ControlStore(),
       new InteractionStore(),
       new ServiceStore(),
     );
   }
 
-  public static emptyWithShared(controls: ControlStore) {
-    return new StoreFrame(controls, new InteractionStore(), new ServiceStore());
+  public static emptyWithShared(controls: ControlStore, nss: NamespaceStore) {
+    return new StoreFrame(nss, controls, new InteractionStore(), new ServiceStore());
   }
 
   constructor(
+    namespaces: NamespaceStore,
     controls: ControlStore,
     interactions: InteractionStore,
     services: ServiceStore,
   ) {
     super();
+
     makeObservable(this);
 
+    this.controls = controls;
     this.interactions = interactions;
     this.services = services;
-    this.controls = controls;
+    this.namespaces = namespaces;
   }
 
   getServiceById(id: string) {
     return this.services.byId(id);
   }
 
+  public onFlushed(fn: Handlers[EventKind.Flushed]): this {
+    this.on(EventKind.Flushed, fn);
+    return this;
+  }
+
   @action.bound
-  flush() {
+  public flush(opts?: FlushOptions) {
+    opts = opts || { namespaces: false };
+
     this.interactions.clear();
-    this.services.clear();
+
+    this.services.clear(opts);
+
+    if (!!opts.namespaces) {
+      this.namespaces.clear();
+    }
+
+    this.emit(EventKind.Flushed, opts);
   }
 
   @action.bound
-  applyServiceChange(svc: HubbleService, change: StateChange) {
-    this.emit(EventKind.ServiceChange, svc, change);
-
-    this.services.applyServiceChange(svc, change);
+  public applyServiceChange(ch: ServiceChange) {
+    this.emit(EventKind.ServiceChange, [ch]);
+    this.services.applyServiceChange(ch.service, ch.change);
   }
 
   @action.bound
-  applyServiceLinkChange(link: HubbleLink, change: StateChange) {
-    this.emit(EventKind.LinkChanged, link, change);
-
-    this.interactions.applyLinkChange(link, change);
-    this.services.extractAccessPoint(link);
+  public applyServiceChanges(ch: ServiceChange[]) {
+    this.services.applyServiceChanges(ch);
+    this.emit(EventKind.ServiceChange, ch);
   }
 
   @action.bound
-  addFlows(flows: Flow[]) {
-    const addedStats = this.interactions.addFlows(flows);
+  public applyServiceLinkChanges(links: ServiceLinkChange[]) {
+    links.forEach(link => {
+      this.interactions.applyLinkChange(link.serviceLink, link.change);
+      this.services.extractAccessPoint(link.serviceLink);
+    });
 
-    // NOTE: addFlows could add l7 interactions, so we need to update
-    // NOTE: ServiceCard accessPoints
-    this.updateServiceEndpoints();
+    this.emit(EventKind.LinksChanged, links);
+  }
+
+  @action.bound
+  public addFlows(flows: Flow[], ...args: any[]) {
+    const addedStats = this.addFlowsInner(flows, ...args);
 
     this.emit(EventKind.FlowsAdded, flows);
     return addedStats;
   }
 
   @action.bound
-  updateServiceEndpoints() {
+  private addFlowsInner(flows: Flow[], ...args: any[]) {
+    const addedStats = this.interactions.addFlows(flows, ...args);
+
+    // NOTE: addFlows could add l7 interactions, so we need to update
+    // NOTE: ServiceCard accessPoints
+    this.updateServiceEndpoints();
+
+    return addedStats;
+  }
+
+  @action.bound
+  private updateServiceEndpoints() {
     this.interactions.l7endpoints.forEach((ports, serviceId) => {
       const card = this.services.cardsMap.get(serviceId);
       if (card == null) return;
@@ -109,25 +154,15 @@ export class StoreFrame extends EventEmitter<Events> {
   }
 
   @action.bound
+  upsertNamespaces(nsd: NamespaceDescriptor[]) {
+    return this.namespaces.add(nsd);
+  }
+
+  @action.bound
   setServices(services: HubbleService[]) {
     this.services.set(services);
 
     this.emit(EventKind.ServicesSet, services);
-  }
-
-  @action.bound
-  setActiveService(serviceId: string): boolean {
-    return this.services.setActive(serviceId);
-  }
-
-  @action.bound
-  toggleActiveService(serviceId: string): boolean {
-    return this.services.toggleActive(serviceId);
-  }
-
-  @action.bound
-  isCardActive(serviceId: string): boolean {
-    return this.services.isCardActive(serviceId);
   }
 
   @action.bound
@@ -163,29 +198,47 @@ export class StoreFrame extends EventEmitter<Events> {
 
     // NOTE: services is array of cloned service map cards
     services.forEach(cloned => {
-      this.services.addNewCard(cloned);
-
-      if (rhs.services.isCardActive(cloned.id)) {
-        this.services.setActive(cloned.id);
-      }
+      this.services.upsertService(cloned);
     });
 
     this.interactions.addFlows(filteredFlows);
     this.interactions.addLinks(filteredLinks);
 
+    // NOTE: This method will also accumulate l7endpoints
+    this.updateServiceEndpoints();
+
     return this;
+  }
+
+  @action.bound
+  setFilters(f: Filters) {
+    this.controls.setFilters(f);
+    this.namespaces.setCurrent(f.namespace);
+  }
+
+  @action.bound
+  public replaceServiceMap(sm: ServiceMap, opts?: FlushOptions) {
+    this.flush(opts);
+    this.interactions.addLinks(sm.linksList);
+    this.services.replaceWithServiceMap(sm);
+  }
+
+  @action.bound
+  public extendServiceMap(sm: ServiceMap) {
+    console.log(`Frame extendServiceMap`);
+    sm.log();
+
+    this.interactions.upsertLinks(sm.linksList);
+    this.services.extendWithServiceMap(sm);
   }
 
   clone() {
     return new StoreFrame(
+      this.namespaces.clone(),
       this.controls,
       this.interactions.clone(),
       this.services.clone(),
     );
-  }
-
-  cloneEmpty(): StoreFrame {
-    return StoreFrame.empty();
   }
 
   public get amounts() {

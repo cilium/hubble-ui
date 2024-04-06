@@ -1,39 +1,49 @@
-import React, { createContext, useContext } from 'react';
+import { observer } from 'mobx-react';
+import React, { createContext, useContext, useEffect, useMemo, PropsWithChildren } from 'react';
 import { OverlayToaster } from '@blueprintjs/core';
 
-import { Notifier, Props as NotifierProps } from './notifier';
-
 import { setupDebugProp } from '~/domain/misc';
-import { observer } from 'mobx-react';
+
+import { Notifier, Props as NotifierProps } from './notifier';
+import { StatusCenter } from '~/ui-layer/status-center';
 
 const NotifierContext = createContext<Notifier | null>(null);
 
-export const NotifierProvider = observer(
-  (props: React.PropsWithChildren<NotifierProps>) => {
-    const notifier = React.useMemo(() => new Notifier(), []);
-    React.useEffect(() => setupDebugProp({ notifier }), [notifier]);
+export type ProviderProps = PropsWithChildren<NotifierProps> & {
+  statusCenter: StatusCenter;
+};
 
-    const toasterProps = React.useMemo(
-      () => Notifier.prepareToasterProps(props),
-      [props],
-    );
+export const NotifierProvider = observer((props: ProviderProps) => {
+  const notifier = useMemo(() => new Notifier(), []);
+  const toasterProps = useMemo(() => Notifier.prepareToasterProps(props), [props]);
 
-    return (
-      <NotifierContext.Provider value={notifier}>
-        <OverlayToaster
-          {...toasterProps}
-          ref={ref => {
-            if (!ref) return;
+  useEffect(() => setupDebugProp({ notifier }), [notifier]);
 
-            notifier.setBackend(ref!);
-          }}
-        />
+  useEffect(() => {
+    return props.statusCenter
+      .onNewEntry(e => {
+        notifier.hideBykeys(...(e.entry.keysToComplete || []));
+        notifier.showStatusEntry(e.entry, e.entryFlags.wasPending);
+      })
+      .disposer()
+      .asFunction();
+  }, [notifier, props]);
 
-        {props.children}
-      </NotifierContext.Provider>
-    );
-  },
-);
+  return (
+    <NotifierContext.Provider value={notifier}>
+      <OverlayToaster
+        {...toasterProps}
+        ref={ref => {
+          if (!ref) return;
+
+          notifier.setBackend(ref!);
+        }}
+      />
+
+      {props.children}
+    </NotifierContext.Provider>
+  );
+});
 
 export const useNotifier = () => {
   const notifier = useContext(NotifierContext);

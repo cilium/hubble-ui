@@ -1,11 +1,13 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import React from 'react';
+import { act, fireEvent } from '@testing-library/react';
+
 import { FlowsTableSidebar } from '~/components/FlowsTable/Sidebar';
 
 import { Flow } from '~/domain/flows';
 import { HubbleFlow } from '~/domain/hubble';
 import { Filters } from '~/domain/filtering';
 
-import { act, data, fireEvent, React, render } from '~/testing';
+import { data, render } from '~/testing';
 
 interface Expectations {
   title: string;
@@ -33,10 +35,7 @@ const renderSidebar = (component: React.ReactElement<any>): HTMLElement => {
   return container!;
 };
 
-const runInteractionTests = (
-  container: HTMLElement,
-  onClose: jest.Mock<void>,
-) => {
+const runInteractionTests = (container: HTMLElement, onClose: jest.Mock<void>) => {
   fireEvent.click(container.querySelector(`.close`)!);
   expect(onClose.mock.calls.length).toBe(1);
 };
@@ -69,11 +68,7 @@ const runTest = (ntest: number, hf: HubbleFlow, exps: Expectations) => {
 
     beforeEach(() => {
       container = renderSidebar(
-        <FlowsTableSidebar
-          flow={flow}
-          onClose={onClose}
-          filters={filters}
-        ></FlowsTableSidebar>,
+        <FlowsTableSidebar flow={flow} onClose={onClose} filters={filters}></FlowsTableSidebar>,
       );
     });
 

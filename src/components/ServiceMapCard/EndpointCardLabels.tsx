@@ -12,7 +12,7 @@ export const EndpointCardLabels: FunctionComponent<Props> = props => {
   const labels = props.labels.map((label: KV) => {
     return (
       <div className={css.label} key={label.key}>
-        {Labels.normalizeLabel(label)}
+        {Labels.normalizeLabelToString(label)}
       </div>
     );
   });

@@ -1,0 +1,125 @@
+name: E2E tests
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+env:
+  HELM_VERSION: v3.13.0
+  KIND_VERSION: v0.20.0
+  GITHUB_TOKEN: ${{ github.token }}
+  KIND_CONFIG: .github/kind-config.yaml
+  UI_VALUES_FILE: .github/hubble-ui-values.yaml
+  CILIUM_VERSION: 1.14.6
+  CILIUM_VALUES: .github/cilium-values.yaml
+  INGRESS_NGINX_VERSION: 4.4.2
+  INGRESS_NGINX_VALUES: .github/ingress-nginx-values.yaml
+jobs:
+  e2e:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - name: Get SHA
+        id: sha
+        run: |
+          if [ ${{ github.event.pull_request.head.sha }} != "" ]; then
+            echo "GIT_SHA=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
+          else
+            echo "GIT_SHA=${{ github.sha }}" >> "$GITHUB_ENV"
+          fi
+      - name: Install kind binary
+        uses: helm/kind-action@v1
+        with:
+          version: ${{ env.KIND_VERSION }}
+          install_only: true
+      - name: Install helm
+        uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Clone cilium/hubble-ui
+        uses: actions/checkout@v4
+      - name: Fetch backend log-files and overwrite kind config
+        run: |
+          TESTING_DATA="/home/runner/work/hubble-ui-testing"
+          git clone https://bitbucket.org/yandzee/hubble-ui-testing.git $TESTING_DATA
+          echo "Testing data path: $TESTING_DATA"
+
+          perl -i -pe "s+TESTING_DATA_PATH+$TESTING_DATA+g" ${{ env.KIND_CONFIG }}
+          cat ${{ env.KIND_CONFIG }}
+      - name: Create kind cluster
+        uses: helm/kind-action@dda0770415bac9fc20092cacbc54aa298604d140
+        with:
+          version: ${{ env.KIND_VERSION }}
+          config: ${{ env.KIND_CONFIG }}
+          cluster_name: kind
+      - name: Store host addresses into env
+        run: |
+          MASTER_IP="$(docker inspect kind-control-plane | jq '.[0].NetworkSettings.Networks.kind.IPAddress' -r)"
+          MASTER_IP_DASHED=$(echo $MASTER_IP | sed 's/\./\-/g')
+
+          echo "Master IP: $MASTER_IP; Dashed: $MASTER_IP_DASHED"
+
+          echo "MASTER_IP=$MASTER_IP" >> "$GITHUB_ENV"
+          echo "HUBBLE_UI_HOST=hubble-ui.$MASTER_IP_DASHED.sslip.io" >> "$GITHUB_ENV"
+      - name: Wait for quay images of frontend and backend
+        uses: yandzee/wait-action@v1.2
+        env:
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+        with:
+          head-sha: ${{ env.GIT_SHA }}
+          poll-delay: 30s
+          workflows: .github/workflows/images.yml
+      - name: Deploy Cilium with Hubble UI
+        run: |
+          helm repo add cilium https://helm.cilium.io
+          helm repo update
+          helm install cilium cilium/cilium \
+            --wait \
+            --namespace kube-system \
+            --version ${{ env.CILIUM_VERSION }} \
+            --values ${{ env.CILIUM_VALUES }} \
+            --set hubble.ui.ingress.hosts={"${{ env.HUBBLE_UI_HOST }}"} \
+            --set hubble.ui.frontend.image.override="quay.io/cilium/hubble-ui-ci:${{ env.GIT_SHA }}" \
+            --set hubble.ui.backend.image.override="quay.io/cilium/hubble-ui-backend-ci:${{ env.GIT_SHA }}" \
+            --set kubeProxyReplacement=strict \
+            --set k8sServiceHost="${{ env.MASTER_IP }}" \
+            --set k8sServicePort=6443
+      - name: Deploy ingress-nginx
+        run: |
+          helm install ingress-nginx ingress-nginx \
+            --wait \
+            --repo https://kubernetes.github.io/ingress-nginx \
+            --namespace ingress-nginx \
+            --create-namespace \
+            --version ${{ env.INGRESS_NGINX_VERSION }} \
+            --values ${{ env.INGRESS_NGINX_VALUES }}
+      - name: Running tests in Chrome
+        uses: cypress-io/github-action@v6
+        with:
+          record: true
+          config: baseUrl=https://${{ env.HUBBLE_UI_HOST }}
+          browser: chrome
+        env:
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+      - name: Running tests in Firefox
+        uses: cypress-io/github-action@v6
+        with:
+          record: true
+          config: baseUrl=https://${{ env.HUBBLE_UI_HOST}}
+          browser: firefox
+        env:
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+      - name: Dump hubble-ui deployment and its logs in case of failure
+        if: failure()
+        run: |
+          kubectl describe deployment hubble-ui -n kube-system
+          kubectl logs deployment/hubble-ui --all-containers -n kube-system

@@ -16,10 +16,10 @@ message Notification {
 
 message ConnectionState {
 	// Backend is successfully connected to hubble-relay
-	bool connected = 1;
+	bool relay_connected = 1;
 
 	// Backend has lost the connection to hubble-relay and is reconnecting now
-	bool reconnecting = 2;
+	bool relay_reconnecting = 2;
 
 	// Backend has lost the connection to kubernetes and is reconnecting
 	bool k8s_unavailable = 3;

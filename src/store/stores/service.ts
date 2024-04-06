@@ -1,18 +1,20 @@
 import _ from 'lodash';
 import { makeAutoObservable } from 'mobx';
 
-import { ServiceCard } from '~/domain/service-map';
-import { HubbleLink, HubbleService } from '~/domain/hubble';
+import { Link, ServiceCard, ServiceMap } from '~/domain/service-map';
+import { HubbleLink, HubbleService, Workload } from '~/domain/hubble';
 import { ServiceEndpoint } from '~/domain/interactions/endpoints';
 import { StateChange } from '~/domain/misc';
+import { ServiceChange } from '~/domain/events';
+import { FilterEntry } from '~/domain/filtering/filter-entry';
 
-export default class ServiceStore {
+export type ClearOptions = {};
+
+export class ServiceStore {
   private cards: ServiceCard[];
-  private activeCardsSet: Set<string>;
 
   constructor() {
     this.cards = [];
-    this.activeCardsSet = new Set();
 
     makeAutoObservable(this, void 0, {
       autoBind: true,
@@ -23,13 +25,12 @@ export default class ServiceStore {
     const store = new ServiceStore();
 
     store.cards = deep ? _.cloneDeep(this.cards) : this.cards.slice();
-    store.activeCardsSet = new Set(this.activeCardsSet);
 
     return store;
   }
 
   public get cardsList() {
-    return this.cards.slice();
+    return this.cards;
   }
 
   public get cardsMap() {
@@ -38,21 +39,75 @@ export default class ServiceStore {
     return map;
   }
 
-  public get activeCards() {
-    return new Set(this.activeCardsSet);
+  // NOTE: Gives { identiy -> Card } map
+  public get cardsIdentityMap() {
+    const map = new Map<string, ServiceCard>();
+
+    this.cardsList.forEach(card => {
+      if (card.identity === 0) {
+        console.warn(`card ${card.caption} has identity zero, wat?`, card);
+        return;
+      }
+
+      const identityStr = card.identity.toString();
+      if (map.has(identityStr)) {
+        console.warn(`cards have equal identities, wat?`, card, map.get(identityStr));
+        return;
+      }
+
+      map.set(identityStr, card);
+    });
+
+    return map;
   }
 
-  public get activeCardsList(): string[] {
-    return Array.from(this.activeCardsSet);
+  // NOTE: Gives { dns domain -> Card } map
+  public get cardsDomainMap() {
+    const map = new Map<string, ServiceCard>();
+
+    this.cardsList.forEach(card => {
+      const domain = card.domain;
+      if (!domain) return;
+
+      if (map.has(domain)) {
+        console.warn(`cards have equal domains`, card, map.get(domain));
+        return;
+      }
+
+      map.set(domain, card);
+    });
+
+    return map;
   }
 
-  /* For Cluster Mesh feature to show cluster name on Service Map cards */
+  // NOTE: Gives { workload.kind/workload.name -> Card } map
+  public get cardWorkloadsMap() {
+    const map = new Map<string, ServiceCard>();
+
+    this.cardsList.forEach(card => {
+      const workload = card.workload;
+      if (workload == null) return;
+
+      const key = `${workload.kind}/${workload.name}`;
+      if (map.has(key)) {
+        console.warn(`cards have equal workloads, wat?`, card, map.get(key));
+        return;
+      }
+
+      map.set(key, card);
+    });
+
+    return map;
+  }
+
+  // This is for Cluster Mesh feature to show
+  // cluster name on Service Map cards
   public get isClusterMeshed(): boolean {
     const seenClusters = new Set<string>();
     for (let i = 0; i < this.cardsList.length; i++) {
       const card = this.cardsList[i];
       if (card.clusterName) seenClusters.add(card.clusterName);
-      /* If there's more than 1 cluster name, Cluster Mesh is enabled */
+      // If there is more than 1 cluster name - then Cluster Mesh is enabled
       if (seenClusters.size > 1) return true;
     }
     return false;
@@ -64,43 +119,37 @@ export default class ServiceStore {
     };
   }
 
-  public get isCardActive() {
-    return (id: string) => {
-      return this.activeCardsSet.has(id);
-    };
+  public byFilterEntry(filter: FilterEntry): ServiceCard | null | undefined {
+    if (filter.isIdentity) {
+      // NOTE: In this case filter.query is a string repr of identity and we are going to add
+      // caption as a meta to make better look of FilterEntry
+      return this.cardsIdentityMap.get(filter.query);
+    } else if (filter.isDNS) {
+      // NOTE: Here `filter.query` contains domain, and `getServiceId` on backend uses that domain
+      // to generate an id for this UI card
+      return this.cardsDomainMap.get(filter.query);
+    } else if (filter.isWorkload) {
+      // NOTE: In this case, query is workload name and meta is workload kind
+      return this.byWorkload(filter.asWorkload());
+    }
+
+    return null;
   }
 
-  public clear() {
+  public byWorkload(wl?: Workload | null) {
+    if (wl == null) return void 0;
+
+    const key = `${wl.kind}/${wl.name}`;
+    return this.cardWorkloadsMap.get(key);
+  }
+
+  public clear(opts?: ClearOptions) {
     this.cards = [];
-    this.activeCardsSet.clear();
   }
 
-  public toggleActive(id: string, single = true): boolean {
-    const isActive = this.activeCardsSet.has(id);
-    if (single) this.activeCardsSet.clear();
-
-    isActive ? this.activeCardsSet.delete(id) : this.activeCardsSet.add(id);
-    return !isActive;
-  }
-
-  public setActive(id: string): boolean {
-    const svc = this.cardsMap.get(id);
-    if (!svc) return false;
-
-    this.activeCardsSet.clear();
-    this.activeCardsSet.add(id);
-
-    return true;
-  }
-
-  public setActiveState(id: string, state: boolean, single = true) {
-    if (single && !state) this.activeCardsSet.clear();
-
-    state ? this.activeCardsSet.add(id) : this.activeCardsSet.delete(id);
-  }
-
-  public clearActive() {
-    this.activeCardsSet.clear();
+  public hasOtherCardsWithTheSameCaption(card: ServiceCard): boolean {
+    const caption = card.caption;
+    return !!this.cardsList.find(c => c.id !== card.id && caption === c.caption);
   }
 
   public set(services: Array<HubbleService>) {
@@ -112,11 +161,21 @@ export default class ServiceStore {
       return this.deleteService(svc);
     }
 
-    // TODO: handle all cases properly (patch current service)
+    if (change === StateChange.Modified) {
+      return this.upsertService(svc);
+    }
+
+    // TODO: handle all cases properly
     const existing = this.cardsMap.get(svc.id);
     if (existing != null) return;
 
     this.cards.push(ServiceCard.fromService(svc));
+  }
+
+  public applyServiceChanges(changes: ServiceChange[]) {
+    changes.forEach(ch => {
+      this.applyServiceChange(ch.service, ch.change);
+    });
   }
 
   public deleteService(svc: HubbleService) {
@@ -126,45 +185,62 @@ export default class ServiceStore {
     if (idx === -1) return;
 
     this.cards.splice(idx, 1);
-    this.activeCardsSet.delete(svc.id);
   }
 
-  public addNewCard(card: ServiceCard): boolean {
-    const existing = this.cardsMap.get(card.id);
-    if (existing != null) return false;
+  public upsertService(serviceLike: HubbleService | ServiceCard) {
+    const svc =
+      serviceLike instanceof ServiceCard ? serviceLike : ServiceCard.fromService(serviceLike);
 
-    this.cards.push(card);
+    const existing = this.cardsMap.get(svc.id);
+    if (existing == null) {
+      this.cards.push(svc);
+      return;
+    }
 
-    return true;
+    svc.accessPoints.forEach(svcEndpoint => {
+      existing.upsertAccessPoint(svcEndpoint);
+    });
+
+    if (existing.identity === 0) {
+      existing.setIdentity(svc.identity);
+    }
   }
 
   public moveTo(rhs: ServiceStore): number {
     let numAdded = 0;
 
     this.cardsList.forEach(card => {
-      const added = rhs.addNewCard(card);
+      const added = rhs.upsertService(card);
       numAdded += Number(added);
     });
-
-    if (this.activeCardsSet.size !== 0) {
-      const activeId = [...this.activeCardsSet][0];
-      rhs.setActive(activeId);
-    }
 
     return numAdded;
   }
 
-  public extractAccessPoint(link: HubbleLink) {
+  public extractAccessPoint(link: HubbleLink | Link) {
     const accessPoint = ServiceEndpoint.fromLink(link);
     const card = this.cardsMap.get(accessPoint.serviceId);
     if (card == null) return;
 
-    card.addAccessPoint(accessPoint);
+    card.upsertAccessPoint(accessPoint);
   }
 
-  public extractAccessPoints(links: HubbleLink[]) {
+  public extractAccessPoints(links: HubbleLink[] | Link[]) {
     links.forEach(link => {
       this.extractAccessPoint(link);
     });
+  }
+
+  public replaceWithServiceMap(sm: ServiceMap) {
+    this.set(sm.servicesList);
+    this.extractAccessPoints(sm.linksList);
+  }
+
+  public extendWithServiceMap(sm: ServiceMap) {
+    sm.servicesList.forEach(svc => {
+      this.upsertService(svc);
+    });
+
+    this.extractAccessPoints(sm.linksList);
   }
 }

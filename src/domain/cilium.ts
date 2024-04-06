@@ -1,4 +1,4 @@
-import { ReservedLabel } from './labels';
+import { ReservedLabel } from '~/domain/labels';
 
 export const reserved = {
   host: { id: 1, label: ReservedLabel.Host },
@@ -59,7 +59,9 @@ export const CiliumEventSubTypesCodes = {
   10: CiliumEventSubTypes.FromNetwork,
 };
 
+// https://github.com/cilium/cilium/blob/main/pkg/monitor/api/drop.go#L17
 export enum CiliumDropReason {
+  Unknown = 'Unknown drop reason',
   InvalidSourceMac = 'Invalid source mac',
   InvalidDestinationMac = 'Invalid destination mac',
   InvalidSourceIp = 'Invalid source ip',
@@ -105,10 +107,31 @@ export enum CiliumDropReason {
   IsAClusterIP = 'Is a ClusterIP',
   FirstLogicalDatagramFragmentNotFound = 'First logical datagram fragment not found',
   ForbiddenICMPv6Message = 'Forbidden ICMPv6 message',
-  AuthenticationRequired = 'Authentication required',
+  DeniedByLBSourceRangeCheck = 'Denied by LB src range check',
+  SocketLookupFailed = 'Socket lookup failed',
+  SocketAssignFailed = 'Socket assign failed',
+  ProxyRedirectionNotSupportedForProtocol = 'Proxy redirection not supported for protocol',
+  PolicyDeny = 'Policy denied by denylist',
+  VLANFiltered = 'VLAN traffic disallowed by VLAN filter',
+  InvalidVNI = 'Incorrect VNI from VTEP',
+  InvalidTCBuffer = 'Failed to update or lookup TC buffer',
+  NoSID = 'No SID was found for the IP address',
+  MissingSRV6State = 'SRv6 state was removed during tail call',
+  NAT46 = 'L3 translation from IPv4 to IPv6 failed (NAT46)',
+  NAT64 = 'L3 translation from IPv6 to IPv4 failed (NAT64)',
+  AuthRequired = 'Authentication required',
+  NoConntrackMapFound = 'No conntrack map found',
+  NoSNATMapFound = 'No NAT map found',
+  InvalidClusterID = 'Invalid ClusterID',
+  UnsupportedProtocolForDSREncapsulation = 'Unsupported packet protocol for DSR encapsulation',
+  NoEgressGateway = 'No egress gateway found',
+  UnencryptedTraffic = 'Traffic is unencrypted',
+  TTLExceeded = 'TTL exceeded',
+  NoNodeID = 'No node ID found',
 }
 
 export const CiliumDropReasonCodes = {
+  0: CiliumDropReason.Unknown,
   130: CiliumDropReason.InvalidSourceMac,
   131: CiliumDropReason.InvalidDestinationMac,
   132: CiliumDropReason.InvalidSourceIp,
@@ -154,5 +177,25 @@ export const CiliumDropReasonCodes = {
   174: CiliumDropReason.IsAClusterIP,
   175: CiliumDropReason.FirstLogicalDatagramFragmentNotFound,
   176: CiliumDropReason.ForbiddenICMPv6Message,
-  189: CiliumDropReason.AuthenticationRequired,
+  177: CiliumDropReason.DeniedByLBSourceRangeCheck,
+  178: CiliumDropReason.SocketAssignFailed,
+  179: CiliumDropReason.SocketAssignFailed,
+  180: CiliumDropReason.ProxyRedirectionNotSupportedForProtocol,
+  181: CiliumDropReason.PolicyDenied,
+  182: CiliumDropReason.VLANFiltered,
+  183: CiliumDropReason.InvalidVNI,
+  184: CiliumDropReason.InvalidTCBuffer,
+  185: CiliumDropReason.NoSID,
+  186: CiliumDropReason.MissingSRV6State,
+  187: CiliumDropReason.NAT46,
+  188: CiliumDropReason.NAT64,
+  189: CiliumDropReason.AuthRequired,
+  190: CiliumDropReason.NoConntrackMapFound,
+  191: CiliumDropReason.NoSNATMapFound,
+  192: CiliumDropReason.InvalidClusterID,
+  193: CiliumDropReason.UnsupportedProtocolForDSREncapsulation,
+  194: CiliumDropReason.NoEgressGateway,
+  195: CiliumDropReason.UnencryptedTraffic,
+  196: CiliumDropReason.TTLExceeded,
+  197: CiliumDropReason.NoNodeID,
 };

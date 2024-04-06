@@ -1,38 +1,36 @@
+import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import parseUrl from 'url-parse';
-import React, { memo } from 'react';
+import React from 'react';
+import { formatDate } from 'date-fns/format';
 
 import { Flow, Verdict } from '~/domain/flows';
 import { L7FlowType, Layer7 } from '~/domain/hubble';
-import { httpStatus } from '~/domain/status';
-import { Ticker } from '~/utils/ticker';
+import { httpStatus } from '~/domain/http';
+import * as helpers from '~/domain/helpers';
 
-import { Column, TickerEvents } from './general';
-import { useWhenOccured } from './hooks/useWhenOccured';
+import { Column } from './general';
 
 import css from './styles.scss';
 
 export interface CellProps {
   flow: Flow;
   kind: Column;
-  ticker?: Ticker<TickerEvents>;
 }
 
-export const Cell = memo<CellProps>(function FlowsTableCell(props) {
+export const Cell = observer(function FlowsTableCell(props: CellProps) {
   switch (props.kind) {
     case Column.SrcPod: {
       return (
         <div className={css.cell}>
-          {props.flow.sourcePodName || (
-            <span className={css.emptyValue}>—</span>
-          )}
+          {props.flow.sourcePodName || <span className={css.emptyValue}>—</span>}
         </div>
       );
     }
     case Column.SrcIp: {
       return <div className={css.cell}>{props.flow.sourceIp}</div>;
     }
-    case Column.SrcIdentity: {
+    case Column.SrcService: {
       const appName = props.flow.sourceIdentityName ?? 'No app name';
       const subtitle = props.flow.sourceNamespace ? (
         <span className={css.subtitle}>{props.flow.sourceNamespace}</span>
@@ -46,16 +44,14 @@ export const Cell = memo<CellProps>(function FlowsTableCell(props) {
     case Column.DstPod: {
       return (
         <div className={css.cell}>
-          {props.flow.destinationPodName || (
-            <span className={css.emptyValue}>—</span>
-          )}
+          {props.flow.destinationPodName || <span className={css.emptyValue}>—</span>}
         </div>
       );
     }
     case Column.DstIp: {
       return <div className={css.cell}>{props.flow.destinationIp}</div>;
     }
-    case Column.DstIdentity: {
+    case Column.DstService: {
       const appName = props.flow.destinationDns
         ? props.flow.destinationDns
         : props.flow.destinationIdentityName ?? '—';
@@ -107,9 +103,7 @@ export const Cell = memo<CellProps>(function FlowsTableCell(props) {
                 </span>
               )}
               <span className={css.path}>{parseUrl(l7.http.url).pathname}</span>
-              <span className={css.latency}>
-                {(l7.latencyNs / 1e6).toFixed(0)}ms
-              </span>
+              <span className={css.latency}>{(l7.latencyNs / 1e6).toFixed(0)}ms</span>
             </span>
           )}
         </div>
@@ -124,33 +118,29 @@ export const Cell = memo<CellProps>(function FlowsTableCell(props) {
       return <div className={className}>{props.flow.verdictLabel}</div>;
     }
     case Column.Auth: {
-      return (
-        <div className={classnames(css.cell, css.auth)}>
-          {props.flow.authTypeLabel}
-        </div>
-      );
+      return <div className={classnames(css.cell, css.auth)}>{props.flow.authTypeLabel}</div>;
     }
     case Column.TcpFlags: {
-      return (
-        <div className={classnames(css.cell, css.tcpFlags)}>
-          {props.flow.joinedTcpFlags}
-        </div>
-      );
+      return <div className={classnames(css.cell, css.tcpFlags)}>{props.flow.joinedTcpFlags}</div>;
     }
     case Column.Timestamp: {
-      const ts = props.flow.millisecondsTimestamp;
-      const timestamp = useWhenOccured(props.ticker, ts);
-      const title = props.flow.isoTimestamp || undefined;
+      const date = props.flow.time == null ? new Date() : helpers.time.timeToDate(props.flow.time);
+      const title = date.toISOString();
+
+      const dateStr = formatDate(date, 'yyyy/MM/dd');
+      const timeStr = formatDate(date, 'HH:mm:ss (x)');
       const className = classnames(css.cell, css.timestamp);
+
       return (
         <div className={className} title={title}>
-          {timestamp}
+          <span className={css.cellLabel}>
+            <span className={css.year}>{dateStr}</span> {timeStr}
+          </span>
         </div>
       );
     }
-    default: {
+    default:
       return null;
-    }
   }
 });
 

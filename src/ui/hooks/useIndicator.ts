@@ -52,9 +52,20 @@ export const useIndicator = <I extends {}, T = any>(
 
   return {
     emit,
-    indicators,
+    indicators: new Map(),
     data,
     setData,
     narrow,
   };
+};
+
+export const useSingleIndicator = (init?: number, ringLimit?: number) => {
+  const [value, setValue] = useState(init ?? 0);
+  const limit = ringLimit ?? Number.MAX_SAFE_INTEGER;
+
+  const emit = useCallback(() => {
+    setValue((value + 1) & limit);
+  }, [value, limit]);
+
+  return { value, emit };
 };

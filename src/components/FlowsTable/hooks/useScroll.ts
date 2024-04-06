@@ -3,13 +3,9 @@ import { FixedSizeListProps } from 'react-window';
 
 import { sizes } from '~/ui';
 
-export type OnFlowsDiffCount = MutableRefObject<
-  ((diff: number) => void) | undefined
->;
+export type OnFlowsDiffCount = MutableRefObject<((diff: number) => void) | undefined>;
 
-export function useScroll(
-  onFlowsDiffCount?: OnFlowsDiffCount,
-): Partial<FixedSizeListProps> {
+export function useScroll(onFlowsDiffCount?: OnFlowsDiffCount): Partial<FixedSizeListProps> {
   const outerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -32,13 +28,7 @@ export function useScroll(
   return { outerRef };
 }
 
-function scroll({
-  element,
-  offset,
-}: {
-  element: Element | undefined | null;
-  offset: number;
-}) {
+function scroll({ element, offset }: { element: Element | undefined | null; offset: number }) {
   if (!element || element.scrollTop === 0) return;
   element.scrollTop += offset;
 }

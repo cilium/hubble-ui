@@ -1,26 +1,19 @@
-@import '~/styles/common/layout';
+@import '../../styles/common/layout';
+@import '~@blueprintjs/core/lib/scss/variables';
 
-.wrapper {
+.baseCard {
   // NOTE: display: flex is required to count margins for offsetHeight
   @include column;
 
   margin: var(--endpoint-shadow-size);
-  background-color: #fff;
   border-radius: 10px;
   user-select: none;
-  box-shadow: 0 0 24px rgb(23 49 65 / 13%);
 
-  &:hover {
-    cursor: pointer;
-    box-shadow: 0 0 24px rgb(23 49 65 / 30%);
-    transition: all ease-out 0.25s;
+  transition:
+    transform ($pt-transition-duration * 2) $pt-transition-ease,
+    box-shadow ($pt-transition-duration * 2) $pt-transition-ease;
+
+  :global(button.bp4-button) {
+    margin: 7px 20px 14px;
   }
-
-  &:active {
-    cursor: grabbing;
-  }
-}
-
-.content {
-  background-color: rgb(255 255 255 / 90%);
 }

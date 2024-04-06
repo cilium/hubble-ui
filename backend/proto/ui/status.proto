@@ -1,13 +1,16 @@
 syntax = "proto3";
-
 package ui;
+
+import "observer/observer.proto";
 
 message GetStatusRequest {}
 
 message GetStatusResponse {
-	repeated NodeStatus nodes = 1;
-	repeated DeployedComponent versions = 2;
-	FlowStats flows = 3;
+  observer.GetNodesResponse nodes = 1;
+  observer.ServerStatusResponse server_status = 2;
+
+	repeated DeployedComponent versions = 3;
+	FlowStats flows = 4;
 }
 
 message NodeStatus {

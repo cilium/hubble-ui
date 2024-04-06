@@ -1,19 +1,12 @@
 import { StoreFrame } from '~/store/frame';
-import ServiceStore from '~/store/stores/service';
-import InteractionStore from '~/store/stores/interaction';
-import ControlStore from '~/store/stores/controls';
 
 import { Flow } from '~/domain/flows';
 import { Link } from '~/domain/link';
 import { ServiceCard } from '~/domain/service-map';
-import { filterFlow, FilterEntry, FilterDirection } from '~/domain/filtering';
+import { FilterEntry, FilterDirection } from '~/domain/filtering';
 
 import { Filters, FiltersObject } from '~/domain/filtering';
-import {
-  flows as tflows,
-  services as tsvcs,
-  filterEntries,
-} from '~/testing/data';
+import { flows as tflows, services as tsvcs, filterEntries } from '~/testing/data';
 import { helpers as thelpers } from '~/testing';
 
 const prepareFrame = (
@@ -22,20 +15,17 @@ const prepareFrame = (
   links: Link[],
   f?: FiltersObject,
 ): StoreFrame => {
-  const controls = new ControlStore();
-  f = f ?? Filters.default();
-  controls.setFilters(Filters.fromObject(f));
+  const frame = StoreFrame.empty();
 
-  const interaction = new InteractionStore();
-  interaction.setFlows(flows);
-  interaction.setLinks(links);
+  frame.setFilters(Filters.fromObject(f ?? Filters.default()));
+  frame.interactions.setFlows(flows);
+  frame.interactions.setLinks(links);
 
-  const services = new ServiceStore();
   svcs.forEach(svc => {
-    services.addNewCard(svc);
+    frame.services.upsertService(svc);
   });
 
-  return new StoreFrame(controls, interaction, services);
+  return frame;
 };
 
 const extractData = (frame: StoreFrame) => {
@@ -108,10 +98,7 @@ describe('KubeDNS', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(
-      regular,
-      kubeDNS,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(regular, kubeDNS);
 
     const linkFromRegularToKubeDNS53 = thelpers
       .linkFromToService(regular, kubeDNS)
@@ -153,11 +140,15 @@ describe('KubeDNS', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromR1toKDNS, fromBtoA: fromKDNStoR1 } =
-      thelpers.flowsBetweenServices(regular1, kubeDNS);
+    const { fromAtoB: fromR1toKDNS, fromBtoA: fromKDNStoR1 } = thelpers.flowsBetweenServices(
+      regular1,
+      kubeDNS,
+    );
 
     const linkFromRegularToKubeDNS53 = thelpers
       .linkFromToService(regular, kubeDNS)
@@ -170,11 +161,7 @@ describe('KubeDNS', () => {
       .forwarded();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(kubeDNS),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(kubeDNS)],
       [
         new Flow(fromRtoKDNS),
         new Flow(fromKDNStoR),
@@ -216,10 +203,7 @@ describe('KubeDNS', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(
-      regular,
-      kubeDNS,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(regular, kubeDNS);
 
     const linkFromRegularToKubeDNS53 = thelpers
       .linkFromToService(regular, kubeDNS)
@@ -261,11 +245,15 @@ describe('KubeDNS', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromR1toKDNS, fromBtoA: fromKDNStoR1 } =
-      thelpers.flowsBetweenServices(regular1, kubeDNS);
+    const { fromAtoB: fromR1toKDNS, fromBtoA: fromKDNStoR1 } = thelpers.flowsBetweenServices(
+      regular1,
+      kubeDNS,
+    );
 
     const linkFromRegularToKubeDNS53 = thelpers
       .linkFromToService(regular, kubeDNS)
@@ -278,11 +266,7 @@ describe('KubeDNS', () => {
       .forwarded();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(kubeDNS),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(kubeDNS)],
       [
         new Flow(fromRtoKDNS),
         new Flow(fromKDNStoR),
@@ -324,11 +308,15 @@ describe('KubeDNS', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromR1toKDNS, fromBtoA: fromKDNStoR1 } =
-      thelpers.flowsBetweenServices(regular1, kubeDNS);
+    const { fromAtoB: fromR1toKDNS, fromBtoA: fromKDNStoR1 } = thelpers.flowsBetweenServices(
+      regular1,
+      kubeDNS,
+    );
 
     const linkFromRegularToKubeDNS53 = thelpers
       .linkFromToService(regular, kubeDNS)
@@ -341,11 +329,7 @@ describe('KubeDNS', () => {
       .forwarded();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(kubeDNS),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(kubeDNS)],
       [
         new Flow(fromRtoKDNS),
         new Flow(fromKDNStoR),
@@ -387,10 +371,7 @@ describe('KubeDNS', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(
-      regular,
-      kubeDNS,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(regular, kubeDNS);
 
     const linkFromRegularToKubeDNS53 = thelpers
       .linkFromToService(regular, kubeDNS)
@@ -432,11 +413,15 @@ describe('KubeDNS', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromR1toKDNS, fromBtoA: fromKDNStoR1 } =
-      thelpers.flowsBetweenServices(regular1, kubeDNS);
+    const { fromAtoB: fromR1toKDNS, fromBtoA: fromKDNStoR1 } = thelpers.flowsBetweenServices(
+      regular1,
+      kubeDNS,
+    );
 
     const linkFromRegularToKubeDNS53 = thelpers
       .linkFromToService(regular, kubeDNS)
@@ -449,11 +434,7 @@ describe('KubeDNS', () => {
       .dropped();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(kubeDNS),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(kubeDNS)],
       [
         new Flow(fromRtoKDNS),
         new Flow(fromKDNStoR),
@@ -495,10 +476,7 @@ describe('KubeDNS', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(
-      regular,
-      kubeDNS,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(regular, kubeDNS);
 
     const linkFromRegularToKubeDNS53 = thelpers
       .linkFromToService(regular, kubeDNS)
@@ -540,11 +518,15 @@ describe('KubeDNS', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromR1toKDNS, fromBtoA: fromKDNStoR1 } =
-      thelpers.flowsBetweenServices(regular1, kubeDNS);
+    const { fromAtoB: fromR1toKDNS, fromBtoA: fromKDNStoR1 } = thelpers.flowsBetweenServices(
+      regular1,
+      kubeDNS,
+    );
 
     const linkFromRegularToKubeDNS53 = thelpers
       .linkFromToService(regular, kubeDNS)
@@ -557,11 +539,7 @@ describe('KubeDNS', () => {
       .forwarded();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(kubeDNS),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(kubeDNS)],
       [
         new Flow(fromRtoKDNS),
         new Flow(fromKDNStoR),
@@ -603,11 +581,15 @@ describe('KubeDNS', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromR1toKDNS, fromBtoA: fromKDNStoR1 } =
-      thelpers.flowsBetweenServices(regular1, kubeDNS);
+    const { fromAtoB: fromR1toKDNS, fromBtoA: fromKDNStoR1 } = thelpers.flowsBetweenServices(
+      regular1,
+      kubeDNS,
+    );
 
     const linkFromRegularToKubeDNS53 = thelpers
       .linkFromToService(regular, kubeDNS)
@@ -620,11 +602,7 @@ describe('KubeDNS', () => {
       .dropped();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(kubeDNS),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(kubeDNS)],
       [
         new Flow(fromRtoKDNS),
         new Flow(fromKDNStoR),
@@ -666,11 +644,15 @@ describe('KubeDNS', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromR1toKDNS, fromBtoA: fromKDNStoR1 } =
-      thelpers.flowsBetweenServices(regular1, kubeDNS);
+    const { fromAtoB: fromR1toKDNS, fromBtoA: fromKDNStoR1 } = thelpers.flowsBetweenServices(
+      regular1,
+      kubeDNS,
+    );
 
     const linkFromRegularToKubeDNS53 = thelpers
       .linkFromToService(regular, kubeDNS)
@@ -683,11 +665,7 @@ describe('KubeDNS', () => {
       .dropped();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(kubeDNS),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(kubeDNS)],
       [
         new Flow(fromRtoKDNS),
         new Flow(fromKDNStoR),
@@ -729,11 +707,15 @@ describe('KubeDNS', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromR1toKDNS, fromBtoA: fromKDNStoR1 } =
-      thelpers.flowsBetweenServices(regular1, kubeDNS);
+    const { fromAtoB: fromR1toKDNS, fromBtoA: fromKDNStoR1 } = thelpers.flowsBetweenServices(
+      regular1,
+      kubeDNS,
+    );
 
     const linkFromRegularToKubeDNS53 = thelpers
       .linkFromToService(regular, kubeDNS)
@@ -746,11 +728,7 @@ describe('KubeDNS', () => {
       .dropped();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(kubeDNS),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(kubeDNS)],
       [
         new Flow(fromRtoKDNS),
         new Flow(fromKDNStoR),
@@ -858,11 +836,7 @@ describe('KubeDNS', () => {
       .forwarded();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(kubeDNS),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(kubeDNS)],
       [
         new Flow(fromRtoKDNS),
         new Flow(fromKDNStoR),
@@ -970,11 +944,7 @@ describe('KubeDNS', () => {
       .forwarded();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(kubeDNS),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(kubeDNS)],
       [
         new Flow(fromRtoKDNS),
         new Flow(fromKDNStoR),
@@ -1037,11 +1007,7 @@ describe('KubeDNS', () => {
       .forwarded();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(kubeDNS),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(kubeDNS)],
       [
         new Flow(fromRtoKDNS),
         new Flow(fromKDNStoR),
@@ -1149,11 +1115,7 @@ describe('KubeDNS', () => {
       .dropped();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(kubeDNS),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(kubeDNS)],
       [
         new Flow(fromRtoKDNS),
         new Flow(fromKDNStoR),
@@ -1261,11 +1223,7 @@ describe('KubeDNS', () => {
       .forwarded();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(kubeDNS),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(kubeDNS)],
       [
         new Flow(fromRtoKDNS),
         new Flow(fromKDNStoR),
@@ -1328,11 +1286,7 @@ describe('KubeDNS', () => {
       .dropped();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(kubeDNS),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(kubeDNS)],
       [
         new Flow(fromRtoKDNS),
         new Flow(fromKDNStoR),
@@ -1395,11 +1349,7 @@ describe('KubeDNS', () => {
       .dropped();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(kubeDNS),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(kubeDNS)],
       [
         new Flow(fromRtoKDNS),
         new Flow(fromKDNStoR),
@@ -1462,11 +1412,7 @@ describe('KubeDNS', () => {
       .dropped();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(kubeDNS),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(kubeDNS)],
       [
         new Flow(fromRtoKDNS),
         new Flow(fromKDNStoR),
@@ -1512,15 +1458,9 @@ describe('skip host flag', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(
-      regular,
-      world,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(regular, world);
 
-    const linkRegularToWorld = thelpers
-      .linkFromToService(regular, world)
-      .tcp(8080)
-      .forwarded();
+    const linkRegularToWorld = thelpers.linkFromToService(regular, world).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(regular), new ServiceCard(world)],
@@ -1557,29 +1497,26 @@ describe('skip host flag', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } =
-      thelpers.flowsBetweenServices(regular, world);
+    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } = thelpers.flowsBetweenServices(
+      regular,
+      world,
+    );
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } =
-      thelpers.flowsBetweenServices(regular, remoteNode);
+    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } = thelpers.flowsBetweenServices(
+      regular,
+      remoteNode,
+    );
 
-    const linkRtoW = thelpers
-      .linkFromToService(regular, world)
-      .tcp(8080)
-      .forwarded();
+    const linkRtoW = thelpers.linkFromToService(regular, world).tcp(8080).forwarded();
 
-    const linkRtoKDNS = thelpers
-      .linkFromToService(regular, kubeDNS)
-      .udp(53)
-      .forwarded();
+    const linkRtoKDNS = thelpers.linkFromToService(regular, kubeDNS).udp(53).forwarded();
 
-    const linkRToRN = thelpers
-      .linkFromToService(regular, remoteNode)
-      .tcp(8081)
-      .forwarded();
+    const linkRToRN = thelpers.linkFromToService(regular, remoteNode).tcp(8081).forwarded();
 
     const rhs = prepareFrame(
       [
@@ -1632,61 +1569,48 @@ describe('skip host flag', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } =
-      thelpers.flowsBetweenServices(regular, world);
+    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } = thelpers.flowsBetweenServices(
+      regular,
+      world,
+    );
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } =
-      thelpers.flowsBetweenServices(regular, remoteNode);
+    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } = thelpers.flowsBetweenServices(
+      regular,
+      remoteNode,
+    );
 
-    const { fromAtoB: fromHtoR, fromBtoA: fromRtoH } =
-      thelpers.flowsBetweenServices(host, regular);
+    const { fromAtoB: fromHtoR, fromBtoA: fromRtoH } = thelpers.flowsBetweenServices(host, regular);
 
-    const { fromAtoB: fromHtoW, fromBtoA: fromWtoH } =
-      thelpers.flowsBetweenServices(host, world);
+    const { fromAtoB: fromHtoW, fromBtoA: fromWtoH } = thelpers.flowsBetweenServices(host, world);
 
-    const { fromAtoB: fromHtoKDNS, fromBtoA: fromKDNStoH } =
-      thelpers.flowsBetweenServices(host, kubeDNS);
+    const { fromAtoB: fromHtoKDNS, fromBtoA: fromKDNStoH } = thelpers.flowsBetweenServices(
+      host,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromHtoRN, fromBtoA: fromRNtoH } =
-      thelpers.flowsBetweenServices(host, remoteNode);
+    const { fromAtoB: fromHtoRN, fromBtoA: fromRNtoH } = thelpers.flowsBetweenServices(
+      host,
+      remoteNode,
+    );
 
-    const linkRtoW = thelpers
-      .linkFromToService(regular, world)
-      .tcp(8080)
-      .forwarded();
+    const linkRtoW = thelpers.linkFromToService(regular, world).tcp(8080).forwarded();
 
-    const linkRtoKDNS = thelpers
-      .linkFromToService(regular, kubeDNS)
-      .udp(53)
-      .forwarded();
+    const linkRtoKDNS = thelpers.linkFromToService(regular, kubeDNS).udp(53).forwarded();
 
-    const linkRToRN = thelpers
-      .linkFromToService(regular, remoteNode)
-      .tcp(8081)
-      .forwarded();
+    const linkRToRN = thelpers.linkFromToService(regular, remoteNode).tcp(8081).forwarded();
 
-    const linkHtoR = thelpers
-      .linkFromToService(host, regular)
-      .tcp(8090)
-      .forwarded();
+    const linkHtoR = thelpers.linkFromToService(host, regular).tcp(8090).forwarded();
 
-    const linkHtoW = thelpers
-      .linkFromToService(host, world)
-      .tcp(8090)
-      .forwarded();
+    const linkHtoW = thelpers.linkFromToService(host, world).tcp(8090).forwarded();
 
-    const linkHtoKDNS = thelpers
-      .linkFromToService(host, kubeDNS)
-      .tcp(8090)
-      .forwarded();
+    const linkHtoKDNS = thelpers.linkFromToService(host, kubeDNS).tcp(8090).forwarded();
 
-    const linkHtoRN = thelpers
-      .linkFromToService(host, remoteNode)
-      .tcp(8090)
-      .forwarded();
+    const linkHtoRN = thelpers.linkFromToService(host, remoteNode).tcp(8090).forwarded();
 
     const rhs = prepareFrame(
       [
@@ -1760,15 +1684,9 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(
-      regular,
-      world,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(regular, world);
 
-    const linkRegularToWorld = thelpers
-      .linkFromToService(regular, world)
-      .tcp(8080)
-      .forwarded();
+    const linkRegularToWorld = thelpers.linkFromToService(regular, world).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(regular), new ServiceCard(world)],
@@ -1805,15 +1723,9 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(
-      regular,
-      world,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(regular, world);
 
-    const linkWorldToRegular = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWorldToRegular = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(regular), new ServiceCard(world)],
@@ -1852,10 +1764,7 @@ describe('filter entries > world', () => {
 
     const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(host, world);
 
-    const linkWorldToHost = thelpers
-      .linkFromToService(world, host)
-      .tcp(8080)
-      .forwarded();
+    const linkWorldToHost = thelpers.linkFromToService(world, host).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(host), new ServiceCard(world)],
@@ -1894,10 +1803,7 @@ describe('filter entries > world', () => {
 
     const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(host, world);
 
-    const linkHostToWorld = thelpers
-      .linkFromToService(host, world)
-      .tcp(8080)
-      .forwarded();
+    const linkHostToWorld = thelpers.linkFromToService(host, world).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(host), new ServiceCard(world)],
@@ -1936,10 +1842,7 @@ describe('filter entries > world', () => {
 
     const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(host, world);
 
-    const linkWorldToHost = thelpers
-      .linkFromToService(world, host)
-      .tcp(8080)
-      .forwarded();
+    const linkWorldToHost = thelpers.linkFromToService(world, host).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(host), new ServiceCard(world)],
@@ -1976,29 +1879,26 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } =
-      thelpers.flowsBetweenServices(regular, world);
+    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } = thelpers.flowsBetweenServices(
+      regular,
+      world,
+    );
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } =
-      thelpers.flowsBetweenServices(regular, remoteNode);
+    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } = thelpers.flowsBetweenServices(
+      regular,
+      remoteNode,
+    );
 
-    const linkWtoR = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWtoR = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
-    const linkRtoKDNS = thelpers
-      .linkFromToService(regular, kubeDNS)
-      .udp(53)
-      .forwarded();
+    const linkRtoKDNS = thelpers.linkFromToService(regular, kubeDNS).udp(53).forwarded();
 
-    const linkRToRN = thelpers
-      .linkFromToService(regular, remoteNode)
-      .tcp(8081)
-      .forwarded();
+    const linkRToRN = thelpers.linkFromToService(regular, remoteNode).tcp(8081).forwarded();
 
     const rhs = prepareFrame(
       [
@@ -2051,29 +1951,26 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } =
-      thelpers.flowsBetweenServices(regular, world);
+    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } = thelpers.flowsBetweenServices(
+      regular,
+      world,
+    );
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } =
-      thelpers.flowsBetweenServices(regular, remoteNode);
+    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } = thelpers.flowsBetweenServices(
+      regular,
+      remoteNode,
+    );
 
-    const linkWtoR = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWtoR = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
-    const linkRtoKDNS = thelpers
-      .linkFromToService(regular, kubeDNS)
-      .udp(53)
-      .forwarded();
+    const linkRtoKDNS = thelpers.linkFromToService(regular, kubeDNS).udp(53).forwarded();
 
-    const linkRToRN = thelpers
-      .linkFromToService(regular, remoteNode)
-      .tcp(8081)
-      .forwarded();
+    const linkRToRN = thelpers.linkFromToService(regular, remoteNode).tcp(8081).forwarded();
 
     const rhs = prepareFrame(
       [
@@ -2126,29 +2023,26 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } =
-      thelpers.flowsBetweenServices(regular, world);
+    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } = thelpers.flowsBetweenServices(
+      regular,
+      world,
+    );
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } =
-      thelpers.flowsBetweenServices(regular, remoteNode);
+    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } = thelpers.flowsBetweenServices(
+      regular,
+      remoteNode,
+    );
 
-    const linkWtoR = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWtoR = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
-    const linkRtoKDNS = thelpers
-      .linkFromToService(regular, kubeDNS)
-      .udp(53)
-      .forwarded();
+    const linkRtoKDNS = thelpers.linkFromToService(regular, kubeDNS).udp(53).forwarded();
 
-    const linkRToRN = thelpers
-      .linkFromToService(regular, remoteNode)
-      .tcp(8081)
-      .forwarded();
+    const linkRToRN = thelpers.linkFromToService(regular, remoteNode).tcp(8081).forwarded();
 
     const rhs = prepareFrame(
       [
@@ -2187,7 +2081,7 @@ describe('filter entries > world', () => {
     expect(svcs.length).toBe(2);
   });
 
-  test('test 9 - from world (KubeDNS, RemoteNode, skip both)', () => {
+  test('test 9 - from world (KubeDNS, RemoteNode, skip either)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
@@ -2201,29 +2095,26 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } =
-      thelpers.flowsBetweenServices(regular, world);
+    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } = thelpers.flowsBetweenServices(
+      regular,
+      world,
+    );
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } =
-      thelpers.flowsBetweenServices(regular, remoteNode);
+    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } = thelpers.flowsBetweenServices(
+      regular,
+      remoteNode,
+    );
 
-    const linkWtoR = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWtoR = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
-    const linkRtoKDNS = thelpers
-      .linkFromToService(regular, kubeDNS)
-      .udp(53)
-      .forwarded();
+    const linkRtoKDNS = thelpers.linkFromToService(regular, kubeDNS).udp(53).forwarded();
 
-    const linkRToRN = thelpers
-      .linkFromToService(regular, remoteNode)
-      .tcp(8081)
-      .forwarded();
+    const linkRToRN = thelpers.linkFromToService(regular, remoteNode).tcp(8081).forwarded();
 
     const rhs = prepareFrame(
       [
@@ -2276,15 +2167,9 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(
-      regular,
-      world,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(regular, world);
 
-    const linkRegularToWorld = thelpers
-      .linkFromToService(regular, world)
-      .tcp(8080)
-      .forwarded();
+    const linkRegularToWorld = thelpers.linkFromToService(regular, world).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(regular), new ServiceCard(world)],
@@ -2321,15 +2206,9 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(
-      regular,
-      world,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(regular, world);
 
-    const linkWorldToRegular = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWorldToRegular = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(regular), new ServiceCard(world)],
@@ -2368,10 +2247,7 @@ describe('filter entries > world', () => {
 
     const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(host, world);
 
-    const linkWorldToHost = thelpers
-      .linkFromToService(world, host)
-      .tcp(8080)
-      .forwarded();
+    const linkWorldToHost = thelpers.linkFromToService(world, host).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(host), new ServiceCard(world)],
@@ -2410,10 +2286,7 @@ describe('filter entries > world', () => {
 
     const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(host, world);
 
-    const linkHostToWorld = thelpers
-      .linkFromToService(host, world)
-      .tcp(8080)
-      .forwarded();
+    const linkHostToWorld = thelpers.linkFromToService(host, world).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(host), new ServiceCard(world)],
@@ -2452,10 +2325,7 @@ describe('filter entries > world', () => {
 
     const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(host, world);
 
-    const linkWorldToHost = thelpers
-      .linkFromToService(world, host)
-      .tcp(8080)
-      .forwarded();
+    const linkWorldToHost = thelpers.linkFromToService(world, host).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(host), new ServiceCard(world)],
@@ -2492,29 +2362,26 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } =
-      thelpers.flowsBetweenServices(regular, world);
+    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } = thelpers.flowsBetweenServices(
+      regular,
+      world,
+    );
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } =
-      thelpers.flowsBetweenServices(regular, remoteNode);
+    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } = thelpers.flowsBetweenServices(
+      regular,
+      remoteNode,
+    );
 
-    const linkWtoR = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWtoR = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
-    const linkRtoKDNS = thelpers
-      .linkFromToService(regular, kubeDNS)
-      .udp(53)
-      .forwarded();
+    const linkRtoKDNS = thelpers.linkFromToService(regular, kubeDNS).udp(53).forwarded();
 
-    const linkRToRN = thelpers
-      .linkFromToService(regular, remoteNode)
-      .tcp(8081)
-      .forwarded();
+    const linkRToRN = thelpers.linkFromToService(regular, remoteNode).tcp(8081).forwarded();
 
     const rhs = prepareFrame(
       [
@@ -2567,29 +2434,26 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } =
-      thelpers.flowsBetweenServices(regular, world);
+    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } = thelpers.flowsBetweenServices(
+      regular,
+      world,
+    );
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } =
-      thelpers.flowsBetweenServices(regular, remoteNode);
+    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } = thelpers.flowsBetweenServices(
+      regular,
+      remoteNode,
+    );
 
-    const linkWtoR = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWtoR = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
-    const linkRtoKDNS = thelpers
-      .linkFromToService(regular, kubeDNS)
-      .udp(53)
-      .forwarded();
+    const linkRtoKDNS = thelpers.linkFromToService(regular, kubeDNS).udp(53).forwarded();
 
-    const linkRToRN = thelpers
-      .linkFromToService(regular, remoteNode)
-      .tcp(8081)
-      .forwarded();
+    const linkRToRN = thelpers.linkFromToService(regular, remoteNode).tcp(8081).forwarded();
 
     const rhs = prepareFrame(
       [
@@ -2642,29 +2506,26 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } =
-      thelpers.flowsBetweenServices(regular, world);
+    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } = thelpers.flowsBetweenServices(
+      regular,
+      world,
+    );
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } =
-      thelpers.flowsBetweenServices(regular, remoteNode);
+    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } = thelpers.flowsBetweenServices(
+      regular,
+      remoteNode,
+    );
 
-    const linkWtoR = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWtoR = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
-    const linkRtoKDNS = thelpers
-      .linkFromToService(regular, kubeDNS)
-      .udp(53)
-      .forwarded();
+    const linkRtoKDNS = thelpers.linkFromToService(regular, kubeDNS).udp(53).forwarded();
 
-    const linkRToRN = thelpers
-      .linkFromToService(regular, remoteNode)
-      .tcp(8081)
-      .forwarded();
+    const linkRToRN = thelpers.linkFromToService(regular, remoteNode).tcp(8081).forwarded();
 
     const rhs = prepareFrame(
       [
@@ -2703,7 +2564,7 @@ describe('filter entries > world', () => {
     expect(svcs.length).toBe(0);
   });
 
-  test('test 18 - to world (KubeDNS, RemoteNode, skip both)', () => {
+  test('test 18 - to world (KubeDNS, RemoteNode, skip either)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
@@ -2717,29 +2578,26 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } =
-      thelpers.flowsBetweenServices(regular, world);
+    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } = thelpers.flowsBetweenServices(
+      regular,
+      world,
+    );
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } =
-      thelpers.flowsBetweenServices(regular, remoteNode);
+    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } = thelpers.flowsBetweenServices(
+      regular,
+      remoteNode,
+    );
 
-    const linkWtoR = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWtoR = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
-    const linkRtoKDNS = thelpers
-      .linkFromToService(regular, kubeDNS)
-      .udp(53)
-      .forwarded();
+    const linkRtoKDNS = thelpers.linkFromToService(regular, kubeDNS).udp(53).forwarded();
 
-    const linkRToRN = thelpers
-      .linkFromToService(regular, remoteNode)
-      .tcp(8081)
-      .forwarded();
+    const linkRToRN = thelpers.linkFromToService(regular, remoteNode).tcp(8081).forwarded();
 
     const rhs = prepareFrame(
       [
@@ -2778,12 +2636,12 @@ describe('filter entries > world', () => {
     expect(svcs.length).toBe(0);
   });
 
-  test('test 19 - both world (link regular -> world)', () => {
+  test('test 19 - either world (link regular -> world)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [filterEntries.bothLabelWorld!],
+      filters: [filterEntries.eitherLabelWorld!],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -2792,15 +2650,9 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(
-      regular,
-      world,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(regular, world);
 
-    const linkRegularToWorld = thelpers
-      .linkFromToService(regular, world)
-      .tcp(8080)
-      .forwarded();
+    const linkRegularToWorld = thelpers.linkFromToService(regular, world).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(regular), new ServiceCard(world)],
@@ -2823,12 +2675,12 @@ describe('filter entries > world', () => {
     expect(svcs.length).toBe(2);
   });
 
-  test('test 20 - both world (link world -> regular)', () => {
+  test('test 20 - either world (link world -> regular)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [filterEntries.bothLabelWorld!],
+      filters: [filterEntries.eitherLabelWorld!],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -2837,15 +2689,9 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(
-      regular,
-      world,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(regular, world);
 
-    const linkWorldToRegular = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWorldToRegular = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(regular), new ServiceCard(world)],
@@ -2868,12 +2714,12 @@ describe('filter entries > world', () => {
     expect(svcs.length).toBe(2);
   });
 
-  test('test 21 - both world (link world -> host)', () => {
+  test('test 21 - either world (link world -> host)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [filterEntries.bothLabelWorld!],
+      filters: [filterEntries.eitherLabelWorld!],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -2884,10 +2730,7 @@ describe('filter entries > world', () => {
 
     const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(host, world);
 
-    const linkWorldToHost = thelpers
-      .linkFromToService(world, host)
-      .tcp(8080)
-      .forwarded();
+    const linkWorldToHost = thelpers.linkFromToService(world, host).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(host), new ServiceCard(world)],
@@ -2910,12 +2753,12 @@ describe('filter entries > world', () => {
     expect(svcs.length).toBe(2);
   });
 
-  test('test 22 - both world (link host -> world)', () => {
+  test('test 22 - either world (link host -> world)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [filterEntries.bothLabelWorld!],
+      filters: [filterEntries.eitherLabelWorld!],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -2926,10 +2769,7 @@ describe('filter entries > world', () => {
 
     const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(host, world);
 
-    const linkHostToWorld = thelpers
-      .linkFromToService(host, world)
-      .tcp(8080)
-      .forwarded();
+    const linkHostToWorld = thelpers.linkFromToService(host, world).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(host), new ServiceCard(world)],
@@ -2952,12 +2792,12 @@ describe('filter entries > world', () => {
     expect(svcs.length).toBe(2);
   });
 
-  test('test 23 - both world (link world -> host, host is skipped)', () => {
+  test('test 23 - either world (link world -> host, host is skipped)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [filterEntries.bothLabelWorld!],
+      filters: [filterEntries.eitherLabelWorld!],
       skipHost: true,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -2968,10 +2808,7 @@ describe('filter entries > world', () => {
 
     const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(host, world);
 
-    const linkWorldToHost = thelpers
-      .linkFromToService(world, host)
-      .tcp(8080)
-      .forwarded();
+    const linkWorldToHost = thelpers.linkFromToService(world, host).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(host), new ServiceCard(world)],
@@ -2994,12 +2831,12 @@ describe('filter entries > world', () => {
     expect(svcs.length).toBe(0);
   });
 
-  test('test 24 - both world (KubeDNS, RemoteNode)', () => {
+  test('test 24 - either world (KubeDNS, RemoteNode)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [filterEntries.bothLabelWorld!],
+      filters: [filterEntries.eitherLabelWorld!],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -3008,29 +2845,26 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } =
-      thelpers.flowsBetweenServices(regular, world);
+    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } = thelpers.flowsBetweenServices(
+      regular,
+      world,
+    );
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } =
-      thelpers.flowsBetweenServices(regular, remoteNode);
+    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } = thelpers.flowsBetweenServices(
+      regular,
+      remoteNode,
+    );
 
-    const linkWtoR = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWtoR = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
-    const linkRtoKDNS = thelpers
-      .linkFromToService(regular, kubeDNS)
-      .udp(53)
-      .forwarded();
+    const linkRtoKDNS = thelpers.linkFromToService(regular, kubeDNS).udp(53).forwarded();
 
-    const linkRToRN = thelpers
-      .linkFromToService(regular, remoteNode)
-      .tcp(8081)
-      .forwarded();
+    const linkRToRN = thelpers.linkFromToService(regular, remoteNode).tcp(8081).forwarded();
 
     const rhs = prepareFrame(
       [
@@ -3069,12 +2903,12 @@ describe('filter entries > world', () => {
     expect(svcs.length).toBe(2);
   });
 
-  test('test 25 - both world (KubeDNS, RemoteNode, skip KubeDNS)', () => {
+  test('test 25 - either world (KubeDNS, RemoteNode, skip KubeDNS)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [filterEntries.bothLabelWorld!],
+      filters: [filterEntries.eitherLabelWorld!],
       skipHost: false,
       skipKubeDns: true,
       skipRemoteNode: false,
@@ -3083,29 +2917,26 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } =
-      thelpers.flowsBetweenServices(regular, world);
+    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } = thelpers.flowsBetweenServices(
+      regular,
+      world,
+    );
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } =
-      thelpers.flowsBetweenServices(regular, remoteNode);
+    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } = thelpers.flowsBetweenServices(
+      regular,
+      remoteNode,
+    );
 
-    const linkWtoR = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWtoR = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
-    const linkRtoKDNS = thelpers
-      .linkFromToService(regular, kubeDNS)
-      .udp(53)
-      .forwarded();
+    const linkRtoKDNS = thelpers.linkFromToService(regular, kubeDNS).udp(53).forwarded();
 
-    const linkRToRN = thelpers
-      .linkFromToService(regular, remoteNode)
-      .tcp(8081)
-      .forwarded();
+    const linkRToRN = thelpers.linkFromToService(regular, remoteNode).tcp(8081).forwarded();
 
     const rhs = prepareFrame(
       [
@@ -3144,12 +2975,12 @@ describe('filter entries > world', () => {
     expect(svcs.length).toBe(2);
   });
 
-  test('test 26 - both world (KubeDNS, RemoteNode, skip RemoteNode)', () => {
+  test('test 26 - either world (KubeDNS, RemoteNode, skip RemoteNode)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [filterEntries.bothLabelWorld!],
+      filters: [filterEntries.eitherLabelWorld!],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: true,
@@ -3158,29 +2989,26 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } =
-      thelpers.flowsBetweenServices(regular, world);
+    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } = thelpers.flowsBetweenServices(
+      regular,
+      world,
+    );
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } =
-      thelpers.flowsBetweenServices(regular, remoteNode);
+    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } = thelpers.flowsBetweenServices(
+      regular,
+      remoteNode,
+    );
 
-    const linkWtoR = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWtoR = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
-    const linkRtoKDNS = thelpers
-      .linkFromToService(regular, kubeDNS)
-      .udp(53)
-      .forwarded();
+    const linkRtoKDNS = thelpers.linkFromToService(regular, kubeDNS).udp(53).forwarded();
 
-    const linkRToRN = thelpers
-      .linkFromToService(regular, remoteNode)
-      .tcp(8081)
-      .forwarded();
+    const linkRToRN = thelpers.linkFromToService(regular, remoteNode).tcp(8081).forwarded();
 
     const rhs = prepareFrame(
       [
@@ -3219,12 +3047,12 @@ describe('filter entries > world', () => {
     expect(svcs.length).toBe(2);
   });
 
-  test('test 27 - both world (KubeDNS, RemoteNode, skip both)', () => {
+  test('test 27 - either world (KubeDNS, RemoteNode, skip either)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [filterEntries.bothLabelWorld!],
+      filters: [filterEntries.eitherLabelWorld!],
       skipHost: false,
       skipKubeDns: true,
       skipRemoteNode: true,
@@ -3233,29 +3061,26 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } =
-      thelpers.flowsBetweenServices(regular, world);
+    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } = thelpers.flowsBetweenServices(
+      regular,
+      world,
+    );
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } =
-      thelpers.flowsBetweenServices(regular, remoteNode);
+    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } = thelpers.flowsBetweenServices(
+      regular,
+      remoteNode,
+    );
 
-    const linkWtoR = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWtoR = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
-    const linkRtoKDNS = thelpers
-      .linkFromToService(regular, kubeDNS)
-      .udp(53)
-      .forwarded();
+    const linkRtoKDNS = thelpers.linkFromToService(regular, kubeDNS).udp(53).forwarded();
 
-    const linkRToRN = thelpers
-      .linkFromToService(regular, remoteNode)
-      .tcp(8081)
-      .forwarded();
+    const linkRToRN = thelpers.linkFromToService(regular, remoteNode).tcp(8081).forwarded();
 
     const rhs = prepareFrame(
       [
@@ -3308,15 +3133,9 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(
-      regular,
-      world,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(regular, world);
 
-    const linkRegularToWorld = thelpers
-      .linkFromToService(regular, world)
-      .tcp(8080)
-      .forwarded();
+    const linkRegularToWorld = thelpers.linkFromToService(regular, world).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(regular), new ServiceCard(world)],
@@ -3353,15 +3172,9 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(
-      regular,
-      world,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(regular, world);
 
-    const linkWorldToRegular = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWorldToRegular = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(regular), new ServiceCard(world)],
@@ -3400,10 +3213,7 @@ describe('filter entries > world', () => {
 
     const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(host, world);
 
-    const linkWorldToHost = thelpers
-      .linkFromToService(world, host)
-      .tcp(8080)
-      .forwarded();
+    const linkWorldToHost = thelpers.linkFromToService(world, host).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(host), new ServiceCard(world)],
@@ -3442,10 +3252,7 @@ describe('filter entries > world', () => {
 
     const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(host, world);
 
-    const linkHostToWorld = thelpers
-      .linkFromToService(host, world)
-      .tcp(8080)
-      .forwarded();
+    const linkHostToWorld = thelpers.linkFromToService(host, world).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(host), new ServiceCard(world)],
@@ -3484,10 +3291,7 @@ describe('filter entries > world', () => {
 
     const { fromAtoB, fromBtoA } = thelpers.flowsBetweenServices(host, world);
 
-    const linkWorldToHost = thelpers
-      .linkFromToService(world, host)
-      .tcp(8080)
-      .forwarded();
+    const linkWorldToHost = thelpers.linkFromToService(world, host).tcp(8080).forwarded();
 
     const rhs = prepareFrame(
       [new ServiceCard(host), new ServiceCard(world)],
@@ -3524,29 +3328,26 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } =
-      thelpers.flowsBetweenServices(regular, world);
+    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } = thelpers.flowsBetweenServices(
+      regular,
+      world,
+    );
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } =
-      thelpers.flowsBetweenServices(regular, remoteNode);
+    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } = thelpers.flowsBetweenServices(
+      regular,
+      remoteNode,
+    );
 
-    const linkWtoR = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWtoR = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
-    const linkRtoKDNS = thelpers
-      .linkFromToService(regular, kubeDNS)
-      .udp(53)
-      .forwarded();
+    const linkRtoKDNS = thelpers.linkFromToService(regular, kubeDNS).udp(53).forwarded();
 
-    const linkRToRN = thelpers
-      .linkFromToService(regular, remoteNode)
-      .tcp(8081)
-      .forwarded();
+    const linkRToRN = thelpers.linkFromToService(regular, remoteNode).tcp(8081).forwarded();
 
     const rhs = prepareFrame(
       [
@@ -3599,29 +3400,26 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } =
-      thelpers.flowsBetweenServices(regular, world);
+    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } = thelpers.flowsBetweenServices(
+      regular,
+      world,
+    );
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } =
-      thelpers.flowsBetweenServices(regular, remoteNode);
+    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } = thelpers.flowsBetweenServices(
+      regular,
+      remoteNode,
+    );
 
-    const linkWtoR = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWtoR = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
-    const linkRtoKDNS = thelpers
-      .linkFromToService(regular, kubeDNS)
-      .udp(53)
-      .forwarded();
+    const linkRtoKDNS = thelpers.linkFromToService(regular, kubeDNS).udp(53).forwarded();
 
-    const linkRToRN = thelpers
-      .linkFromToService(regular, remoteNode)
-      .tcp(8081)
-      .forwarded();
+    const linkRToRN = thelpers.linkFromToService(regular, remoteNode).tcp(8081).forwarded();
 
     const rhs = prepareFrame(
       [
@@ -3674,29 +3472,26 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } =
-      thelpers.flowsBetweenServices(regular, world);
+    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } = thelpers.flowsBetweenServices(
+      regular,
+      world,
+    );
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } =
-      thelpers.flowsBetweenServices(regular, remoteNode);
+    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } = thelpers.flowsBetweenServices(
+      regular,
+      remoteNode,
+    );
 
-    const linkWtoR = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWtoR = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
-    const linkRtoKDNS = thelpers
-      .linkFromToService(regular, kubeDNS)
-      .udp(53)
-      .forwarded();
+    const linkRtoKDNS = thelpers.linkFromToService(regular, kubeDNS).udp(53).forwarded();
 
-    const linkRToRN = thelpers
-      .linkFromToService(regular, remoteNode)
-      .tcp(8081)
-      .forwarded();
+    const linkRToRN = thelpers.linkFromToService(regular, remoteNode).tcp(8081).forwarded();
 
     const rhs = prepareFrame(
       [
@@ -3735,7 +3530,7 @@ describe('filter entries > world', () => {
     expect(svcs.length).toBe(2);
   });
 
-  test('test 36 - from + to world (KubeDNS, RemoteNode, skip both)', () => {
+  test('test 36 - from + to world (KubeDNS, RemoteNode, skip either)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
@@ -3749,29 +3544,26 @@ describe('filter entries > world', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } =
-      thelpers.flowsBetweenServices(regular, world);
+    const { fromAtoB: fromRtoW, fromBtoA: fromWtoR } = thelpers.flowsBetweenServices(
+      regular,
+      world,
+    );
 
-    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } =
-      thelpers.flowsBetweenServices(regular, kubeDNS);
+    const { fromAtoB: fromRtoKDNS, fromBtoA: fromKDNStoR } = thelpers.flowsBetweenServices(
+      regular,
+      kubeDNS,
+    );
 
-    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } =
-      thelpers.flowsBetweenServices(regular, remoteNode);
+    const { fromAtoB: fromRtoRN, fromBtoA: fromRNtoR } = thelpers.flowsBetweenServices(
+      regular,
+      remoteNode,
+    );
 
-    const linkWtoR = thelpers
-      .linkFromToService(world, regular)
-      .tcp(8080)
-      .forwarded();
+    const linkWtoR = thelpers.linkFromToService(world, regular).tcp(8080).forwarded();
 
-    const linkRtoKDNS = thelpers
-      .linkFromToService(regular, kubeDNS)
-      .udp(53)
-      .forwarded();
+    const linkRtoKDNS = thelpers.linkFromToService(regular, kubeDNS).udp(53).forwarded();
 
-    const linkRToRN = thelpers
-      .linkFromToService(regular, remoteNode)
-      .tcp(8081)
-      .forwarded();
+    const linkRToRN = thelpers.linkFromToService(regular, remoteNode).tcp(8081).forwarded();
 
     const rhs = prepareFrame(
       [
@@ -3904,12 +3696,12 @@ describe('filter entries > DNS', () => {
     expect(svcs.length).toBe(0);
   });
 
-  test('test 3 - regular -> apiTwitter (both filter)', () => {
+  test('test 3 - regular -> apiTwitter (either filter)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [filterEntries.bothDnsTwitterApi!],
+      filters: [filterEntries.eitherDnsTwitterApi!],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -3954,10 +3746,7 @@ describe('filter entries > DNS', () => {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [
-        filterEntries.fromDnsTwitterApi!,
-        filterEntries.toDnsTwitterApi!,
-      ],
+      filters: [filterEntries.fromDnsTwitterApi!, filterEntries.toDnsTwitterApi!],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -4032,21 +3821,14 @@ describe('filter entries > DNS', () => {
       .forwarded();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(apiTwitter),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(apiTwitter)],
       [
         new Flow(regToTwitter),
         new Flow(twitterToReg),
         new Flow(reg1ToTwitter),
         new Flow(twitterToReg1),
       ],
-      [
-        Link.fromHubbleLink(linkRegularToTwitter),
-        Link.fromHubbleLink(linkRegular1ToTwitter),
-      ],
+      [Link.fromHubbleLink(linkRegularToTwitter), Link.fromHubbleLink(linkRegular1ToTwitter)],
       filterObj,
     );
 
@@ -4099,16 +3881,9 @@ describe('filter entries > DNS', () => {
       .forwarded();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(apiTwitter),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(apiTwitter)],
       [new Flow(regToTwitter), new Flow(twitterToReg1)],
-      [
-        Link.fromHubbleLink(linkRegularToTwitter),
-        Link.fromHubbleLink(linkTwitterToRegular1),
-      ],
+      [Link.fromHubbleLink(linkRegularToTwitter), Link.fromHubbleLink(linkTwitterToRegular1)],
       filterObj,
     );
 
@@ -4161,21 +3936,14 @@ describe('filter entries > DNS', () => {
       .forwarded();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(apiTwitter),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(apiTwitter)],
       [
         new Flow(regToTwitter),
         new Flow(twitterToReg),
         new Flow(reg1ToTwitter),
         new Flow(twitterToReg1),
       ],
-      [
-        Link.fromHubbleLink(linkRegularToTwitter),
-        Link.fromHubbleLink(linkRegular1ToTwitter),
-      ],
+      [Link.fromHubbleLink(linkRegularToTwitter), Link.fromHubbleLink(linkRegular1ToTwitter)],
       filterObj,
     );
 
@@ -4228,16 +3996,9 @@ describe('filter entries > DNS', () => {
       .forwarded();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(apiTwitter),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(apiTwitter)],
       [new Flow(regToTwitter), new Flow(twitterToReg1)],
-      [
-        Link.fromHubbleLink(linkRegularToTwitter),
-        Link.fromHubbleLink(linkTwitterToRegular1),
-      ],
+      [Link.fromHubbleLink(linkRegularToTwitter), Link.fromHubbleLink(linkTwitterToRegular1)],
       filterObj,
     );
 
@@ -4255,12 +4016,12 @@ describe('filter entries > DNS', () => {
     expect(svcs.length).toBe(2);
   });
 
-  test('test 9 - regular <-> apiTwitter, apiTwitter <-> regular2 (both filter)', () => {
+  test('test 9 - regular <-> apiTwitter, apiTwitter <-> regular2 (either filter)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [filterEntries.bothDnsTwitterApi!],
+      filters: [filterEntries.eitherDnsTwitterApi!],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -4290,21 +4051,14 @@ describe('filter entries > DNS', () => {
       .forwarded();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(apiTwitter),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(apiTwitter)],
       [
         new Flow(regToTwitter),
         new Flow(twitterToReg),
         new Flow(reg1ToTwitter),
         new Flow(twitterToReg1),
       ],
-      [
-        Link.fromHubbleLink(linkRegularToTwitter),
-        Link.fromHubbleLink(linkRegular1ToTwitter),
-      ],
+      [Link.fromHubbleLink(linkRegularToTwitter), Link.fromHubbleLink(linkRegular1ToTwitter)],
       filterObj,
     );
 
@@ -4322,12 +4076,12 @@ describe('filter entries > DNS', () => {
     expect(svcs.length).toBe(3);
   });
 
-  test('test 10 - regular -> apiTwitter, apiTwitter -> regular2 (both filter)', () => {
+  test('test 10 - regular -> apiTwitter, apiTwitter -> regular2 (either filter)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [filterEntries.bothDnsTwitterApi!],
+      filters: [filterEntries.eitherDnsTwitterApi!],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -4357,16 +4111,9 @@ describe('filter entries > DNS', () => {
       .forwarded();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(apiTwitter),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(apiTwitter)],
       [new Flow(regToTwitter), new Flow(twitterToReg1)],
-      [
-        Link.fromHubbleLink(linkRegularToTwitter),
-        Link.fromHubbleLink(linkTwitterToRegular1),
-      ],
+      [Link.fromHubbleLink(linkRegularToTwitter), Link.fromHubbleLink(linkTwitterToRegular1)],
       filterObj,
     );
 
@@ -4389,10 +4136,7 @@ describe('filter entries > DNS', () => {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [
-        filterEntries.fromDnsTwitterApi!,
-        filterEntries.toDnsTwitterApi!,
-      ],
+      filters: [filterEntries.fromDnsTwitterApi!, filterEntries.toDnsTwitterApi!],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -4422,21 +4166,14 @@ describe('filter entries > DNS', () => {
       .forwarded();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(apiTwitter),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(apiTwitter)],
       [
         new Flow(regToTwitter),
         new Flow(twitterToReg),
         new Flow(reg1ToTwitter),
         new Flow(twitterToReg1),
       ],
-      [
-        Link.fromHubbleLink(linkRegularToTwitter),
-        Link.fromHubbleLink(linkRegular1ToTwitter),
-      ],
+      [Link.fromHubbleLink(linkRegularToTwitter), Link.fromHubbleLink(linkRegular1ToTwitter)],
       filterObj,
     );
 
@@ -4459,10 +4196,7 @@ describe('filter entries > DNS', () => {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [
-        filterEntries.fromDnsTwitterApi!,
-        filterEntries.toDnsTwitterApi!,
-      ],
+      filters: [filterEntries.fromDnsTwitterApi!, filterEntries.toDnsTwitterApi!],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -4492,16 +4226,9 @@ describe('filter entries > DNS', () => {
       .forwarded();
 
     const rhs = prepareFrame(
-      [
-        new ServiceCard(regular),
-        new ServiceCard(regular1),
-        new ServiceCard(apiTwitter),
-      ],
+      [new ServiceCard(regular), new ServiceCard(regular1), new ServiceCard(apiTwitter)],
       [new Flow(regToTwitter), new Flow(twitterToReg1)],
-      [
-        Link.fromHubbleLink(linkRegularToTwitter),
-        Link.fromHubbleLink(linkTwitterToRegular1),
-      ],
+      [Link.fromHubbleLink(linkRegularToTwitter), Link.fromHubbleLink(linkTwitterToRegular1)],
       filterObj,
     );
 
@@ -4551,10 +4278,7 @@ describe('filter entries > DNS', () => {
     const rhs = prepareFrame(
       [new ServiceCard(regular), new ServiceCard(regular1)],
       [new Flow(fromAtoB), new Flow(fromBtoA)],
-      [
-        Link.fromHubbleLink(linkRegularToRegular1),
-        Link.fromHubbleLink(linkRegular1ToRegular),
-      ],
+      [Link.fromHubbleLink(linkRegularToRegular1), Link.fromHubbleLink(linkRegular1ToRegular)],
       filterObj,
     );
 
@@ -4604,10 +4328,7 @@ describe('filter entries > DNS', () => {
     const rhs = prepareFrame(
       [new ServiceCard(regular), new ServiceCard(regular1)],
       [new Flow(fromAtoB), new Flow(fromBtoA)],
-      [
-        Link.fromHubbleLink(linkRegularToRegular1),
-        Link.fromHubbleLink(linkRegular1ToRegular),
-      ],
+      [Link.fromHubbleLink(linkRegularToRegular1), Link.fromHubbleLink(linkRegular1ToRegular)],
       filterObj,
     );
 
@@ -4625,12 +4346,12 @@ describe('filter entries > DNS', () => {
     expect(svcs.length).toBe(0);
   });
 
-  test('test 13 - regular <-> regular2 (both filters)', () => {
+  test('test 13 - regular <-> regular2 (either filters)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [filterEntries.bothDnsTwitterApi!],
+      filters: [filterEntries.eitherDnsTwitterApi!],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -4657,10 +4378,7 @@ describe('filter entries > DNS', () => {
     const rhs = prepareFrame(
       [new ServiceCard(regular), new ServiceCard(regular1)],
       [new Flow(fromAtoB), new Flow(fromBtoA)],
-      [
-        Link.fromHubbleLink(linkRegularToRegular1),
-        Link.fromHubbleLink(linkRegular1ToRegular),
-      ],
+      [Link.fromHubbleLink(linkRegularToRegular1), Link.fromHubbleLink(linkRegular1ToRegular)],
       filterObj,
     );
 
@@ -4683,10 +4401,7 @@ describe('filter entries > DNS', () => {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [
-        filterEntries.toDnsTwitterApi!,
-        filterEntries.fromDnsTwitterApi!,
-      ],
+      filters: [filterEntries.toDnsTwitterApi!, filterEntries.fromDnsTwitterApi!],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -4713,10 +4428,7 @@ describe('filter entries > DNS', () => {
     const rhs = prepareFrame(
       [new ServiceCard(regular), new ServiceCard(regular1)],
       [new Flow(fromAtoB), new Flow(fromBtoA)],
-      [
-        Link.fromHubbleLink(linkRegularToRegular1),
-        Link.fromHubbleLink(linkRegular1ToRegular),
-      ],
+      [Link.fromHubbleLink(linkRegularToRegular1), Link.fromHubbleLink(linkRegular1ToRegular)],
       filterObj,
     );
 
@@ -4739,29 +4451,17 @@ describe('filter entries > pod (only flows)', () => {
   const { regular, regular1, kubeDNS, apiTwitter, world } = tsvcs;
   const [senderPod, receiverPod] = ['crawler-12345', 'service-54321'];
 
-  const fromSenderPod = FilterEntry.newPod(senderPod).setDirection(
-    FilterDirection.From,
-  );
+  const fromSenderPod = FilterEntry.newPod(senderPod).setDirection(FilterDirection.From);
 
-  const toSenderPod = FilterEntry.newPod(senderPod).setDirection(
-    FilterDirection.To,
-  );
+  const toSenderPod = FilterEntry.newPod(senderPod).setDirection(FilterDirection.To);
 
-  const bothSenderPod = FilterEntry.newPod(senderPod).setDirection(
-    FilterDirection.Both,
-  );
+  const eitherSenderPod = FilterEntry.newPod(senderPod).setDirection(FilterDirection.Either);
 
-  const fromReceiverPod = FilterEntry.newPod(receiverPod).setDirection(
-    FilterDirection.From,
-  );
+  const fromReceiverPod = FilterEntry.newPod(receiverPod).setDirection(FilterDirection.From);
 
-  const toReceiverPod = FilterEntry.newPod(receiverPod).setDirection(
-    FilterDirection.To,
-  );
+  const toReceiverPod = FilterEntry.newPod(receiverPod).setDirection(FilterDirection.To);
 
-  const bothReceiverPod = FilterEntry.newPod(receiverPod).setDirection(
-    FilterDirection.Both,
-  );
+  const eitherReceiverPod = FilterEntry.newPod(receiverPod).setDirection(FilterDirection.Either);
 
   test('test 1 - from sender pod filter (flows from -> to)', () => {
     const filterObj = {
@@ -4777,17 +4477,9 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
-    const rhs = prepareFrame(
-      [],
-      [new Flow(fromAtoB), new Flow(fromBtoA)],
-      [],
-      filterObj,
-    );
+    const rhs = prepareFrame([], [new Flow(fromAtoB), new Flow(fromBtoA)], [], filterObj);
 
     const rhsData = extractData(rhs);
     expect(rhsData.flows.length).toBe(2);
@@ -4817,10 +4509,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
 
@@ -4852,10 +4541,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const { fromAtoB: fromRegularToWorld, fromBtoA: fromWorldToRegular } =
       thelpers.flowsBetweenServices(regular, world);
@@ -4900,17 +4586,9 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
-    const rhs = prepareFrame(
-      [],
-      [new Flow(fromAtoB), new Flow(fromBtoA)],
-      [],
-      filterObj,
-    );
+    const rhs = prepareFrame([], [new Flow(fromAtoB), new Flow(fromBtoA)], [], filterObj);
 
     const rhsData = extractData(rhs);
     expect(rhsData.flows.length).toBe(2);
@@ -4940,10 +4618,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
 
@@ -4975,10 +4650,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const { fromAtoB: fromRegularToWorld, fromBtoA: fromWorldToRegular } =
       thelpers.flowsBetweenServices(regular, world);
@@ -5009,12 +4681,12 @@ describe('filter entries > pod (only flows)', () => {
     expect(svcs.length).toBe(0);
   });
 
-  test('test 7 - both sender pod filter (flows from <-> to)', () => {
+  test('test 7 - either sender pod filter (flows from <-> to)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [bothSenderPod],
+      filters: [eitherSenderPod],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -5023,17 +4695,9 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
-    const rhs = prepareFrame(
-      [],
-      [new Flow(fromAtoB), new Flow(fromBtoA)],
-      [],
-      filterObj,
-    );
+    const rhs = prepareFrame([], [new Flow(fromAtoB), new Flow(fromBtoA)], [], filterObj);
 
     const rhsData = extractData(rhs);
     expect(rhsData.flows.length).toBe(2);
@@ -5049,12 +4713,12 @@ describe('filter entries > pod (only flows)', () => {
     expect(svcs.length).toBe(0);
   });
 
-  test('test 8 - both sender pod filter (one flow to <-> from)', () => {
+  test('test 8 - either sender pod filter (one flow to <-> from)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [bothSenderPod],
+      filters: [eitherSenderPod],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -5063,10 +4727,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
 
@@ -5084,12 +4745,12 @@ describe('filter entries > pod (only flows)', () => {
     expect(svcs.length).toBe(0);
   });
 
-  test('test 9 - both sender pod filter (flows regular <-> world mixed in)', () => {
+  test('test 9 - either sender pod filter (flows regular <-> world mixed in)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [bothSenderPod],
+      filters: [eitherSenderPod],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -5098,10 +4759,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const { fromAtoB: fromRegularToWorld, fromBtoA: fromWorldToRegular } =
       thelpers.flowsBetweenServices(regular, world);
@@ -5146,17 +4804,9 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
-    const rhs = prepareFrame(
-      [],
-      [new Flow(fromAtoB), new Flow(fromBtoA)],
-      [],
-      filterObj,
-    );
+    const rhs = prepareFrame([], [new Flow(fromAtoB), new Flow(fromBtoA)], [], filterObj);
 
     const rhsData = extractData(rhs);
     expect(rhsData.flows.length).toBe(2);
@@ -5186,10 +4836,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
 
@@ -5221,10 +4868,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const { fromAtoB: fromRegularToWorld, fromBtoA: fromWorldToRegular } =
       thelpers.flowsBetweenServices(regular, world);
@@ -5269,17 +4913,9 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
-    const rhs = prepareFrame(
-      [],
-      [new Flow(fromAtoB), new Flow(fromBtoA)],
-      [],
-      filterObj,
-    );
+    const rhs = prepareFrame([], [new Flow(fromAtoB), new Flow(fromBtoA)], [], filterObj);
 
     const rhsData = extractData(rhs);
     expect(rhsData.flows.length).toBe(2);
@@ -5309,10 +4945,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
 
@@ -5344,10 +4977,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const { fromAtoB: fromRegularToWorld, fromBtoA: fromWorldToRegular } =
       thelpers.flowsBetweenServices(regular, world);
@@ -5392,17 +5022,9 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
-    const rhs = prepareFrame(
-      [],
-      [new Flow(fromAtoB), new Flow(fromBtoA)],
-      [],
-      filterObj,
-    );
+    const rhs = prepareFrame([], [new Flow(fromAtoB), new Flow(fromBtoA)], [], filterObj);
 
     const rhsData = extractData(rhs);
     expect(rhsData.flows.length).toBe(2);
@@ -5432,10 +5054,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
 
@@ -5467,10 +5086,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const { fromAtoB: fromRegularToWorld, fromBtoA: fromWorldToRegular } =
       thelpers.flowsBetweenServices(regular, world);
@@ -5501,12 +5117,12 @@ describe('filter entries > pod (only flows)', () => {
     expect(svcs.length).toBe(0);
   });
 
-  test('test 19 - both receiver pod filter (flows from <-> to)', () => {
+  test('test 19 - either receiver pod filter (flows from <-> to)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [bothReceiverPod],
+      filters: [eitherReceiverPod],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -5515,17 +5131,9 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
-    const rhs = prepareFrame(
-      [],
-      [new Flow(fromAtoB), new Flow(fromBtoA)],
-      [],
-      filterObj,
-    );
+    const rhs = prepareFrame([], [new Flow(fromAtoB), new Flow(fromBtoA)], [], filterObj);
 
     const rhsData = extractData(rhs);
     expect(rhsData.flows.length).toBe(2);
@@ -5541,12 +5149,12 @@ describe('filter entries > pod (only flows)', () => {
     expect(svcs.length).toBe(0);
   });
 
-  test('test 20 - both receiver pod filter (one flow to <-> from)', () => {
+  test('test 20 - either receiver pod filter (one flow to <-> from)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [bothReceiverPod],
+      filters: [eitherReceiverPod],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -5555,10 +5163,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
 
@@ -5576,12 +5181,12 @@ describe('filter entries > pod (only flows)', () => {
     expect(svcs.length).toBe(0);
   });
 
-  test('test 21 - both receiver pod filter (flows regular <-> world mixed in)', () => {
+  test('test 21 - either receiver pod filter (flows regular <-> world mixed in)', () => {
     const filterObj = {
       namespace: null,
       verdict: null,
       httpStatus: null,
-      filters: [bothReceiverPod],
+      filters: [eitherReceiverPod],
       skipHost: false,
       skipKubeDns: false,
       skipRemoteNode: false,
@@ -5590,10 +5195,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const { fromAtoB: fromRegularToWorld, fromBtoA: fromWorldToRegular } =
       thelpers.flowsBetweenServices(regular, world);
@@ -5638,17 +5240,9 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
-    const rhs = prepareFrame(
-      [],
-      [new Flow(fromAtoB), new Flow(fromBtoA)],
-      [],
-      filterObj,
-    );
+    const rhs = prepareFrame([], [new Flow(fromAtoB), new Flow(fromBtoA)], [], filterObj);
 
     const rhsData = extractData(rhs);
     expect(rhsData.flows.length).toBe(2);
@@ -5678,10 +5272,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const rhs = prepareFrame([], [new Flow(fromBtoA)], [], filterObj);
 
@@ -5713,10 +5304,7 @@ describe('filter entries > pod (only flows)', () => {
 
     const lhs = prepareFrame([], [], [], filterObj);
 
-    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(
-      senderPod,
-      receiverPod,
-    );
+    const { fromAtoB, fromBtoA } = thelpers.flowsBetweenPods(senderPod, receiverPod);
 
     const { fromAtoB: fromRegularToWorld, fromBtoA: fromWorldToRegular } =
       thelpers.flowsBetweenServices(regular, world);

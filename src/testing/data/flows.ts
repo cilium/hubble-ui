@@ -26,14 +26,16 @@ export const icmpv4Flow: HubbleFlow = {
   source: {
     id: 0,
     identity: 0,
-    labelsList: ['app=Sender', 'namespace=SenderNs'],
+    labels: ['app=Sender', 'namespace=SenderNs'],
+    workloads: [],
     namespace: 'SenderNs',
     podName: `sender-a1b2c3`,
   },
   destination: {
     id: 1,
     identity: 1,
-    labelsList: ['app=Receiver', 'namespace=ReceiverNs'],
+    labels: ['app=Receiver', 'namespace=ReceiverNs'],
+    workloads: [],
     namespace: 'ReceiverNs',
     podName: `receiver-d4e5f6`,
   },
@@ -75,14 +77,16 @@ export const hubbleOne: HubbleFlow = {
   source: {
     id: 0,
     identity: 0,
-    labelsList: ['app=Sender', 'namespace=SenderNs'],
+    labels: ['app=Sender', 'namespace=SenderNs'],
+    workloads: [{ kind: 'svc', name: 'sender' }],
     namespace: 'SenderNs',
     podName: `sender-a1b2c3`,
   },
   destination: {
     id: 1,
     identity: 1,
-    labelsList: ['app=Receiver', 'namespace=ReceiverNs'],
+    labels: ['app=Receiver', 'namespace=ReceiverNs'],
+    workloads: [{ kind: 'svc', name: 'receiver' }],
     namespace: 'ReceiverNs',
     podName: `receiver-d4e5f6`,
   },
@@ -106,7 +110,7 @@ export const hubbleNoSourceName: HubbleFlow = {
   ...hubbleOne,
   source: {
     ...hubbleOne.source,
-    labelsList: ['namespace=SenderNs'],
+    labels: ['namespace=SenderNs'],
   } as Endpoint,
 };
 
@@ -114,7 +118,7 @@ export const hubbleNoDstName: HubbleFlow = {
   ...hubbleOne,
   destination: {
     ...hubbleOne.destination,
-    labelsList: ['namespace=ReceiverNs'],
+    labels: ['namespace=ReceiverNs'],
   } as Endpoint,
 };
 
@@ -122,7 +126,7 @@ export const hubbleNoSourceNamespace: HubbleFlow = {
   ...hubbleOne,
   source: {
     ...hubbleOne.source,
-    labelsList: ['app=Sender'],
+    labels: ['app=Sender'],
     namespace: '',
   } as Endpoint,
 };
@@ -131,7 +135,7 @@ export const hubbleNoDstNamespace: HubbleFlow = {
   ...hubbleOne,
   destination: {
     ...hubbleOne.destination,
-    labelsList: ['app=Receiver'],
+    labels: ['app=Receiver'],
     namespace: '',
   } as Endpoint,
 };
@@ -150,12 +154,12 @@ export const hubbleSameNamespace: HubbleFlow = {
   ...hubbleOne,
   source: {
     ...hubbleOne.source,
-    labelsList: ['app=Sender', 'namespace=kube-system'],
+    labels: ['app=Sender', 'namespace=kube-system'],
     namespace: 'kube-system',
   } as Endpoint,
   destination: {
     ...hubbleOne.destination,
-    labelsList: ['app=Receiver', 'namespace=kube-system'],
+    labels: ['app=Receiver', 'namespace=kube-system'],
     namespae: 'kube-system',
   } as Endpoint,
 };
@@ -225,7 +229,7 @@ export const fromKubeDNS: HubbleFlow = {
   ...hubbleOne,
   source: {
     ...hubbleOne.source,
-    labelsList: [`${SpecialLabel.KubeDNS}`],
+    labels: [`${SpecialLabel.KubeDNS}`],
   } as Endpoint,
 };
 
@@ -233,7 +237,7 @@ export const toKubeDNS: HubbleFlow = {
   ...hubbleOne,
   destination: {
     ...hubbleOne.destination,
-    labelsList: [`${SpecialLabel.KubeDNS}`],
+    labels: [`${SpecialLabel.KubeDNS}`],
   } as Endpoint,
 };
 
@@ -241,11 +245,11 @@ export const fromToKubeDNS: HubbleFlow = {
   ...hubbleOne,
   destination: {
     ...hubbleOne.destination,
-    labelsList: [`${SpecialLabel.KubeDNS}`],
+    labels: [`${SpecialLabel.KubeDNS}`],
   } as Endpoint,
   source: {
     ...hubbleOne.source,
-    labelsList: [`${SpecialLabel.KubeDNS}`],
+    labels: [`${SpecialLabel.KubeDNS}`],
   } as Endpoint,
 };
 
@@ -263,7 +267,7 @@ export const fromHost: HubbleFlow = {
   ...hubbleOne,
   source: {
     ...hubbleOne.source,
-    labelsList: [`${ReservedLabel.Host}=`],
+    labels: [`${ReservedLabel.Host}=`],
   } as Endpoint,
 };
 
@@ -271,7 +275,7 @@ export const toHost: HubbleFlow = {
   ...hubbleOne,
   destination: {
     ...hubbleOne.destination,
-    labelsList: [`${ReservedLabel.Host}=`],
+    labels: [`${ReservedLabel.Host}=`],
   } as Endpoint,
 };
 
@@ -279,11 +283,11 @@ export const fromToHost: HubbleFlow = {
   ...hubbleOne,
   source: {
     ...hubbleOne.source,
-    labelsList: [`${ReservedLabel.Host}=`],
+    labels: [`${ReservedLabel.Host}=`],
   } as Endpoint,
   destination: {
     ...hubbleOne.destination,
-    labelsList: [`${ReservedLabel.Host}=`],
+    labels: [`${ReservedLabel.Host}=`],
   } as Endpoint,
 };
 

@@ -18,9 +18,7 @@ export interface Args {
 
 export function useMapZoom(args: Args): MapZoom {
   const ref = useRef<SVGSVGElement>(null);
-  const [transform, setTransform] = useState<d3.ZoomTransform>(
-    createTransformToCenter(args),
-  );
+  const [transform, setTransform] = useState<d3.ZoomTransform>(createTransformToCenter(args));
   const doTransform = useRef<((trans: d3.ZoomTransform) => void) | null>(null);
   const movesCount = useRef<number>(0);
 
@@ -81,18 +79,13 @@ export function useMapZoom(args: Args): MapZoom {
 
 function createTransformToCenter(args: Args) {
   const containerWidth = window.innerWidth;
-  const containerHeight = Math.round(
-    Math.max(window.innerHeight / 2, args.visibleHeight),
-  );
+  const containerHeight = Math.round(Math.max(window.innerHeight / 2, args.visibleHeight));
   const mapWidth = args.mapBBox.w || containerWidth;
   const mapHeight = args.mapBBox.h || containerHeight;
   const totalMapWidth = mapWidth + sizes.endpointHPadding * 2;
   const totalMapHeight = mapHeight + sizes.endpointVPadding * 2;
 
-  const scale = Math.min(
-    containerWidth / totalMapWidth,
-    containerHeight / totalMapHeight,
-  );
+  const scale = Math.min(containerWidth / totalMapWidth, containerHeight / totalMapHeight);
 
   const scaledMapWidth = totalMapWidth * scale;
   const scaledMapHeight = totalMapHeight * scale;
@@ -100,10 +93,7 @@ function createTransformToCenter(args: Args) {
   const scaledYOffset = (-args.mapBBox.y + sizes.endpointVPadding) * scale;
 
   const x = scaledXOffset + (containerWidth - scaledMapWidth) / 2;
-  const y =
-    sizes.topBarHeight +
-    scaledYOffset +
-    (containerHeight - scaledMapHeight) / 2;
+  const y = sizes.topBarHeight + scaledYOffset + (containerHeight - scaledMapHeight) / 2;
 
   return d3.zoomIdentity.translate(x, y).scale(scale);
 }
