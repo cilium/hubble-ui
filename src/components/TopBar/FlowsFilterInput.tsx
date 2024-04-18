@@ -1,5 +1,5 @@
 import { Button, Classes, MenuItem } from '@blueprintjs/core';
-import { ItemRenderer, MultiSelect2 } from '@blueprintjs/select';
+import { ItemRenderer, MultiSelect } from '@blueprintjs/select';
 import { trim } from 'lodash';
 import React, { useCallback, useState } from 'react';
 
@@ -14,8 +14,6 @@ interface Props {
   filters: FilterEntry[];
   onChange?: (filters: FilterEntry[]) => void;
 }
-
-const FilterMultiSelect = MultiSelect2.ofType<FilterEntry | null>();
 
 export const FlowsFilterInput = (props: Props) => {
   const [userInput, setUserInput] = useState<string>('');
@@ -70,7 +68,7 @@ export const FlowsFilterInput = (props: Props) => {
   ) : undefined;
 
   return (
-    <FilterMultiSelect
+    <MultiSelect
       initialContent={null}
       className={css.container}
       query={userInput}
