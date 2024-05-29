@@ -9,14 +9,14 @@ on:
   workflow_dispatch:
 
 env:
-  HELM_VERSION: v3.13.0
-  KIND_VERSION: v0.20.0
+  HELM_VERSION: v3.15.1
+  KIND_VERSION: v0.23.0
   GITHUB_TOKEN: ${{ github.token }}
   KIND_CONFIG: .github/kind-config.yaml
   UI_VALUES_FILE: .github/hubble-ui-values.yaml
-  CILIUM_VERSION: 1.14.6
+  CILIUM_VERSION: 1.15.5
   CILIUM_VALUES: .github/cilium-values.yaml
-  INGRESS_NGINX_VERSION: 4.4.2
+  INGRESS_NGINX_VERSION: 4.10.1
   INGRESS_NGINX_VALUES: .github/ingress-nginx-values.yaml
 jobs:
   e2e:

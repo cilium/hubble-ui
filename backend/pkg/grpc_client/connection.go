@@ -35,6 +35,7 @@ func (uc *Connection) String() string {
 }
 
 func (uc *Connection) connect(ctx context.Context) error {
+	//nolint:all
 	conn, err := grpc.DialContext(ctx, uc.addr, uc.dialOpts...)
 	if err != nil {
 		return err

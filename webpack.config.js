@@ -18,6 +18,7 @@ const stylesLoaders = ({ enableSass, enableModules }) => {
     modules: enableModules
       ? {
           mode: 'local',
+          namedExport: false,
           localIdentName: '[name]_[local]_[hash:base64:5]',
           exportLocalsConvention: 'camelCase',
         }
@@ -31,6 +32,7 @@ const stylesLoaders = ({ enableSass, enableModules }) => {
     modules: enableModules
       ? {
           mode: 'local',
+          namedExport: false,
           localIdentName: '[name]_[local]_[hash:base64:5]',
           exportLocalsConvention: 'camelCase',
         }
