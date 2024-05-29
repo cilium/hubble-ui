@@ -107,7 +107,7 @@ function build_proto_inner() {
     ./proto/relay/relay.proto \
     ./proto/ui/*.proto
 
-  chmod +w -R ./proto
+  chmod -R +w ./proto
 }
 
 function rm_current_generated_proto() {

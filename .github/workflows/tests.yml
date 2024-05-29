@@ -30,7 +30,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@6c1fd22b67f7a7c42ad9a45c0f4197434035e429
         with:
-          go-version: '1.21'
+          go-version: '1.22'
       - name: Check Go module vendoring
         working-directory: ./backend
         run: |
@@ -42,7 +42,7 @@ jobs:
         uses: golangci/golangci-lint-action@3cfe3a4abbb849e10058ce4af15d205b6da42804
         with:
           working-directory: ./backend
-          version: v1.54.2
+          version: v1.59.0
           args: --config=.golangci.yml --verbose --out-${NO_FUTURE}format colored-line-number
           skip-cache: true
       - name: Setup Node.js

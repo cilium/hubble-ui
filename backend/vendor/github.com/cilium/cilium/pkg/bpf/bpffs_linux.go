@@ -6,6 +6,7 @@
 package bpf
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -62,6 +63,15 @@ func CiliumPath() string {
 // Use this for ensuring the existence of directories on bpffs.
 func MkdirBPF(path string) error {
 	return os.MkdirAll(path, 0755)
+}
+
+// Remove path ignoring ErrNotExist.
+func Remove(path string) error {
+	err := os.RemoveAll(path)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("removing bpffs directory at %s: %w", path, err)
+	}
+	return err
 }
 
 func tcPathFromMountInfo(name string) string {
@@ -123,10 +133,10 @@ func mountFS(printWarning bool) error {
 	if err != nil {
 		if os.IsNotExist(err) {
 			if err := MkdirBPF(bpffsRoot); err != nil {
-				return fmt.Errorf("unable to create bpf mount directory: %s", err)
+				return fmt.Errorf("unable to create bpf mount directory: %w", err)
 			}
 		} else {
-			return fmt.Errorf("failed to stat the mount path %s: %s", bpffsRoot, err)
+			return fmt.Errorf("failed to stat the mount path %s: %w", bpffsRoot, err)
 
 		}
 	} else if !mapRootStat.IsDir() {
@@ -134,7 +144,7 @@ func mountFS(printWarning bool) error {
 	}
 
 	if err := unix.Mount(bpffsRoot, bpffsRoot, "bpf", 0, ""); err != nil {
-		return fmt.Errorf("failed to mount %s: %s", bpffsRoot, err)
+		return fmt.Errorf("failed to mount %s: %w", bpffsRoot, err)
 	}
 	return nil
 }
