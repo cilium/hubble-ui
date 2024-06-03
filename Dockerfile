@@ -28,7 +28,7 @@ ARG NODE_ENV=production
 RUN npm run build
 
 # skopeo inspect --override-os linux --override-arch amd64 docker://docker.io/nginxinc/nginx-unprivileged:1.25.5-alpine3.19-slim | jq -r '.Digest'
-FROM docker.io/nginxinc/nginx-unprivileged:1.25.5-alpine3.19-slim@sha256:9cb7e1ce0b93244c97df36ee9395fef5fe4393869ebfb136875b16cf966c02bc
+FROM docker.io/nginxinc/nginx-unprivileged:1.27.0-alpine3.19-slim@sha256:282c547c5946a9cbcdfb4ef0c29e116f775179eac609ba520d9a6aa00aa0d77a
 USER root
 RUN apk upgrade --no-cache
 USER 101
