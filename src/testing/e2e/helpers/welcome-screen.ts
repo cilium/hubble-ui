@@ -1,5 +1,5 @@
-import { NSAttributes } from '~e2e/client/attributes/namespaces';
 import * as visit from './visit';
+import { E2E } from '~/components/ServiceMapApp/WelcomeScreen';
 
 export class WelcomeScreen {
   public visit(opts?: visit.Opts): this {
@@ -11,7 +11,7 @@ export class WelcomeScreen {
   }
 
   public namespaceList() {
-    return cy.query(NSAttributes.NS_LIST_SELECTOR);
+    return cy.query(E2E.namespaceListTestId);
   }
 }
 

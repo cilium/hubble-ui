@@ -11,9 +11,7 @@ export type Props = {
 };
 
 export const Routes = function Routes(props: Props) {
-  const createRouter = props.router.isInMemory ? createMemoryRouter : createBrowserRouter;
-
-  const router = createRouter([
+  const router = createBrowserRouter([
     {
       path: '/',
       element: props.RootComponent,

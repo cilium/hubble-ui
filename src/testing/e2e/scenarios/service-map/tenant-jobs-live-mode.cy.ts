@@ -1,8 +1,8 @@
-import { attributes } from '~e2e/client';
-import { welcomeScreen } from '../../helpers/weclome-screen';
-import { serviceMap } from '../../helpers/service-map';
-import { Preset } from '../../helpers/visit';
-import { topbar } from '../../helpers/topbar';
+import { welcomeScreen } from '~/testing/e2e/helpers/welcome-screen';
+import { serviceMap } from '~/testing/e2e/helpers/service-map';
+import { Preset } from '~/testing/e2e/helpers/visit';
+import { E2E as MapE2E } from '~/components/Map';
+import { E2E as TopbarE2E } from '~/components/TopBar';
 
 describe('service map', () => {
   it('renders in live mode', () => {
@@ -10,9 +10,10 @@ describe('service map', () => {
     nsList.children().should('have.lengthOf', 1);
     nsList.children().first().should('contain', 'tenant-jobs').click();
 
+    const topbar = cy.query(TopbarE2E.topbarRootTestId);
     topbar.root().should('contain', 'tenant-jobs');
 
-    const cards = cy.queryAttrs(attributes.card.visibleContainer()).children();
+    const cards = cy.query(MapE2E.visibleCardsTestId).children();
 
     // Coreapi:
     serviceMap.queryCard('coreapi', cards).should('have.lengthOf', 1);

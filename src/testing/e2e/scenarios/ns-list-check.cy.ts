@@ -1,6 +1,6 @@
-import { attributes } from '~e2e/client';
-import { welcomeScreen } from '../helpers/weclome-screen';
+import { welcomeScreen } from '../helpers/welcome-screen';
 import { Preset } from '../helpers/visit';
+import { E2E } from '~/components/ServiceMapApp/WelcomeScreen';
 
 describe('check namespaces availability flags', () => {
   it('should check available namespaces in different sources', () => {
@@ -9,6 +9,10 @@ describe('check namespaces availability flags', () => {
     const listItems = nsList.children();
     listItems.should('have.lengthOf', 1);
 
-    listItems.queryAttrs(attributes.ns.entry('relay')).should('have.lengthOf', 1);
+    listItems
+      .queryAttrs({
+        [E2E.namespaceNameTestSelector]: 'relay',
+      })
+      .should('have.lengthOf', 1);
   });
 });
