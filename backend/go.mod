@@ -3,7 +3,7 @@ module github.com/cilium/hubble-ui/backend
 go 1.22.3
 
 require (
-	github.com/cilium/cilium v1.15.5
+	github.com/cilium/cilium v1.15.6
 	github.com/cilium/hubble v0.13.4
 	github.com/google/gops v0.3.28
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
@@ -109,7 +109,7 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.14 // indirect
 	github.com/tklauser/numcpus v0.8.0 // indirect
-	github.com/vishvananda/netlink v1.2.1-beta.2.0.20231127184239-0ced8385386a // indirect
+	github.com/vishvananda/netlink v1.2.1-beta.2.0.20240524165444-4d4ba1473f21 // indirect
 	github.com/vishvananda/netns v0.0.4 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.13 // indirect
