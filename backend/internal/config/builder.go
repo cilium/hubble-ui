@@ -38,6 +38,10 @@ func (b *ConfigBuilder) Build() (*Config, error) {
 		return nil, err
 	}
 
+	if err := b.initDataProcessing(cfg); err != nil {
+		return nil, err
+	}
+
 	if err := b.initTestModeFlags(cfg); err != nil {
 		return nil, err
 	}
@@ -205,6 +209,26 @@ func (b *ConfigBuilder) initWebServer(cfg *Config) error {
 	corsEnabled.LogIfFallback(b.logger)
 	cfg.CORSEnabled = corsEnabled.Value
 
+	return nil
+}
+
+func (b *ConfigBuilder) initDataProcessing(cfg *Config) error {
+	flowsThrottleDelay := b.props.FlowsThrottleDelay()
+	flowsThrottleSize := b.props.FlowsThrottleSize()
+
+	if err := flowsThrottleDelay.Err(); err != nil {
+		return err
+	}
+
+	if err := flowsThrottleSize.Err(); err != nil {
+		return err
+	}
+
+	flowsThrottleDelay.LogIfFallback(b.logger)
+	flowsThrottleSize.LogIfFallback(b.logger)
+
+	cfg.FlowsThrottleSize = flowsThrottleSize.Value
+	cfg.FlowsThrottleDelay = flowsThrottleDelay.Value
 	return nil
 }
 

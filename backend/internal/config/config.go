@@ -46,6 +46,9 @@ type Config struct {
 	TLSRelayClientCertFile string
 	TLSRelayClientKeyFile  string
 
+	FlowsThrottleDelay time.Duration
+	FlowsThrottleSize  uint64
+
 	relayClientConfig certloader.ClientConfigBuilder
 }
 
