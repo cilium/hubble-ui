@@ -63,11 +63,13 @@ export const TopBar = observer(function TopBar(props: Props) {
   return (
     <div className={css.topbar} {...e2e.attributes.topbar.selector()}>
       <div className={css.left}>
-        <NamespaceSelectorDropdown
-          namespaces={props.namespaces}
-          currentNamespace={props.currentNamespace}
-          onChange={props.onNamespaceChange}
-        />
+        {props.currentNamespace === null ? null : (
+          <NamespaceSelectorDropdown
+            namespaces={props.namespaces}
+            currentNamespace={props.currentNamespace}
+            onChange={props.onNamespaceChange}
+          />
+        )}
         {props.currentNamespace && RenderedFilters}
       </div>
       <div className={css.right}>
