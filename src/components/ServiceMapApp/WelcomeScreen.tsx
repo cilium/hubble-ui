@@ -1,8 +1,9 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { Spinner } from '@blueprintjs/core';
 import { observer } from 'mobx-react';
 
 import { NamespaceDescriptor } from '~/domain/namespaces';
+import { NamespaceSelectorDropdown } from '../TopBar/NamespaceSelectorDropdown';
 
 import css from './WelcomeScreen.scss';
 import hubbleLogo from '~/assets/images/hubble-logo.png';
@@ -22,11 +23,11 @@ export const WelcomeScreen = observer(function WelcomeScreen(props: Props) {
         <h1 className={css.title}>Welcome!</h1>
         <p className={css.description}>To begin select one of the namespaces:</p>
         {someNamespacesLoaded ? (
-          <ul className={css.namespacesList}>
-            {props.namespaces.map(ns => (
-              <NamespaceItem key={ns.namespace} namespace={ns} onClick={props.onNamespaceChange} />
-            ))}
-          </ul>
+          <NamespaceSelectorDropdown
+            namespaces={props.namespaces}
+            currentNamespace={null}
+            onChange={props.onNamespaceChange}
+          />
         ) : (
           <div className={css.spinnerWrapper}>
             <Spinner size={48} intent="primary" />
@@ -34,28 +35,5 @@ export const WelcomeScreen = observer(function WelcomeScreen(props: Props) {
         )}
       </div>
     </div>
-  );
-});
-
-interface NamespaceItemProps {
-  namespace: NamespaceDescriptor;
-  onClick: (ns: NamespaceDescriptor) => void;
-}
-
-const NamespaceItem = observer(function NamespaceItem(props: NamespaceItemProps) {
-  const onClick = useCallback(
-    (event: React.MouseEvent<HTMLAnchorElement>) => {
-      event.preventDefault();
-      props.onClick(props.namespace);
-    },
-    [props.onClick],
-  );
-
-  return (
-    <li>
-      <a href={`/${props.namespace.namespace}`} onClick={onClick}>
-        {props.namespace.namespace}
-      </a>
-    </li>
   );
 });
