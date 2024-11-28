@@ -181,5 +181,5 @@ func (er *EnvVarResult[T]) LogIfFallback(log logrus.FieldLogger) {
 	log.
 		WithField("var", er.VarName).
 		WithField("fallback", fmt.Sprintf("%v", er.Value)).
-		Warn("using fallback value for env var")
+		Info("using fallback value for env var")
 }
