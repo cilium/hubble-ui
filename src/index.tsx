@@ -21,7 +21,14 @@ declare global {
 
 const buildAPIUrl = (env: Environment): string => {
   if (!env.isDev) {
-    return `${document.location.origin}/api/`;
+    const fallbackAPIUrl = `${document.location.origin}/api/`;
+    try {
+      const base = document.querySelector('base')?.href;
+      if (base != null) return new URL('api/', base).href;
+    } catch (e) {
+      console.error('Failed to determine API path', e);
+    }
+    return fallbackAPIUrl;
   }
 
   // NOTE: Do not edit those `process.env.VAR_NAME` variable accesses
