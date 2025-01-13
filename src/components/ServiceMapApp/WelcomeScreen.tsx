@@ -3,6 +3,7 @@ import { Spinner } from '@blueprintjs/core';
 import { observer } from 'mobx-react';
 
 import { NamespaceDescriptor } from '~/domain/namespaces';
+import { NamespaceSelectorDropdown } from '../TopBar/NamespaceSelectorDropdown';
 
 import { e2e } from '~e2e/client';
 
@@ -24,11 +25,11 @@ export const WelcomeScreen = observer(function WelcomeScreen(props: Props) {
         <h1 className={css.title}>Welcome!</h1>
         <p className={css.description}>To begin select one of the namespaces:</p>
         {someNamespacesLoaded ? (
-          <ul className={css.namespacesList} {...e2e.attributes.ns.listSelector()}>
-            {props.namespaces.map(ns => (
-              <NamespaceItem key={ns.namespace} namespace={ns} onClick={props.onNamespaceChange} />
-            ))}
-          </ul>
+          <NamespaceSelectorDropdown
+            namespaces={props.namespaces}
+            currentNamespace={null}
+            onChange={props.onNamespaceChange}
+          />
         ) : (
           <div className={css.spinnerWrapper}>
             <Spinner size={48} intent="primary" />
