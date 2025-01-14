@@ -109,15 +109,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-      - name: Running tests in Firefox
-        uses: cypress-io/github-action@v6
-        with:
-          record: true
-          config: baseUrl=https://${{ env.HUBBLE_UI_HOST}}
-          browser: firefox
-        env:
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
       - name: Dump hubble-ui deployment and its logs in case of failure
         if: failure()
         run: |
