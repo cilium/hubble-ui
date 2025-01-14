@@ -961,7 +961,14 @@ func (e *etcdClient) paginatedList(ctx context.Context, log *logrus.Entry, prefi
 
 		kvs = append(kvs, res.Kvs...)
 
-		revision = res.Header.Revision
+		// Do not modify the revision once set, as subsequent Get queries may
+		// return higher revisions in case other operations are performed in
+		// parallel (regardless of whether we specify WithRev), leading to
+		// possibly missing the events happened in the meantime.
+		if revision == 0 {
+			revision = res.Header.Revision
+		}
+
 		if !res.More || len(res.Kvs) == 0 {
 			return kvs, revision, nil
 		}
@@ -992,7 +999,7 @@ func (e *etcdClient) determineEndpointStatus(ctx context.Context, endpointAddres
 func (e *etcdClient) statusChecker() {
 	ctx := context.Background()
 
-	consecutiveQuorumErrors := 0
+	var consecutiveQuorumErrors uint
 
 	statusTimer, statusTimerDone := inctimer.New()
 	defer statusTimerDone()
