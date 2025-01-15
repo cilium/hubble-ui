@@ -64,6 +64,8 @@ export const flowsBetweenPods = (senderPod: string, receiverPod: string): FlowsB
     time: nextFlowTimestamp(),
     trafficDirection: TrafficDirection.Ingress,
     authType: AuthType.Disbaled,
+    egressAllowedBy: [],
+    ingressAllowedBy: [],
   };
 
   const fromBtoA: HubbleFlow = {
@@ -100,6 +102,8 @@ export const flowsBetweenPods = (senderPod: string, receiverPod: string): FlowsB
     time: nextFlowTimestamp(),
     trafficDirection: TrafficDirection.Ingress,
     authType: AuthType.Disbaled,
+    egressAllowedBy: [],
+    ingressAllowedBy: [],
   };
 
   return { fromAtoB, fromBtoA };
@@ -140,6 +144,8 @@ export const flowsBetweenServices = (a: HubbleService, b: HubbleService): FlowsB
     time: nextFlowTimestamp(),
     trafficDirection: TrafficDirection.Ingress,
     authType: AuthType.Disbaled,
+    egressAllowedBy: [],
+    ingressAllowedBy: [],
   };
 
   const fromBtoA: HubbleFlow = {
@@ -176,6 +182,8 @@ export const flowsBetweenServices = (a: HubbleService, b: HubbleService): FlowsB
     time: nextFlowTimestamp(),
     trafficDirection: TrafficDirection.Ingress,
     authType: AuthType.Disbaled,
+    egressAllowedBy: [],
+    ingressAllowedBy: [],
   };
 
   return { fromAtoB, fromBtoA };
@@ -226,6 +234,8 @@ export const flowsFromToService = (from: HubbleService, to: HubbleService) => {
       time: nextFlowTimestamp(),
       trafficDirection: TrafficDirection.Ingress,
       authType: AuthType.Disbaled,
+      egressAllowedBy: [],
+      ingressAllowedBy: [],
     };
 
     const fromBtoA: HubbleFlow = {
@@ -260,6 +270,8 @@ export const flowsFromToService = (from: HubbleService, to: HubbleService) => {
       time: nextFlowTimestamp(),
       trafficDirection: TrafficDirection.Ingress,
       authType: AuthType.Disbaled,
+      egressAllowedBy: [],
+      ingressAllowedBy: [],
     };
 
     return { fromAtoB, fromBtoA };
