@@ -8,13 +8,8 @@ import { sizes } from '~/ui';
 import type { CardProps, DivRef, SVGGElementRef, CoordsFn } from './general';
 
 import css from './styles.scss';
-import { getTestAttributes } from '~/testing/helpers';
 
 export type { CardProps, DivRef, SVGGElementRef, CoordsFn };
-
-export enum E2E {
-  cardRootTestId = 'card-div-root',
-}
 
 export const Card = observer(function Card<C>(props: CardProps<C>) {
   const divRef = useRef<HTMLDivElement>(null);
@@ -41,12 +36,7 @@ export const Card = observer(function Card<C>(props: CardProps<C>) {
   return (
     <g transform={`translate(${viewX}, ${viewY})`} onClick={() => props.onClick?.(props.card)}>
       <foreignObject width={viewW} height={viewH}>
-        <div
-          className={classes}
-          ref={divRef}
-          style={styles}
-          {...getTestAttributes(E2E.cardRootTestId)}
-        >
+        <div className={classes} ref={divRef} style={styles}>
           {props.children}
         </div>
       </foreignObject>
