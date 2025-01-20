@@ -15,12 +15,6 @@ import { ArrowStrategy, PlacementStrategy } from '~/ui/layout';
 
 import { sizes } from '~/ui/vars';
 import css from './styles.scss';
-import { getTestAttributes } from '~/testing/helpers';
-
-export enum E2E {
-  visibleCardsTestId = 'visible-cards',
-  arrowForegroundTestId = 'arrows-foreground',
-}
 
 export interface Props<C extends AbstractCard> {
   placement: PlacementStrategy;
@@ -113,12 +107,8 @@ export const MapElements = observer(function MapElements<C extends AbstractCard>
         ) : null)}
 
       <g className="backgrounds" ref={backgroundsRef}></g>
-      <g
-        className="arrows-foreground"
-        ref={arrowsForegroundRef}
-        {...getTestAttributes(E2E.arrowForegroundTestId)}
-      />
-      <g ref={cardsRef} className="visible-cards" {...getTestAttributes(E2E.visibleCardsTestId)}>
+      <g className="arrows-foreground" ref={arrowsForegroundRef} />
+      <g ref={cardsRef} className="visible-cards">
         {cards}
       </g>
 

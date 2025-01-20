@@ -6,13 +6,6 @@ import { NamespaceDescriptor } from '~/domain/namespaces';
 import { usePopover } from '~/ui/hooks/usePopover';
 
 import css from './styles.scss';
-import { getTestAttributes } from '~/testing/helpers';
-
-export enum E2E {
-  namespaceAvailabilityTestSelector = 'availability',
-  namespaceAvailabilityTestValue = 'r',
-  namespaceNameTestSelector = 'name',
-}
 
 const renderItem: ItemRenderer<NamespaceDescriptor> = (ns, itemProps) => {
   const { handleClick, modifiers } = itemProps;
@@ -21,17 +14,7 @@ const renderItem: ItemRenderer<NamespaceDescriptor> = (ns, itemProps) => {
     return null;
   }
 
-  return (
-    <MenuItem
-      key={ns.namespace}
-      onClick={handleClick}
-      text={ns.namespace}
-      {...getTestAttributes({
-        [E2E.namespaceAvailabilityTestSelector]: E2E.namespaceAvailabilityTestValue,
-        [E2E.namespaceNameTestSelector]: ns.namespace,
-      })}
-    />
-  );
+  return <MenuItem key={ns.namespace} onClick={handleClick} text={ns.namespace} />;
 };
 
 const filterItem: ItemPredicate<NamespaceDescriptor> = (query, ns, idx, exactMatch) => {

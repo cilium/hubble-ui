@@ -6,12 +6,6 @@ import { ServiceCard } from '~/domain/service-map';
 import { EndpointLogo } from './EndpointLogo';
 
 import css from './styles.scss';
-import { getTestAttributes } from '~/testing/helpers';
-
-export enum E2E {
-  cardHeaderTestSelector = 'card-header',
-  cardIdTestSelector = 'card-id',
-}
 
 export interface Props {
   card: ServiceCard;
@@ -28,13 +22,7 @@ export const EndpointCardHeader = memo(function EndpointCardHeader(props: Props)
   });
 
   return (
-    <div
-      className={css.wrapper}
-      {...getTestAttributes({
-        [E2E.cardHeaderTestSelector]: card.caption,
-        [E2E.cardIdTestSelector]: card.id,
-      })}
-    >
+    <div className={css.wrapper}>
       <div className={css.headline} onClick={props.onHeadlineClick}>
         <EndpointLogo card={card} />
 

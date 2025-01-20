@@ -14,7 +14,6 @@ import { NamespaceSelectorDropdown } from './NamespaceSelectorDropdown';
 import { ConnectionIndicator } from './ConnectionIndicator';
 
 import css from './styles.scss';
-import { getTestAttributes } from '~/testing/helpers';
 
 export interface Props {
   transferState: TransferState;
@@ -36,10 +35,6 @@ export interface Props {
   onShowRemoteNodeToggle?: () => void;
   showPrometheusApp: boolean;
   onShowPrometheusAppToggle: () => void;
-}
-
-export enum E2E {
-  topbarRootTestId = 'topbar',
 }
 
 export const TopBar = observer(function TopBar(props: Props) {
@@ -65,7 +60,7 @@ export const TopBar = observer(function TopBar(props: Props) {
   );
 
   return (
-    <div className={css.topbar} {...getTestAttributes(E2E.topbarRootTestId)}>
+    <div className={css.topbar}>
       <div className={css.left}>
         <NamespaceSelectorDropdown
           namespaces={props.namespaces}
