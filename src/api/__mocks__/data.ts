@@ -485,5 +485,7 @@ export const flows: HubbleFlow[] = range(1000).map((): HubbleFlow => {
     verdict: Math.random() <= 0.5 ? Verdict.Forwarded : Verdict.Dropped,
     trafficDirection: Math.random() <= 0.5 ? TrafficDirection.Egress : TrafficDirection.Ingress,
     authType: AuthType.Disbaled,
+    egressAllowedBy: [],
+    ingressAllowedBy: [],
   };
 });

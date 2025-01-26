@@ -29,6 +29,8 @@ import * as misc from '~/domain/misc';
 import * as verdictHelpers from './verdict';
 import { authTypeFromPb } from './auth-type';
 
+const derivedFrom = 'reserved:io.cilium.policy.derived-from';
+
 export const hubbleFlowFromLogEntry = (entry: string | object): HubbleFlow | null => {
   if (entry == null) return null;
 
@@ -82,6 +84,9 @@ export const hubbleFlowFromObj = (obj: any): HubbleFlow | null => {
   const trafficDirection = trafficDirectionFromStr(obj.trafficDirection);
   const authType = authTypeFromStr(obj.authType);
 
+  const egressAllowedBy = getNameFromPolicy(obj.getEgressAllowedByList);
+  const ingressAllowedBy = getNameFromPolicy(obj.getIngressAllowedByList);
+
   return {
     time,
     verdict,
@@ -103,6 +108,8 @@ export const hubbleFlowFromObj = (obj: any): HubbleFlow | null => {
     summary: obj.summary,
     trafficDirection,
     authType,
+    egressAllowedBy,
+    ingressAllowedBy,
   };
 };
 
@@ -145,6 +152,8 @@ export const hubbleFlowFromPb = (flow: flowpb.Flow): HubbleFlow => {
   const destinationService = flowServiceFromPb(flow.destinationService);
   const trafficDirection = trafficDirectionFromPb(flow.trafficDirection);
   const authType = authTypeFromPb(flow.authType);
+  const egressAllowedBy = getNameFromPolicy(flow.egressAllowedBy);
+  const ingressAllowedBy = getNameFromPolicy(flow.ingressAllowedBy);
 
   return {
     time,
@@ -167,6 +176,8 @@ export const hubbleFlowFromPb = (flow: flowpb.Flow): HubbleFlow => {
     summary: flow.summary,
     trafficDirection,
     authType,
+    egressAllowedBy: egressAllowedBy,
+    ingressAllowedBy: ingressAllowedBy,
   };
 };
 
@@ -502,4 +513,26 @@ export const icmpv4FromPb = (icmp: flowpb.ICMPv4): ICMPv4 => {
 
 export const icmpv6FromPb = (icmp: flowpb.ICMPv6): ICMPv6 => {
   return icmpv4FromPb(icmp);
+};
+
+export const getNameFromPolicy = (policies: Array<flowpb.Policy>): Array<string> => {
+  return policies.map(policy => {
+    if (policy.name === '') {
+      const labelMap = new Map<string, string>();
+      policy.labels.forEach(keyValueString => {
+        const [key, value] = keyValueString.split('=');
+        labelMap.set(key, value);
+      });
+
+      // Note: We try to automatically derive the policy name if it is set.
+      //       This is set by the policy mapstate for certain known scenarios, like allowing localhost access.
+      //       See: https://github.com/cilium/cilium/blob/614f2ddcc8fe93aeaf463b4535dcc0f1dcc373a3/pkg/policy/mapstate.go#L42-L49
+      if (labelMap.has(derivedFrom)) {
+        return '<cilium-internal>/' + labelMap.get(derivedFrom);
+      }
+      return '<cilium-internal>/unknown';
+    }
+
+    return policy.namespace + '/' + policy.name;
+  });
 };
