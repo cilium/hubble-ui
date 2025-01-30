@@ -54,7 +54,7 @@ export const Cell = observer(function FlowsTableCell(props: CellProps) {
     case Column.DstService: {
       const appName = props.flow.destinationDns
         ? props.flow.destinationDns
-        : props.flow.destinationIdentityName ?? '—';
+        : (props.flow.destinationIdentityName ?? '—');
 
       const subtitle = props.flow.destinationDns ? (
         ''

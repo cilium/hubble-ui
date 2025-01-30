@@ -1,17 +1,34 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const path = require('path');
-const webpack = require('webpack');
-const inliner = require('@geakstr/sass-inline-svg');
+import path from 'node:path';
+import * as url from 'node:url';
+import webpack from 'webpack';
 
-const Dotenv = require('dotenv-webpack');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const CircularDependencyPlugin = require('circular-dependency-plugin');
-/* eslint-enable @typescript-eslint/no-var-requires */
+import { sassNodeModulesLoadPaths, sassSvgInlinerFactory } from '@blueprintjs/node-build-scripts';
+import Dotenv from 'dotenv-webpack';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
+import MiniCssExtractPlugin from 'mini-css-extract-plugin';
+import CircularDependencyPlugin from 'circular-dependency-plugin';
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 const nodeEnv = process.env.NODE_ENV || 'development';
 const isProduction = nodeEnv.startsWith('prod');
 const isDevelopment = nodeEnv.startsWith('dev');
+
+const sassfunctions = {
+  /**
+   * Sass function to inline a UI icon svg and change its path color.
+   *
+   * Usage:
+   * svg-icon("16px/icon-name.svg", (path: (fill: $color)) )
+   */
+  'svg-icon($path, $selectors: null)': sassSvgInlinerFactory(
+    path.join(__dirname, 'src/icons/blueprint'),
+    {
+      optimize: true,
+      encodingFormat: 'uri',
+    },
+  ),
+};
 
 const stylesLoaders = ({ enableSass, enableModules }) => {
   const sassOpts = {
@@ -57,18 +74,9 @@ const stylesLoaders = ({ enableSass, enableModules }) => {
             loader: 'sass-loader',
             options: {
               sourceMap: true,
-              implementation: require('sass'),
               sassOptions: {
-                functions: {
-                  ...require('@geakstr/sass-inline-svg'),
-                  'svg-icon($path, $selectors: null)': inliner(
-                    path.join(__dirname, 'src/icons/blueprint'),
-                    {
-                      optimize: true,
-                      encodingFormat: 'uri',
-                    },
-                  ),
-                },
+                loadPaths: sassNodeModulesLoadPaths,
+                functions: sassfunctions,
               },
             },
           },
@@ -77,7 +85,7 @@ const stylesLoaders = ({ enableSass, enableModules }) => {
   );
 };
 
-module.exports = {
+export default {
   target: 'web',
   entry: path.resolve(__dirname, './src/index.tsx'),
   mode: isProduction ? 'production' : 'development',

@@ -70,7 +70,7 @@ export const StatusEntryMessage = observer(function StatusEntryMessage(props: Pr
 
         <div className={css.details}>
           {props.detailsTarget != null
-            ? props.detailsTarget(entry) ?? entry.details
+            ? (props.detailsTarget(entry) ?? entry.details)
             : entry.details}
         </div>
       </div>
