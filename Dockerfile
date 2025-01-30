@@ -7,7 +7,7 @@
 # Represents the plataform where the build is happening, do not mix with
 # TARGETARCH
 # skopeo inspect --override-os linux --override-arch amd64 docker://docker.io/library/node:20.14.0-alpine3.20 | jq -r '.Digest'
-FROM --platform=${BUILDPLATFORM} docker.io/library/node:20.14.0-alpine3.20@sha256:da1fb4e470cbe065c849c47c1187a592f7505c1a679f5b3f845ea88b30f763a6 as stage1
+FROM --platform=${BUILDPLATFORM} docker.io/library/node:23.6.1-alpine3.20@sha256:dd3250c7d36069dfcdc4864887085a057d781dfedb8ba2467ef97f34ceee260a as stage1
 RUN apk add bash
 WORKDIR /app
 
