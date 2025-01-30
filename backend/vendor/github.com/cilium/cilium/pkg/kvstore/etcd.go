@@ -814,13 +814,13 @@ reList:
 				scopedLog.Debugf("Emitting list result as %s event for %s=%s", t, key.Key, key.Value)
 			}
 
-			queueStart := spanstat.Start()
-			w.Events <- KeyValueEvent{
+			if !w.emit(ctx, string(key.Key), KeyValueEvent{
 				Key:   string(key.Key),
 				Value: key.Value,
 				Typ:   t,
+			}) {
+				return
 			}
-			trackEventQueued(string(key.Key), t, queueStart.End(true).Total())
 		}
 
 		nextRev := revision + 1
@@ -828,7 +828,7 @@ reList:
 		// Send out deletion events for all keys that were deleted
 		// between our last known revision and the latest revision
 		// received via Get
-		localCache.RemoveDeleted(func(k string) {
+		if !localCache.RemoveDeleted(func(k string) bool {
 			event := KeyValueEvent{
 				Key: k,
 				Typ: EventTypeDelete,
@@ -837,15 +837,16 @@ reList:
 			if traceEnabled {
 				scopedLog.Debugf("Emitting EventTypeDelete event for %s", k)
 			}
-
-			queueStart := spanstat.Start()
-			w.Events <- event
-			trackEventQueued(k, EventTypeDelete, queueStart.End(true).Total())
-		})
+			return w.emit(ctx, k, event)
+		}) {
+			return
+		}
 
 		// Only send the list signal once
 		if !listSignalSent {
-			w.Events <- KeyValueEvent{Typ: EventTypeListDone}
+			if !w.emit(ctx, strings.TrimRight(w.Prefix, "/"), KeyValueEvent{Typ: EventTypeListDone}) {
+				return
+			}
 			listSignalSent = true
 		}
 
@@ -858,6 +859,8 @@ reList:
 			case <-e.client.Ctx().Done():
 				return
 			case <-ctx.Done():
+				return
+			case <-w.stopWatch:
 				return
 			default:
 				goto recreateWatcher
@@ -927,10 +930,9 @@ reList:
 					if traceEnabled {
 						scopedLog.Debugf("Emitting %s event for %s=%s", event.Typ, event.Key, event.Value)
 					}
-
-					queueStart := spanstat.Start()
-					w.Events <- event
-					trackEventQueued(string(ev.Kv.Key), event.Typ, queueStart.End(true).Total())
+					if !w.emit(ctx, string(ev.Kv.Key), event) {
+						return
+					}
 				}
 			}
 		}
@@ -961,7 +963,14 @@ func (e *etcdClient) paginatedList(ctx context.Context, log *logrus.Entry, prefi
 
 		kvs = append(kvs, res.Kvs...)
 
-		revision = res.Header.Revision
+		// Do not modify the revision once set, as subsequent Get queries may
+		// return higher revisions in case other operations are performed in
+		// parallel (regardless of whether we specify WithRev), leading to
+		// possibly missing the events happened in the meantime.
+		if revision == 0 {
+			revision = res.Header.Revision
+		}
+
 		if !res.More || len(res.Kvs) == 0 {
 			return kvs, revision, nil
 		}
@@ -992,7 +1001,7 @@ func (e *etcdClient) determineEndpointStatus(ctx context.Context, endpointAddres
 func (e *etcdClient) statusChecker() {
 	ctx := context.Background()
 
-	consecutiveQuorumErrors := 0
+	var consecutiveQuorumErrors uint
 
 	statusTimer, statusTimerDone := inctimer.New()
 	defer statusTimerDone()
