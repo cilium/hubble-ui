@@ -160,7 +160,7 @@ export class ServiceCard extends AbstractCard {
         ? this.workload?.kind
         : fe.isDNS
           ? this.domain
-          : null || null;
+          : null;
   }
 
   @computed
