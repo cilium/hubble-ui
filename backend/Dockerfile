@@ -3,15 +3,15 @@
 # Copyright 2021 Authors of Cilium
 # SPDX-License-Identifier: Apache-2.0
 
-# skopeo inspect --override-os linux --override-arch docker://docker.io/library/golang:1.22.3-bookworm | jq -r '.Digest'
-ARG GOLANG_IMAGE=docker.io/library/golang:1.22.3-bookworm@sha256:5c56bd47228dd572d8a82971cf1f946cd8bb1862a8ec6dc9f3d387cc94136976
+# skopeo inspect --override-os linux docker://docker.io/library/golang:1.23.5-bookworm | jq -r '.Digest'
+ARG GOLANG_IMAGE=docker.io/library/golang:1.23.5-bookworm@sha256:3149bc5043fa58cf127fd8db1fdd4e533b6aed5a40d663d4f4ae43d20386665f
 
 # $ skopeo inspect --override-os linux docker://gcr.io/distroless/static-debian12:nonroot | jq -r '.Digest'
 # distroless images are signed by cosign. You should verify the image with the
 # following commands:
 # $ docker pull gcr.io/distroless/static-debian12:nonroot
 # $ cosign verify gcr.io/distroless/static-debian12:nonroot --certificate-oidc-issuer https://accounts.google.com --certificate-identity keyless@distroless.iam.gserviceaccount.com
-ARG BASE_IMAGE=gcr.io/distroless/static-debian12:nonroot@sha256:39ae7f0201fee13b777a3e4a5a9326a8889269172c8b4f4289d9f19c831f45f4
+ARG BASE_IMAGE=gcr.io/distroless/static-debian12:nonroot@sha256:6ec5aa99dc335666e79dc64e4a6c8b89c33a543a1967f20d360922a80dd21f02
 
 FROM --platform=${BUILDPLATFORM} ${GOLANG_IMAGE} as app-build
 WORKDIR /app
