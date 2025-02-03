@@ -47,10 +47,10 @@ func (b CPBuilder) WithChannelIdBytesNumber(n int) CPBuilder {
 	return b
 }
 
-func (b CPBuilder) WithClientPollDelays(min, max time.Duration) CPBuilder {
+func (b CPBuilder) WithClientPollDelays(low, high time.Duration) CPBuilder {
 	b.timingsBuilder = b.timingsBuilder.
-		WithMinClientPollDelay(min).
-		WithMaxClientPollDelay(max)
+		WithMinClientPollDelay(low).
+		WithMaxClientPollDelay(high)
 
 	return b
 }

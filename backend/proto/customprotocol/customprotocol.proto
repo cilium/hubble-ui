@@ -43,7 +43,7 @@ message Meta {
 
   // NOTE: Server will use this field to notify the client on what time it
   // should wait before doing next poll request.
-  uint64 poll_delay_ms = 8;
+  int64 poll_delay_ms = 8;
 
   // NOTE: When sent from backend, this flag means that there are no messages
   // in outgoing channel. Combined with `is_terminated` flag this one can be
@@ -58,7 +58,7 @@ message Meta {
 
 message Error {
   Kind kind = 1;
-  int32 code = 2;
+  uint32 code = 2;
   string message = 3;
 
   enum Kind {

@@ -175,5 +175,5 @@ func getServiceId(
 		return fmt.Sprintf("%s-%s", dnsNames[0], sideStr)
 	}
 
-	return fmt.Sprintf("world-%s", sideStr)
+	return "world-" + sideStr
 }

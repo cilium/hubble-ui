@@ -38,7 +38,7 @@ func (ct *ChannelTimings) CountOutgoingPayload() {
 }
 
 // NOTE: This function is assumed to be called after outgoing message is popped
-func (ct *ChannelTimings) ClientPollDelay(noutgoings uint) time.Duration {
+func (ct *ChannelTimings) ClientPollDelay(noutgoings int) time.Duration {
 	// NOTE: If there is pending outgoing message, the client should poll
 	// as fast as possible
 	if noutgoings > 0 {

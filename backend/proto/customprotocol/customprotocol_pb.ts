@@ -87,7 +87,7 @@ export interface Meta {
      * NOTE: Server will use this field to notify the client on what time it
      * should wait before doing next poll request.
      *
-     * @generated from protobuf field: uint64 poll_delay_ms = 8;
+     * @generated from protobuf field: int64 poll_delay_ms = 8;
      */
     pollDelayMs: number;
     /**
@@ -119,7 +119,7 @@ export interface Error {
      */
     kind: Error_Kind;
     /**
-     * @generated from protobuf field: int32 code = 2;
+     * @generated from protobuf field: uint32 code = 2;
      */
     code: number;
     /**
@@ -213,7 +213,7 @@ class Meta$Type extends MessageType<Meta> {
             { no: 5, name: "is_not_ready", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 6, name: "is_error", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 7, name: "errors", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Error },
-            { no: 8, name: "poll_delay_ms", kind: "scalar", T: 4 /*ScalarType.UINT64*/, L: 2 /*LongType.NUMBER*/ },
+            { no: 8, name: "poll_delay_ms", kind: "scalar", T: 3 /*ScalarType.INT64*/, L: 2 /*LongType.NUMBER*/ },
             { no: 9, name: "is_empty", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 100, name: "last_datum_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 101, name: "next_datum_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
@@ -262,8 +262,8 @@ class Meta$Type extends MessageType<Meta> {
                 case /* repeated customprotocol.Error errors */ 7:
                     message.errors.push(Error.internalBinaryRead(reader, reader.uint32(), options));
                     break;
-                case /* uint64 poll_delay_ms */ 8:
-                    message.pollDelayMs = reader.uint64().toNumber();
+                case /* int64 poll_delay_ms */ 8:
+                    message.pollDelayMs = reader.int64().toNumber();
                     break;
                 case /* bool is_empty */ 9:
                     message.isEmpty = reader.bool();
@@ -307,9 +307,9 @@ class Meta$Type extends MessageType<Meta> {
         /* repeated customprotocol.Error errors = 7; */
         for (let i = 0; i < message.errors.length; i++)
             Error.internalBinaryWrite(message.errors[i], writer.tag(7, WireType.LengthDelimited).fork(), options).join();
-        /* uint64 poll_delay_ms = 8; */
+        /* int64 poll_delay_ms = 8; */
         if (message.pollDelayMs !== 0)
-            writer.tag(8, WireType.Varint).uint64(message.pollDelayMs);
+            writer.tag(8, WireType.Varint).int64(message.pollDelayMs);
         /* bool is_empty = 9; */
         if (message.isEmpty !== false)
             writer.tag(9, WireType.Varint).bool(message.isEmpty);
@@ -334,7 +334,7 @@ class Error$Type extends MessageType<Error> {
     constructor() {
         super("customprotocol.Error", [
             { no: 1, name: "kind", kind: "enum", T: () => ["customprotocol.Error.Kind", Error_Kind] },
-            { no: 2, name: "code", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "code", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
             { no: 3, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
@@ -355,8 +355,8 @@ class Error$Type extends MessageType<Error> {
                 case /* customprotocol.Error.Kind kind */ 1:
                     message.kind = reader.int32();
                     break;
-                case /* int32 code */ 2:
-                    message.code = reader.int32();
+                case /* uint32 code */ 2:
+                    message.code = reader.uint32();
                     break;
                 case /* string message */ 3:
                     message.message = reader.string();
@@ -376,9 +376,9 @@ class Error$Type extends MessageType<Error> {
         /* customprotocol.Error.Kind kind = 1; */
         if (message.kind !== 0)
             writer.tag(1, WireType.Varint).int32(message.kind);
-        /* int32 code = 2; */
+        /* uint32 code = 2; */
         if (message.code !== 0)
-            writer.tag(2, WireType.Varint).int32(message.code);
+            writer.tag(2, WireType.Varint).uint32(message.code);
         /* string message = 3; */
         if (message.message !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.message);

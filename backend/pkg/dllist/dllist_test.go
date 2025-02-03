@@ -128,7 +128,7 @@ func TestDrop(t *testing.T) {
 func (tp testProps) runTest(t *testing.T) {
 	list := NewDLList[int]()
 
-	for i := 0; i < tp.numElements; i += 1 {
+	for i := range tp.numElements {
 		list.Add(i)
 		t.Logf("Added %d elem: %s", i, list.String())
 	}

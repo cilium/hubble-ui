@@ -54,15 +54,15 @@ func TestEverything(t *testing.T) {
 		{
 			size: 5,
 			customBehavior: func(rb *RingBuffer[int]) {
-				for i := 0; i < 5; i++ {
+				for i := range 5 {
 					rb.Push(i + 1)
 				}
 
-				for i := 0; i < 13; i++ {
+				for range 13 {
 					rb.Pop()
 				}
 
-				for i := 0; i < 5; i++ {
+				for i := range 5 {
 					rb.Push(i + 1)
 				}
 			},
@@ -71,15 +71,15 @@ func TestEverything(t *testing.T) {
 		{
 			size: 5,
 			customBehavior: func(rb *RingBuffer[int]) {
-				for i := 0; i < 5; i++ {
+				for i := range 5 {
 					rb.Push(i + 1)
 				}
 
-				for i := 0; i < 13; i++ {
+				for range 13 {
 					rb.Pop()
 				}
 
-				for i := 0; i < 3; i++ {
+				for i := range 3 {
 					rb.Push(i + 1)
 				}
 			},
@@ -105,7 +105,7 @@ func runTests[T comparable](t *testing.T, tests []TestDescriptor[T]) {
 }
 
 func (td *TestDescriptor[T]) Run(t *testing.T) {
-	rb := New[T](uint(td.size))
+	rb := New[T](td.size)
 
 	if td.customBehavior != nil {
 		td.customBehavior(rb)
@@ -124,7 +124,7 @@ func (td *TestDescriptor[T]) Run(t *testing.T) {
 			popTimes = len(td.expectPopped)
 		}
 
-		for i := 0; i < popTimes; i++ {
+		for range popTimes {
 			if elem := rb.Pop(); elem != nil {
 				popped = append(popped, *elem)
 			}
@@ -169,7 +169,7 @@ func (td *TestDescriptor[T]) Run(t *testing.T) {
 		}
 
 		for i, elem := range td.expectElems {
-			inside := rb.Get(i)
+			inside := rb.Get(int64(i))
 			if inside == nil {
 				t.Fatalf(
 					"at %d expected elem %v, but nil received\n",

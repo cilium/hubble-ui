@@ -63,7 +63,7 @@ func ServerStatusNotification(
 
 func flowsStatusFromSS(ss *observer.ServerStatusResponse) *ui.FlowStats {
 	perSecond := 0.0
-	if uptime := time.Duration(ss.GetUptimeNs()).Seconds(); uptime > 0 {
+	if uptime := time.Duration(ss.GetUptimeNs()).Seconds(); uptime > 0 { //nolint:gosec
 		perSecond = float64(ss.GetSeenFlows()) / uptime
 	}
 

@@ -86,7 +86,7 @@ func (list *DLList[T]) String() string {
 
 	if r != r.next {
 		cur := r.next
-		for i := uint(0); i < list.n; i++ {
+		for i := range list.n {
 			fmt.Fprintf(&dataStr, "%v", cur.Datum)
 			if i != list.n-1 {
 				fmt.Fprintf(&dataStr, ", ")

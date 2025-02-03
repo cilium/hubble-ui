@@ -11,7 +11,7 @@ type RingBuffer[T any] struct {
 	n      atomic.Int64
 }
 
-func New[T any](capacity uint) *RingBuffer[T] {
+func New[T any](capacity int) *RingBuffer[T] {
 	return &RingBuffer[T]{
 		buffer: make([]T, capacity),
 		start:  atomic.Int64{},
@@ -56,19 +56,19 @@ func (rb *RingBuffer[T]) Pop() *T {
 	}
 }
 
-func (rb *RingBuffer[T]) Get(idx int) *T {
+func (rb *RingBuffer[T]) Get(idx int64) *T {
 	c := int64(len(rb.buffer))
 	if c == 0 || rb.n.Load() == 0 {
 		return nil
 	}
 
 	for idx < 0 {
-		idx += int(c)
+		idx += c
 	}
 
 	for {
 		start := rb.start.Load()
-		ridx := (start + int64(idx)) % c
+		ridx := (start + idx) % c
 
 		if rb.start.Load() == start {
 			return &rb.buffer[ridx]
@@ -120,7 +120,7 @@ func (rb *RingBuffer[T]) Iterate(fn func(*T) bool) {
 		return
 	}
 
-	for i := 0; i < int(rb.n.Load()); i++ {
+	for i := range rb.n.Load() {
 		if fn(rb.Get(i)) {
 			break
 		}

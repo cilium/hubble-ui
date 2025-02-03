@@ -13,7 +13,7 @@ func FromError(err error) *cppb.Error {
 	if grpcStatus, ok := status.FromError(err); ok {
 		return &cppb.Error{
 			Kind:    cppb.Error_Grpc,
-			Code:    int32(grpcStatus.Code()),
+			Code:    uint32(grpcStatus.Code()),
 			Message: grpcStatus.Message(),
 		}
 	}
