@@ -175,7 +175,7 @@ func (m *Message) IsEmpty() bool {
 	return m.Proto.GetMeta().GetIsEmpty()
 }
 
-func (m *Message) PollDelayMs() uint64 {
+func (m *Message) PollDelayMs() int64 {
 	return m.Proto.GetMeta().GetPollDelayMs()
 }
 

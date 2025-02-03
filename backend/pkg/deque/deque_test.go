@@ -24,7 +24,7 @@ func printDebug[T any](t *testing.T, d *Deque[T]) {
 }
 
 func fullTest(t *testing.T, initcap int) {
-	d := New[int](uint(initcap))
+	d := New[int](initcap)
 
 	if s := d.Size(); s != 0 {
 		t.Fatalf("initial deque has invalid size: %d\n", s)
@@ -55,17 +55,17 @@ func pushFrontAndBackElements(t *testing.T, d *Deque[int], initcap int) {
 	n := initcap >> 1
 	m := initcap - n
 
-	for i := 0; i < n; i++ {
+	for i := range n {
 		d.Push(initcap - (n - i) + 1)
 	}
 
-	for i := 0; i < m; i++ {
+	for i := range m {
 		d.PushBack(m - i)
 	}
 
 	printDebug(t, d)
-	for i := 0; i < initcap; i++ {
-		e := d.Get(uint(i))
+	for i := range initcap {
+		e := d.Get(i)
 
 		if e == nil {
 			t.Fatalf(
@@ -92,7 +92,7 @@ func popAndPopBackElements(t *testing.T, d *Deque[int], initcap int) {
 	n := initcap >> 1
 	m := initcap - n
 
-	for i := 0; i < n; i++ {
+	for i := range n {
 		e := d.Pop()
 		if *e != initcap-i {
 			t.Fatalf(
@@ -103,7 +103,7 @@ func popAndPopBackElements(t *testing.T, d *Deque[int], initcap int) {
 		}
 	}
 
-	for i := 0; i < m; i++ {
+	for i := range m {
 		e := d.PopBack()
 		if *e != i+1 {
 			t.Fatalf(
@@ -132,14 +132,14 @@ func zeroCheck(t *testing.T, d *Deque[int], initcap int, capcheck bool) {
 		)
 	}
 
-	for i := 0; i < 42; i++ {
+	for range 42 {
 		e := d.Pop()
 		if e != nil {
 			t.Fatalf("zeroCheck %d: Pop() gives non-zero element\n", initcap)
 		}
 	}
 
-	for i := 0; i < 42; i++ {
+	for range 42 {
 		e := d.PopBack()
 		if e != nil {
 			t.Fatalf("zeroCheck %d: PopBack() gives non-zero element\n", initcap)
@@ -148,7 +148,7 @@ func zeroCheck(t *testing.T, d *Deque[int], initcap int, capcheck bool) {
 }
 
 func popBackElements(t *testing.T, d *Deque[int], amount int) {
-	if d.Size() != uint(amount) {
+	if d.Size() != amount {
 		t.Fatalf(
 			"popBackElements: d.Size() (%d) != amount (%d)\n",
 			d.Size(),
@@ -156,7 +156,7 @@ func popBackElements(t *testing.T, d *Deque[int], amount int) {
 		)
 	}
 
-	for i := 0; i < amount; i++ {
+	for i := range amount {
 		e := d.PopBack()
 		if e == nil {
 			t.Fatalf(
@@ -182,12 +182,12 @@ func popBackElements(t *testing.T, d *Deque[int], amount int) {
 }
 
 func pushBackElements(t *testing.T, d *Deque[int], amount int) {
-	for i := 0; i < amount; i++ {
+	for i := range amount {
 		d.PushBack(amount - i)
 	}
 
-	for i := 0; i < amount; i++ {
-		e := d.Get(uint(i))
+	for i := range amount {
+		e := d.Get(i)
 		if e == nil {
 			t.Fatalf(
 				"pushBackElements(%d): %d element is nil (%d is expected)\n",
@@ -209,7 +209,7 @@ func pushBackElements(t *testing.T, d *Deque[int], amount int) {
 		}
 	}
 
-	if d.Size() != uint(amount) {
+	if d.Size() != amount {
 		t.Fatalf(
 			"pushBackElements: d.Size() (%d) != amount (%d)\n",
 			d.Size(),
@@ -219,12 +219,12 @@ func pushBackElements(t *testing.T, d *Deque[int], amount int) {
 }
 
 func pushElements(t *testing.T, d *Deque[int], amount int) {
-	for i := 0; i < amount; i++ {
+	for i := range amount {
 		d.Push(i + 1)
 	}
 
-	for i := 0; i < amount; i++ {
-		e := d.Get(uint(i))
+	for i := range amount {
+		e := d.Get(i)
 		if e == nil {
 			t.Fatalf(
 				"pushElements(%d): %d element is nil (%d is expected)\n",
@@ -246,17 +246,17 @@ func pushElements(t *testing.T, d *Deque[int], amount int) {
 		}
 	}
 
-	if d.Size() != uint(amount) {
+	if d.Size() != amount {
 		t.Fatalf("pushElements: d.Size() (%d) != amount (%d)\n", d.Size(), amount)
 	}
 }
 
 func popElements(t *testing.T, d *Deque[int], amount int) {
-	if d.Size() != uint(amount) {
+	if d.Size() != amount {
 		t.Fatalf("popElements: d.Size() (%d) != amount (%d)\n", d.Size(), amount)
 	}
 
-	for i := 0; i < amount; i++ {
+	for i := range amount {
 		e := d.Pop()
 		if e == nil {
 			t.Fatalf(

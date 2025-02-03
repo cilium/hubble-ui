@@ -537,7 +537,7 @@ func TestConsumeHandlerUpdates(t *testing.T) {
 
 		d, ok := current.(*StringAndNum)
 		if !ok {
-			return fmt.Errorf("wrong handler data")
+			return errors.New("wrong handler data")
 		}
 
 		if d.Num == 2 {
@@ -566,7 +566,7 @@ func TestConsumeHandlerUpdates(t *testing.T) {
 			case hd := <-ch.HandlerDataUpdated():
 				d, ok := hd.(*StringAndNum)
 				if !ok {
-					return fmt.Errorf("handler data is not a string")
+					return errors.New("handler data is not a string")
 				}
 
 				if d.Num != i {
@@ -739,7 +739,7 @@ func streamErrAfterResponse(ch *channel.Channel) error {
 }
 
 func streamFiveNumbers(ch *channel.Channel) error {
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		body := []byte(fmt.Sprintf("number: %d", i+1))
 
 		if err := ch.Send(body); err != nil {
@@ -809,7 +809,7 @@ func streamSteppedRate(ch *channel.Channel) error {
 
 	parts := strings.Split(string(firstMsg.BodyBytes()), " ")
 	if len(parts) != 4 {
-		return fmt.Errorf("stepped rate handler need 4 components")
+		return errors.New("stepped rate handler need 4 components")
 	}
 
 	nOne, err := strconv.ParseUint(parts[0], 10, 64)

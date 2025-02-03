@@ -42,7 +42,7 @@ jobs:
         uses: golangci/golangci-lint-action@aaa42aa0628b4ae2578232a66b541047968fac86
         with:
           working-directory: ./backend
-          version: v1.59.0
+          version: v1.63.4
           args: --config=.golangci.yml --verbose --out-${NO_FUTURE}format colored-line-number
           skip-cache: true
       - name: Setup Node.js

@@ -15,7 +15,7 @@ var (
 type DataThrottler[T any] struct {
 	mx          sync.Mutex
 	buffer      *deque.Deque[T]
-	maxLength   uint
+	maxLength   int
 	delay       time.Duration
 	lastFlashAt time.Time
 	ticker      *time.Ticker
@@ -24,7 +24,7 @@ type DataThrottler[T any] struct {
 	stopOnce    sync.Once
 }
 
-func New[T any](delay time.Duration, maxLength uint) (*DataThrottler[T], error) {
+func New[T any](delay time.Duration, maxLength int) (*DataThrottler[T], error) {
 	if maxLength == 0 {
 		return nil, ErrUnbounded
 	}
@@ -54,7 +54,7 @@ func (d *DataThrottler[T]) IterateAndFlush(fn func(*T)) {
 	d.mx.Lock()
 	defer d.mx.Unlock()
 
-	for i := uint(0); i < d.buffer.Size(); i++ {
+	for i := range d.buffer.Size() {
 		fn(d.buffer.Get(i))
 	}
 
@@ -101,7 +101,7 @@ func (d *DataThrottler[T]) Ticker() <-chan struct{} {
 	return d.tickerCh
 }
 
-func (d *DataThrottler[T]) Size() uint {
+func (d *DataThrottler[T]) Size() int {
 	d.mx.Lock()
 	defer d.mx.Unlock()
 

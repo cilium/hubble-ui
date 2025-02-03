@@ -1,8 +1,6 @@
 package logger
 
 import (
-	"fmt"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/cilium/cilium/pkg/logging"
@@ -19,7 +17,7 @@ func New(module string) *logrus.Entry {
 }
 
 func Sub(submodule string) *logrus.Entry {
-	subsys := fmt.Sprintf("ui-backend:%s", submodule)
+	subsys := "ui-backend:" + submodule
 
 	return CiliumDefaultLogger.WithField(logfields.LogSubsys, subsys)
 }

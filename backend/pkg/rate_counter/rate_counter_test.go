@@ -57,7 +57,7 @@ func TestEverything(t *testing.T) {
 		},
 		{
 			countingFn: func(rc *RateCounter) {
-				for i := 0; i < 5; i++ {
+				for range 5 {
 					rc.Count()
 
 					<-time.After(20 * time.Millisecond)
@@ -91,7 +91,7 @@ func (td *Test) Run(t *testing.T) {
 	t.Run(testName, func(t *testing.T) {
 		rc := New()
 		if td.countingFn == nil {
-			for i := 0; i < td.countNum; i++ {
+			for range td.countNum {
 				rc.Count()
 
 				// if i == td.countNum-1 {

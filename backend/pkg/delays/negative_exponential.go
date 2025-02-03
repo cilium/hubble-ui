@@ -1,7 +1,7 @@
 package delays
 
 import (
-	"fmt"
+	"errors"
 	"math"
 )
 
@@ -13,18 +13,16 @@ type NegativeExponential struct {
 }
 
 // NOTE: Bigger steep leads to faster descent
-func NewNegativeExponential(min, max, steep float64) (*NegativeExponential, error) {
+func NewNegativeExponential(low, high, steep float64) (*NegativeExponential, error) {
 	if tooSmall(steep) {
-		return nil, fmt.Errorf(
-			"cannot build NegativeExponential: steep parameter cannot be zero",
-		)
+		return nil, errors.New("cannot build NegativeExponential: steep parameter cannot be zero")
 	}
 
 	powerOfE := math.Exp(steep)
 	denom := (1 - powerOfE) / powerOfE
 
-	b := (min - max) / denom
-	a := (max/powerOfE - min) / denom
+	b := (low - high) / denom
+	a := (high/powerOfE - low) / denom
 
 	return &NegativeExponential{
 		a:     a,

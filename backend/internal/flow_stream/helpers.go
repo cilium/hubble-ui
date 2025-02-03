@@ -47,7 +47,7 @@ func ExtractFlowsRequest(
 	// https://github.com/cilium/hubble/issues/363
 	var (
 		getFlowsSinceTime  time.Time
-		getFlowsLastNumber int
+		getFlowsLastNumber uint64
 		err                error
 		isGetSinceSet      bool
 		isGetLastSet       bool
@@ -65,11 +65,11 @@ func ExtractFlowsRequest(
 	if !isGetLastSet {
 		request.Number = 10000
 	} else {
-		if getFlowsLastNumber, err = strconv.Atoi(getFlowsLast); err != nil {
+		if getFlowsLastNumber, err = strconv.ParseUint(getFlowsLast, 10, 64); err != nil {
 			log.Errorf(msg.GetFlowsLastParseError, err)
 			request.Number = 10000
 		} else {
-			request.Number = uint64(getFlowsLastNumber)
+			request.Number = getFlowsLastNumber
 		}
 	}
 

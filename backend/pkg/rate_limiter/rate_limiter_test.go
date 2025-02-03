@@ -1,7 +1,6 @@
 package rate_limiter
 
 import (
-	"fmt"
 	"testing"
 	"time"
 )
@@ -9,7 +8,7 @@ import (
 func TestDisabled(t *testing.T) {
 	rl := Disabled()
 
-	for i := 0; i < 10_000; i += 1 {
+	for range 10_000 {
 		if acq, _ := rl.Acquire(); acq {
 			t.Fatal("disabled rate limiter acquired")
 		}
@@ -19,7 +18,7 @@ func TestDisabled(t *testing.T) {
 func TestUnlimited(t *testing.T) {
 	rl := Unlimited()
 
-	for i := 0; i < 10_000; i += 1 {
+	for range 10_000 {
 		if acq, _ := rl.Acquire(); !acq {
 			t.Fatal("unlimited rate limiter doesnt acquire")
 		}
@@ -32,7 +31,7 @@ func TestLimited(t *testing.T) {
 
 	for _, delay := range delays {
 		period := time.Duration(parts) * delay
-		tname := fmt.Sprintf("period-%s", period.String())
+		tname := "period-" + period.String()
 
 		_delay := delay
 		t.Run(tname, func(t *testing.T) {
@@ -45,7 +44,7 @@ func TestLimited(t *testing.T) {
 				t.Fatal("first acquire failed")
 			}
 
-			for i := 0; i < parts-1; i += 1 {
+			for i := range parts - 1 {
 				t.Logf("before sleep %d (%s)\n", i, delay)
 				sleep(_delay)
 

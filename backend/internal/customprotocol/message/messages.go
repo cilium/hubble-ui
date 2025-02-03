@@ -152,10 +152,10 @@ func (m *Messages) PeekIncoming() *Message {
 	return *msg
 }
 
-func (m *Messages) OutgoingsSize() uint {
+func (m *Messages) OutgoingsSize() int {
 	return m.outgoings.Size()
 }
 
-func (m *Messages) IncomingsSize() uint {
+func (m *Messages) IncomingsSize() int {
 	return m.incomings.Size()
 }

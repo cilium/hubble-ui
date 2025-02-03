@@ -67,7 +67,7 @@ func (dch *DynamicChannel[T]) Slice() []T {
 	d := make([]T, dch.supply.Size())
 
 	for i := 0; i < len(d); i += 1 {
-		cl := dch.supply.Get(uint(i))
+		cl := dch.supply.Get(i)
 		d[len(d)-1-i] = (*cl).datum
 	}
 
@@ -231,7 +231,7 @@ func (dch *DynamicChannel[T]) Peek() *T {
 	return &(*elem).datum
 }
 
-func (dch *DynamicChannel[T]) Size() uint {
+func (dch *DynamicChannel[T]) Size() int {
 	dch.mx.RLock()
 	defer dch.mx.RUnlock()
 

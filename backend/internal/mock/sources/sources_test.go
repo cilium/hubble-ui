@@ -45,7 +45,7 @@ func testNsName(i int) string {
 func prepareNSEvents(start, _num int) []*common.NSEvent {
 	evts := []*common.NSEvent{}
 
-	for i := 0; i < _num; i += 1 {
+	for i := range _num {
 		evts = append(
 			evts,
 			factories.CreateNSEvent(events.Added, testNsName(start+i)),

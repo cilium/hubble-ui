@@ -2,7 +2,7 @@
 # Also https://github.com/cilium/cilium/blob/master/.golangci.yaml as a
 # reference.
 run:
-  go: '1.22'
+  go: '1.23'
   timeout: 3m
 linters:
   disable-all: true
@@ -12,36 +12,47 @@ linters:
     - bidichk
     - bodyclose
     - contextcheck
+    - copyloopvar
     - decorder
+    - dupword
     - durationcheck
     - err113
     - errchkjson
     - errname
+    - exptostd
+    - gocheckcompilerdirectives
     - gocritic
     - gofmt
     - goimports
     - goprintffuncname
-    - gosec 
+    - gosec
     - gosimple
     - govet
     - ineffassign
     - interfacebloat
+    - intrange
     - makezero
+    - mirror
     - misspell
     - nakedret
     - nilerr
     - noctx
     - nosprintfhostport
+    - perfsprint
     - predeclared
+    - protogetter
     - reassign
     - revive
+    - sloglint
     - staticcheck
     - tenv
+    - testifylint
     - typecheck
     - unconvert
     - unparam
     - unused
     - usestdlibvars
+    - usetesting
     - wastedassign
 linters-settings:
   gocritic:

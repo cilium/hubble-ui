@@ -2,6 +2,7 @@ package flow
 
 import (
 	"fmt"
+	"strconv"
 
 	pbFlow "github.com/cilium/cilium/api/v1/flow"
 	"github.com/cilium/hubble-ui/backend/domain/service"
@@ -44,7 +45,7 @@ func (f *Flow) BuildServices() (*service.Service, *service.Service) {
 
 func (f *Flow) BuildSenderService() *service.Service {
 	svc := service.FromEndpointProtoAndDNS(
-		f.ref, f.ref.Source, f.ref.SourceNames,
+		f.ref, f.ref.GetSource(), f.ref.GetSourceNames(),
 	)
 
 	svc.SetIsSender(true)
@@ -54,7 +55,7 @@ func (f *Flow) BuildSenderService() *service.Service {
 
 func (f *Flow) BuildReceiverService() *service.Service {
 	svc := service.FromEndpointProtoAndDNS(
-		f.ref, f.ref.Destination, f.ref.DestinationNames,
+		f.ref, f.ref.GetDestination(), f.ref.GetDestinationNames(),
 	)
 
 	svc.SetIsReceiver(true)
@@ -63,11 +64,11 @@ func (f *Flow) BuildReceiverService() *service.Service {
 }
 
 func (f *Flow) TCP() *pbFlow.TCP {
-	if f.ref.L4 == nil {
+	if f.ref.GetL4() == nil {
 		return nil
 	}
 
-	tcp, ok := f.ref.L4.Protocol.(*pbFlow.Layer4_TCP)
+	tcp, ok := f.ref.GetL4().GetProtocol().(*pbFlow.Layer4_TCP)
 	if !ok {
 		return nil
 	}
@@ -76,11 +77,11 @@ func (f *Flow) TCP() *pbFlow.TCP {
 }
 
 func (f *Flow) UDP() *pbFlow.UDP {
-	if f.ref.L4 == nil {
+	if f.ref.GetL4() == nil {
 		return nil
 	}
 
-	udp, ok := f.ref.L4.Protocol.(*pbFlow.Layer4_UDP)
+	udp, ok := f.ref.GetL4().GetProtocol().(*pbFlow.Layer4_UDP)
 	if !ok {
 		return nil
 	}
@@ -89,11 +90,11 @@ func (f *Flow) UDP() *pbFlow.UDP {
 }
 
 func (f *Flow) ICMPv4() *pbFlow.Layer4_ICMPv4 {
-	if f.ref.L4 == nil {
+	if f.ref.GetL4() == nil {
 		return nil
 	}
 
-	icmp, ok := f.ref.L4.Protocol.(*pbFlow.Layer4_ICMPv4)
+	icmp, ok := f.ref.GetL4().GetProtocol().(*pbFlow.Layer4_ICMPv4)
 	if !ok {
 		return nil
 	}
@@ -102,11 +103,11 @@ func (f *Flow) ICMPv4() *pbFlow.Layer4_ICMPv4 {
 }
 
 func (f *Flow) ICMPv6() *pbFlow.Layer4_ICMPv6 {
-	if f.ref.L4 == nil {
+	if f.ref.GetL4() == nil {
 		return nil
 	}
 
-	icmp, ok := f.ref.L4.Protocol.(*pbFlow.Layer4_ICMPv6)
+	icmp, ok := f.ref.GetL4().GetProtocol().(*pbFlow.Layer4_ICMPv6)
 	if !ok {
 		return nil
 	}
@@ -156,55 +157,55 @@ func (f *Flow) SourcePort() *uint32 {
 func (f *Flow) String() string {
 	srcPort, dstPort := "-", "-"
 	if f.SourcePort() != nil {
-		srcPort = fmt.Sprintf("%d", *f.SourcePort())
+		srcPort = strconv.FormatUint(uint64(*f.SourcePort()), 10)
 	}
 
 	if f.DestinationPort() != nil {
-		dstPort = fmt.Sprintf("%d", *f.DestinationPort())
+		dstPort = strconv.FormatUint(uint64(*f.DestinationPort()), 10)
 	}
 
 	sourceEpDesc := "nil"
-	if f.ref.Source != nil {
+	if f.ref.GetSource() != nil {
 		sourceEpDesc = fmt.Sprintf(
 			"ID: %d, Identity: %d, ns: %s, podname: %s, labels: %v",
-			f.ref.Source.ID,
-			f.ref.Source.Identity,
-			f.ref.Source.Namespace,
-			f.ref.Source.PodName,
-			f.ref.Source.Labels,
+			f.ref.GetSource().GetID(),
+			f.ref.GetSource().GetIdentity(),
+			f.ref.GetSource().GetNamespace(),
+			f.ref.GetSource().GetPodName(),
+			f.ref.GetSource().GetLabels(),
 		)
 	}
 
-	sourceSvc := f.ref.SourceService
+	sourceSvc := f.ref.GetSourceService()
 	sourceSvcDesc := "nil"
 	if sourceSvc != nil {
 		sourceSvcDesc = fmt.Sprintf(
 			"ns: %s, name: %s",
-			sourceSvc.Namespace,
-			sourceSvc.Name,
+			sourceSvc.GetNamespace(),
+			sourceSvc.GetName(),
 		)
 	}
 
-	destinationEp := f.ref.Destination
+	destinationEp := f.ref.GetDestination()
 	destinationEpDesc := "nil"
 	if destinationEp != nil {
 		destinationEpDesc = fmt.Sprintf(
 			"ID: %d, Identity: %d, ns: %s, podname: %s, labels: %v",
-			destinationEp.ID,
-			destinationEp.Identity,
-			destinationEp.Namespace,
-			destinationEp.PodName,
-			destinationEp.Labels,
+			destinationEp.GetID(),
+			destinationEp.GetIdentity(),
+			destinationEp.GetNamespace(),
+			destinationEp.GetPodName(),
+			destinationEp.GetLabels(),
 		)
 	}
 
-	destinationSvc := f.ref.DestinationService
+	destinationSvc := f.ref.GetDestinationService()
 	destinationSvcDesc := "nil"
 	if destinationSvc != nil {
 		destinationSvcDesc = fmt.Sprintf(
 			"ns: %s, name: %s",
-			destinationSvc.Namespace,
-			destinationSvc.Name,
+			destinationSvc.GetNamespace(),
+			destinationSvc.GetName(),
 		)
 	}
 
@@ -222,11 +223,11 @@ func (f *Flow) String() string {
 		f.ProtocolString(),
 		sourceEpDesc,
 		sourceSvcDesc,
-		f.ref.SourceNames,
+		f.ref.GetSourceNames(),
 		srcPort,
 		destinationEpDesc,
 		destinationSvcDesc,
-		f.ref.DestinationNames,
+		f.ref.GetDestinationNames(),
 		dstPort,
 	)
 }

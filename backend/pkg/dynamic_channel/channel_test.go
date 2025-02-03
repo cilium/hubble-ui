@@ -17,7 +17,7 @@ func TestBlockedPushBlockedPop(t *testing.T) {
 	producerFn := func(gctx *GoroutineContext[int, *intAccumulator]) {
 		gctx.td.IterateProduce(func(i int) {
 			if err := gctx.dch.Enqueue(gctx.ctx, gctx.acc.Produce()); err != nil {
-				t.Fatalf(err.Error())
+				t.Fatal(err.Error())
 			}
 		})
 	}
@@ -48,7 +48,7 @@ func TestBlockedPushBlockedPop(t *testing.T) {
 				num := gctx.acc.Produce()
 
 				if err := gctx.dch.Enqueue(gctx.ctx, num); err != nil {
-					t.Fatalf(err.Error())
+					t.Fatal(err.Error())
 				}
 			})
 		},
@@ -260,7 +260,7 @@ func runTest[T, A any](t *testing.T, testName string, td TestDescriptor[T, A]) {
 	t.Run(testName, func(t *testing.T) {
 		nsuccess := 0
 		if td.producerFn != nil {
-			for i := 0; i < td.nproducers; i++ {
+			for i := range td.nproducers {
 				gctx := &GoroutineContext[T, A]{
 					t:          t,
 					ctx:        pctx,
@@ -283,7 +283,7 @@ func runTest[T, A any](t *testing.T, testName string, td TestDescriptor[T, A]) {
 		}
 
 		if td.consumerFn != nil {
-			for i := 0; i < td.nconsumers; i++ {
+			for i := range td.nconsumers {
 				gctx := &GoroutineContext[T, A]{
 					t:          t,
 					ctx:        cctx,
@@ -335,7 +335,7 @@ type TestDescriptor[T, A any] struct {
 }
 
 func (td *TestDescriptor[T, A]) IterateProduce(fn func(int)) {
-	for i := 0; i < td.nproduces; i++ {
+	for i := range td.nproduces {
 		fn(i)
 	}
 }

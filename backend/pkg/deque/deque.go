@@ -1,13 +1,13 @@
 package deque
 
 type Deque[T any] struct {
-	start uint
-	n     uint
+	start int
+	n     int
 
 	data []T
 }
 
-func New[T any](size uint) *Deque[T] {
+func New[T any](size int) *Deque[T] {
 	return &Deque[T]{
 		start: 0,
 		n:     0,
@@ -15,12 +15,12 @@ func New[T any](size uint) *Deque[T] {
 	}
 }
 
-func (d *Deque[T]) Get(i uint) *T {
+func (d *Deque[T]) Get(i int) *T {
 	if i >= d.n {
 		return nil
 	}
 
-	return &d.data[(d.start+i)%uint(len(d.data))]
+	return &d.data[(d.start+i)%len(d.data)]
 }
 
 func (d *Deque[T]) Peek() *T {
@@ -28,7 +28,7 @@ func (d *Deque[T]) Peek() *T {
 		return nil
 	}
 
-	idx := (d.start + d.n - 1) % uint(len(d.data))
+	idx := (d.start + d.n - 1) % len(d.data)
 	return &d.data[idx]
 }
 
@@ -45,7 +45,7 @@ func (d *Deque[T]) Pop() *T {
 		return nil
 	}
 
-	size := uint(len(d.data))
+	size := len(d.data)
 	e := &d.data[(d.start+d.n-1)%size]
 	d.n -= 1
 
@@ -56,7 +56,7 @@ func (d *Deque[T]) Pop() *T {
 func (d *Deque[T]) Push(e T) {
 	d.checkGrow()
 
-	i := (d.start + d.n) % uint(len(d.data))
+	i := (d.start + d.n) % len(d.data)
 	d.data[i] = e
 	d.n += 1
 }
@@ -67,7 +67,7 @@ func (d *Deque[T]) PopBack() *T {
 	}
 
 	e := &d.data[d.start]
-	d.start = (d.start + 1) % uint(len(d.data))
+	d.start = (d.start + 1) % len(d.data)
 	d.n -= 1
 
 	d.checkShrink()
@@ -76,7 +76,7 @@ func (d *Deque[T]) PopBack() *T {
 
 func (d *Deque[T]) PushBack(e T) {
 	d.checkGrow()
-	l := uint(len(d.data))
+	l := len(d.data)
 
 	i := (d.start + l - 1) % l
 	d.start = i
@@ -84,15 +84,15 @@ func (d *Deque[T]) PushBack(e T) {
 	d.n += 1
 }
 
-func (d *Deque[T]) Size() uint {
+func (d *Deque[T]) Size() int {
 	return d.n
 }
 
 func (d *Deque[T]) Slice() []T {
 	s := make([]T, d.Size())
 
-	for i := uint(0); i < d.n; i++ {
-		s[int(i)] = *d.Get(i)
+	for i := range d.n {
+		s[i] = *d.Get(i)
 	}
 
 	return s
@@ -104,13 +104,13 @@ func (d *Deque[T]) Flush() {
 }
 
 func (d *Deque[T]) checkGrow() {
-	if d.n == uint(len(d.data)) {
+	if d.n == len(d.data) {
 		d.grow()
 	}
 }
 
 func (d *Deque[T]) checkShrink() {
-	if 3*d.n <= uint(len(d.data)) {
+	if 3*d.n <= len(d.data) {
 		d.shrink()
 	}
 }
@@ -137,8 +137,8 @@ func (d *Deque[T]) realloc(newcap int) {
 	oldcap := len(d.data)
 	newmem := make([]T, newcap)
 
-	for i := uint(0); i < d.n; i++ {
-		oldi := (d.start + i) % uint(oldcap)
+	for i := range d.n {
+		oldi := (d.start + i) % oldcap
 		newmem[i] = d.data[oldi]
 	}
 

@@ -69,7 +69,7 @@ func (b MessageBuilder) WithNotReady(nr bool) MessageBuilder {
 }
 
 func (b MessageBuilder) WithPollDelay(d time.Duration) MessageBuilder {
-	b.p.Meta.PollDelayMs = uint64(d.Milliseconds())
+	b.p.Meta.PollDelayMs = d.Milliseconds()
 	return b
 }
 

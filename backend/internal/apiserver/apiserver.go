@@ -88,7 +88,7 @@ func New(
 func (srv *APIServer) Listen() error {
 	port := srv.port
 	addr := fmt.Sprintf("0.0.0.0:%d", port)
-	rootRoute := fmt.Sprintf("%s/:RouteName", srv.rootRoute)
+	rootRoute := srv.rootRoute + "/:RouteName"
 
 	mux := httprouter.New()
 	mux.Handler(http.MethodPost, rootRoute, srv.router)

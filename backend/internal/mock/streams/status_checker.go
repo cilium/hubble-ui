@@ -101,14 +101,16 @@ func (sc *StatusChecker) genStatusResponse(nodes []*observer.Node) *observer.Ser
 	}
 
 	return &observer.ServerStatusResponse{
-		NumFlows:            numFlows,
-		MaxFlows:            maxFlows,
-		SeenFlows:           seenFlows,
-		UptimeNs:            uptimeNs,
-		NumConnectedNodes:   numConnectedNodes,
-		NumUnavailableNodes: wrapperspb.UInt32(uint32(len(unavailNodes))),
-		UnavailableNodes:    unavailNodes,
-		Version:             version,
+		NumFlows:          numFlows,
+		MaxFlows:          maxFlows,
+		SeenFlows:         seenFlows,
+		UptimeNs:          uptimeNs,
+		NumConnectedNodes: numConnectedNodes,
+		NumUnavailableNodes: &wrapperspb.UInt32Value{
+			Value: uint32(len(unavailNodes)), //nolint:gosec
+		},
+		UnavailableNodes: unavailNodes,
+		Version:          version,
 	}
 }
 
@@ -127,7 +129,7 @@ func (sc *StatusChecker) genNodesResponse() *observer.GetNodesResponse {
 			Address:   "10.43.138.71",
 			State:     relay.NodeState_UNKNOWN_NODE_STATE,
 			Tls:       tls,
-			UptimeNs:  uint64(uptime.Nanoseconds()),
+			UptimeNs:  uint64(uptime.Nanoseconds()), //nolint:gosec
 			NumFlows:  1024,
 			MaxFlows:  65536,
 			SeenFlows: 32768,
@@ -138,7 +140,7 @@ func (sc *StatusChecker) genNodesResponse() *observer.GetNodesResponse {
 			Address:   "10.43.138.72",
 			State:     relay.NodeState_NODE_CONNECTED,
 			Tls:       tls,
-			UptimeNs:  uint64(uptime.Nanoseconds()),
+			UptimeNs:  uint64(uptime.Nanoseconds()), //nolint:gosec
 			NumFlows:  2048,
 			MaxFlows:  65536,
 			SeenFlows: 32768,
@@ -149,7 +151,7 @@ func (sc *StatusChecker) genNodesResponse() *observer.GetNodesResponse {
 			Address:   "10.43.138.73",
 			State:     relay.NodeState_NODE_UNAVAILABLE,
 			Tls:       tls,
-			UptimeNs:  uint64(uptime.Nanoseconds()),
+			UptimeNs:  uint64(uptime.Nanoseconds()), //nolint:gosec
 			NumFlows:  4096,
 			MaxFlows:  65536,
 			SeenFlows: 32768,
@@ -160,7 +162,7 @@ func (sc *StatusChecker) genNodesResponse() *observer.GetNodesResponse {
 			Address:   "10.43.138.74",
 			State:     relay.NodeState_NODE_GONE,
 			Tls:       tls,
-			UptimeNs:  uint64(uptime.Nanoseconds()),
+			UptimeNs:  uint64(uptime.Nanoseconds()), //nolint:gosec
 			NumFlows:  8192,
 			MaxFlows:  65536,
 			SeenFlows: 32768,
@@ -171,7 +173,7 @@ func (sc *StatusChecker) genNodesResponse() *observer.GetNodesResponse {
 			Address:   "10.43.138.75",
 			State:     relay.NodeState_NODE_ERROR,
 			Tls:       tls,
-			UptimeNs:  uint64(uptime.Nanoseconds()),
+			UptimeNs:  uint64(uptime.Nanoseconds()), //nolint:gosec
 			NumFlows:  16384,
 			MaxFlows:  65536,
 			SeenFlows: 32768,
