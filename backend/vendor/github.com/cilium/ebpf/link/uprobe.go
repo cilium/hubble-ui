@@ -16,7 +16,7 @@ var (
 	uprobeRefCtrOffsetPMUPath = "/sys/bus/event_source/devices/uprobe/format/ref_ctr_offset"
 	// elixir.bootlin.com/linux/v5.15-rc7/source/kernel/events/core.c#L9799
 	uprobeRefCtrOffsetShift = 32
-	haveRefCtrOffsetPMU     = internal.NewFeatureTest("RefCtrOffsetPMU", "4.20", func() error {
+	haveRefCtrOffsetPMU     = internal.NewFeatureTest("RefCtrOffsetPMU", func() error {
 		_, err := os.Stat(uprobeRefCtrOffsetPMUPath)
 		if errors.Is(err, os.ErrNotExist) {
 			return internal.ErrNotSupported
@@ -25,7 +25,7 @@ var (
 			return err
 		}
 		return nil
-	})
+	}, "4.20")
 
 	// ErrNoSymbol indicates that the given symbol was not found
 	// in the ELF symbols table.
@@ -222,6 +222,8 @@ func (ex *Executable) address(symbol string, address, offset uint64) (uint64, er
 //
 // Functions provided by shared libraries can currently not be traced and
 // will result in an ErrNotSupported.
+//
+// The returned Link may implement [PerfEvent].
 func (ex *Executable) Uprobe(symbol string, prog *ebpf.Program, opts *UprobeOptions) (Link, error) {
 	u, err := ex.uprobe(symbol, prog, opts, false)
 	if err != nil {
@@ -256,6 +258,8 @@ func (ex *Executable) Uprobe(symbol string, prog *ebpf.Program, opts *UprobeOpti
 //
 // Functions provided by shared libraries can currently not be traced and
 // will result in an ErrNotSupported.
+//
+// The returned Link may implement [PerfEvent].
 func (ex *Executable) Uretprobe(symbol string, prog *ebpf.Program, opts *UprobeOptions) (Link, error) {
 	u, err := ex.uprobe(symbol, prog, opts, true)
 	if err != nil {
@@ -317,7 +321,7 @@ func (ex *Executable) uprobe(symbol string, prog *ebpf.Program, opts *UprobeOpti
 	if err == nil {
 		return tp, nil
 	}
-	if err != nil && !errors.Is(err, ErrNotSupported) {
+	if !errors.Is(err, ErrNotSupported) {
 		return nil, fmt.Errorf("creating perf_uprobe PMU: %w", err)
 	}
 

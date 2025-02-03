@@ -78,7 +78,9 @@ func NewFromID(id ID) (Link, error) {
 	return wrapRawLink(&RawLink{fd, ""})
 }
 
-// LoadPinnedLink loads a link that was persisted into a bpffs.
+// LoadPinnedLink loads a Link from a pin (file) on the BPF virtual filesystem.
+//
+// Requires at least Linux 5.7.
 func LoadPinnedLink(fileName string, opts *ebpf.LoadPinOptions) (Link, error) {
 	raw, err := loadPinnedRawLink(fileName, opts)
 	if err != nil {
@@ -119,13 +121,15 @@ func wrapRawLink(raw *RawLink) (_ Link, err error) {
 	case UprobeMultiType:
 		return &uprobeMultiLink{*raw}, nil
 	case PerfEventType:
-		return nil, fmt.Errorf("recovering perf event fd: %w", ErrNotSupported)
+		return &perfEventLink{*raw, nil}, nil
 	case TCXType:
 		return &tcxLink{*raw}, nil
 	case NetfilterType:
 		return &netfilterLink{*raw}, nil
 	case NetkitType:
 		return &netkitLink{*raw}, nil
+	case XDPType:
+		return &xdpLink{*raw}, nil
 	default:
 		return raw, nil
 	}
@@ -348,12 +352,17 @@ func AttachRawLink(opts RawLinkOptions) (*RawLink, error) {
 }
 
 func loadPinnedRawLink(fileName string, opts *ebpf.LoadPinOptions) (*RawLink, error) {
-	fd, err := sys.ObjGet(&sys.ObjGetAttr{
+	fd, typ, err := sys.ObjGetTyped(&sys.ObjGetAttr{
 		Pathname:  sys.NewStringPointer(fileName),
 		FileFlags: opts.Marshal(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("load pinned link: %w", err)
+	}
+
+	if typ != sys.BPF_TYPE_LINK {
+		_ = fd.Close()
+		return nil, fmt.Errorf("%s is not a Link", fileName)
 	}
 
 	return &RawLink{fd, fileName}, nil
@@ -378,7 +387,7 @@ func (l *RawLink) Close() error {
 // Calling Close on a pinned Link will not break the link
 // until the pin is removed.
 func (l *RawLink) Pin(fileName string) error {
-	if err := internal.Pin(l.pinnedPath, fileName, l.fd); err != nil {
+	if err := sys.Pin(l.pinnedPath, fileName, l.fd); err != nil {
 		return err
 	}
 	l.pinnedPath = fileName
@@ -387,7 +396,7 @@ func (l *RawLink) Pin(fileName string) error {
 
 // Unpin implements the Link interface.
 func (l *RawLink) Unpin() error {
-	if err := internal.Unpin(l.pinnedPath); err != nil {
+	if err := sys.Unpin(l.pinnedPath); err != nil {
 		return err
 	}
 	l.pinnedPath = ""
@@ -438,6 +447,9 @@ func (l *RawLink) UpdateArgs(opts RawLinkUpdateOptions) error {
 }
 
 // Info returns metadata about the link.
+//
+// Linktype specific metadata is not included and can be retrieved
+// via the linktype specific Info() method.
 func (l *RawLink) Info() (*Info, error) {
 	var info sys.LinkInfo
 
@@ -445,117 +457,11 @@ func (l *RawLink) Info() (*Info, error) {
 		return nil, fmt.Errorf("link info: %s", err)
 	}
 
-	var extra interface{}
-	switch info.Type {
-	case CgroupType:
-		var cgroupInfo sys.CgroupLinkInfo
-		if err := sys.ObjInfo(l.fd, &cgroupInfo); err != nil {
-			return nil, fmt.Errorf("cgroup link info: %s", err)
-		}
-		extra = &CgroupInfo{
-			CgroupId:   cgroupInfo.CgroupId,
-			AttachType: cgroupInfo.AttachType,
-		}
-	case NetNsType:
-		var netnsInfo sys.NetNsLinkInfo
-		if err := sys.ObjInfo(l.fd, &netnsInfo); err != nil {
-			return nil, fmt.Errorf("netns link info: %s", err)
-		}
-		extra = &NetNsInfo{
-			NetnsIno:   netnsInfo.NetnsIno,
-			AttachType: netnsInfo.AttachType,
-		}
-	case TracingType:
-		var tracingInfo sys.TracingLinkInfo
-		if err := sys.ObjInfo(l.fd, &tracingInfo); err != nil {
-			return nil, fmt.Errorf("tracing link info: %s", err)
-		}
-		extra = &TracingInfo{
-			TargetObjId: tracingInfo.TargetObjId,
-			TargetBtfId: tracingInfo.TargetBtfId,
-			AttachType:  tracingInfo.AttachType,
-		}
-	case XDPType:
-		var xdpInfo sys.XDPLinkInfo
-		if err := sys.ObjInfo(l.fd, &xdpInfo); err != nil {
-			return nil, fmt.Errorf("xdp link info: %s", err)
-		}
-		extra = &XDPInfo{
-			Ifindex: xdpInfo.Ifindex,
-		}
-	case RawTracepointType, IterType, UprobeMultiType:
-		// Extra metadata not supported.
-	case TCXType:
-		var tcxInfo sys.TcxLinkInfo
-		if err := sys.ObjInfo(l.fd, &tcxInfo); err != nil {
-			return nil, fmt.Errorf("tcx link info: %s", err)
-		}
-		extra = &TCXInfo{
-			Ifindex:    tcxInfo.Ifindex,
-			AttachType: tcxInfo.AttachType,
-		}
-	case NetfilterType:
-		var netfilterInfo sys.NetfilterLinkInfo
-		if err := sys.ObjInfo(l.fd, &netfilterInfo); err != nil {
-			return nil, fmt.Errorf("netfilter link info: %s", err)
-		}
-		extra = &NetfilterInfo{
-			Pf:       netfilterInfo.Pf,
-			Hooknum:  netfilterInfo.Hooknum,
-			Priority: netfilterInfo.Priority,
-			Flags:    netfilterInfo.Flags,
-		}
-	case NetkitType:
-		var netkitInfo sys.NetkitLinkInfo
-		if err := sys.ObjInfo(l.fd, &netkitInfo); err != nil {
-			return nil, fmt.Errorf("tcx link info: %s", err)
-		}
-		extra = &NetkitInfo{
-			Ifindex:    netkitInfo.Ifindex,
-			AttachType: netkitInfo.AttachType,
-		}
-	case KprobeMultiType:
-		var kprobeMultiInfo sys.KprobeMultiLinkInfo
-		if err := sys.ObjInfo(l.fd, &kprobeMultiInfo); err != nil {
-			return nil, fmt.Errorf("kprobe multi link info: %s", err)
-		}
-		extra = &KprobeMultiInfo{
-			count:  kprobeMultiInfo.Count,
-			flags:  kprobeMultiInfo.Flags,
-			missed: kprobeMultiInfo.Missed,
-		}
-	case PerfEventType:
-		var perfEventInfo sys.PerfEventLinkInfo
-		if err := sys.ObjInfo(l.fd, &perfEventInfo); err != nil {
-			return nil, fmt.Errorf("perf event link info: %s", err)
-		}
-
-		var extra2 interface{}
-		switch perfEventInfo.PerfEventType {
-		case sys.BPF_PERF_EVENT_KPROBE, sys.BPF_PERF_EVENT_KRETPROBE:
-			var kprobeInfo sys.KprobeLinkInfo
-			if err := sys.ObjInfo(l.fd, &kprobeInfo); err != nil {
-				return nil, fmt.Errorf("kprobe multi link info: %s", err)
-			}
-			extra2 = &KprobeInfo{
-				address: kprobeInfo.Addr,
-				missed:  kprobeInfo.Missed,
-			}
-		}
-
-		extra = &PerfEventInfo{
-			Type:  perfEventInfo.PerfEventType,
-			extra: extra2,
-		}
-	default:
-		return nil, fmt.Errorf("unknown link info type: %d", info.Type)
-	}
-
 	return &Info{
 		info.Type,
 		info.Id,
 		ebpf.ProgramID(info.ProgId),
-		extra,
+		nil,
 	}, nil
 }
 

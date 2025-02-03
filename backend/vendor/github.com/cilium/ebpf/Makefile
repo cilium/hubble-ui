@@ -39,16 +39,18 @@ TARGETS := \
 	testdata/subprog_reloc \
 	testdata/fwd_decl \
 	testdata/kconfig \
-	testdata/kconfig_config \
+	testdata/ksym \
 	testdata/kfunc \
 	testdata/invalid-kfunc \
 	testdata/kfunc-kmod \
 	testdata/constants \
 	testdata/errors \
+	testdata/variables \
 	btf/testdata/relocs \
 	btf/testdata/relocs_read \
 	btf/testdata/relocs_read_tgt \
 	btf/testdata/relocs_enum \
+	btf/testdata/tags \
 	cmd/bpf2go/testdata/minimal
 
 .PHONY: all clean container-all container-shell generate
@@ -57,7 +59,7 @@ TARGETS := \
 
 # Build all ELF binaries using a containerized LLVM toolchain.
 container-all:
-	+${CONTAINER_ENGINE} run --rm -t ${CONTAINER_RUN_ARGS} \
+	+${CONTAINER_ENGINE} run --rm -ti ${CONTAINER_RUN_ARGS} \
 		-v "${REPODIR}":/ebpf -w /ebpf --env MAKEFLAGS \
 		--env HOME="/tmp" \
 		--env BPF2GO_CC="$(CLANG)" \
@@ -106,7 +108,7 @@ testdata/loader-%-eb.elf: testdata/loader.c
 	$(STRIP) -g $@
 
 .PHONY: update-kernel-deps
-update-kernel-deps: export KERNEL_VERSION?=6.7
+update-kernel-deps: export KERNEL_VERSION?=6.8
 update-kernel-deps:
 	./testdata/sh/update-kernel-deps.sh
 	$(MAKE) container-all
