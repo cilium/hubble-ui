@@ -1,6 +1,7 @@
 package netlink
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"strings"
@@ -74,17 +75,19 @@ func (h *Handle) AddrDel(link Link, addr *Addr) error {
 }
 
 func (h *Handle) addrHandle(link Link, addr *Addr, req *nl.NetlinkRequest) error {
-	base := link.Attrs()
-	if addr.Label != "" && !strings.HasPrefix(addr.Label, base.Name) {
-		return fmt.Errorf("label must begin with interface name")
-	}
-	h.ensureIndex(base)
-
 	family := nl.GetIPFamily(addr.IP)
-
 	msg := nl.NewIfAddrmsg(family)
-	msg.Index = uint32(base.Index)
 	msg.Scope = uint8(addr.Scope)
+	if link == nil {
+		msg.Index = uint32(addr.LinkIndex)
+	} else {
+		base := link.Attrs()
+		if addr.Label != "" && !strings.HasPrefix(addr.Label, base.Name) {
+			return fmt.Errorf("label must begin with interface name")
+		}
+		h.ensureIndex(base)
+		msg.Index = uint32(base.Index)
+	}
 	mask := addr.Mask
 	if addr.Peer != nil {
 		mask = addr.Peer.Mask
@@ -167,6 +170,9 @@ func (h *Handle) addrHandle(link Link, addr *Addr, req *nl.NetlinkRequest) error
 // AddrList gets a list of IP addresses in the system.
 // Equivalent to: `ip addr show`.
 // The list can be filtered by link and ip family.
+//
+// If the returned error is [ErrDumpInterrupted], results may be inconsistent
+// or incomplete.
 func AddrList(link Link, family int) ([]Addr, error) {
 	return pkgHandle.AddrList(link, family)
 }
@@ -174,14 +180,17 @@ func AddrList(link Link, family int) ([]Addr, error) {
 // AddrList gets a list of IP addresses in the system.
 // Equivalent to: `ip addr show`.
 // The list can be filtered by link and ip family.
+//
+// If the returned error is [ErrDumpInterrupted], results may be inconsistent
+// or incomplete.
 func (h *Handle) AddrList(link Link, family int) ([]Addr, error) {
 	req := h.newNetlinkRequest(unix.RTM_GETADDR, unix.NLM_F_DUMP)
 	msg := nl.NewIfAddrmsg(family)
 	req.AddData(msg)
 
-	msgs, err := req.Execute(unix.NETLINK_ROUTE, unix.RTM_NEWADDR)
-	if err != nil {
-		return nil, err
+	msgs, executeErr := req.Execute(unix.NETLINK_ROUTE, unix.RTM_NEWADDR)
+	if executeErr != nil && !errors.Is(executeErr, ErrDumpInterrupted) {
+		return nil, executeErr
 	}
 
 	indexFilter := 0
@@ -210,7 +219,7 @@ func (h *Handle) AddrList(link Link, family int) ([]Addr, error) {
 		res = append(res, addr)
 	}
 
-	return res, nil
+	return res, executeErr
 }
 
 func parseAddr(m []byte) (addr Addr, family int, err error) {

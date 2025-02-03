@@ -91,6 +91,12 @@ export interface Flow {
      */
     nodeName: string;
     /**
+     * node labels in `foo=bar` format.
+     *
+     * @generated from protobuf field: repeated string node_labels = 37;
+     */
+    nodeLabels: string[];
+    /**
      * all names the source IP can have.
      *
      * @generated from protobuf field: repeated string source_names = 13;
@@ -154,6 +160,12 @@ export interface Flow {
      * @generated from protobuf field: flow.TraceObservationPoint trace_observation_point = 24;
      */
     traceObservationPoint: TraceObservationPoint;
+    /**
+     * Cilium datapath trace reason info.
+     *
+     * @generated from protobuf field: flow.TraceReason trace_reason = 36;
+     */
+    traceReason: TraceReason;
     /**
      * only applicable to Verdict = DROPPED.
      *
@@ -243,6 +255,18 @@ export interface Flow {
      * @generated from protobuf field: repeated flow.Policy ingress_allowed_by = 21002;
      */
     ingressAllowedBy: Policy[];
+    /**
+     * The CiliumNetworkPolicies denying the egress of the flow.
+     *
+     * @generated from protobuf field: repeated flow.Policy egress_denied_by = 21004;
+     */
+    egressDeniedBy: Policy[];
+    /**
+     * The CiliumNetworkPolicies denying the ingress of the flow.
+     *
+     * @generated from protobuf field: repeated flow.Policy ingress_denied_by = 21005;
+     */
+    ingressDeniedBy: Policy[];
 }
 /**
  * @generated from protobuf message flow.Layer4
@@ -370,6 +394,10 @@ export interface Endpoint {
      */
     identity: number;
     /**
+     * @generated from protobuf field: string cluster_name = 7;
+     */
+    clusterName: string;
+    /**
      * @generated from protobuf field: string namespace = 3;
      */
     namespace: string;
@@ -426,6 +454,13 @@ export interface IP {
      * @generated from protobuf field: string source = 1;
      */
     source: string;
+    /**
+     * source_xlated is the post translation source IP when the flow was SNATed
+     * (and in that case source is the the original source IP).
+     *
+     * @generated from protobuf field: string source_xlated = 5;
+     */
+    sourceXlated: string;
     /**
      * @generated from protobuf field: string destination = 2;
      */
@@ -642,6 +677,14 @@ export interface FlowFilter {
      */
     sourceIp: string[];
     /**
+     * source_ip_xlated filters by a list IPs. Each of the IPs can be specified
+     * as an exact match (e.g. "1.1.1.1") or as a CIDR range (e.g.
+     * "1.1.1.0/24").
+     *
+     * @generated from protobuf field: repeated string source_ip_xlated = 34;
+     */
+    sourceIpXlated: string[];
+    /**
      * source_pod filters by a list of source pod name prefixes, optionally
      * within a given namespace (e.g. "xwing", "kube-system/coredns-").
      * The pod name can be omitted to only filter by namespace
@@ -728,6 +771,18 @@ export interface FlowFilter {
      * @generated from protobuf field: repeated flow.Verdict verdict = 5;
      */
     verdict: Verdict[];
+    /**
+     * only applicable to Verdict = DROPPED (e.g. "POLICY_DENIED", "UNSUPPORTED_L3_PROTOCOL")
+     *
+     * @generated from protobuf field: repeated flow.DropReason drop_reason_desc = 33;
+     */
+    dropReasonDesc: DropReason[];
+    /**
+     * interface is the network interface on which this flow was observed.
+     *
+     * @generated from protobuf field: repeated flow.NetworkInterface interface = 35;
+     */
+    interface: NetworkInterface[];
     /**
      * event_type is the list of event types to filter on
      *
@@ -822,6 +877,13 @@ export interface FlowFilter {
      */
     nodeName: string[];
     /**
+     * node_labels filters on a list of node label selectors. Selectors support
+     * the full Kubernetes label selector syntax.
+     *
+     * @generated from protobuf field: repeated string node_labels = 36;
+     */
+    nodeLabels: string[];
+    /**
      * filter based on IP version (ipv4 or ipv6)
      *
      * @generated from protobuf field: repeated flow.IPVersion ip_version = 25;
@@ -833,6 +895,35 @@ export interface FlowFilter {
      * @generated from protobuf field: repeated string trace_id = 28;
      */
     traceId: string[];
+    /**
+     * experimental contains filters that are not stable yet. Support for
+     * experimental features is always optional and subject to change.
+     *
+     * @generated from protobuf field: flow.FlowFilter.Experimental experimental = 999;
+     */
+    experimental?: FlowFilter_Experimental;
+}
+/**
+ * Experimental contains filters that are not stable yet. Support for
+ * experimental features is always optional and subject to change.
+ *
+ * @generated from protobuf message flow.FlowFilter.Experimental
+ */
+export interface FlowFilter_Experimental {
+    /**
+     * cel_expression takes a common expression language (CEL) expression
+     * returning a boolean to determine if the filter matched or not.
+     * You can use the `_flow` variable to access fields on the flow using
+     * the flow.Flow protobuf field names.
+     * See https://github.com/google/cel-spec/blob/v0.14.0/doc/intro.md#introduction
+     * for more details on CEL and accessing the protobuf fields in CEL.
+     * Using CEL has performance cost compared to other filters, so prefer
+     * using non-CEL filters when possible, and try to specify CEL filters
+     * last in the list of FlowFilters.
+     *
+     * @generated from protobuf field: repeated string cel_expression = 1;
+     */
+    celExpression: string[];
 }
 /**
  * DNS flow. This is basically directly mapped from Cilium's [LogRecordDNS](https://github.com/cilium/cilium/blob/04f3889d627774f79e56d14ddbc165b3169e2d01/pkg/proxy/accesslog/record.go#L264):
@@ -1441,6 +1532,48 @@ export enum TraceObservationPoint {
     TO_NETWORK = 11
 }
 /**
+ * @generated from protobuf enum flow.TraceReason
+ */
+export enum TraceReason {
+    /**
+     * @generated from protobuf enum value: TRACE_REASON_UNKNOWN = 0;
+     */
+    TRACE_REASON_UNKNOWN = 0,
+    /**
+     * @generated from protobuf enum value: NEW = 1;
+     */
+    NEW = 1,
+    /**
+     * @generated from protobuf enum value: ESTABLISHED = 2;
+     */
+    ESTABLISHED = 2,
+    /**
+     * @generated from protobuf enum value: REPLY = 3;
+     */
+    REPLY = 3,
+    /**
+     * @generated from protobuf enum value: RELATED = 4;
+     */
+    RELATED = 4,
+    /**
+     * @deprecated
+     * @generated from protobuf enum value: REOPENED = 5 [deprecated = true];
+     */
+    REOPENED = 5,
+    /**
+     * @generated from protobuf enum value: SRV6_ENCAP = 6;
+     */
+    SRV6_ENCAP = 6,
+    /**
+     * @generated from protobuf enum value: SRV6_DECAP = 7;
+     */
+    SRV6_DECAP = 7,
+    /**
+     * @generated from protobuf enum value: ENCRYPT_OVERLAY = 8;
+     */
+    ENCRYPT_OVERLAY = 8
+}
+/**
  * This enum corresponds to Cilium's L7 accesslog [FlowType](https://github.com/cilium/cilium/blob/728c79e427438ab6f8d9375b62fccd6fed4ace3a/pkg/proxy/accesslog/record.go#L26):
  *
  * @generated from protobuf enum flow.L7FlowType
@@ -1556,11 +1689,13 @@ export enum DropReason {
     /**
      * drop reasons
      *
-     * @generated from protobuf enum value: INVALID_SOURCE_MAC = 130;
+     * @deprecated
+     * @generated from protobuf enum value: INVALID_SOURCE_MAC = 130 [deprecated = true];
      */
     INVALID_SOURCE_MAC = 130,
     /**
-     * @generated from protobuf enum value: INVALID_DESTINATION_MAC = 131;
+     * @deprecated
+     * @generated from protobuf enum value: INVALID_DESTINATION_MAC = 131 [deprecated = true];
      */
     INVALID_DESTINATION_MAC = 131,
     /**
@@ -1588,7 +1723,8 @@ export enum DropReason {
      */
     CT_UNKNOWN_L4_PROTOCOL = 137,
     /**
-     * @generated from protobuf enum value: CT_CANNOT_CREATE_ENTRY_FROM_PACKET = 138;
+     * @deprecated
+     * @generated from protobuf enum value: CT_CANNOT_CREATE_ENTRY_FROM_PACKET = 138 [deprecated = true];
      */
     CT_CANNOT_CREATE_ENTRY_FROM_PACKET = 138,
     /**
@@ -1628,11 +1764,13 @@ export enum DropReason {
      */
     ERROR_RETRIEVING_TUNNEL_KEY = 147,
     /**
-     * @generated from protobuf enum value: ERROR_RETRIEVING_TUNNEL_OPTIONS = 148;
+     * @deprecated
+     * @generated from protobuf enum value: ERROR_RETRIEVING_TUNNEL_OPTIONS = 148 [deprecated = true];
      */
     ERROR_RETRIEVING_TUNNEL_OPTIONS = 148,
     /**
-     * @generated from protobuf enum value: INVALID_GENEVE_OPTION = 149;
+     * @deprecated
+     * @generated from protobuf enum value: INVALID_GENEVE_OPTION = 149 [deprecated = true];
      */
     INVALID_GENEVE_OPTION = 149,
     /**
@@ -1644,7 +1782,8 @@ export enum DropReason {
      */
     STALE_OR_UNROUTABLE_IP = 151,
     /**
-     * @generated from protobuf enum value: NO_MATCHING_LOCAL_CONTAINER_FOUND = 152;
+     * @deprecated
+     * @generated from protobuf enum value: NO_MATCHING_LOCAL_CONTAINER_FOUND = 152 [deprecated = true];
      */
     NO_MATCHING_LOCAL_CONTAINER_FOUND = 152,
     /**
@@ -1776,7 +1915,8 @@ export enum DropReason {
      */
     NO_SID = 185,
     /**
-     * @generated from protobuf enum value: MISSING_SRV6_STATE = 186;
+     * @deprecated
+     * @generated from protobuf enum value: MISSING_SRV6_STATE = 186 [deprecated = true];
      */
     MISSING_SRV6_STATE = 186,
     /**
@@ -1845,7 +1985,21 @@ export enum DropReason {
      *
      * @generated from protobuf enum value: DROP_HOST_NOT_READY = 202;
      */
-    DROP_HOST_NOT_READY = 202
+    DROP_HOST_NOT_READY = 202,
+    /**
+     * A BPF program wants to tail call some endpoint's policy program in the
+     * POLICY_CALL_MAP, but the program is not available.
+     *
+     * @generated from protobuf enum value: DROP_EP_NOT_READY = 203;
+     */
+    DROP_EP_NOT_READY = 203,
+    /**
+     * An Egress Gateway node matched a packet against an Egress Gateway policy
+     * that didn't select a valid Egress IP.
+     *
+     * @generated from protobuf enum value: DROP_NO_EGRESS_IP = 204;
+     */
+    DROP_NO_EGRESS_IP = 204
 }
 /**
  * @generated from protobuf enum flow.TrafficDirection
@@ -2344,6 +2498,7 @@ class Flow$Type extends MessageType<Flow> {
             { no: 9, name: "destination", kind: "message", T: () => Endpoint },
             { no: 10, name: "Type", kind: "enum", jsonName: "Type", T: () => ["flow.FlowType", FlowType] },
             { no: 11, name: "node_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 37, name: "node_labels", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 13, name: "source_names", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 14, name: "destination_names", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 15, name: "l7", kind: "message", T: () => Layer7 },
@@ -2354,6 +2509,7 @@ class Flow$Type extends MessageType<Flow> {
             { no: 22, name: "traffic_direction", kind: "enum", T: () => ["flow.TrafficDirection", TrafficDirection] },
             { no: 23, name: "policy_match_type", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
             { no: 24, name: "trace_observation_point", kind: "enum", T: () => ["flow.TraceObservationPoint", TraceObservationPoint] },
+            { no: 36, name: "trace_reason", kind: "enum", T: () => ["flow.TraceReason", TraceReason] },
             { no: 25, name: "drop_reason_desc", kind: "enum", T: () => ["flow.DropReason", DropReason] },
             { no: 26, name: "is_reply", kind: "message", T: () => BoolValue },
             { no: 27, name: "debug_capture_point", kind: "enum", T: () => ["flow.DebugCapturePoint", DebugCapturePoint] },
@@ -2366,7 +2522,9 @@ class Flow$Type extends MessageType<Flow> {
             { no: 100000, name: "Summary", kind: "scalar", jsonName: "Summary", T: 9 /*ScalarType.STRING*/ },
             { no: 150000, name: "extensions", kind: "message", T: () => Any },
             { no: 21001, name: "egress_allowed_by", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Policy },
-            { no: 21002, name: "ingress_allowed_by", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Policy }
+            { no: 21002, name: "ingress_allowed_by", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Policy },
+            { no: 21004, name: "egress_denied_by", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Policy },
+            { no: 21005, name: "ingress_denied_by", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Policy }
         ]);
     }
     create(value?: PartialMessage<Flow>): Flow {
@@ -2377,12 +2535,14 @@ class Flow$Type extends MessageType<Flow> {
         message.authType = 0;
         message.type = 0;
         message.nodeName = "";
+        message.nodeLabels = [];
         message.sourceNames = [];
         message.destinationNames = [];
         message.reply = false;
         message.trafficDirection = 0;
         message.policyMatchType = 0;
         message.traceObservationPoint = 0;
+        message.traceReason = 0;
         message.dropReasonDesc = 0;
         message.debugCapturePoint = 0;
         message.proxyPort = 0;
@@ -2392,6 +2552,8 @@ class Flow$Type extends MessageType<Flow> {
         message.summary = "";
         message.egressAllowedBy = [];
         message.ingressAllowedBy = [];
+        message.egressDeniedBy = [];
+        message.ingressDeniedBy = [];
         if (value !== undefined)
             reflectionMergePartial<Flow>(this, message, value);
         return message;
@@ -2437,6 +2599,9 @@ class Flow$Type extends MessageType<Flow> {
                 case /* string node_name */ 11:
                     message.nodeName = reader.string();
                     break;
+                case /* repeated string node_labels */ 37:
+                    message.nodeLabels.push(reader.string());
+                    break;
                 case /* repeated string source_names */ 13:
                     message.sourceNames.push(reader.string());
                     break;
@@ -2466,6 +2631,9 @@ class Flow$Type extends MessageType<Flow> {
                     break;
                 case /* flow.TraceObservationPoint trace_observation_point */ 24:
                     message.traceObservationPoint = reader.int32();
+                    break;
+                case /* flow.TraceReason trace_reason */ 36:
+                    message.traceReason = reader.int32();
                     break;
                 case /* flow.DropReason drop_reason_desc */ 25:
                     message.dropReasonDesc = reader.int32();
@@ -2505,6 +2673,12 @@ class Flow$Type extends MessageType<Flow> {
                     break;
                 case /* repeated flow.Policy ingress_allowed_by */ 21002:
                     message.ingressAllowedBy.push(Policy.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated flow.Policy egress_denied_by */ 21004:
+                    message.egressDeniedBy.push(Policy.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated flow.Policy ingress_denied_by */ 21005:
+                    message.ingressDeniedBy.push(Policy.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2554,6 +2728,9 @@ class Flow$Type extends MessageType<Flow> {
         /* string node_name = 11; */
         if (message.nodeName !== "")
             writer.tag(11, WireType.LengthDelimited).string(message.nodeName);
+        /* repeated string node_labels = 37; */
+        for (let i = 0; i < message.nodeLabels.length; i++)
+            writer.tag(37, WireType.LengthDelimited).string(message.nodeLabels[i]);
         /* repeated string source_names = 13; */
         for (let i = 0; i < message.sourceNames.length; i++)
             writer.tag(13, WireType.LengthDelimited).string(message.sourceNames[i]);
@@ -2584,6 +2761,9 @@ class Flow$Type extends MessageType<Flow> {
         /* flow.TraceObservationPoint trace_observation_point = 24; */
         if (message.traceObservationPoint !== 0)
             writer.tag(24, WireType.Varint).int32(message.traceObservationPoint);
+        /* flow.TraceReason trace_reason = 36; */
+        if (message.traceReason !== 0)
+            writer.tag(36, WireType.Varint).int32(message.traceReason);
         /* flow.DropReason drop_reason_desc = 25; */
         if (message.dropReasonDesc !== 0)
             writer.tag(25, WireType.Varint).int32(message.dropReasonDesc);
@@ -2623,6 +2803,12 @@ class Flow$Type extends MessageType<Flow> {
         /* repeated flow.Policy ingress_allowed_by = 21002; */
         for (let i = 0; i < message.ingressAllowedBy.length; i++)
             Policy.internalBinaryWrite(message.ingressAllowedBy[i], writer.tag(21002, WireType.LengthDelimited).fork(), options).join();
+        /* repeated flow.Policy egress_denied_by = 21004; */
+        for (let i = 0; i < message.egressDeniedBy.length; i++)
+            Policy.internalBinaryWrite(message.egressDeniedBy[i], writer.tag(21004, WireType.LengthDelimited).fork(), options).join();
+        /* repeated flow.Policy ingress_denied_by = 21005; */
+        for (let i = 0; i < message.ingressDeniedBy.length; i++)
+            Policy.internalBinaryWrite(message.ingressDeniedBy[i], writer.tag(21005, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2908,6 +3094,7 @@ class Endpoint$Type extends MessageType<Endpoint> {
         super("flow.Endpoint", [
             { no: 1, name: "ID", kind: "scalar", jsonName: "ID", T: 13 /*ScalarType.UINT32*/ },
             { no: 2, name: "identity", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
+            { no: 7, name: "cluster_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "namespace", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "labels", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 5, name: "pod_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
@@ -2918,6 +3105,7 @@ class Endpoint$Type extends MessageType<Endpoint> {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.iD = 0;
         message.identity = 0;
+        message.clusterName = "";
         message.namespace = "";
         message.labels = [];
         message.podName = "";
@@ -2936,6 +3124,9 @@ class Endpoint$Type extends MessageType<Endpoint> {
                     break;
                 case /* uint32 identity */ 2:
                     message.identity = reader.uint32();
+                    break;
+                case /* string cluster_name */ 7:
+                    message.clusterName = reader.string();
                     break;
                 case /* string namespace */ 3:
                     message.namespace = reader.string();
@@ -2967,6 +3158,9 @@ class Endpoint$Type extends MessageType<Endpoint> {
         /* uint32 identity = 2; */
         if (message.identity !== 0)
             writer.tag(2, WireType.Varint).uint32(message.identity);
+        /* string cluster_name = 7; */
+        if (message.clusterName !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.clusterName);
         /* string namespace = 3; */
         if (message.namespace !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.namespace);
@@ -3111,6 +3305,7 @@ class IP$Type extends MessageType<IP> {
     constructor() {
         super("flow.IP", [
             { no: 1, name: "source", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "source_xlated", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "destination", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "ipVersion", kind: "enum", T: () => ["flow.IPVersion", IPVersion] },
             { no: 4, name: "encrypted", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
@@ -3119,6 +3314,7 @@ class IP$Type extends MessageType<IP> {
     create(value?: PartialMessage<IP>): IP {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.source = "";
+        message.sourceXlated = "";
         message.destination = "";
         message.ipVersion = 0;
         message.encrypted = false;
@@ -3133,6 +3329,9 @@ class IP$Type extends MessageType<IP> {
             switch (fieldNo) {
                 case /* string source */ 1:
                     message.source = reader.string();
+                    break;
+                case /* string source_xlated */ 5:
+                    message.sourceXlated = reader.string();
                     break;
                 case /* string destination */ 2:
                     message.destination = reader.string();
@@ -3158,6 +3357,9 @@ class IP$Type extends MessageType<IP> {
         /* string source = 1; */
         if (message.source !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.source);
+        /* string source_xlated = 5; */
+        if (message.sourceXlated !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.sourceXlated);
         /* string destination = 2; */
         if (message.destination !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.destination);
@@ -3758,6 +3960,7 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
         super("flow.FlowFilter", [
             { no: 29, name: "uuid", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 1, name: "source_ip", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 34, name: "source_ip_xlated", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "source_pod", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "source_fqdn", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 10, name: "source_label", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
@@ -3771,6 +3974,8 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
             { no: 27, name: "destination_workload", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Workload },
             { no: 30, name: "traffic_direction", kind: "enum", repeat: 1 /*RepeatType.PACKED*/, T: () => ["flow.TrafficDirection", TrafficDirection] },
             { no: 5, name: "verdict", kind: "enum", repeat: 1 /*RepeatType.PACKED*/, T: () => ["flow.Verdict", Verdict] },
+            { no: 33, name: "drop_reason_desc", kind: "enum", repeat: 1 /*RepeatType.PACKED*/, T: () => ["flow.DropReason", DropReason] },
+            { no: 35, name: "interface", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => NetworkInterface },
             { no: 6, name: "event_type", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => EventTypeFilter },
             { no: 9, name: "http_status_code", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 12, name: "protocol", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
@@ -3786,14 +3991,17 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
             { no: 32, name: "http_header", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => HTTPHeader },
             { no: 23, name: "tcp_flags", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TCPFlags },
             { no: 24, name: "node_name", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 36, name: "node_labels", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 25, name: "ip_version", kind: "enum", repeat: 1 /*RepeatType.PACKED*/, T: () => ["flow.IPVersion", IPVersion] },
-            { no: 28, name: "trace_id", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
+            { no: 28, name: "trace_id", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 999, name: "experimental", kind: "message", T: () => FlowFilter_Experimental }
         ]);
     }
     create(value?: PartialMessage<FlowFilter>): FlowFilter {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.uuid = [];
         message.sourceIp = [];
+        message.sourceIpXlated = [];
         message.sourcePod = [];
         message.sourceFqdn = [];
         message.sourceLabel = [];
@@ -3807,6 +4015,8 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
         message.destinationWorkload = [];
         message.trafficDirection = [];
         message.verdict = [];
+        message.dropReasonDesc = [];
+        message.interface = [];
         message.eventType = [];
         message.httpStatusCode = [];
         message.protocol = [];
@@ -3822,6 +4032,7 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
         message.httpHeader = [];
         message.tcpFlags = [];
         message.nodeName = [];
+        message.nodeLabels = [];
         message.ipVersion = [];
         message.traceId = [];
         if (value !== undefined)
@@ -3838,6 +4049,9 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
                     break;
                 case /* repeated string source_ip */ 1:
                     message.sourceIp.push(reader.string());
+                    break;
+                case /* repeated string source_ip_xlated */ 34:
+                    message.sourceIpXlated.push(reader.string());
                     break;
                 case /* repeated string source_pod */ 2:
                     message.sourcePod.push(reader.string());
@@ -3885,6 +4099,16 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
                             message.verdict.push(reader.int32());
                     else
                         message.verdict.push(reader.int32());
+                    break;
+                case /* repeated flow.DropReason drop_reason_desc */ 33:
+                    if (wireType === WireType.LengthDelimited)
+                        for (let e = reader.int32() + reader.pos; reader.pos < e;)
+                            message.dropReasonDesc.push(reader.int32());
+                    else
+                        message.dropReasonDesc.push(reader.int32());
+                    break;
+                case /* repeated flow.NetworkInterface interface */ 35:
+                    message.interface.push(NetworkInterface.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 case /* repeated flow.EventTypeFilter event_type */ 6:
                     message.eventType.push(EventTypeFilter.internalBinaryRead(reader, reader.uint32(), options));
@@ -3943,6 +4167,9 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
                 case /* repeated string node_name */ 24:
                     message.nodeName.push(reader.string());
                     break;
+                case /* repeated string node_labels */ 36:
+                    message.nodeLabels.push(reader.string());
+                    break;
                 case /* repeated flow.IPVersion ip_version */ 25:
                     if (wireType === WireType.LengthDelimited)
                         for (let e = reader.int32() + reader.pos; reader.pos < e;)
@@ -3952,6 +4179,9 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
                     break;
                 case /* repeated string trace_id */ 28:
                     message.traceId.push(reader.string());
+                    break;
+                case /* flow.FlowFilter.Experimental experimental */ 999:
+                    message.experimental = FlowFilter_Experimental.internalBinaryRead(reader, reader.uint32(), options, message.experimental);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3971,6 +4201,9 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
         /* repeated string source_ip = 1; */
         for (let i = 0; i < message.sourceIp.length; i++)
             writer.tag(1, WireType.LengthDelimited).string(message.sourceIp[i]);
+        /* repeated string source_ip_xlated = 34; */
+        for (let i = 0; i < message.sourceIpXlated.length; i++)
+            writer.tag(34, WireType.LengthDelimited).string(message.sourceIpXlated[i]);
         /* repeated string source_pod = 2; */
         for (let i = 0; i < message.sourcePod.length; i++)
             writer.tag(2, WireType.LengthDelimited).string(message.sourcePod[i]);
@@ -4018,6 +4251,16 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
                 writer.int32(message.verdict[i]);
             writer.join();
         }
+        /* repeated flow.DropReason drop_reason_desc = 33; */
+        if (message.dropReasonDesc.length) {
+            writer.tag(33, WireType.LengthDelimited).fork();
+            for (let i = 0; i < message.dropReasonDesc.length; i++)
+                writer.int32(message.dropReasonDesc[i]);
+            writer.join();
+        }
+        /* repeated flow.NetworkInterface interface = 35; */
+        for (let i = 0; i < message.interface.length; i++)
+            NetworkInterface.internalBinaryWrite(message.interface[i], writer.tag(35, WireType.LengthDelimited).fork(), options).join();
         /* repeated flow.EventTypeFilter event_type = 6; */
         for (let i = 0; i < message.eventType.length; i++)
             EventTypeFilter.internalBinaryWrite(message.eventType[i], writer.tag(6, WireType.LengthDelimited).fork(), options).join();
@@ -4075,6 +4318,9 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
         /* repeated string node_name = 24; */
         for (let i = 0; i < message.nodeName.length; i++)
             writer.tag(24, WireType.LengthDelimited).string(message.nodeName[i]);
+        /* repeated string node_labels = 36; */
+        for (let i = 0; i < message.nodeLabels.length; i++)
+            writer.tag(36, WireType.LengthDelimited).string(message.nodeLabels[i]);
         /* repeated flow.IPVersion ip_version = 25; */
         if (message.ipVersion.length) {
             writer.tag(25, WireType.LengthDelimited).fork();
@@ -4085,6 +4331,9 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
         /* repeated string trace_id = 28; */
         for (let i = 0; i < message.traceId.length; i++)
             writer.tag(28, WireType.LengthDelimited).string(message.traceId[i]);
+        /* flow.FlowFilter.Experimental experimental = 999; */
+        if (message.experimental)
+            FlowFilter_Experimental.internalBinaryWrite(message.experimental, writer.tag(999, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -4095,6 +4344,53 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
  * @generated MessageType for protobuf message flow.FlowFilter
  */
 export const FlowFilter = new FlowFilter$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class FlowFilter_Experimental$Type extends MessageType<FlowFilter_Experimental> {
+    constructor() {
+        super("flow.FlowFilter.Experimental", [
+            { no: 1, name: "cel_expression", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<FlowFilter_Experimental>): FlowFilter_Experimental {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.celExpression = [];
+        if (value !== undefined)
+            reflectionMergePartial<FlowFilter_Experimental>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: FlowFilter_Experimental): FlowFilter_Experimental {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated string cel_expression */ 1:
+                    message.celExpression.push(reader.string());
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: FlowFilter_Experimental, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated string cel_expression = 1; */
+        for (let i = 0; i < message.celExpression.length; i++)
+            writer.tag(1, WireType.LengthDelimited).string(message.celExpression[i]);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message flow.FlowFilter.Experimental
+ */
+export const FlowFilter_Experimental = new FlowFilter_Experimental$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class DNS$Type extends MessageType<DNS> {
     constructor() {

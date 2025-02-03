@@ -23,8 +23,8 @@ import { AgentEvent } from "../flow/flow_pb";
 import { LostEvent } from "../flow/flow_pb";
 import { NodeStatusEvent } from "../relay/relay_pb";
 import { Flow } from "../flow/flow_pb";
-import { FieldMask } from "../google/protobuf/field_mask_pb";
 import { Any } from "../google/protobuf/any_pb";
+import { FieldMask } from "../google/protobuf/field_mask_pb";
 import { Timestamp } from "../google/protobuf/timestamp_pb";
 import { FlowFilter } from "../flow/flow_pb";
 import { UInt32Value } from "../google/protobuf/wrappers_pb";
@@ -163,6 +163,14 @@ export interface GetFlowsRequest {
      */
     until?: Timestamp;
     /**
+     * FieldMask allows clients to limit flow's fields that will be returned.
+     * For example, {paths: ["source.id", "destination.id"]} will return flows
+     * with only these two fields set.
+     *
+     * @generated from protobuf field: google.protobuf.FieldMask field_mask = 10;
+     */
+    fieldMask?: FieldMask;
+    /**
      * @generated from protobuf field: observer.GetFlowsRequest.Experimental experimental = 999;
      */
     experimental?: GetFlowsRequest_Experimental;
@@ -186,8 +194,11 @@ export interface GetFlowsRequest_Experimental {
      * FieldMask allows clients to limit flow's fields that will be returned.
      * For example, {paths: ["source.id", "destination.id"]} will return flows
      * with only these two fields set.
+     * Deprecated in favor of top-level field_mask. This field will be
+     * removed in v1.17.
      *
-     * @generated from protobuf field: google.protobuf.FieldMask field_mask = 1;
+     * @deprecated
+     * @generated from protobuf field: google.protobuf.FieldMask field_mask = 1 [deprecated = true];
      */
     fieldMask?: FieldMask;
 }
@@ -712,6 +723,7 @@ class GetFlowsRequest$Type extends MessageType<GetFlowsRequest> {
             { no: 6, name: "whitelist", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => FlowFilter },
             { no: 7, name: "since", kind: "message", T: () => Timestamp },
             { no: 8, name: "until", kind: "message", T: () => Timestamp },
+            { no: 10, name: "field_mask", kind: "message", T: () => FieldMask },
             { no: 999, name: "experimental", kind: "message", T: () => GetFlowsRequest_Experimental },
             { no: 150000, name: "extensions", kind: "message", T: () => Any }
         ]);
@@ -753,6 +765,9 @@ class GetFlowsRequest$Type extends MessageType<GetFlowsRequest> {
                 case /* google.protobuf.Timestamp until */ 8:
                     message.until = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.until);
                     break;
+                case /* google.protobuf.FieldMask field_mask */ 10:
+                    message.fieldMask = FieldMask.internalBinaryRead(reader, reader.uint32(), options, message.fieldMask);
+                    break;
                 case /* observer.GetFlowsRequest.Experimental experimental */ 999:
                     message.experimental = GetFlowsRequest_Experimental.internalBinaryRead(reader, reader.uint32(), options, message.experimental);
                     break;
@@ -792,6 +807,9 @@ class GetFlowsRequest$Type extends MessageType<GetFlowsRequest> {
         /* google.protobuf.Timestamp until = 8; */
         if (message.until)
             Timestamp.internalBinaryWrite(message.until, writer.tag(8, WireType.LengthDelimited).fork(), options).join();
+        /* google.protobuf.FieldMask field_mask = 10; */
+        if (message.fieldMask)
+            FieldMask.internalBinaryWrite(message.fieldMask, writer.tag(10, WireType.LengthDelimited).fork(), options).join();
         /* observer.GetFlowsRequest.Experimental experimental = 999; */
         if (message.experimental)
             GetFlowsRequest_Experimental.internalBinaryWrite(message.experimental, writer.tag(999, WireType.LengthDelimited).fork(), options).join();
@@ -826,7 +844,7 @@ class GetFlowsRequest_Experimental$Type extends MessageType<GetFlowsRequest_Expe
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* google.protobuf.FieldMask field_mask */ 1:
+                case /* google.protobuf.FieldMask field_mask = 1 [deprecated = true];*/ 1:
                     message.fieldMask = FieldMask.internalBinaryRead(reader, reader.uint32(), options, message.fieldMask);
                     break;
                 default:
@@ -841,7 +859,7 @@ class GetFlowsRequest_Experimental$Type extends MessageType<GetFlowsRequest_Expe
         return message;
     }
     internalBinaryWrite(message: GetFlowsRequest_Experimental, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* google.protobuf.FieldMask field_mask = 1; */
+        /* google.protobuf.FieldMask field_mask = 1 [deprecated = true]; */
         if (message.fieldMask)
             FieldMask.internalBinaryWrite(message.fieldMask, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;

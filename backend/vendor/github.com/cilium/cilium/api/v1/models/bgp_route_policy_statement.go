@@ -37,7 +37,7 @@ type BgpRoutePolicyStatement struct {
 	MatchPrefixes []*BgpRoutePolicyPrefixMatch `json:"match-prefixes"`
 
 	// RIB processing action taken on the matched route
-	// Enum: [none accept reject]
+	// Enum: ["none","accept","reject"]
 	RouteAction string `json:"route-action,omitempty"`
 
 	// BGP local preference value to be set on the matched route
@@ -152,6 +152,11 @@ func (m *BgpRoutePolicyStatement) contextValidateMatchPrefixes(ctx context.Conte
 	for i := 0; i < len(m.MatchPrefixes); i++ {
 
 		if m.MatchPrefixes[i] != nil {
+
+			if swag.IsZero(m.MatchPrefixes[i]) { // not required
+				return nil
+			}
+
 			if err := m.MatchPrefixes[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("match-prefixes" + "." + strconv.Itoa(i))

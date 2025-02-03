@@ -41,6 +41,7 @@ type U32 struct {
 	RedirIndex int
 	Sel        *TcU32Sel
 	Actions    []Action
+	Police     *PoliceAction
 }
 
 func (filter *U32) Attrs() *FilterAttrs {
@@ -331,6 +332,12 @@ func (h *Handle) filterModify(filter Filter, proto, flags int) error {
 		if filter.Link != 0 {
 			options.AddRtAttr(nl.TCA_U32_LINK, nl.Uint32Attr(filter.Link))
 		}
+		if filter.Police != nil {
+			police := options.AddRtAttr(nl.TCA_U32_POLICE, nil)
+			if err := encodePolice(police, filter.Police); err != nil {
+				return err
+			}
+		}
 		actionsAttr := options.AddRtAttr(nl.TCA_U32_ACT, nil)
 		// backwards compatibility
 		if filter.RedirIndex != 0 {
@@ -398,14 +405,20 @@ func (h *Handle) filterModify(filter Filter, proto, flags int) error {
 
 // FilterList gets a list of filters in the system.
 // Equivalent to: `tc filter show`.
+//
 // Generally returns nothing if link and parent are not specified.
+// If the returned error is [ErrDumpInterrupted], results may be inconsistent
+// or incomplete.
 func FilterList(link Link, parent uint32) ([]Filter, error) {
 	return pkgHandle.FilterList(link, parent)
 }
 
 // FilterList gets a list of filters in the system.
 // Equivalent to: `tc filter show`.
+//
 // Generally returns nothing if link and parent are not specified.
+// If the returned error is [ErrDumpInterrupted], results may be inconsistent
+// or incomplete.
 func (h *Handle) FilterList(link Link, parent uint32) ([]Filter, error) {
 	req := h.newNetlinkRequest(unix.RTM_GETTFILTER, unix.NLM_F_DUMP)
 	msg := &nl.TcMsg{
@@ -419,9 +432,9 @@ func (h *Handle) FilterList(link Link, parent uint32) ([]Filter, error) {
 	}
 	req.AddData(msg)
 
-	msgs, err := req.Execute(unix.NETLINK_ROUTE, unix.RTM_NEWTFILTER)
-	if err != nil {
-		return nil, err
+	msgs, executeErr := req.Execute(unix.NETLINK_ROUTE, unix.RTM_NEWTFILTER)
+	if executeErr != nil && !errors.Is(executeErr, ErrDumpInterrupted) {
+		return nil, executeErr
 	}
 
 	var res []Filter
@@ -509,7 +522,7 @@ func (h *Handle) FilterList(link Link, parent uint32) ([]Filter, error) {
 		}
 	}
 
-	return res, nil
+	return res, executeErr
 }
 
 func toTcGen(attrs *ActionAttrs, tcgen *nl.TcGen) {
@@ -913,9 +926,11 @@ func parseActions(tables []syscall.NetlinkRouteAttr) ([]Action, error) {
 				actionnStatistic = (*ActionStatistic)(s)
 			}
 		}
-		action.Attrs().Statistics = actionnStatistic
-		action.Attrs().Timestamp = actionTimestamp
-		actions = append(actions, action)
+		if action != nil {
+			action.Attrs().Statistics = actionnStatistic
+			action.Attrs().Timestamp = actionTimestamp
+			actions = append(actions, action)
+		}
 	}
 	return actions, nil
 }
@@ -952,6 +967,13 @@ func parseU32Data(filter Filter, data []syscall.NetlinkRouteAttr) (bool, error) 
 					u32.RedirIndex = int(action.Ifindex)
 				}
 			}
+		case nl.TCA_U32_POLICE:
+			var police PoliceAction
+			adata, _ := nl.ParseRouteAttr(datum.Value)
+			for _, aattr := range adata {
+				parsePolice(aattr, &police)
+			}
+			u32.Police = &police
 		case nl.TCA_U32_CLASSID:
 			u32.ClassId = native.Uint32(datum.Value)
 		case nl.TCA_U32_DIVISOR:

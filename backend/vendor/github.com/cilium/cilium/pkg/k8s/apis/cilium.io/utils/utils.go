@@ -26,6 +26,12 @@ const (
 	// represent pods in the default namespace for any source type.
 	podAnyPrefixLbl = labels.LabelSourceAnyKeyPrefix + k8sConst.PodNamespaceLabel
 
+	// podK8SNamespaceLabelsPrefix is the prefix use in the label selector for namespace labels.
+	podK8SNamespaceLabelsPrefix = labels.LabelSourceK8sKeyPrefix + k8sConst.PodNamespaceMetaLabelsPrefix
+	// podAnyNamespaceLabelsPrefix is the prefix use in the label selector for namespace labels
+	// for any source type.
+	podAnyNamespaceLabelsPrefix = labels.LabelSourceAnyKeyPrefix + k8sConst.PodNamespaceMetaLabelsPrefix
+
 	// podInitLbl is the label used in a label selector to match on
 	// initializing pods.
 	podInitLbl = labels.LabelSourceReservedKeyPrefix + labels.IDNameInit
@@ -92,7 +98,7 @@ func getEndpointSelector(namespace string, labelSelector *slim_metav1.LabelSelec
 			if !matchesInit {
 				es.AddMatchExpression(podPrefixLbl, slim_metav1.LabelSelectorOpExists, []string{})
 			}
-		} else {
+		} else if !es.HasKeyPrefix(podK8SNamespaceLabelsPrefix) && !es.HasKeyPrefix(podAnyNamespaceLabelsPrefix) {
 			es.AddMatch(podPrefixLbl, namespace)
 		}
 	}
@@ -108,6 +114,13 @@ func parseToCiliumIngressCommonRule(namespace string, es api.EndpointSelector, i
 		retRule.FromEndpoints = make([]api.EndpointSelector, len(ing.FromEndpoints))
 		for j, ep := range ing.FromEndpoints {
 			retRule.FromEndpoints[j] = getEndpointSelector(namespace, ep.LabelSelector, true, matchesInit)
+		}
+	}
+
+	if ing.FromNodes != nil {
+		retRule.FromNodes = make([]api.EndpointSelector, len(ing.FromNodes))
+		for j, node := range ing.FromNodes {
+			retRule.FromNodes[j] = api.NewESFromK8sLabelSelector("", node.LabelSelector)
 		}
 	}
 
@@ -131,6 +144,11 @@ func parseToCiliumIngressCommonRule(namespace string, es api.EndpointSelector, i
 	if ing.FromEntities != nil {
 		retRule.FromEntities = make([]api.Entity, len(ing.FromEntities))
 		copy(retRule.FromEntities, ing.FromEntities)
+	}
+
+	if ing.FromGroups != nil {
+		retRule.FromGroups = make([]api.Groups, len(ing.FromGroups))
+		copy(retRule.FromGroups, ing.FromGroups)
 	}
 
 	return retRule
@@ -216,8 +234,15 @@ func parseToCiliumEgressCommonRule(namespace string, es api.EndpointSelector, eg
 		copy(retRule.ToEntities, egr.ToEntities)
 	}
 
+	if egr.ToNodes != nil {
+		retRule.ToNodes = make([]api.EndpointSelector, len(egr.ToNodes))
+		for j, node := range egr.ToNodes {
+			retRule.ToNodes[j] = api.NewESFromK8sLabelSelector("", node.LabelSelector)
+		}
+	}
+
 	if egr.ToGroups != nil {
-		retRule.ToGroups = make([]api.ToGroups, len(egr.ToGroups))
+		retRule.ToGroups = make([]api.Groups, len(egr.ToGroups))
 		copy(retRule.ToGroups, egr.ToGroups)
 	}
 
@@ -331,6 +356,7 @@ func ParseToCiliumRule(namespace, name string, uid types.UID, r *api.Rule) *api.
 	retRule.Labels = ParseToCiliumLabels(namespace, name, uid, r.Labels)
 
 	retRule.Description = r.Description
+	retRule.EnableDefaultDeny = r.EnableDefaultDeny
 
 	return retRule
 }
