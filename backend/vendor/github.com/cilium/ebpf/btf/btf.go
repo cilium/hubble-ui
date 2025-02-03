@@ -66,7 +66,7 @@ func (s *immutableTypes) typeByID(id TypeID) (Type, bool) {
 // mutableTypes is a set of types which may be changed.
 type mutableTypes struct {
 	imm           immutableTypes
-	mu            *sync.RWMutex   // protects copies below
+	mu            sync.RWMutex    // protects copies below
 	copies        map[Type]Type   // map[orig]copy
 	copiedTypeIDs map[Type]TypeID // map[copy]origID
 }
@@ -94,10 +94,14 @@ func (mt *mutableTypes) add(typ Type, typeIDs map[Type]TypeID) Type {
 }
 
 // copy a set of mutable types.
-func (mt *mutableTypes) copy() mutableTypes {
-	mtCopy := mutableTypes{
+func (mt *mutableTypes) copy() *mutableTypes {
+	if mt == nil {
+		return nil
+	}
+
+	mtCopy := &mutableTypes{
 		mt.imm,
-		&sync.RWMutex{},
+		sync.RWMutex{},
 		make(map[Type]Type, len(mt.copies)),
 		make(map[Type]TypeID, len(mt.copiedTypeIDs)),
 	}
@@ -169,7 +173,7 @@ func (mt *mutableTypes) anyTypesByName(name string) ([]Type, error) {
 // Spec allows querying a set of Types and loading the set into the
 // kernel.
 type Spec struct {
-	mutableTypes
+	*mutableTypes
 
 	// String table from ELF.
 	strings *stringTable
@@ -339,7 +343,7 @@ func loadRawSpec(btf io.ReaderAt, bo binary.ByteOrder, base *Spec) (*Spec, error
 	typeIDs, typesByName := indexTypes(types, firstTypeID)
 
 	return &Spec{
-		mutableTypes{
+		&mutableTypes{
 			immutableTypes{
 				types,
 				typeIDs,
@@ -347,7 +351,7 @@ func loadRawSpec(btf io.ReaderAt, bo binary.ByteOrder, base *Spec) (*Spec, error
 				typesByName,
 				bo,
 			},
-			&sync.RWMutex{},
+			sync.RWMutex{},
 			make(map[Type]Type),
 			make(map[Type]TypeID),
 		},
@@ -439,13 +443,19 @@ func fixupDatasec(types []Type, sectionSizes map[string]uint32, offsets map[symb
 		// Some Datasecs are virtual and don't have corresponding ELF sections.
 		switch name {
 		case ".ksyms":
-			// .ksyms describes forward declarations of kfunc signatures.
+			// .ksyms describes forward declarations of kfunc signatures, as well as
+			// references to kernel symbols.
 			// Nothing to fix up, all sizes and offsets are 0.
 			for _, vsi := range ds.Vars {
-				_, ok := vsi.Type.(*Func)
-				if !ok {
-					// Only Funcs are supported in the .ksyms Datasec.
-					return fmt.Errorf("data section %s: expected *btf.Func, not %T: %w", name, vsi.Type, ErrNotSupported)
+				switch t := vsi.Type.(type) {
+				case *Func:
+					continue
+				case *Var:
+					if _, ok := t.Type.(*Void); !ok {
+						return fmt.Errorf("data section %s: expected %s to be *Void, not %T: %w", name, vsi.Type.TypeName(), vsi.Type, ErrNotSupported)
+					}
+				default:
+					return fmt.Errorf("data section %s: expected to be either *btf.Func or *btf.Var, not %T: %w", name, vsi.Type, ErrNotSupported)
 				}
 			}
 
@@ -522,6 +532,10 @@ func fixupDatasecLayout(ds *Datasec) error {
 
 // Copy creates a copy of Spec.
 func (s *Spec) Copy() *Spec {
+	if s == nil {
+		return nil
+	}
+
 	return &Spec{
 		s.mutableTypes.copy(),
 		s.strings,
@@ -687,5 +701,13 @@ func (iter *TypesIterator) Next() bool {
 	iter.Type, ok = iter.spec.typeByID(iter.id)
 	iter.id++
 	iter.done = !ok
+	if !iter.done {
+		// Skip declTags, during unmarshaling declTags become `Tags` fields of other types.
+		// We keep them in the spec to avoid holes in the ID space, but for the purposes of
+		// iteration, they are not useful to the user.
+		if _, ok := iter.Type.(*declTag); ok {
+			return iter.Next()
+		}
+	}
 	return !iter.done
 }

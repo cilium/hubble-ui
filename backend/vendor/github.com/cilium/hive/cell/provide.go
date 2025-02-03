@@ -5,7 +5,7 @@ package cell
 
 import (
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 	"sync"
 
@@ -22,7 +22,7 @@ type provider struct {
 	export  bool
 }
 
-func (p *provider) Apply(c container) error {
+func (p *provider) Apply(c container, rc rootContainer) error {
 	// Since the same Provide cell may be used multiple times
 	// in different hives we use a mutex to protect it and we
 	// fill the provide info only the first time.
@@ -62,15 +62,16 @@ func (p *provider) Info(container) Info {
 		ctorNode := NewInfoNode(fmt.Sprintf("🚧%s %s", privateSymbol, internal.FuncNameAndLocation(ctor)))
 		ctorNode.condensed = true
 
-		var ins, outs []string
+		ins := make([]string, 0, len(info.Inputs))
 		for _, input := range info.Inputs {
 			ins = append(ins, input.String())
 		}
-		sort.Strings(ins)
+		slices.Sort(ins)
+		outs := make([]string, 0, len(info.Outputs))
 		for _, output := range info.Outputs {
 			outs = append(outs, output.String())
 		}
-		sort.Strings(outs)
+		slices.Sort(outs)
 		if len(ins) > 0 {
 			ctorNode.AddLeaf("⇨ %s", strings.Join(ins, ", "))
 		}

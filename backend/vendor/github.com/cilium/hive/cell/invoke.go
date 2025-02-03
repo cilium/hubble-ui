@@ -6,7 +6,7 @@ package cell
 import (
 	"fmt"
 	"log/slog"
-	"sort"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -62,7 +62,7 @@ func (inv *invoker) invoke(log *slog.Logger, cont container, logThreshold time.D
 	return nil
 }
 
-func (inv *invoker) Apply(c container) error {
+func (inv *invoker) Apply(c container, _ rootContainer) error {
 	// Remember the scope in which we need to invoke.
 	invoker := func(log *slog.Logger, logThreshold time.Duration) error { return inv.invoke(log, c, logThreshold) }
 
@@ -87,11 +87,11 @@ func (inv *invoker) Info(container) Info {
 		invNode := NewInfoNode(fmt.Sprintf("🛠️ %s", namedFunc.name))
 		invNode.condensed = true
 
-		var ins []string
+		ins := make([]string, 0, len(namedFunc.info.Inputs))
 		for _, input := range namedFunc.info.Inputs {
 			ins = append(ins, input.String())
 		}
-		sort.Strings(ins)
+		slices.Sort(ins)
 		invNode.AddLeaf("⇨ %s", strings.Join(ins, ", "))
 		n.Add(invNode)
 	}
