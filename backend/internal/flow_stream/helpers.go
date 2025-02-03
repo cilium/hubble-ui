@@ -8,7 +8,7 @@ import (
 
 	"github.com/cilium/cilium/api/v1/flow"
 	"github.com/cilium/cilium/api/v1/observer"
-	hubbleTime "github.com/cilium/hubble/pkg/time"
+	hubbleTime "github.com/cilium/cilium/hubble/pkg/time"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/cilium/hubble-ui/backend/internal/msg"

@@ -55,7 +55,7 @@ func (fs *FlowStream) Run(ctx context.Context, req *observer.GetFlowsRequest) {
 	whitelist, err := filters.BuildFilterList(
 		ctx,
 		req.GetWhitelist(),
-		filters.DefaultFilters,
+		filters.DefaultFilters(fs.log),
 	)
 
 	if err != nil {
@@ -67,7 +67,7 @@ func (fs *FlowStream) Run(ctx context.Context, req *observer.GetFlowsRequest) {
 	blacklist, err := filters.BuildFilterList(
 		ctx,
 		req.GetBlacklist(),
-		filters.DefaultFilters,
+		filters.DefaultFilters(fs.log),
 	)
 
 	if err != nil {

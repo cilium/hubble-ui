@@ -87,6 +87,8 @@ var (
 
 	// EntitySelectorMapping maps special entity names that come in
 	// policies to selectors
+	// If you add an entry here, you must also update the CRD
+	// validation above.
 	EntitySelectorMapping = map[Entity]EndpointSelectorSlice{
 		EntityAll:           {WildcardEndpointSelector},
 		EntityWorld:         {endpointSelectorWorld, endpointSelectorWorldIPv4, endpointSelectorWorldIPv6},
@@ -130,7 +132,7 @@ func (s EntitySlice) GetAsEndpointSelectors() EndpointSelectorSlice {
 }
 
 // InitEntities is called to initialize the policy API layer
-func InitEntities(clusterName string, treatRemoteNodeAsHost bool) {
+func InitEntities(clusterName string) {
 	EntitySelectorMapping[EntityCluster] = EndpointSelectorSlice{
 		endpointSelectorHost,
 		endpointSelectorRemoteNode,
@@ -141,11 +143,4 @@ func InitEntities(clusterName string, treatRemoteNodeAsHost bool) {
 		endpointSelectorKubeAPIServer,
 		NewESFromLabels(labels.NewLabel(k8sapi.PolicyLabelCluster, clusterName, labels.LabelSourceK8s)),
 	}
-
-	hostSelectors := make(EndpointSelectorSlice, 0, 2)
-	hostSelectors = append(hostSelectors, endpointSelectorHost)
-	if treatRemoteNodeAsHost {
-		hostSelectors = append(hostSelectors, endpointSelectorRemoteNode)
-	}
-	EntitySelectorMapping[EntityHost] = hostSelectors
 }

@@ -13,10 +13,10 @@ import (
 	"github.com/cilium/cilium/pkg/option"
 )
 
-// +kubebuilder:validation:Pattern=`^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/([0-9]|[1-2][0-9]|3[0-2])$|^s*((([0-9A-Fa-f]{1,4}:){7}(:|([0-9A-Fa-f]{1,4})))|(([0-9A-Fa-f]{1,4}:){6}:([0-9A-Fa-f]{1,4})?)|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){0,1}):([0-9A-Fa-f]{1,4})?))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){0,2}):([0-9A-Fa-f]{1,4})?))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){0,3}):([0-9A-Fa-f]{1,4})?))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){0,4}):([0-9A-Fa-f]{1,4})?))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){0,5}):([0-9A-Fa-f]{1,4})?))|(:(:|((:[0-9A-Fa-f]{1,4}){1,7}))))(%.+)?s*/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8])$`
-
 // CIDR specifies a block of IP addresses.
 // Example: 192.0.2.1/32
+//
+// +kubebuilder:validation:Format=cidr
 type CIDR string
 
 var (
@@ -35,7 +35,8 @@ type CIDRRule struct {
 
 	// CIDRGroupRef is a reference to a CiliumCIDRGroup object.
 	// A CiliumCIDRGroup contains a list of CIDRs that the endpoint, subject to
-	// the rule, can (Ingress) or cannot (IngressDeny) receive connections from.
+	// the rule, can (Ingress/Egress) or cannot (IngressDeny/EgressDeny) receive
+	// connections from.
 	//
 	// +kubebuilder:validation:OneOf
 	CIDRGroupRef CIDRGroupRef `json:"cidrGroupRef,omitempty"`

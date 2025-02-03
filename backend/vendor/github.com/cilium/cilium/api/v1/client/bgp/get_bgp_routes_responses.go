@@ -9,6 +9,7 @@ package bgp
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 
@@ -45,7 +46,7 @@ func (o *GetBgpRoutesReader) ReadResponse(response runtime.ClientResponse, consu
 		}
 		return nil, result
 	default:
-		return nil, runtime.NewAPIError("response status code does not match any response statuses defined for this endpoint in the swagger spec", response, response.Code())
+		return nil, runtime.NewAPIError("[GET /bgp/routes] GetBgpRoutes", response, response.Code())
 	}
 }
 
@@ -88,12 +89,19 @@ func (o *GetBgpRoutesOK) IsCode(code int) bool {
 	return code == 200
 }
 
+// Code gets the status code for the get bgp routes o k response
+func (o *GetBgpRoutesOK) Code() int {
+	return 200
+}
+
 func (o *GetBgpRoutesOK) Error() string {
-	return fmt.Sprintf("[GET /bgp/routes][%d] getBgpRoutesOK  %+v", 200, o.Payload)
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[GET /bgp/routes][%d] getBgpRoutesOK %s", 200, payload)
 }
 
 func (o *GetBgpRoutesOK) String() string {
-	return fmt.Sprintf("[GET /bgp/routes][%d] getBgpRoutesOK  %+v", 200, o.Payload)
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[GET /bgp/routes][%d] getBgpRoutesOK %s", 200, payload)
 }
 
 func (o *GetBgpRoutesOK) GetPayload() []*models.BgpRoute {
@@ -149,12 +157,19 @@ func (o *GetBgpRoutesInternalServerError) IsCode(code int) bool {
 	return code == 500
 }
 
+// Code gets the status code for the get bgp routes internal server error response
+func (o *GetBgpRoutesInternalServerError) Code() int {
+	return 500
+}
+
 func (o *GetBgpRoutesInternalServerError) Error() string {
-	return fmt.Sprintf("[GET /bgp/routes][%d] getBgpRoutesInternalServerError  %+v", 500, o.Payload)
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[GET /bgp/routes][%d] getBgpRoutesInternalServerError %s", 500, payload)
 }
 
 func (o *GetBgpRoutesInternalServerError) String() string {
-	return fmt.Sprintf("[GET /bgp/routes][%d] getBgpRoutesInternalServerError  %+v", 500, o.Payload)
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[GET /bgp/routes][%d] getBgpRoutesInternalServerError %s", 500, payload)
 }
 
 func (o *GetBgpRoutesInternalServerError) GetPayload() models.Error {
@@ -210,12 +225,19 @@ func (o *GetBgpRoutesDisabled) IsCode(code int) bool {
 	return code == 501
 }
 
+// Code gets the status code for the get bgp routes disabled response
+func (o *GetBgpRoutesDisabled) Code() int {
+	return 501
+}
+
 func (o *GetBgpRoutesDisabled) Error() string {
-	return fmt.Sprintf("[GET /bgp/routes][%d] getBgpRoutesDisabled  %+v", 501, o.Payload)
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[GET /bgp/routes][%d] getBgpRoutesDisabled %s", 501, payload)
 }
 
 func (o *GetBgpRoutesDisabled) String() string {
-	return fmt.Sprintf("[GET /bgp/routes][%d] getBgpRoutesDisabled  %+v", 501, o.Payload)
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[GET /bgp/routes][%d] getBgpRoutesDisabled %s", 501, payload)
 }
 
 func (o *GetBgpRoutesDisabled) GetPayload() models.Error {

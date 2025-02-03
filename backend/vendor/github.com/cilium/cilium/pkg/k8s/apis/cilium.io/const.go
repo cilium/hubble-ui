@@ -30,19 +30,16 @@ const (
 	// running in
 	PolicyLabelCluster = LabelPrefix + ".policy.cluster"
 
-	// PolicyLabelIstioSidecarProxy is the label key added to the identity of
-	// any pod that has been injected by Istio with a Cilium-compatible sidecar
-	// proxy. The value of this label is expected to be a boolean, i.e. "true"
-	// or "false".
-	PolicyLabelIstioSidecarProxy = LabelPrefix + ".policy.istiosidecarproxy"
-
 	// PodNamespaceMetaLabels is the label used to store the labels of the
 	// kubernetes namespace's labels.
 	PodNamespaceMetaLabels = LabelPrefix + ".namespace.labels"
 
+	// PodNamespaceMetaLabelsPrefix is the prefix used for kubernetes namespace's labels
+	PodNamespaceMetaLabelsPrefix = PodNamespaceMetaLabels + "."
+
 	// PodNamespaceMetaNameLabel is the label that Kubernetes automatically adds
 	// to namespaces.
-	PodNamespaceMetaNameLabel = PodNamespaceMetaLabels + "." + LabelMetadataName
+	PodNamespaceMetaNameLabel = PodNamespaceMetaLabelsPrefix + LabelMetadataName
 
 	// LabelMetadataName is the label name which, in-tree, is used to
 	// automatically label namespaces, so they can be selected easily by tools
@@ -75,10 +72,6 @@ const (
 	// to automatically label Pods that are owned by Indexed Jobs with their
 	// completion index.
 	IndexedJobCompletionIndexLabel = "batch.kubernetes.io/job-completion-index"
-
-	// CtrlPrefixPolicyStatus is the prefix used for the controllers set up
-	// to sync the CNP with kube-apiserver.
-	CtrlPrefixPolicyStatus = "sync-cnp-policy-status"
 
 	// BatchJobControllerUID is one of the labels that is available on a Job
 	// https://kubernetes.io/docs/concepts/workloads/controllers/job/#job-labels
