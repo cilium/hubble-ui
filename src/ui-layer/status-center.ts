@@ -429,7 +429,9 @@ export class StatusCenter extends EventEmitter<Handlers> {
     err: GrpcWrappedError,
   ): StatusEntryBuilder {
     const intent =
-      StatusEntry.parseIntent(err.metadata['intent']?.[0]) ?? err.isOk ? Intent.Info : Intent.Error;
+      (StatusEntry.parseIntent(err.metadata['intent']?.[0]) ?? err.isOk)
+        ? Intent.Info
+        : Intent.Error;
 
     return builder
       .setIntent(intent)
