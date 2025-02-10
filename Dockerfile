@@ -8,7 +8,7 @@
 # TARGETARCH
 # skopeo inspect --override-os linux --override-arch amd64 docker://docker.io/library/node:22.13.1-alpine3.20 | jq -r '.Digest'
 FROM --platform=${BUILDPLATFORM} docker.io/library/node:22.13.1-alpine3.20@sha256:c52e20859a92b3eccbd3a36c5e1a90adc20617d8d421d65e8a622e87b5dac963 as stage1
-RUN apk add make git bash python3 py3-setuptools
+RUN apk add make git bash
 WORKDIR /app
 
 COPY package.json package.json
