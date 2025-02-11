@@ -1009,6 +1009,11 @@ func (in *EgressRule) DeepCopyInto(out *EgressRule) {
 		*out = new(v1.LabelSelector)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.NodeSelector != nil {
+		in, out := &in.NodeSelector, &out.NodeSelector
+		*out = new(v1.LabelSelector)
+		(*in).DeepCopyInto(*out)
+	}
 	return
 }
 
@@ -1202,11 +1207,6 @@ func (in *EndpointStatus) DeepCopyInto(out *EndpointStatus) {
 		in, out := &in.Policy, &out.Policy
 		*out = new(EndpointPolicy)
 		(*in).DeepCopyInto(*out)
-	}
-	if in.VisibilityPolicyStatus != nil {
-		in, out := &in.VisibilityPolicyStatus, &out.VisibilityPolicyStatus
-		*out = new(string)
-		**out = **in
 	}
 	if in.NamedPorts != nil {
 		in, out := &in.NamedPorts, &out.NamedPorts

@@ -5,10 +5,11 @@ package metric
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/exp/maps"
 
 	"github.com/cilium/cilium/pkg/logging/logfields"
 	"github.com/cilium/cilium/pkg/metrics/metric/collections"
@@ -40,7 +41,7 @@ func (b *metric) forEachLabelVector(fn func(lvls []string)) {
 	}
 	var labelValues [][]string
 	for _, label := range b.labels.lbls {
-		labelValues = append(labelValues, maps.Keys(label.Values))
+		labelValues = append(labelValues, slices.Collect(maps.Keys(label.Values)))
 	}
 	for _, labelVector := range collections.CartesianProduct(labelValues...) {
 		fn(labelVector)
@@ -90,11 +91,35 @@ func (b *metric) Opts() Opts {
 	return b.opts
 }
 
+type collectorWithMetadata interface {
+	prometheus.Collector
+	WithMetadata
+}
+
+// EnabledCollector collects the underlying metric only when it's enabled.
+type EnabledCollector struct {
+	C prometheus.Collector
+}
+
+// Collect implements prometheus.Collector.
+func (e EnabledCollector) Collect(ch chan<- prometheus.Metric) {
+	if m, ok := e.C.(WithMetadata); ok && !m.IsEnabled() {
+		return
+	}
+	e.C.Collect(ch)
+}
+
+// Describe implements prometheus.Collector.
+func (e EnabledCollector) Describe(ch chan<- *prometheus.Desc) {
+	e.C.Describe(ch)
+}
+
+var _ prometheus.Collector = &EnabledCollector{}
+
 // Vec is a generic type to describe the vectorized version of another metric type, for example Vec[Counter] would be
 // our version of a prometheus.CounterVec.
 type Vec[T any] interface {
-	prometheus.Collector
-	WithMetadata
+	collectorWithMetadata
 
 	// CurryWith returns a vector curried with the provided labels, i.e. the
 	// returned vector has those labels pre-set for all labeled operations performed

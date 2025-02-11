@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net"
 	"os"
 	"path/filepath"
@@ -20,8 +21,8 @@ import (
 	"github.com/cilium/ebpf/asm"
 	"github.com/cilium/ebpf/features"
 	"github.com/cilium/ebpf/link"
-	"github.com/google/gopacket"
-	"github.com/google/gopacket/layers"
+	"github.com/gopacket/gopacket"
+	"github.com/gopacket/gopacket/layers"
 	"golang.org/x/sys/unix"
 
 	"github.com/cilium/cilium/pkg/command/exec"
@@ -392,6 +393,13 @@ func HaveFibIfindex() error {
 	return features.HaveProgramHelper(ebpf.SchedCLS, asm.FnRedirectPeer)
 }
 
+// HaveWriteableQueueMapping checks if kernel has 74e31ca850c1 ("bpf: add
+// skb->queue_mapping write access from tc clsact") which is 5.1+. This got merged
+// in the same kernel as the bpf_skb_ecn_set_ce() helper.
+func HaveWriteableQueueMapping() error {
+	return features.HaveProgramHelper(ebpf.SchedCLS, asm.FnSkbEcnSetCe)
+}
+
 // HaveV2ISA is a wrapper around features.HaveV2ISA() to check if the kernel
 // supports the V2 ISA.
 // On unexpected probe results this function will terminate with log.Fatal().
@@ -488,7 +496,7 @@ var HaveNetkit = sync.OnceValue(func() error {
 		l, err := link.AttachNetkit(link.NetkitOptions{
 			Program:   prog,
 			Attach:    ebpf.AttachNetkitPrimary,
-			Interface: int(^uint32(0)),
+			Interface: math.MaxInt,
 		})
 		// We rely on this being checked during the syscall. With
 		// an otherwise correct payload we expect ENODEV here as
@@ -742,8 +750,6 @@ func ExecuteHeaderProbes() *FeatureProbes {
 		{ebpf.CGroupSockAddr, asm.FnJiffies64},
 		{ebpf.SchedCLS, asm.FnJiffies64},
 		{ebpf.XDP, asm.FnJiffies64},
-		{ebpf.CGroupSockAddr, asm.FnSkLookupTcp},
-		{ebpf.CGroupSockAddr, asm.FnSkLookupUdp},
 		{ebpf.CGroupSockAddr, asm.FnGetCurrentCgroupId},
 		{ebpf.CGroupSock, asm.FnSetRetval},
 		{ebpf.SchedCLS, asm.FnRedirectNeigh},

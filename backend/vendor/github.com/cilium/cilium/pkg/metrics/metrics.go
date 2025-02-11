@@ -17,7 +17,6 @@ import (
 	dto "github.com/prometheus/client_model/go"
 	"github.com/sirupsen/logrus"
 
-	"github.com/cilium/cilium/api/v1/models"
 	"github.com/cilium/cilium/pkg/metrics/metric"
 	"github.com/cilium/cilium/pkg/promise"
 	"github.com/cilium/cilium/pkg/source"
@@ -254,6 +253,12 @@ const (
 	LabelAddressType          = "address_type"
 	LabelAddressTypePrimary   = "primary"
 	LabelAddressTypeSecondary = "secondary"
+
+	// LabelConnectivityStatus is the label for connectivity statuses
+	LabelConnectivityStatus = "status"
+	LabelReachable          = "reachable"
+	LabelUnreachable        = "unreachable"
+	LabelUnknown            = "unknown"
 )
 
 var (
@@ -284,6 +289,14 @@ var (
 	// NodeConnectivityLatency is the connectivity latency between local node to
 	// other node intra or inter cluster.
 	NodeConnectivityLatency = NoOpGaugeDeletableVec
+
+	// NodeHealthConnectivityStatus is the number of connections with connectivity status
+	// between local node to other node intra or inter cluster.
+	NodeHealthConnectivityStatus = NoOpGaugeVec
+
+	// NodeHealthConnectivityLatency is the histogram connectivity latency between local node to
+	// other node intra or inter cluster.
+	NodeHealthConnectivityLatency = NoOpObserverVec
 
 	// Endpoint
 
@@ -345,10 +358,6 @@ var (
 	// CIDRGroupsReferenced is the number of CNPs and CCNPs referencing at least one CiliumCIDRGroup.
 	// CNPs with empty or non-existing CIDRGroupRefs are not considered.
 	CIDRGroupsReferenced = NoOpGauge
-
-	// CIDRGroupTranslationTimeStats is the time taken to translate the policy field `FromCIDRGroupRef`
-	// after the referenced CIDRGroups have been updated or deleted.
-	CIDRGroupTranslationTimeStats = NoOpHistogram
 
 	// Identity
 
@@ -534,18 +543,6 @@ var (
 	// BPFMapCapacity is the max capacity of bpf maps, labelled by map group classification.
 	BPFMapCapacity = NoOpGaugeVec
 
-	// TriggerPolicyUpdateTotal is the metric to count total number of
-	// policy update triggers
-	TriggerPolicyUpdateTotal = NoOpCounterVec
-
-	// TriggerPolicyUpdateFolds is the current level folding that is
-	// happening when running policy update triggers
-	TriggerPolicyUpdateFolds = NoOpGauge
-
-	// TriggerPolicyUpdateCallDuration measures the latency and call
-	// duration of policy update triggers
-	TriggerPolicyUpdateCallDuration = NoOpObserverVec
-
 	// VersionMetric labelled by Cilium version
 	VersionMetric = NoOpGaugeVec
 
@@ -657,6 +654,8 @@ type LegacyMetrics struct {
 	APIInteractions                  metric.Vec[metric.Observer]
 	NodeConnectivityStatus           metric.DeletableVec[metric.Gauge]
 	NodeConnectivityLatency          metric.DeletableVec[metric.Gauge]
+	NodeHealthConnectivityStatus     metric.Vec[metric.Gauge]
+	NodeHealthConnectivityLatency    metric.Vec[metric.Observer]
 	Endpoint                         metric.GaugeFunc
 	EndpointMaxIfindex               metric.Gauge
 	EndpointRegenerationTotal        metric.Vec[metric.Counter]
@@ -671,7 +670,6 @@ type LegacyMetrics struct {
 	PolicyEndpointStatus             metric.Vec[metric.Gauge]
 	PolicyImplementationDelay        metric.Vec[metric.Observer]
 	CIDRGroupsReferenced             metric.Gauge
-	CIDRGroupTranslationTimeStats    metric.Histogram
 	Identity                         metric.Vec[metric.Gauge]
 	IdentityLabelSources             metric.Vec[metric.Gauge]
 	EventTS                          metric.Vec[metric.Gauge]
@@ -716,9 +714,6 @@ type LegacyMetrics struct {
 	BPFSyscallDuration               metric.Vec[metric.Observer]
 	BPFMapOps                        metric.Vec[metric.Counter]
 	BPFMapCapacity                   metric.Vec[metric.Gauge]
-	TriggerPolicyUpdateTotal         metric.Vec[metric.Counter]
-	TriggerPolicyUpdateFolds         metric.Gauge
-	TriggerPolicyUpdateCallDuration  metric.Vec[metric.Observer]
 	VersionMetric                    metric.Vec[metric.Gauge]
 	APILimiterWaitHistoryDuration    metric.Vec[metric.Observer]
 	APILimiterWaitDuration           metric.Vec[metric.Gauge]
@@ -853,15 +848,6 @@ func NewLegacyMetrics() *LegacyMetrics {
 			Namespace: Namespace,
 			Name:      "cidrgroups_referenced",
 			Help:      "Number of CNPs and CCNPs referencing at least one CiliumCIDRGroup. CNPs with empty or non-existing CIDRGroupRefs are not considered",
-		}),
-
-		CIDRGroupTranslationTimeStats: metric.NewHistogram(metric.HistogramOpts{
-			ConfigName: Namespace + "cidrgroup_translation_time_stats_seconds",
-			Disabled:   true,
-
-			Namespace: Namespace,
-			Name:      "cidrgroup_translation_time_stats_seconds",
-			Help:      "CIDRGroup translation time stats",
 		}),
 
 		Identity: metric.NewGaugeVec(metric.GaugeOpts{
@@ -1225,30 +1211,6 @@ func NewLegacyMetrics() *LegacyMetrics {
 			Help:       "Capacity of map, tagged by map group. All maps with a capacity of 65536 are grouped under 'default'",
 		}, []string{LabelMapGroup}),
 
-		TriggerPolicyUpdateTotal: metric.NewCounterVec(metric.CounterOpts{
-			ConfigName: Namespace + "_" + SubsystemTriggers + "_policy_update_total",
-			Namespace:  Namespace,
-			Subsystem:  SubsystemTriggers,
-			Name:       "policy_update_total",
-			Help:       "Total number of policy update trigger invocations labeled by reason",
-		}, []string{"reason"}),
-
-		TriggerPolicyUpdateFolds: metric.NewGauge(metric.GaugeOpts{
-			ConfigName: Namespace + "_" + SubsystemTriggers + "_policy_update_folds",
-			Namespace:  Namespace,
-			Subsystem:  SubsystemTriggers,
-			Name:       "policy_update_folds",
-			Help:       "Current number of folds",
-		}),
-
-		TriggerPolicyUpdateCallDuration: metric.NewHistogramVec(metric.HistogramOpts{
-			ConfigName: Namespace + "_" + SubsystemTriggers + "_policy_update_call_duration_seconds",
-			Namespace:  Namespace,
-			Subsystem:  SubsystemTriggers,
-			Name:       "policy_update_call_duration_seconds",
-			Help:       "Duration of policy update trigger",
-		}, []string{LabelType}),
-
 		VersionMetric: metric.NewGaugeVec(metric.GaugeOpts{
 			ConfigName: Namespace + "_version",
 			Namespace:  Namespace,
@@ -1352,6 +1314,32 @@ func NewLegacyMetrics() *LegacyMetrics {
 			LabelAddressType,
 		}),
 
+		NodeHealthConnectivityStatus: metric.NewGaugeVec(metric.GaugeOpts{
+			ConfigName: Namespace + "_node_health_connectivity_status",
+			Namespace:  Namespace,
+			Name:       "node_health_connectivity_status",
+			Help:       "The number of endpoints with last observed status of both ICMP and HTTP connectivity between the current Cilium agent and other Cilium nodes",
+		}, []string{
+			LabelSourceCluster,
+			LabelSourceNodeName,
+			LabelType,
+			LabelConnectivityStatus,
+		}),
+
+		NodeHealthConnectivityLatency: metric.NewHistogramVec(metric.HistogramOpts{
+			ConfigName: Namespace + "_node_health_connectivity_latency_seconds",
+			Namespace:  Namespace,
+			Name:       "node_health_connectivity_latency_seconds",
+			Help:       "The histogram for last observed latency between the current Cilium agent and other Cilium nodes in seconds",
+			Buckets:    []float64{0.001, 0.0025, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 4.0, 8.0},
+		}, []string{
+			LabelSourceCluster,
+			LabelSourceNodeName,
+			LabelType,
+			LabelProtocol,
+			LabelAddressType,
+		}),
+
 		WorkQueueDepth:                   WorkQueueDepth,
 		WorkQueueAddsTotal:               WorkQueueAddsTotal,
 		WorkQueueLatency:                 WorkQueueLatency,
@@ -1378,6 +1366,8 @@ func NewLegacyMetrics() *LegacyMetrics {
 	APIInteractions = lm.APIInteractions
 	NodeConnectivityStatus = lm.NodeConnectivityStatus
 	NodeConnectivityLatency = lm.NodeConnectivityLatency
+	NodeHealthConnectivityStatus = lm.NodeHealthConnectivityStatus
+	NodeHealthConnectivityLatency = lm.NodeHealthConnectivityLatency
 	Endpoint = lm.Endpoint
 	EndpointMaxIfindex = lm.EndpointMaxIfindex
 	EndpointRegenerationTotal = lm.EndpointRegenerationTotal
@@ -1392,7 +1382,6 @@ func NewLegacyMetrics() *LegacyMetrics {
 	PolicyEndpointStatus = lm.PolicyEndpointStatus
 	PolicyImplementationDelay = lm.PolicyImplementationDelay
 	CIDRGroupsReferenced = lm.CIDRGroupsReferenced
-	CIDRGroupTranslationTimeStats = lm.CIDRGroupTranslationTimeStats
 	Identity = lm.Identity
 	IdentityLabelSources = lm.IdentityLabelSources
 	EventTS = lm.EventTS
@@ -1437,9 +1426,6 @@ func NewLegacyMetrics() *LegacyMetrics {
 	BPFSyscallDuration = lm.BPFSyscallDuration
 	BPFMapOps = lm.BPFMapOps
 	BPFMapCapacity = lm.BPFMapCapacity
-	TriggerPolicyUpdateTotal = lm.TriggerPolicyUpdateTotal
-	TriggerPolicyUpdateFolds = lm.TriggerPolicyUpdateFolds
-	TriggerPolicyUpdateCallDuration = lm.TriggerPolicyUpdateCallDuration
 	VersionMetric = lm.VersionMetric
 	APILimiterWaitHistoryDuration = lm.APILimiterWaitHistoryDuration
 	APILimiterWaitDuration = lm.APILimiterWaitDuration
@@ -1560,19 +1546,6 @@ func Unregister(c prometheus.Collector) bool {
 	}
 
 	return false
-}
-
-// DumpMetrics gets the current Cilium metrics and dumps all into a
-// models.Metrics structure.If metrics cannot be retrieved, returns an error
-func DumpMetrics() ([]*models.Metric, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	reg, err := registry.Await(ctx)
-	if err == nil {
-		return reg.DumpMetrics()
-	}
-
-	return nil, nil
 }
 
 // withRegistry waits up to 1 second for the registry promise to resolve, if it does not then

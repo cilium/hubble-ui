@@ -167,6 +167,13 @@ export interface Flow {
      */
     traceReason: TraceReason;
     /**
+     * Cilium datapath filename and line number. Currently only applicable when
+     * Verdict = DROPPED.
+     *
+     * @generated from protobuf field: flow.FileInfo file = 38;
+     */
+    file?: FileInfo;
+    /**
      * only applicable to Verdict = DROPPED.
      *
      * @generated from protobuf field: flow.DropReason drop_reason_desc = 25;
@@ -267,6 +274,19 @@ export interface Flow {
      * @generated from protobuf field: repeated flow.Policy ingress_denied_by = 21005;
      */
     ingressDeniedBy: Policy[];
+}
+/**
+ * @generated from protobuf message flow.FileInfo
+ */
+export interface FileInfo {
+    /**
+     * @generated from protobuf field: string name = 1;
+     */
+    name: string;
+    /**
+     * @generated from protobuf field: uint32 line = 2;
+     */
+    line: number;
 }
 /**
  * @generated from protobuf message flow.Layer4
@@ -455,8 +475,9 @@ export interface IP {
      */
     source: string;
     /**
-     * source_xlated is the post translation source IP when the flow was SNATed
-     * (and in that case source is the the original source IP).
+     * source_xlated is the post-translation source IP when the flow was
+     * SNATed. When "source_xlated" is set, the "source" field is populated
+     * with the pre-translation source IP address.
      *
      * @generated from protobuf field: string source_xlated = 5;
      */
@@ -603,6 +624,10 @@ export interface Policy {
      * @generated from protobuf field: uint64 revision = 4;
      */
     revision: number;
+    /**
+     * @generated from protobuf field: string kind = 5;
+     */
+    kind: string;
 }
 /**
  * EventTypeFilter is a filter describing a particular event type.
@@ -721,6 +746,12 @@ export interface FlowFilter {
      */
     sourceWorkload: Workload[];
     /**
+     * source_cluster_name filters by a list of source cluster names.
+     *
+     * @generated from protobuf field: repeated string source_cluster_name = 37;
+     */
+    sourceClusterName: string[];
+    /**
      * destination_ip filters by a list of destination ips. Each of the
      * destination ips can be specified as an exact match (e.g. "1.1.1.1") or
      * as a CIDR range (e.g. "1.1.1.0/24").
@@ -758,6 +789,12 @@ export interface FlowFilter {
      * @generated from protobuf field: repeated flow.Workload destination_workload = 27;
      */
     destinationWorkload: Workload[];
+    /**
+     * destination_cluster_name filters by a list of destination cluster names.
+     *
+     * @generated from protobuf field: repeated string destination_cluster_name = 38;
+     */
+    destinationClusterName: string[];
     /**
      * traffic_direction filters flow by direction of the connection, e.g.
      * ingress or egress.
@@ -1987,8 +2024,8 @@ export enum DropReason {
      */
     DROP_HOST_NOT_READY = 202,
     /**
-     * A BPF program wants to tail call some endpoint's policy program in the
-     * POLICY_CALL_MAP, but the program is not available.
+     * A BPF program wants to tail call some endpoint's policy program in
+     * cilium_call_policy, but the program is not available.
      *
      * @generated from protobuf enum value: DROP_EP_NOT_READY = 203;
      */
@@ -2510,6 +2547,7 @@ class Flow$Type extends MessageType<Flow> {
             { no: 23, name: "policy_match_type", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
             { no: 24, name: "trace_observation_point", kind: "enum", T: () => ["flow.TraceObservationPoint", TraceObservationPoint] },
             { no: 36, name: "trace_reason", kind: "enum", T: () => ["flow.TraceReason", TraceReason] },
+            { no: 38, name: "file", kind: "message", T: () => FileInfo },
             { no: 25, name: "drop_reason_desc", kind: "enum", T: () => ["flow.DropReason", DropReason] },
             { no: 26, name: "is_reply", kind: "message", T: () => BoolValue },
             { no: 27, name: "debug_capture_point", kind: "enum", T: () => ["flow.DebugCapturePoint", DebugCapturePoint] },
@@ -2634,6 +2672,9 @@ class Flow$Type extends MessageType<Flow> {
                     break;
                 case /* flow.TraceReason trace_reason */ 36:
                     message.traceReason = reader.int32();
+                    break;
+                case /* flow.FileInfo file */ 38:
+                    message.file = FileInfo.internalBinaryRead(reader, reader.uint32(), options, message.file);
                     break;
                 case /* flow.DropReason drop_reason_desc */ 25:
                     message.dropReasonDesc = reader.int32();
@@ -2764,6 +2805,9 @@ class Flow$Type extends MessageType<Flow> {
         /* flow.TraceReason trace_reason = 36; */
         if (message.traceReason !== 0)
             writer.tag(36, WireType.Varint).int32(message.traceReason);
+        /* flow.FileInfo file = 38; */
+        if (message.file)
+            FileInfo.internalBinaryWrite(message.file, writer.tag(38, WireType.LengthDelimited).fork(), options).join();
         /* flow.DropReason drop_reason_desc = 25; */
         if (message.dropReasonDesc !== 0)
             writer.tag(25, WireType.Varint).int32(message.dropReasonDesc);
@@ -2819,6 +2863,61 @@ class Flow$Type extends MessageType<Flow> {
  * @generated MessageType for protobuf message flow.Flow
  */
 export const Flow = new Flow$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class FileInfo$Type extends MessageType<FileInfo> {
+    constructor() {
+        super("flow.FileInfo", [
+            { no: 1, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "line", kind: "scalar", T: 13 /*ScalarType.UINT32*/ }
+        ]);
+    }
+    create(value?: PartialMessage<FileInfo>): FileInfo {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.name = "";
+        message.line = 0;
+        if (value !== undefined)
+            reflectionMergePartial<FileInfo>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: FileInfo): FileInfo {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string name */ 1:
+                    message.name = reader.string();
+                    break;
+                case /* uint32 line */ 2:
+                    message.line = reader.uint32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: FileInfo, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string name = 1; */
+        if (message.name !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.name);
+        /* uint32 line = 2; */
+        if (message.line !== 0)
+            writer.tag(2, WireType.Varint).uint32(message.line);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message flow.FileInfo
+ */
+export const FileInfo = new FileInfo$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Layer4$Type extends MessageType<Layer4> {
     constructor() {
@@ -3772,7 +3871,8 @@ class Policy$Type extends MessageType<Policy> {
             { no: 1, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "namespace", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "labels", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "revision", kind: "scalar", T: 4 /*ScalarType.UINT64*/, L: 2 /*LongType.NUMBER*/ }
+            { no: 4, name: "revision", kind: "scalar", T: 4 /*ScalarType.UINT64*/, L: 2 /*LongType.NUMBER*/ },
+            { no: 5, name: "kind", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Policy>): Policy {
@@ -3781,6 +3881,7 @@ class Policy$Type extends MessageType<Policy> {
         message.namespace = "";
         message.labels = [];
         message.revision = 0;
+        message.kind = "";
         if (value !== undefined)
             reflectionMergePartial<Policy>(this, message, value);
         return message;
@@ -3801,6 +3902,9 @@ class Policy$Type extends MessageType<Policy> {
                     break;
                 case /* uint64 revision */ 4:
                     message.revision = reader.uint64().toNumber();
+                    break;
+                case /* string kind */ 5:
+                    message.kind = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3826,6 +3930,9 @@ class Policy$Type extends MessageType<Policy> {
         /* uint64 revision = 4; */
         if (message.revision !== 0)
             writer.tag(4, WireType.Varint).uint64(message.revision);
+        /* string kind = 5; */
+        if (message.kind !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.kind);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3966,12 +4073,14 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
             { no: 10, name: "source_label", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 16, name: "source_service", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 26, name: "source_workload", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Workload },
+            { no: 37, name: "source_cluster_name", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "destination_ip", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "destination_pod", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 8, name: "destination_fqdn", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 11, name: "destination_label", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 17, name: "destination_service", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 27, name: "destination_workload", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Workload },
+            { no: 38, name: "destination_cluster_name", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 30, name: "traffic_direction", kind: "enum", repeat: 1 /*RepeatType.PACKED*/, T: () => ["flow.TrafficDirection", TrafficDirection] },
             { no: 5, name: "verdict", kind: "enum", repeat: 1 /*RepeatType.PACKED*/, T: () => ["flow.Verdict", Verdict] },
             { no: 33, name: "drop_reason_desc", kind: "enum", repeat: 1 /*RepeatType.PACKED*/, T: () => ["flow.DropReason", DropReason] },
@@ -4007,12 +4116,14 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
         message.sourceLabel = [];
         message.sourceService = [];
         message.sourceWorkload = [];
+        message.sourceClusterName = [];
         message.destinationIp = [];
         message.destinationPod = [];
         message.destinationFqdn = [];
         message.destinationLabel = [];
         message.destinationService = [];
         message.destinationWorkload = [];
+        message.destinationClusterName = [];
         message.trafficDirection = [];
         message.verdict = [];
         message.dropReasonDesc = [];
@@ -4068,6 +4179,9 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
                 case /* repeated flow.Workload source_workload */ 26:
                     message.sourceWorkload.push(Workload.internalBinaryRead(reader, reader.uint32(), options));
                     break;
+                case /* repeated string source_cluster_name */ 37:
+                    message.sourceClusterName.push(reader.string());
+                    break;
                 case /* repeated string destination_ip */ 3:
                     message.destinationIp.push(reader.string());
                     break;
@@ -4085,6 +4199,9 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
                     break;
                 case /* repeated flow.Workload destination_workload */ 27:
                     message.destinationWorkload.push(Workload.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated string destination_cluster_name */ 38:
+                    message.destinationClusterName.push(reader.string());
                     break;
                 case /* repeated flow.TrafficDirection traffic_direction */ 30:
                     if (wireType === WireType.LengthDelimited)
@@ -4219,6 +4336,9 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
         /* repeated flow.Workload source_workload = 26; */
         for (let i = 0; i < message.sourceWorkload.length; i++)
             Workload.internalBinaryWrite(message.sourceWorkload[i], writer.tag(26, WireType.LengthDelimited).fork(), options).join();
+        /* repeated string source_cluster_name = 37; */
+        for (let i = 0; i < message.sourceClusterName.length; i++)
+            writer.tag(37, WireType.LengthDelimited).string(message.sourceClusterName[i]);
         /* repeated string destination_ip = 3; */
         for (let i = 0; i < message.destinationIp.length; i++)
             writer.tag(3, WireType.LengthDelimited).string(message.destinationIp[i]);
@@ -4237,6 +4357,9 @@ class FlowFilter$Type extends MessageType<FlowFilter> {
         /* repeated flow.Workload destination_workload = 27; */
         for (let i = 0; i < message.destinationWorkload.length; i++)
             Workload.internalBinaryWrite(message.destinationWorkload[i], writer.tag(27, WireType.LengthDelimited).fork(), options).join();
+        /* repeated string destination_cluster_name = 38; */
+        for (let i = 0; i < message.destinationClusterName.length; i++)
+            writer.tag(38, WireType.LengthDelimited).string(message.destinationClusterName[i]);
         /* repeated flow.TrafficDirection traffic_direction = 30; */
         if (message.trafficDirection.length) {
             writer.tag(30, WireType.LengthDelimited).fork();

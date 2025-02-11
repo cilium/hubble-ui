@@ -339,9 +339,9 @@ func (h *Hive) Start(log *slog.Logger, ctx context.Context) error {
 	start := time.Now()
 	err := h.lifecycle.Start(log, ctx)
 	if err == nil {
-		log.Info("Started", "duration", time.Since(start))
+		log.Info("Started hive", "duration", time.Since(start))
 	} else {
-		log.Error("Start failed", "error", err, "duration", time.Since(start))
+		log.Error("Failed to start hive", "error", err, "duration", time.Since(start))
 	}
 	return err
 }
@@ -351,7 +351,7 @@ func (h *Hive) Start(log *slog.Logger, ctx context.Context) error {
 // then after 5 more seconds the process will be terminated forcefully.
 func (h *Hive) Stop(log *slog.Logger, ctx context.Context) error {
 	defer close(h.fatalOnTimeout(ctx))
-	log.Info("Stopping")
+	log.Info("Stopping hive")
 	return h.lifecycle.Stop(log, ctx)
 }
 
