@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"sort"
+	"slices"
 	"strings"
 	"text/tabwriter"
 	"time"
@@ -39,7 +39,6 @@ func DefaultSockPath() string {
 		e = defaults.SockPath
 	}
 	return "unix://" + e
-
 }
 
 func configureTransport(tr *http.Transport, proto, addr string) *http.Transport {
@@ -331,7 +330,7 @@ func FormatStatusResponse(w io.Writer, sr *models.StatusResponse, sd StatusDetai
 	if sr.Kubernetes != nil {
 		fmt.Fprintf(w, "Kubernetes:\t%s\t%s\n", sr.Kubernetes.State, sr.Kubernetes.Msg)
 		if sr.Kubernetes.State != models.K8sStatusStateDisabled {
-			sort.Strings(sr.Kubernetes.K8sAPIVersions)
+			slices.Sort(sr.Kubernetes.K8sAPIVersions)
 			fmt.Fprintf(w, "Kubernetes APIs:\t[\"%s\"]\n", strings.Join(sr.Kubernetes.K8sAPIVersions, "\", \""))
 		}
 
@@ -394,7 +393,7 @@ func FormatStatusResponse(w io.Writer, sr *models.StatusResponse, sd StatusDetai
 		for probe := range sr.Stale {
 			sortedProbes = append(sortedProbes, probe)
 		}
-		sort.Strings(sortedProbes)
+		slices.Sort(sortedProbes)
 
 		stalesStr := make([]string, 0, len(sr.Stale))
 		for _, probe := range sortedProbes {
@@ -429,7 +428,7 @@ func FormatStatusResponse(w io.Writer, sr *models.StatusResponse, sd StatusDetai
 			for ip, owner := range sr.Ipam.Allocations {
 				out = append(out, fmt.Sprintf("  %s (%s)", ip, owner))
 			}
-			sort.Strings(out)
+			slices.Sort(out)
 			for _, line := range out {
 				fmt.Fprintln(w, line)
 			}
@@ -599,7 +598,7 @@ func FormatStatusResponse(w io.Writer, sr *models.StatusResponse, sd StatusDetai
 		fmt.Fprintf(w, "Controller Status:\t%d/%d healthy\n", nOK, len(sr.Controllers))
 		if len(out) > 1 {
 			tab := tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
-			sort.Strings(out)
+			slices.Sort(out)
 			for _, s := range out {
 				fmt.Fprint(tab, s)
 			}
@@ -618,7 +617,7 @@ func FormatStatusResponse(w io.Writer, sr *models.StatusResponse, sd StatusDetai
 			}
 			tab := tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
 			fmt.Fprint(tab, "  Protocol\tRedirect\tProxy Port\n")
-			sort.Strings(out)
+			slices.Sort(out)
 			for _, s := range out {
 				fmt.Fprint(tab, s)
 			}
@@ -776,6 +775,10 @@ func FormatStatusResponse(w io.Writer, sr *models.StatusResponse, sd StatusDetai
 		fmt.Fprintf(tab, "  - LoadBalancer:\t%s \n", lb)
 		fmt.Fprintf(tab, "  - externalIPs:\t%s \n", eIP)
 		fmt.Fprintf(tab, "  - HostPort:\t%s\n", hPort)
+		fmt.Fprintf(tab, "  Annotations:\n")
+		for _, annotation := range sr.KubeProxyReplacement.Features.Annotations {
+			fmt.Fprintf(tab, "  - %s\n", annotation)
+		}
 		tab.Flush()
 	}
 
@@ -829,9 +832,9 @@ const (
 func FormatStatusResponseRemoteClusters(w io.Writer, clusters []*models.RemoteCluster, verbosity RemoteClustersStatusVerbosity) {
 	for _, cluster := range clusters {
 		if verbosity != RemoteClustersStatusNotReadyOnly || !cluster.Ready {
-			fmt.Fprintf(w, "   %s: %s, %d nodes, %d endpoints, %d identities, %d services, %d reconnections (last: %s)\n",
+			fmt.Fprintf(w, "   %s: %s, %d nodes, %d endpoints, %d identities, %d services, %d MCS-API service exports, %d reconnections (last: %s)\n",
 				cluster.Name, clusterReadiness(cluster), cluster.NumNodes,
-				cluster.NumEndpoints, cluster.NumIdentities, cluster.NumSharedServices,
+				cluster.NumEndpoints, cluster.NumIdentities, cluster.NumSharedServices, cluster.NumServiceExports,
 				cluster.NumFailures, timeSince(time.Time(cluster.LastFailure)))
 
 			if verbosity == RemoteClustersStatusBrief && cluster.Ready {
@@ -843,9 +846,17 @@ func FormatStatusResponseRemoteClusters(w io.Writer, clusters []*models.RemoteCl
 			fmt.Fprint(w, "   └  remote configuration: ")
 			if cluster.Config != nil {
 				fmt.Fprintf(w, "expected=%t, retrieved=%t", cluster.Config.Required, cluster.Config.Retrieved)
+				serviceExportsConfig := "unsupported"
+				if cluster.Config.ServiceExportsEnabled != nil {
+					if *cluster.Config.ServiceExportsEnabled {
+						serviceExportsConfig = "enabled"
+					} else {
+						serviceExportsConfig = "disabled"
+					}
+				}
 				if cluster.Config.Retrieved {
-					fmt.Fprintf(w, ", cluster-id=%d, kvstoremesh=%t, sync-canaries=%t",
-						cluster.Config.ClusterID, cluster.Config.Kvstoremesh, cluster.Config.SyncCanaries)
+					fmt.Fprintf(w, ", cluster-id=%d, kvstoremesh=%t, sync-canaries=%t, service-exports=%s",
+						cluster.Config.ClusterID, cluster.Config.Kvstoremesh, cluster.Config.SyncCanaries, serviceExportsConfig)
 				}
 			} else {
 				fmt.Fprint(w, "expected=unknown, retrieved=unknown")
@@ -853,8 +864,12 @@ func FormatStatusResponseRemoteClusters(w io.Writer, clusters []*models.RemoteCl
 			fmt.Fprint(w, "\n")
 
 			if cluster.Synced != nil {
-				fmt.Fprintf(w, "   └  synchronization status: nodes=%v, endpoints=%v, identities=%v, services=%v\n",
+				fmt.Fprintf(w, "   └  synchronization status: nodes=%v, endpoints=%v, identities=%v, services=%v",
 					cluster.Synced.Nodes, cluster.Synced.Endpoints, cluster.Synced.Identities, cluster.Synced.Services)
+				if cluster.Synced.ServiceExports != nil {
+					fmt.Fprintf(w, ", service-exports=%v", *cluster.Synced.ServiceExports)
+				}
+				fmt.Fprintln(w)
 			}
 		}
 	}

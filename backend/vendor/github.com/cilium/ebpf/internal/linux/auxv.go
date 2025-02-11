@@ -2,11 +2,8 @@ package linux
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	_ "unsafe"
-
-	"github.com/cilium/ebpf/internal"
 )
 
 type auxvPairReader interface {
@@ -50,10 +47,6 @@ func (r *auxvRuntimeReader) ReadAuxvPair() (uint64, uint64, error) {
 }
 
 func newAuxvRuntimeReader() (auxvPairReader, error) {
-	if !internal.OnLinux {
-		return nil, fmt.Errorf("read auxv from runtime: %w", internal.ErrNotSupportedOnOS)
-	}
-
 	data := runtime_getAuxv()
 
 	if len(data)%2 != 0 {

@@ -704,6 +704,14 @@ func (in *EgressRule) DeepEqual(other *EgressRule) bool {
 		}
 	}
 
+	if (in.NodeSelector == nil) != (other.NodeSelector == nil) {
+		return false
+	} else if in.NodeSelector != nil {
+		if !in.NodeSelector.DeepEqual(other.NodeSelector) {
+			return false
+		}
+	}
+
 	return true
 }
 
@@ -917,14 +925,6 @@ func (in *EndpointStatus) DeepEqual(other *EndpointStatus) bool {
 		return false
 	} else if in.Policy != nil {
 		if !in.Policy.DeepEqual(other.Policy) {
-			return false
-		}
-	}
-
-	if (in.VisibilityPolicyStatus == nil) != (other.VisibilityPolicyStatus == nil) {
-		return false
-	} else if in.VisibilityPolicyStatus != nil {
-		if *in.VisibilityPolicyStatus != *other.VisibilityPolicyStatus {
 			return false
 		}
 	}
