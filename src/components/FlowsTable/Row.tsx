@@ -61,6 +61,9 @@ export const Row = memo<RowProps>(function FlowsTableRow(props) {
       )}
       {props.visibleColumns.has(Column.DstPort) && <Cell flow={props.flow} kind={Column.DstPort} />}
       {props.visibleColumns.has(Column.L7Info) && <Cell flow={props.flow} kind={Column.L7Info} />}
+      {props.visibleColumns.has(Column.TrafficDirection) && (
+        <Cell flow={props.flow} kind={Column.TrafficDirection} />
+      )}
       {props.visibleColumns.has(Column.Verdict) && <Cell flow={props.flow} kind={Column.Verdict} />}
       {props.visibleColumns.has(Column.Auth) && <Cell flow={props.flow} kind={Column.Auth} />}
       {props.visibleColumns.has(Column.TcpFlags) && (

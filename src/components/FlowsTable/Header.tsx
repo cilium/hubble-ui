@@ -32,6 +32,11 @@ export const Header = memo<CommonProps>(function FlowsTableHeader(props) {
       {props.visibleColumns.has(Column.L7Info) && (
         <div className={classnames(css.cell, css.l7info)}>{getColumnLabel(Column.L7Info)}</div>
       )}
+      {props.visibleColumns.has(Column.TrafficDirection) && (
+        <div className={classnames(css.cell, css.trafficDirection)}>
+          {getColumnLabel(Column.TrafficDirection)}
+        </div>
+      )}
       {props.visibleColumns.has(Column.Verdict) && (
         <div className={classnames(css.cell, css.verdict)}>{getColumnLabel(Column.Verdict)}</div>
       )}

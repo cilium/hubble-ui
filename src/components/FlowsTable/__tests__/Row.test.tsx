@@ -86,7 +86,9 @@ const runTest = (ntest: number, hf: HubbleFlow, exps: Expectations) => {
         row = renderRow(
           <Row
             flow={flow}
-            visibleColumns={new Set(Object.values(Column))}
+            visibleColumns={
+              new Set(Object.values(Column).filter(f => f !== Column.TrafficDirection))
+            }
             isSelected={selected}
             onSelect={onSelect}
           ></Row>,
