@@ -109,6 +109,13 @@ export const Cell = observer(function FlowsTableCell(props: CellProps) {
         </div>
       );
     }
+    case Column.TrafficDirection: {
+      return (
+        <div className={classnames(css.cell, css.trafficDirection)}>
+          {props.flow.trafficDirectionLabel}
+        </div>
+      );
+    }
     case Column.Verdict: {
       const className = classnames(css.cell, css.verdict, {
         [css.forwardedVerdict]: props.flow.verdict === Verdict.Forwarded,
