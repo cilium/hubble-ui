@@ -142,8 +142,8 @@ export class ServiceCard extends AbstractCard {
       result.push(FilterEntry.newLabel(ReservedLabel.Ingress));
     }
 
-    if (this.isWorld) {
-      result.push(FilterEntry.newLabel(ReservedLabel.World));
+    if (this.isWorld && this.worldLabel) {
+      result.push(FilterEntry.newLabel(this.worldLabel));
     }
 
     if (this.isKubeDNS) {
@@ -269,8 +269,17 @@ export class ServiceCard extends AbstractCard {
     return this.service.namespace || Labels.findNamespaceInLabels(this.labels);
   }
 
+  @computed
+  public get worldLabel(): string | null {
+    return Labels.findWorldInLabels(this.labels);
+  }
+
   public get isWorld(): boolean {
     return this.labelsProps.isWorld;
+  }
+
+  public get isWorldIPv6(): boolean {
+    return this.labelsProps.isWorld && this.worldLabel === ReservedLabel.WorldIPv6;
   }
 
   public get isHost(): boolean {

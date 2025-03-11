@@ -126,3 +126,14 @@ export const sameNamespace = {
     labels: replaceNsLabel(kubeDNS.labels),
   },
 };
+
+export const worldIPv6: HubbleService = {
+  id: 'world-ipv6-service',
+  name: 'world-ipv6-service',
+  namespace: 'world-ipv6-service-ns',
+  labels: [Labels.toKV(ReservedLabel.WorldIPv6)],
+  dnsNames: [],
+  workloads: [],
+  identity: MockServiceIdentity.World,
+  ...restOfService,
+};
