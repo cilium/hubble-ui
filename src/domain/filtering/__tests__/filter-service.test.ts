@@ -48,6 +48,7 @@ const testFilterEntry = (
 describe('filterService', () => {
   const regular = ServiceCard.fromService(services.regular);
   const world = ServiceCard.fromService(services.world);
+  const worldIPv6 = ServiceCard.fromService(services.worldIPv6);
   const host = ServiceCard.fromService(services.host);
   const remoteNode = ServiceCard.fromService(services.remoteNode);
   const kubeDns = ServiceCard.fromService(services.kubeDNS);
@@ -61,10 +62,18 @@ describe('filterService', () => {
     expect(regular.workload).toBeTruthy();
 
     expect(world.isWorld).toBe(true);
+    expect(world.isWorldIPv6).toBe(false);
     expect(world.isHost).toBe(false);
     expect(world.isKubeDNS).toBe(false);
     expect(world.isPrometheusApp).toBe(false);
     expect(world.isRemoteNode).toBe(false);
+
+    expect(worldIPv6.isWorld).toBe(true);
+    expect(worldIPv6.isWorldIPv6).toBe(true);
+    expect(worldIPv6.isHost).toBe(false);
+    expect(worldIPv6.isKubeDNS).toBe(false);
+    expect(worldIPv6.isPrometheusApp).toBe(false);
+    expect(worldIPv6.isRemoteNode).toBe(false);
 
     expect(host.isWorld).toBe(false);
     expect(host.isHost).toBe(true);
