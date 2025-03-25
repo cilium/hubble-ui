@@ -16,7 +16,7 @@ github.com/blang/semver/v4
 # github.com/cespare/xxhash/v2 v2.3.0
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
-# github.com/cilium/cilium v1.17.0
+# github.com/cilium/cilium v1.17.2
 ## explicit; go 1.23.0
 github.com/cilium/cilium/api/v1/client
 github.com/cilium/cilium/api/v1/client/bgp
@@ -135,7 +135,7 @@ github.com/cilium/hive/script/internal/diff
 # github.com/cilium/proxy v0.0.0-20250211021819-e85e926b0fa4
 ## explicit; go 1.23
 github.com/cilium/proxy/pkg/policy/api/kafka
-# github.com/cilium/statedb v0.3.5
+# github.com/cilium/statedb v0.3.6
 ## explicit; go 1.23
 github.com/cilium/statedb/index
 github.com/cilium/statedb/part
@@ -434,7 +434,7 @@ github.com/stoewer/go-strcase
 # github.com/subosito/gotenv v1.6.0
 ## explicit; go 1.18
 github.com/subosito/gotenv
-# github.com/vishvananda/netlink v1.3.1-0.20241022031324-976bd8de7d81
+# github.com/vishvananda/netlink v1.3.1-0.20250221194427-0af32151e72b
 ## explicit; go 1.12
 github.com/vishvananda/netlink
 github.com/vishvananda/netlink/nl
