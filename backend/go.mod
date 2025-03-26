@@ -3,7 +3,7 @@ module github.com/cilium/hubble-ui/backend
 go 1.23.5
 
 require (
-	github.com/cilium/cilium v1.17.0
+	github.com/cilium/cilium v1.17.2
 	github.com/google/gops v0.3.28
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/julienschmidt/httprouter v1.3.0
@@ -27,7 +27,7 @@ require (
 	github.com/cilium/ebpf v0.17.1 // indirect
 	github.com/cilium/hive v0.0.0-20250206110837-3a9e5694e24a // indirect
 	github.com/cilium/proxy v0.0.0-20250211021819-e85e926b0fa4 // indirect
-	github.com/cilium/statedb v0.3.5 // indirect
+	github.com/cilium/statedb v0.3.6 // indirect
 	github.com/cilium/stream v0.0.0-20241203114243-53c3e5d79744 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emicklei/go-restful/v3 v3.12.1 // indirect
@@ -86,7 +86,7 @@ require (
 	github.com/spf13/viper v1.19.0 // indirect
 	github.com/stoewer/go-strcase v1.3.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
-	github.com/vishvananda/netlink v1.3.1-0.20241022031324-976bd8de7d81 // indirect
+	github.com/vishvananda/netlink v1.3.1-0.20250221194427-0af32151e72b // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.mongodb.org/mongo-driver v1.17.2 // indirect
