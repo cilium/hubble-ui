@@ -26,6 +26,8 @@ export interface HubbleFlow {
   readonly summary: string;
   readonly trafficDirection: TrafficDirection;
   readonly authType: AuthType;
+  readonly egressAllowedBy: Array<string>;
+  readonly ingressAllowedBy: Array<string>;
 }
 
 export interface HubbleService {
