@@ -15,7 +15,7 @@ jobs:
         with:
           submodules: true
       - name: Use Node.js
-        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e
         with:
           node-version: '20.x'
       - name: Install dependencies
@@ -39,14 +39,14 @@ jobs:
           go mod verify
           test -z "$(git status --porcelain)" || (echo "please run 'go mod tidy && go mod vendor', and submit your changes"; exit 1)
       - name: Run Go static checks
-        uses: golangci/golangci-lint-action@051d91933864810ecd5e2ea2cfd98f6a5bca5347
+        uses: golangci/golangci-lint-action@1481404843c368bc19ca9406f87d6e0fc97bdcfd
         with:
           working-directory: ./backend
           version: v1.63.4
           args: --config=.golangci.yml --verbose --out-${NO_FUTURE}format colored-line-number
           skip-cache: true
       - name: Setup Node.js
-        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e
         with:
           node-version: '20.x'
       - name: Install NPM dependencies
