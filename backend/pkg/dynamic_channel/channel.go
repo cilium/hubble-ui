@@ -76,11 +76,7 @@ func (dch *DynamicChannel[T]) Slice() []T {
 
 func (dch *DynamicChannel[T]) Enqueue(ctx context.Context, d T) error {
 	dch.mx.Lock()
-	for {
-		if dch.demand.Size() == 0 {
-			break
-		}
-
+	for dch.demand.Size() != 0 {
 		w := *dch.demand.Pop()
 		w.datum = d
 		dch.mx.Unlock()
@@ -117,11 +113,7 @@ func (dch *DynamicChannel[T]) Enqueue(ctx context.Context, d T) error {
 func (dch *DynamicChannel[T]) EnqueueNonblock(d T) {
 	dch.mx.Lock()
 
-	for {
-		if dch.demand.Size() == 0 {
-			break
-		}
-
+	for dch.demand.Size() != 0 {
 		w := *dch.demand.Pop()
 		w.datum = d
 		dch.mx.Unlock()
@@ -149,11 +141,7 @@ func (dch *DynamicChannel[T]) EnqueueNonblock(d T) {
 func (dch *DynamicChannel[T]) Dequeue(ctx context.Context) (*T, error) {
 	dch.mx.Lock()
 
-	for {
-		if dch.supply.Size() == 0 {
-			break
-		}
-
+	for dch.supply.Size() != 0 {
 		c := *dch.supply.Pop()
 		dch.mx.Unlock()
 
@@ -192,11 +180,7 @@ func (dch *DynamicChannel[T]) Dequeue(ctx context.Context) (*T, error) {
 func (dch *DynamicChannel[T]) DequeueNonblock() *T {
 	dch.mx.Lock()
 
-	for {
-		if dch.supply.Size() == 0 {
-			break
-		}
-
+	for dch.supply.Size() != 0 {
 		c := *dch.supply.Pop()
 		dch.mx.Unlock()
 

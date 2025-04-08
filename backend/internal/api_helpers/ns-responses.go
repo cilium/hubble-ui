@@ -12,11 +12,14 @@ func EventResponseFromNSEvent(e *common.NSEvent) *ui.GetEventsResponse {
 	nodeName := "<timescape>"
 	event := e.Event
 
-	var stateChange ui.StateChange = ui.StateChange_MODIFIED
-	if event == events.Added {
+	var stateChange ui.StateChange
+	switch event {
+	case events.Added:
 		stateChange = ui.StateChange_ADDED
-	} else if event == events.Deleted {
+	case events.Deleted:
 		stateChange = ui.StateChange_DELETED
+	default:
+		stateChange = ui.StateChange_MODIFIED
 	}
 
 	var desc *namespaces.Descriptor

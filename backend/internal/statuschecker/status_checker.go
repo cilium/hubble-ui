@@ -192,11 +192,7 @@ func (h *Handle) runLoop(
 		return err
 	}
 
-	for {
-		if h.shouldStop(ctx) {
-			break
-		}
-
+	for !h.shouldStop(ctx) {
 		isRenewed, err := h.ensureConnection(ctx)
 		if err != nil {
 			h.sendError(ctx, err)
