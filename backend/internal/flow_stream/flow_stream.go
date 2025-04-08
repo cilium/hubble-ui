@@ -135,11 +135,7 @@ func (h *FlowStream) runLoop(
 	isDatumFetched := false
 
 F:
-	for {
-		if h.shouldStop(ctx) {
-			break
-		}
-
+	for !h.shouldStop(ctx) {
 		isRenewed, err := h.ensureConnection(ctx)
 		if err != nil {
 			h.log.WithError(err).Error("ensureConnection failed")

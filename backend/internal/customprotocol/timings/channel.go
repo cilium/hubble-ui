@@ -72,10 +72,7 @@ func (ct *ChannelTimings) getNormalizedDelayFactor() float64 {
 		return 1.0
 	}
 
-	isSynchronousStream := false
-	if math.Abs(oRate/iRate-1.0) < 0.1 {
-		isSynchronousStream = true
-	}
+	isSynchronousStream := math.Abs(oRate/iRate-1.0) < 0.1
 
 	var targetFactor float64
 	if isSynchronousStream && !f64Equals(opRate, 0.0) {

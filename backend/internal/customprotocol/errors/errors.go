@@ -29,7 +29,7 @@ func ToError(err *cppb.Error) error {
 	switch err.GetKind() {
 	case cppb.Error_Unknown:
 		return fmt.Errorf(
-			"Kind: %s, Code: %d, Message: %s",
+			"kind: %s, Code: %d, Message: %s",
 			err.GetKind().String(),
 			err.GetCode(),
 			err.GetMessage(),

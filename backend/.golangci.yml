@@ -1,11 +1,8 @@
-# See https://golangci-lint.run/usage/configuration/ for available options.
-# Also https://github.com/cilium/cilium/blob/master/.golangci.yaml as a
-# reference.
+version: "2"
 run:
-  go: '1.23'
-  timeout: 3m
+  go: "1.23"
 linters:
-  disable-all: true
+  default: none
   enable:
     - asasalint
     - asciicheck
@@ -22,11 +19,8 @@ linters:
     - exptostd
     - gocheckcompilerdirectives
     - gocritic
-    - gofmt
-    - goimports
     - goprintffuncname
     - gosec
-    - gosimple
     - govet
     - ineffassign
     - interfacebloat
@@ -45,35 +39,49 @@ linters:
     - revive
     - sloglint
     - staticcheck
-    - tenv
     - testifylint
-    - typecheck
     - unconvert
     - unparam
     - unused
     - usestdlibvars
     - usetesting
     - wastedassign
-linters-settings:
-  gocritic:
-    disabled-checks:
-      - exitAfterDefer
-      - singleCaseSwitch
-  govet: 
-    enable-all: true
-    disable:
-      - fieldalignment
-      - shadow
-  revive:
+  settings:
+    gocritic:
+      disabled-checks:
+        - exitAfterDefer
+        - singleCaseSwitch
+    govet:
+      disable:
+        - fieldalignment
+        - shadow
+      enable-all: true
+    revive:
+      rules:
+        - name: exported
+          disabled: true
+  exclusions:
+    generated: lax
     rules:
-      - name: exported
-        disabled: true
-issues:
-  exclude-use-default: false # default rules exclude doc comments check :(
-  exclude-dirs:
-    - tools
-  exclude-rules:
-    - linters: [err113]
-      text: "do not define dynamic errors, use wrapped static errors instead"
-    - linters: [gosec]
-      text: "G402: TLS InsecureSkipVerify may be true"
+      - linters:
+          - err113
+        text: do not define dynamic errors, use wrapped static errors instead
+      - linters:
+          - gosec
+        text: 'G402: TLS InsecureSkipVerify may be true'
+    paths:
+      - tools
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - tools
+      - third_party$
+      - builtin$
+      - examples$
