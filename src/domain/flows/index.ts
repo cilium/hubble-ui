@@ -614,4 +614,20 @@ export class Flow {
   public get authTypeLabel(): string {
     return authtypeHelpers.toString(this.ref.authType);
   }
+
+  public get hasEgressAllowedBy(): boolean {
+    return this.ref.egressAllowedBy.length > 0;
+  }
+
+  public get hasIngressAllowedBy(): boolean {
+    return this.ref.ingressAllowedBy.length > 0;
+  }
+
+  public get egressAllowedBy(): string[] {
+    return this.ref.egressAllowedBy || [];
+  }
+
+  public get ingressAllowedBy(): string[] {
+    return this.ref.ingressAllowedBy || [];
+  }
 }
