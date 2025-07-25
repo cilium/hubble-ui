@@ -6,8 +6,8 @@
 # BUILDPLATFORM is an automatic platform ARG enabled by Docker BuildKit.
 # Represents the plataform where the build is happening, do not mix with
 # TARGETARCH
-# skopeo inspect --override-os linux --override-arch amd64 docker://docker.io/library/node:22.13.1-alpine3.20 | jq -r '.Digest'
-FROM --platform=${BUILDPLATFORM} docker.io/library/node:22.13.1-alpine3.20@sha256:c52e20859a92b3eccbd3a36c5e1a90adc20617d8d421d65e8a622e87b5dac963 as stage1
+# skopeo inspect --override-os linux --override-arch amd64 docker://docker.io/library/node:22.17.1-alpine3.22 | jq -r '.Digest'
+FROM --platform=${BUILDPLATFORM} docker.io/library/node:22.17.1-alpine3.22@sha256:5539840ce9d013fa13e3b9814c9353024be7ac75aca5db6d039504a56c04ea59 as stage1
 RUN apk add make git bash
 WORKDIR /app
 
@@ -27,8 +27,8 @@ COPY . .
 ARG NODE_ENV=production
 RUN npm run build
 
-# skopeo inspect --override-os linux --override-arch amd64 docker://docker.io/nginxinc/nginx-unprivileged:1.27.3-alpine3.20-slim | jq -r '.Digest'
-FROM docker.io/nginxinc/nginx-unprivileged:1.27.3-alpine3.20-slim@sha256:24ae9a39acde5b55b877c7d2ced48549cfada5ae497a9fe2cd8a9c0cfc15919b
+# skopeo inspect --override-os linux --override-arch amd64 docker://docker.io/nginxinc/nginx-unprivileged:1.29.0-alpine3.22-slim | jq -r '.Digest'
+FROM docker.io/nginxinc/nginx-unprivileged:1.29.0-alpine3.22-slim@sha256:86df552d36eb24c45d3f5becf6423bd056a3fd235d7085fe3d5ea28ba89a8232
 USER root
 RUN apk upgrade --no-cache
 USER 101

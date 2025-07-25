@@ -864,7 +864,7 @@ func streamSteppedRate(ch *channel.Channel) error {
 func createRouter(t *testing.T, td RouterInitTest) (
 	*router.Router, context.CancelFunc,
 ) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 
 	minClientPollDelay := td.MinClientPollDelay
 	if minClientPollDelay == 0 {
@@ -1006,7 +1006,7 @@ func (trr *TestReqRes) BuildHTTPRequest(
 	}
 
 	req, err := http.NewRequestWithContext(
-		context.Background(),
+		t.Context(),
 		http.MethodPost,
 		"/cp_testing",
 		bytes.NewReader(bodyBytes),
