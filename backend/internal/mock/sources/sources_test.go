@@ -15,10 +15,10 @@ type CollectedData struct {
 	nsEvents []*common.NSEvent
 }
 
-func runSource(_t *testing.T, src MockedSource) CollectedData {
+func runSource(t *testing.T, src MockedSource) CollectedData {
 	nsEvents := []*common.NSEvent{}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 1*time.Second)
 	defer cancel()
 	go src.Run(ctx)
 
