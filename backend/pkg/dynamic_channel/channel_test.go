@@ -253,7 +253,7 @@ func runTest[T, A any](t *testing.T, testName string, td TestDescriptor[T, A]) {
 
 	commonAcc := td.accumFn()
 	gctxs := []*GoroutineContext[T, A]{}
-	pctx := context.Background()
+	pctx := t.Context()
 	cctx, cancel := context.WithTimeout(pctx, 100*time.Millisecond)
 	defer cancel()
 
