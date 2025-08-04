@@ -1,7 +1,7 @@
 import * as jspb from 'google-protobuf'
 
-import * as google_protobuf_wrappers_pb from 'google-protobuf/google/protobuf/wrappers_pb';
-import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb';
+import * as google_protobuf_wrappers_pb from 'google-protobuf/google/protobuf/wrappers_pb'; // proto import: "google/protobuf/wrappers.proto"
+import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb'; // proto import: "google/protobuf/timestamp.proto"
 
 
 export class Flow extends jspb.Message {
@@ -1587,6 +1587,8 @@ export enum DropReason {
   INVALID_CLUSTER_ID = 192,
   UNSUPPORTED_PROTOCOL_FOR_DSR_ENCAP = 193,
   NO_EGRESS_GATEWAY = 194,
+  TTL_EXCEEDED = 196,
+  NO_NODE_ID = 197,
 }
 export enum TrafficDirection { 
   TRAFFIC_DIRECTION_UNKNOWN = 0,

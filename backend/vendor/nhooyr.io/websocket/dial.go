@@ -1,3 +1,4 @@
+//go:build !js
 // +build !js
 
 package websocket
@@ -8,10 +9,8 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -31,11 +30,15 @@ type DialOptions struct {
 	// HTTPHeader specifies the HTTP headers included in the handshake request.
 	HTTPHeader http.Header
 
+	// Host optionally overrides the Host HTTP header to send. If empty, the value
+	// of URL.Host will be used.
+	Host string
+
 	// Subprotocols lists the WebSocket subprotocols to negotiate with the server.
 	Subprotocols []string
 
 	// CompressionMode controls the compression mode.
-	// Defaults to CompressionNoContextTakeover.
+	// Defaults to CompressionDisabled.
 	//
 	// See docs on CompressionMode for details.
 	CompressionMode CompressionMode
@@ -45,6 +48,45 @@ type DialOptions struct {
 	// Defaults to 512 bytes for CompressionNoContextTakeover and 128 bytes
 	// for CompressionContextTakeover.
 	CompressionThreshold int
+}
+
+func (opts *DialOptions) cloneWithDefaults(ctx context.Context) (context.Context, context.CancelFunc, *DialOptions) {
+	var cancel context.CancelFunc
+
+	var o DialOptions
+	if opts != nil {
+		o = *opts
+	}
+	if o.HTTPClient == nil {
+		o.HTTPClient = http.DefaultClient
+	}
+	if o.HTTPClient.Timeout > 0 {
+		ctx, cancel = context.WithTimeout(ctx, o.HTTPClient.Timeout)
+
+		newClient := *o.HTTPClient
+		newClient.Timeout = 0
+		o.HTTPClient = &newClient
+	}
+	if o.HTTPHeader == nil {
+		o.HTTPHeader = http.Header{}
+	}
+	newClient := *o.HTTPClient
+	oldCheckRedirect := o.HTTPClient.CheckRedirect
+	newClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		switch req.URL.Scheme {
+		case "ws":
+			req.URL.Scheme = "http"
+		case "wss":
+			req.URL.Scheme = "https"
+		}
+		if oldCheckRedirect != nil {
+			return oldCheckRedirect(req, via)
+		}
+		return nil
+	}
+	o.HTTPClient = &newClient
+
+	return ctx, cancel, &o
 }
 
 // Dial performs a WebSocket handshake on url.
@@ -67,16 +109,10 @@ func Dial(ctx context.Context, u string, opts *DialOptions) (*Conn, *http.Respon
 func dial(ctx context.Context, urls string, opts *DialOptions, rand io.Reader) (_ *Conn, _ *http.Response, err error) {
 	defer errd.Wrap(&err, "failed to WebSocket dial")
 
-	if opts == nil {
-		opts = &DialOptions{}
-	}
-
-	opts = &*opts
-	if opts.HTTPClient == nil {
-		opts.HTTPClient = http.DefaultClient
-	}
-	if opts.HTTPHeader == nil {
-		opts.HTTPHeader = http.Header{}
+	var cancel context.CancelFunc
+	ctx, cancel, opts = opts.cloneWithDefaults(ctx)
+	if cancel != nil {
+		defer cancel()
 	}
 
 	secWebSocketKey, err := secWebSocketKey(rand)
@@ -105,9 +141,9 @@ func dial(ctx context.Context, urls string, opts *DialOptions, rand io.Reader) (
 			})
 			defer timer.Stop()
 
-			b, _ := ioutil.ReadAll(r)
+			b, _ := io.ReadAll(r)
 			respBody.Close()
-			resp.Body = ioutil.NopCloser(bytes.NewReader(b))
+			resp.Body = io.NopCloser(bytes.NewReader(b))
 		}
 	}()
 
@@ -133,10 +169,6 @@ func dial(ctx context.Context, urls string, opts *DialOptions, rand io.Reader) (
 }
 
 func handshakeRequest(ctx context.Context, urls string, opts *DialOptions, copts *compressionOptions, secWebSocketKey string) (*http.Response, error) {
-	if opts.HTTPClient.Timeout > 0 {
-		return nil, errors.New("use context for cancellation instead of http.Client.Timeout; see https://github.com/nhooyr/websocket/issues/67")
-	}
-
 	u, err := url.Parse(urls)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse url: %w", err)
@@ -152,7 +184,13 @@ func handshakeRequest(ctx context.Context, urls string, opts *DialOptions, copts
 		return nil, fmt.Errorf("unexpected url scheme: %q", u.Scheme)
 	}
 
-	req, _ := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create new http request: %w", err)
+	}
+	if len(opts.Host) > 0 {
+		req.Host = opts.Host
+	}
 	req.Header = opts.HTTPHeader.Clone()
 	req.Header.Set("Connection", "Upgrade")
 	req.Header.Set("Upgrade", "websocket")
@@ -162,7 +200,7 @@ func handshakeRequest(ctx context.Context, urls string, opts *DialOptions, copts
 		req.Header.Set("Sec-WebSocket-Protocol", strings.Join(opts.Subprotocols, ","))
 	}
 	if copts != nil {
-		copts.setHeader(req.Header)
+		req.Header.Set("Sec-WebSocket-Extensions", copts.String())
 	}
 
 	resp, err := opts.HTTPClient.Do(req)
@@ -189,11 +227,11 @@ func verifyServerResponse(opts *DialOptions, copts *compressionOptions, secWebSo
 		return nil, fmt.Errorf("expected handshake response status code %v but got %v", http.StatusSwitchingProtocols, resp.StatusCode)
 	}
 
-	if !headerContainsToken(resp.Header, "Connection", "Upgrade") {
+	if !headerContainsTokenIgnoreCase(resp.Header, "Connection", "Upgrade") {
 		return nil, fmt.Errorf("WebSocket protocol violation: Connection header %q does not contain Upgrade", resp.Header.Get("Connection"))
 	}
 
-	if !headerContainsToken(resp.Header, "Upgrade", "WebSocket") {
+	if !headerContainsTokenIgnoreCase(resp.Header, "Upgrade", "WebSocket") {
 		return nil, fmt.Errorf("WebSocket protocol violation: Upgrade header %q does not contain websocket", resp.Header.Get("Upgrade"))
 	}
 
@@ -238,7 +276,8 @@ func verifyServerExtensions(copts *compressionOptions, h http.Header) (*compress
 		return nil, fmt.Errorf("WebSocket protcol violation: unsupported extensions from server: %+v", exts[1:])
 	}
 
-	copts = &*copts
+	_copts := *copts
+	copts = &_copts
 
 	for _, p := range ext.params {
 		switch p {
@@ -247,6 +286,10 @@ func verifyServerExtensions(copts *compressionOptions, h http.Header) (*compress
 			continue
 		case "server_no_context_takeover":
 			copts.serverNoContextTakeover = true
+			continue
+		}
+		if strings.HasPrefix(p, "server_max_window_bits=") {
+			// We can't adjust the deflate window, but decoding with a larger window is acceptable.
 			continue
 		}
 

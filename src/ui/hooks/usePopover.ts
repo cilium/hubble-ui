@@ -1,4 +1,4 @@
-import { IPopoverProps } from '@blueprintjs/core';
+import { PopoverProps } from '@blueprintjs/core';
 import React, {
   useCallback,
   useEffect,
@@ -13,7 +13,7 @@ export function usePopover({
 }: {
   preventDefault?: boolean;
   stopPropagation?: boolean;
-  popoverProps?: IPopoverProps;
+  popoverProps?: PopoverProps;
 } = {}) {
   const [portalContainer, setPortalContainer] = useState<HTMLElement>();
   const [popoverDiv, setPopoverDiv] = useState<HTMLElement | null>(null);
@@ -75,6 +75,6 @@ export function usePopover({
       boundary: 'window',
       popoverRef: setPopoverDiv,
       ...popoverProps,
-    } as IPopoverProps,
+    } as PopoverProps,
   };
 }

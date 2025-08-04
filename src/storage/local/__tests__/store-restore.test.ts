@@ -20,14 +20,14 @@ describe('consistency tests for setItem / getItem', () => {
     const getItem = jest.spyOn(Storage.prototype, 'getItem');
     const setItem = jest.spyOn(Storage.prototype, 'setItem');
 
-    const arr = [Column.SrcService];
+    const arr = [Column.SrcIdentity];
     saveFlowsTableVisibleColumns(new Set(arr));
 
     expect(setItem.mock.calls.length).toBe(1);
     expect(setItem.mock.calls[0][1]).toBe(JSON.stringify(arr));
 
     const data = getFlowsTableVisibleColumns();
-    expect(data).toEqual(new Set([Column.SrcService]));
+    expect(data).toEqual(new Set([Column.SrcIdentity]));
   });
 
   test('flows table visible columns 3', () => {

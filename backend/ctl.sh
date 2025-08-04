@@ -48,8 +48,8 @@ function unknown_command() {
 }
 
 function build_protoc_gen_go() {
-    go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-    go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+    go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31.0
+    go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
 }
 
 function check_outer_dependencies() {

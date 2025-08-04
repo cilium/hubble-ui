@@ -1,4 +1,4 @@
-# Go CORS handler [![godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/rs/cors) [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/rs/cors/master/LICENSE) [![build](https://img.shields.io/travis/rs/cors.svg?style=flat)](https://travis-ci.org/rs/cors) [![Coverage](http://gocover.io/_badge/github.com/rs/cors)](http://gocover.io/github.com/rs/cors)
+# Go CORS handler [![godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/rs/cors) [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/rs/cors/master/LICENSE) [![Go Coverage](https://github.com/rs/cors/wiki/coverage.svg)](https://raw.githack.com/wiki/rs/cors/coverage.html)
 
 CORS is a `net/http` handler implementing [Cross Origin Resource Sharing W3 specification](http://www.w3.org/TR/cors/) in Golang.
 
@@ -88,28 +88,32 @@ handler = c.Handler(handler)
 
 * **AllowedOrigins** `[]string`: A list of origins a cross-domain request can be executed from. If the special `*` value is present in the list, all origins will be allowed. An origin may contain a wildcard (`*`) to replace 0 or more characters (i.e.: `http://*.domain.com`). Usage of wildcards implies a small performance penality. Only one wildcard can be used per origin. The default value is `*`.
 * **AllowOriginFunc** `func (origin string) bool`: A custom function to validate the origin. It takes the origin as an argument and returns true if allowed, or false otherwise. If this option is set, the content of `AllowedOrigins` is ignored.
-* **AllowOriginRequestFunc** `func (r *http.Request origin string) bool`: A custom function to validate the origin. It takes the HTTP Request object and the origin as argument and returns true if allowed or false otherwise. If this option is set, the content of `AllowedOrigins` and `AllowOriginFunc` is ignored
+* **AllowOriginRequestFunc** `func (r *http.Request, origin string) bool`: A custom function to validate the origin. It takes the HTTP Request object and the origin as argument and returns true if allowed or false otherwise. If this option is set, the content of `AllowedOrigins` and `AllowOriginFunc` is ignored
 * **AllowedMethods** `[]string`: A list of methods the client is allowed to use with cross-domain requests. Default value is simple methods (`GET` and `POST`).
 * **AllowedHeaders** `[]string`: A list of non simple headers the client is allowed to use with cross-domain requests.
 * **ExposedHeaders** `[]string`: Indicates which headers are safe to expose to the API of a CORS API specification
 * **AllowCredentials** `bool`: Indicates whether the request can include user credentials like cookies, HTTP authentication or client side SSL certificates. The default is `false`.
 * **MaxAge** `int`: Indicates how long (in seconds) the results of a preflight request can be cached. The default is `0` which stands for no max age.
 * **OptionsPassthrough** `bool`: Instructs preflight to let other potential next handlers to process the `OPTIONS` method. Turn this on if your application handles `OPTIONS`.
+* **OptionsSuccessStatus** `int`: Provides a status code to use for successful OPTIONS requests. Default value is `http.StatusNoContent` (`204`).
 * **Debug** `bool`: Debugging flag adds additional output to debug server side CORS issues.
 
 See [API documentation](http://godoc.org/github.com/rs/cors) for more info.
 
 ## Benchmarks
 
-    BenchmarkWithout          20000000    64.6 ns/op      8 B/op    1 allocs/op
-    BenchmarkDefault          3000000      469 ns/op    114 B/op    2 allocs/op
-    BenchmarkAllowedOrigin    3000000      608 ns/op    114 B/op    2 allocs/op
-    BenchmarkPreflight        20000000    73.2 ns/op      0 B/op    0 allocs/op
-    BenchmarkPreflightHeader  20000000    73.6 ns/op      0 B/op    0 allocs/op
-    BenchmarkParseHeaderList  2000000      847 ns/op    184 B/op    6 allocs/op
-    BenchmarkParse…Single     5000000      290 ns/op     32 B/op    3 allocs/op
-    BenchmarkParse…Normalized 2000000      776 ns/op    160 B/op    6 allocs/op
-
+goos: darwin
+goarch: arm64
+pkg: github.com/rs/cors
+BenchmarkWithout-10             352671961       3.317 ns/op       0 B/op       0 allocs/op
+BenchmarkDefault-10              18261723       65.63 ns/op       0 B/op       0 allocs/op
+BenchmarkAllowedOrigin-10        13309591       90.21 ns/op       0 B/op       0 allocs/op
+BenchmarkPreflight-10             7247728       166.9 ns/op       0 B/op       0 allocs/op
+BenchmarkPreflightHeader-10       5915437       202.9 ns/op       0 B/op       0 allocs/op
+BenchmarkWildcard/match-10      250336476       4.784 ns/op       0 B/op       0 allocs/op
+BenchmarkWildcard/too_short-10 1000000000       0.6354 ns/op       0 B/op       0 allocs/op
+PASS
+ok  	github.com/rs/cors	9.613s
 ## Licenses
 
 All source code is licensed under the [MIT License](https://raw.github.com/rs/cors/master/LICENSE).

@@ -6,7 +6,7 @@ import classnames from 'classnames';
 import { usePopover } from '~/ui/hooks/usePopover';
 import { Verdict } from '~/domain/hubble';
 
-import VerdictIcon from '~/assets/icons/verdict-icon.svg';
+import { VerdictFiltersIcon } from '~/components/Icons/VerdictFiltersIcon';
 import { FilterIcon } from './FilterIcon';
 
 import css from './styles.scss';
@@ -65,7 +65,7 @@ export const VerdictFilterDropdown = memo<Props>(
     return (
       <Popover {...popover.props} content={content}>
         <FilterIcon
-          icon={<VerdictIcon />}
+          icon={<VerdictFiltersIcon />}
           text={getLabel()}
           onClick={popover.toggle}
           className={classnames({
