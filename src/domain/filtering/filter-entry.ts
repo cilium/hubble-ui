@@ -8,6 +8,7 @@ export enum Kind {
   Identity = 'identity',
   TCPFlag = 'tcp-flag',
   Pod = 'pod',
+  Port = 'port',
 }
 
 export enum Direction {
@@ -133,6 +134,9 @@ export class FilterEntry {
       case Kind.Pod: {
         return normalized.replace(/^pod=/g, '');
       }
+      case Kind.Port: {
+        return normalized.replace(/^port=/g, '');
+      }
     }
   }
 
@@ -189,6 +193,15 @@ export class FilterEntry {
     return new FilterEntry({
       kind: Kind.Ip,
       query: ip,
+      direction: Direction.Both,
+      meta: '',
+    });
+  }
+
+  public static newPort(port: string | number): FilterEntry {
+    return new FilterEntry({
+      kind: Kind.Port,
+      query: port.toString(),
       direction: Direction.Both,
       meta: '',
     });
@@ -279,6 +292,10 @@ export class FilterEntry {
 
   public get isPod(): boolean {
     return this.kind === Kind.Pod;
+  }
+
+  public get isPort(): boolean {
+    return this.kind === Kind.Port;
   }
 
   public get fromRequired(): boolean {

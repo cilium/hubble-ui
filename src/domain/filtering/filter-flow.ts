@@ -108,6 +108,12 @@ export const filterFlowByEntry = (flow: Flow, filter: FilterEntry): boolean => {
 
       break;
     }
+    case FilterKind.Port: {
+      if (filter.fromRequired) fromOk = flow.senderHasPort(filter.query);
+      if (filter.toRequired) toOk = flow.receiverHasPort(filter.query);
+
+      break;
+    }
   }
 
   return filter.negative !== (fromOk || toOk);

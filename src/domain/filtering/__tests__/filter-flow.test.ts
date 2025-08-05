@@ -1190,4 +1190,65 @@ describe('filterFlow', () => {
       fromSenderToSenderPod,
     },
   );
+
+  // Port filtering tests
+  testFilterEntry(
+    (flowName: string, tnum: number) =>
+      `port > to matches ${tnum} (${flowName})`,
+    FilterEntry.parse(`to:port=80`)!,
+    true,
+    {
+      normalOne: flows.normalOne, // This flow has destination port 80
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) =>
+      `port > from matches ${tnum} (${flowName})`,
+    FilterEntry.parse(`from:port=56789`)!,
+    true,
+    {
+      normalOne: flows.normalOne, // This flow has source port 56789
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) =>
+      `port > both matches ${tnum} (${flowName})`,
+    FilterEntry.parse(`both:port=80`)!,
+    true,
+    {
+      normalOne: flows.normalOne, // This flow has destination port 80
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) =>
+      `port > both doesnt match ${tnum} (${flowName})`,
+    FilterEntry.parse(`both:port=9999`)!,
+    false,
+    {
+      normalOne: flows.normalOne, // This flow doesn't have port 9999
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) =>
+      `port > negative > both matches ${tnum} (${flowName})`,
+    FilterEntry.parse(`!both:port=9999`)!,
+    true,
+    {
+      normalOne: flows.normalOne, // This flow doesn't have port 9999, so negative filter should match
+    },
+  );
+
+  testFilterEntry(
+    (flowName: string, tnum: number) =>
+      `port > negative > both doesnt match ${tnum} (${flowName})`,
+    FilterEntry.parse(`!both:port=80`)!,
+    false,
+    {
+      normalOne: flows.normalOne, // This flow has port 80, so negative filter should not match
+    },
+  );
 });

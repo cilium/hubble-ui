@@ -367,6 +367,74 @@ describe('filterLink', () => {
     },
   );
 
+  testFilterEntry(
+    (linkName: string, tnum: number) =>
+      `negative > both identity doesnt match ${tnum} (${linkName})`,
+    FilterEntry.parse(`!both:identity=100500`)!,
+    true,
+    {
+      tcpForwarded,
+      tcpDropped,
+      tcpUnknown,
+      tcpError,
+      tcpForwardedDropped,
+      tcpMixed,
+      tcpForwardedToItself,
+      tcpDroppedToItself,
+    },
+  );
+
+  // Port filtering tests
+  testFilterEntry(
+    (linkName: string, tnum: number) =>
+      `port > to matches ${tnum} (${linkName})`,
+    FilterEntry.parse(`to:port=8080`)!,
+    true,
+    {
+      tcpForwarded, // This link has destination port 8080
+    },
+  );
+
+  testFilterEntry(
+    (linkName: string, tnum: number) =>
+      `port > to doesnt match ${tnum} (${linkName})`,
+    FilterEntry.parse(`to:port=9999`)!,
+    false,
+    {
+      tcpForwarded, // This link doesn't have destination port 9999
+    },
+  );
+
+  testFilterEntry(
+    (linkName: string, tnum: number) =>
+      `port > both matches ${tnum} (${linkName})`,
+    FilterEntry.parse(`both:port=8080`)!,
+    true,
+    {
+      tcpForwarded, // This link has destination port 8080
+    },
+  );
+
+  testFilterEntry(
+    (linkName: string, tnum: number) =>
+      `port > negative > both matches ${tnum} (${linkName})`,
+    FilterEntry.parse(`!both:port=9999`)!,
+    true,
+    {
+      tcpForwarded, // This link doesn't have port 9999, so negative filter should match
+    },
+  );
+
+  testFilterEntry(
+    (linkName: string, tnum: number) =>
+      `port > negative > both doesnt match ${tnum} (${linkName})`,
+    FilterEntry.parse(`!both:port=8080`)!,
+    false,
+    {
+      tcpForwarded, // This link has port 8080, so negative filter should not match
+    },
+  );
+
   // These filters don't work for links since they don't have enough information
   // to decide drop or not to drop, hence links are always passed
   runUnusedFiltersTests(

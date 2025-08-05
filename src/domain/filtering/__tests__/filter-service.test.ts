@@ -41,11 +41,11 @@ const testFilterEntry = (
   services: Dictionary<ServiceCard>,
 ) => {
   Object.keys(services).forEach((serviceName: string, lidx: number) => {
-    const service = services[serviceName].service;
+    const serviceCard = services[serviceName];
     const caption = captionFn(serviceName, lidx + 1);
 
     test(caption, () => {
-      const result = filterServiceByEntry(service, entry);
+      const result = filterServiceByEntry(serviceCard, entry);
 
       expect(result).toBe(expected);
     });
@@ -693,6 +693,38 @@ describe('filterService', () => {
       kubeApiServer,
       worldKubeApiServer,
     },
+  );
+
+  // Port filtering tests
+  testFilterEntry(
+    (svcName: string, tnum: number) => `port > to matches ${tnum} (${svcName})`,
+    FilterEntry.parse(`to:port=80`)!,
+    false, // Should be false since no access points have port 80
+    { regular },
+  );
+
+  testFilterEntry(
+    (svcName: string, tnum: number) =>
+      `port > from matches ${tnum} (${svcName})`,
+    FilterEntry.parse(`from:port=8080`)!,
+    false, // Should be false since no access points have port 8080
+    { regular },
+  );
+
+  testFilterEntry(
+    (svcName: string, tnum: number) =>
+      `port > both matches ${tnum} (${svcName})`,
+    FilterEntry.parse(`both:port=443`)!,
+    false, // Should be false since no access points have port 443
+    { regular },
+  );
+
+  testFilterEntry(
+    (svcName: string, tnum: number) =>
+      `port > negative > both matches ${tnum} (${svcName})`,
+    FilterEntry.parse(`!both:port=80`)!,
+    true, // Should be true since no access points have port 80 (negative filter)
+    { regular },
   );
 
   runUnusedFiltersTests(

@@ -28,6 +28,7 @@ export const filterLink = (link: Link, filters: Filters): boolean => {
 export const filterLinkByEntry = (l: Link, e: FilterEntry): boolean => {
   const sourceIdentityMatch = l.sourceId === e.query;
   const destIdentityMatch = l.destinationId === e.query;
+  const destPortMatch = l.destinationPort?.toString() === e.query;
 
   switch (e.direction) {
     case FilterDirection.Both: {
@@ -35,6 +36,10 @@ export const filterLinkByEntry = (l: Link, e: FilterEntry): boolean => {
         case FilterKind.Identity: {
           if (!sourceIdentityMatch && !destIdentityMatch)
             return e.negative !== false;
+          break;
+        }
+        case FilterKind.Port: {
+          if (!destPortMatch) return e.negative !== false;
           break;
         }
       }
@@ -46,6 +51,10 @@ export const filterLinkByEntry = (l: Link, e: FilterEntry): boolean => {
           if (!destIdentityMatch) return e.negative !== false;
           break;
         }
+        case FilterKind.Port: {
+          if (!destPortMatch) return e.negative !== false;
+          break;
+        }
       }
       break;
     }
@@ -53,6 +62,12 @@ export const filterLinkByEntry = (l: Link, e: FilterEntry): boolean => {
       switch (e.kind) {
         case FilterKind.Identity: {
           if (!sourceIdentityMatch) return e.negative !== false;
+          break;
+        }
+        case FilterKind.Port: {
+          // For From direction with port, we can only check destination port
+          // since Link doesn't have sourcePort
+          if (!destPortMatch) return e.negative !== false;
           break;
         }
       }

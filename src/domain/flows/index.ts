@@ -104,6 +104,24 @@ export class Flow {
     return this.destinationPodName === podName;
   }
 
+  public senderHasPort(port: number | string): boolean {
+    const portNum = typeof port === 'string' ? parseInt(port, 10) : port;
+    if (Number.isNaN(portNum)) {
+      console.error('flow: senderHasPort check with invalid port: ', port);
+      return false;
+    }
+    return this.sourcePort === portNum;
+  }
+
+  public receiverHasPort(port: number | string): boolean {
+    const portNum = typeof port === 'string' ? parseInt(port, 10) : port;
+    if (Number.isNaN(portNum)) {
+      console.error('flow: receiverHasPort check with invalid port: ', port);
+      return false;
+    }
+    return this.destinationPort === portNum;
+  }
+
   @memoize
   public get id() {
     if (this._id) return this._id;

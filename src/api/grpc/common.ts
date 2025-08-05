@@ -99,6 +99,8 @@ export const buildBlacklistFlowFilters = (filters?: Filters): FlowFilter[] => {
   const blDstIdentities: number[] = [];
   const blSrcPods: string[] = [];
   const blDstPods: string[] = [];
+  const blSrcPorts: string[] = [];
+  const blDstPorts: string[] = [];
   filters?.filters
     ?.filter(filter => filter.negative)
     .forEach(filter => {
@@ -127,6 +129,12 @@ export const buildBlacklistFlowFilters = (filters?: Filters): FlowFilter[] => {
         case FilterKind.Pod: {
           filter.fromRequired && blSrcPods.push(query);
           filter.toRequired && blDstPods.push(query);
+          break;
+        }
+        case FilterKind.Port: {
+          filter.fromRequired && blSrcPorts.push(query);
+          filter.toRequired && blDstPorts.push(query);
+          break;
         }
       }
     });
@@ -165,6 +173,18 @@ export const buildBlacklistFlowFilters = (filters?: Filters): FlowFilter[] => {
     const blDstPodFilter: FlowFilter = new FlowFilter();
     blDstPods.forEach(e => blDstPodFilter.addDestinationPod(e));
     blFilters.push(blDstPodFilter);
+  }
+
+  if (blSrcPorts.length) {
+    const blSrcPortFilter: FlowFilter = new FlowFilter();
+    blSrcPorts.forEach(e => blSrcPortFilter.addSourcePort(e));
+    blFilters.push(blSrcPortFilter);
+  }
+
+  if (blDstPorts.length) {
+    const blDstPortFilter: FlowFilter = new FlowFilter();
+    blDstPorts.forEach(e => blDstPortFilter.addDestinationPort(e));
+    blFilters.push(blDstPortFilter);
   }
 
   return blFilters;
@@ -225,6 +245,11 @@ export const filterEntryWhitelistFilters = (
         pod && fromInside.addSourcePod(pod);
         break;
       }
+      case FilterKind.Port: {
+        toInside.addSourcePort(query);
+        fromInside.addSourcePort(query);
+        break;
+      }
     }
 
     wlFilters.push(toInside, fromInside);
@@ -269,6 +294,11 @@ export const filterEntryWhitelistFilters = (
           toInside.addSourcePod(podsInNamespace);
         }
         pod && toInside.addDestinationPod(pod);
+        break;
+      }
+      case FilterKind.Port: {
+        fromInside.addDestinationPort(query);
+        toInside.addDestinationPort(query);
         break;
       }
     }

@@ -1,4 +1,4 @@
-import { Link, Service, ServiceCard } from '~/domain/service-map';
+import { ServiceCard } from '~/domain/service-map';
 import { Labels } from '~/domain/labels';
 
 import { Filters } from './filters';
@@ -14,9 +14,10 @@ export const filterService = (svc: ServiceCard, filters: Filters): boolean => {
 };
 
 export const filterServiceByEntry = (
-  service: Service,
+  card: ServiceCard,
   e: FilterEntry,
 ): boolean => {
+  const service = card.service;
   let pass = true;
   if (e.isIdentity) pass = service.id === e.query;
 
@@ -26,6 +27,17 @@ export const filterServiceByEntry = (
 
   if (e.isDNS) {
     pass = service.dnsNames.includes(e.query) || service.id === e.query;
+  }
+
+  if (e.isPort) {
+    const portNum = parseInt(e.query, 10);
+    if (!Number.isNaN(portNum)) {
+      pass = Array.from(card.accessPoints.values()).some(
+        ap => ap.port === portNum,
+      );
+    } else {
+      pass = false;
+    }
   }
 
   return e.negative !== pass;
