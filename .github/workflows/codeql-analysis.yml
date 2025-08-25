@@ -32,7 +32,7 @@ jobs:
         language: ['go', 'javascript-typescript']
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install Go
         uses: actions/setup-go@v5
         with:
