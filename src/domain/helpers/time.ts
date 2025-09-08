@@ -133,7 +133,7 @@ export const fromDuration = (duration?: gdurpb.Duration | durpb.Duration | null)
   }
 
   return {
-    seconds: duration.seconds,
+    seconds: typeof duration.seconds === 'bigint' ? Number(duration.seconds) : duration.seconds,
     nanos: duration.nanos,
   };
 };

@@ -248,10 +248,10 @@ export enum AuthType {
 }
 
 export class HubbleServerStatus {
-  numFlows: number;
-  maxFlows: number;
-  seenFlows: number;
-  uptimeNs: number;
+  numFlows: bigint;
+  maxFlows: bigint;
+  seenFlows: bigint;
+  uptimeNs: bigint;
   numConnectedNodes: number | null;
   numUnavailableNodes: number | null;
   unavailableNodesList: string[];
@@ -309,12 +309,12 @@ export class HubbleNode {
   address: string;
   state: HubbleNodeStateMap;
   tls: boolean;
-  uptimeNs: number;
-  numFlows: number;
-  maxFlows: number;
-  seenFlows: number;
+  uptimeNs: bigint;
+  numFlows: bigint;
+  maxFlows: bigint;
+  seenFlows: bigint;
 
-  static calcFlowsPerSecond(arg: { uptimeNs: number; seenFlows: number }) {
+  static calcFlowsPerSecond(arg: { uptimeNs: bigint; seenFlows: bigint }) {
     return calcFlowsPerSecond(arg.uptimeNs, arg.seenFlows);
   }
 
@@ -388,7 +388,7 @@ export class HubbleNode {
   public get startTime(): Date {
     if (this.memoStartTime !== undefined) return this.memoStartTime;
 
-    this.memoStartTime = new Date(Date.now() - this.uptimeNs / 1000000);
+    this.memoStartTime = new Date(Date.now() - uptimeNsToMs(this.uptimeNs));
 
     return this.memoStartTime;
   }
@@ -427,7 +427,12 @@ export class HubbleNode {
   }
 }
 
-export function calcFlowsPerSecond(uptimeNs: number, seenFlows: number): number {
-  const uptimeSecs = uptimeNs / 1000000 / 1000;
-  return seenFlows / uptimeSecs;
+export function calcFlowsPerSecond(uptimeNs: bigint, seenFlows: bigint): number {
+  if (uptimeNs === 0n) return 0;
+  const rateTimes1e6 = (seenFlows * 1_000_000_000_000_000n) / uptimeNs;
+  return Number(rateTimes1e6) / 1_000_000;
+}
+
+function uptimeNsToMs(uptimeNs: bigint): number {
+  return Number(uptimeNs / 1_000_000n);
 }

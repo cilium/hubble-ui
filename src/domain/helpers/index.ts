@@ -53,7 +53,9 @@ export const relayServiceFromPb = (svc: uipb.Service): HubbleService => {
     egressPolicyEnforced: svc.egressPolicyEnforced,
     ingressPolicyEnforced: svc.ingressPolicyEnforced,
     visibilityPolicyStatus: svc.visibilityPolicyStatus,
-    creationTimestamp: svc.creationTimestamp ?? msToPbTimestamp(Date.now()),
+    creationTimestamp: svc.creationTimestamp
+      ? { seconds: Number(svc.creationTimestamp.seconds), nanos: svc.creationTimestamp.nanos }
+      : msToPbTimestamp(Date.now()),
     workloads: svc.workloads,
     identity: svc.identity,
   };
@@ -67,8 +69,11 @@ export const relayServiceLinkFromPb = (link: uipb.ServiceLink): HubbleLink => {
     destinationPort: link.destinationPort,
     ipProtocol: ipProtocolFromPb(link.ipProtocol),
     verdict: verdict.verdictFromPb(link.verdict),
-    flowAmount: link.flowAmount,
-    bytesTransfered: link.bytesTransfered,
+    flowAmount: typeof link.flowAmount === 'bigint' ? Number(link.flowAmount) : link.flowAmount,
+    bytesTransfered:
+      typeof link.bytesTransfered === 'bigint'
+        ? Number(link.bytesTransfered)
+        : link.bytesTransfered,
     latency: latencyFromPb(link.latency),
     authType: authTypeFromPb(link.authType),
     isEncrypted: link.isEncrypted,

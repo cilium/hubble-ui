@@ -137,7 +137,7 @@ export class Stream<H extends HandlerTypes = {}> extends EventEmitter<Union<Hand
 
         switch (pollControl) {
           case PollControl.Continue: {
-            this.timer?.reset(resp?.pollDelay || 0);
+            this.timer?.reset(Number(resp?.pollDelay ?? 0));
             break;
           }
           case PollControl.Terminate: {

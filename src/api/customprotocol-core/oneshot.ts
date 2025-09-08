@@ -43,7 +43,7 @@ export class Oneshot<H extends HandlerTypes = {}> extends Stream<H> {
               return;
             }
 
-            this.timer?.reset(resp?.pollDelay || 0);
+            this.timer?.reset(Number(resp?.pollDelay ?? 0));
             break;
           }
           case PollControl.Terminate: {
