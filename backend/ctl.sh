@@ -100,7 +100,7 @@ function build_proto_inner() {
     --ts_opt eslint_disable \
     --ts_opt ts_nocheck \
     --ts_opt generate_dependencies \
-    --ts_opt long_type_number \
+    --ts_opt long_type_bigint \
     ./proto/customprotocol/*.proto \
     ./proto/flow/flow.proto \
     ./proto/observer/observer.proto \

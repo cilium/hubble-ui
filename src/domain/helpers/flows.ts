@@ -194,7 +194,7 @@ export const l7FromPb = (l7: flowpb.Layer7 | undefined): Layer7 | undefined => {
 
   const obj = {
     type: l7FlowTypeFromPb(l7.type),
-    latencyNs: l7.latencyNs,
+    latencyNs: typeof l7.latencyNs === 'bigint' ? Number(l7.latencyNs) : l7.latencyNs,
     dns: l7.record.oneofKind === 'dns' ? l7.record.dns : void 0,
     http: l7.record.oneofKind === 'http' ? l7httpFromObj(l7.record.http) || void 0 : void 0,
     kafka: l7.record.oneofKind === 'kafka' ? l7.record.kafka : void 0,
