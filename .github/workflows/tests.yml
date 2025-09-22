@@ -11,11 +11,11 @@ jobs:
   frontend:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
         with:
           submodules: true
       - name: Use Node.js
-        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
         with:
           node-version: '20.x'
       - name: Install dependencies
@@ -26,9 +26,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
       - name: Setup Go
-        uses: actions/setup-go@6c1fd22b67f7a7c42ad9a45c0f4197434035e429
+        uses: actions/setup-go@c0137caad775660c0844396c52da96e560aba63d
         with:
           go-version: '1.22'
       - name: Check Go module vendoring
@@ -39,14 +39,14 @@ jobs:
           go mod verify
           test -z "$(git status --porcelain)" || (echo "please run 'go mod tidy && go mod vendor', and submit your changes"; exit 1)
       - name: Run Go static checks
-        uses: golangci/golangci-lint-action@1481404843c368bc19ca9406f87d6e0fc97bdcfd
+        uses: golangci/golangci-lint-action@4afd733a84b1f43292c63897423277bb7f4313a9
         with:
           working-directory: ./backend
           version: v2.0.2
           args: --config=.golangci.yml
           skip-cache: true
       - name: Setup Node.js
-        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
         with:
           node-version: '20.x'
       - name: Install NPM dependencies
