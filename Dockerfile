@@ -7,7 +7,7 @@
 # Represents the plataform where the build is happening, do not mix with
 # TARGETARCH
 # skopeo inspect --override-os linux --override-arch amd64 docker://docker.io/library/node:22.17.1-alpine3.22 | jq -r '.Digest'
-FROM --platform=${BUILDPLATFORM} docker.io/library/node:22.17.1-alpine3.22@sha256:5539840ce9d013fa13e3b9814c9353024be7ac75aca5db6d039504a56c04ea59 as stage1
+FROM --platform=${BUILDPLATFORM} docker.io/library/node:25.0.0-alpine3.22@sha256:809972647175c30a4c7763d3e6cc064dec588972af57e540e5a6f27442bb0845 as stage1
 RUN apk add make git bash
 WORKDIR /app
 
