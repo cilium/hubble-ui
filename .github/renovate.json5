@@ -5,6 +5,7 @@
     ':gitSignOff',
     ':dependencyDashboard',
     'helpers:pinGitHubActionDigests',
+    'customManagers:dockerfileVersions',
   ],
   prHourlyLimit: 8,
   prConcurrentLimit: 5,
@@ -110,6 +111,18 @@
         'area/github-actions',
         'enhancement',
         'release-note/ci',
+      ],
+    },
+    {
+      groupName: "all docker dependencies",
+      matchFileNames: [
+        "Dockerfile",
+        "backend/Dockerfile",
+      ],
+      labels: [
+        "area/deployment",
+        "kind/enhancement",
+        "release-note/misc",
       ],
     },
   ],
