@@ -52,6 +52,48 @@
       ],
     },
     {
+      groupName: "Node",
+      matchPackageNames: [
+        "@types/node",
+        "docker.io/library/node",
+        "node",
+      ],
+      postUpgradeTasks: {
+        commands: [
+          "npm ci --ignore-scripts",
+        ],
+        executionMode: "branch",
+      },
+      labels: [
+        "area/ui",
+        "kind/enhancement",
+        "release-note/misc",
+        "release-blocker",
+      ],
+    },
+    {
+      "matchDatasources": ["npm"],
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      groupName: "all frontend dependencies",
+      matchManagers: ["nodenv", "npm", "nvm"],
+      postUpgradeTasks: {
+        commands: [
+          "npm ci --ignore-scripts",
+          "npm run lint",
+        ],
+        executionMode: "branch",
+      },
+      matchUpdateTypes: ["minor", "patch"],
+      labels: [
+        "area/ui",
+        "kind/enhancement",
+        "release-note/misc",
+        "release-blocker",
+      ],
+    },
+    {
       groupName: 'all github action dependencies',
       matchFileNames: [
         '.github/workflows/**',
