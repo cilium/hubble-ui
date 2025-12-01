@@ -27,4 +27,37 @@
   baseBranchPatterns: [
     'master',
   ],
+  packageRules: [
+    {
+      groupName: 'all github action dependencies',
+      matchFileNames: [
+        '.github/workflows/**',
+      ],
+      matchUpdateTypes: [
+        'major',
+        'minor',
+        'digest',
+        'patch',
+        'pin',
+        'pinDigest',
+      ],
+      labels: [
+        'area/github-actions',
+        'enhancement',
+        'release-note/ci',
+      ],
+    },
+  ],
+  customManagers: [
+    {
+      customType: "regex",
+      description: "Match dependencies in github actions/workflows, with support for overriding the registryUrl, and extractVersion",
+      managerFilePatterns: [
+        "/^.github/(?:workflows|actions|pr_deployment)/.+\\.ya?ml$/",
+      ],
+      matchStrings: [
+        "# renovate: datasource=(?<datasource>.+?) depName=(?<depName>.+?)(?: packageName=(?<packageName>.+?))?(?: registryUrl=(?<registryUrl>.+?))?(?: depType=(?<depType>.+?))?(?: extractVersion=(?<extractVersion>.+?))?(?: versioning=(?<versioning>.+?))?\\s+.+?:\\s*[\"']?(?<currentValue>.+?)[\"']?\\s(.+?:\\s*[\"']?(?<currentDigest>sha256:[a-f0-9]+)[\"']?\\s)?",
+      ],
+    },
+  ],
 }
