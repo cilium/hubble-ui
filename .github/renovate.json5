@@ -125,6 +125,18 @@
         "release-note/misc",
       ],
     },
+    {
+      groupName: "backend tools and proto dependencies",
+      matchFileNames: [
+        "backend/build-gops.sh",
+        "backend/ctl.sh",
+      ],
+      labels: [
+        "area/build",
+        "kind/enhancement",
+        "release-note/misc",
+      ],
+    },
   ],
   customManagers: [
     {
@@ -134,6 +146,15 @@
       ],
       matchStrings: [
         "// renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)\\s+go (?<currentValue>.*)",
+      ],
+    },
+    {
+      customType: 'regex',
+      managerFilePatterns: [
+        '/^backend\\/.+\\.sh$/'
+      ],
+      matchStrings: [
+        '# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)\\s+.+_version="(?<currentValue>.*)"',
       ],
     },
     {
