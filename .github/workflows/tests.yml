@@ -45,7 +45,7 @@ jobs:
         with:
           working-directory: ./backend
           # renovate: datasource=github-releases depName=golangci/golangci-lint
-          version: v2.0.2
+          version: v2.6.2
           args: --config=.golangci.yml
           skip-cache: true
       - name: Setup Node.js
