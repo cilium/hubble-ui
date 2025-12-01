@@ -27,7 +27,30 @@
   baseBranchPatterns: [
     'master',
   ],
+  postUpdateOptions: [
+    'gomodTidy',
+  ],
   packageRules: [
+    {
+      groupName: 'all go module dependencies',
+      matchFileNames: [
+        'go.mod',
+        'go.sum',
+      ],
+      matchUpdateTypes: [
+        'major',
+        'minor',
+        'digest',
+        'patch',
+        'pin',
+        'pinDigest',
+      ],
+      labels: [
+        'area/vendor',
+        'enhancement',
+        'release-note/misc',
+      ],
+    },
     {
       groupName: 'all github action dependencies',
       matchFileNames: [
@@ -49,6 +72,15 @@
     },
   ],
   customManagers: [
+    {
+      customType: "regex",
+      managerFilePatterns: [
+        "/^go\\.mod$/",
+      ],
+      matchStrings: [
+        "// renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)\\s+go (?<currentValue>.*)",
+      ],
+    },
     {
       customType: "regex",
       description: "Match dependencies in github actions/workflows, with support for overriding the registryUrl, and extractVersion",

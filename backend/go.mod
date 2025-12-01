@@ -1,6 +1,7 @@
 module github.com/cilium/hubble-ui/backend
 
-go 1.24.5
+// renovate: datasource=golang-version depName=go
+go 1.24.10
 
 require (
 	github.com/cilium/cilium v1.17.6
