@@ -6,8 +6,8 @@
 # BUILDPLATFORM is an automatic platform ARG enabled by Docker BuildKit.
 # Represents the plataform where the build is happening, do not mix with
 # TARGETARCH
-# skopeo inspect --override-os linux --override-arch amd64 docker://docker.io/library/node:22.17.1-alpine3.22 | jq -r '.Digest'
-FROM --platform=${BUILDPLATFORM} docker.io/library/node:22.17.1-alpine3.22@sha256:5539840ce9d013fa13e3b9814c9353024be7ac75aca5db6d039504a56c04ea59 as stage1
+# skopeo inspect --override-os linux --override-arch amd64 docker://docker.io/library/node:22.21.1-alpine3.22 | jq -r '.Digest'
+FROM --platform=${BUILDPLATFORM} docker.io/library/node:22.21.1-alpine3.22@sha256:b2358485e3e33bc3a33114d2b1bdb18cdbe4df01bd2b257198eb51beb1f026c5 as stage1
 RUN apk add make git bash
 WORKDIR /app
 
