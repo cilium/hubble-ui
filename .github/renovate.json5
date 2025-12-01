@@ -1,0 +1,30 @@
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'config:recommended',
+    ':gitSignOff',
+    ':dependencyDashboard',
+    'helpers:pinGitHubActionDigests',
+  ],
+  prHourlyLimit: 8,
+  prConcurrentLimit: 5,
+  schedule: [
+    'before 6am on monday',
+  ],
+  vulnerabilityAlerts: {
+    enabled: true,
+    schedule: [
+      'at any time',
+    ],
+    labels: [
+      'kind/security',
+      'release-blocker',
+      'release-note/security',
+    ],
+  },
+  stopUpdatingLabel: "renovate/stop-updating",
+  keepUpdatedLabel: "renovate/keep-updated",
+  baseBranchPatterns: [
+    'master',
+  ],
+}
