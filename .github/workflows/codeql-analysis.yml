@@ -21,7 +21,7 @@ jobs:
   analyze:
     if: github.repository == 'cilium/hubble-ui'
     name: Analyze
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
