@@ -278,6 +278,10 @@ export class ServiceCard extends AbstractCard {
     return this.labelsProps.isWorld;
   }
 
+  public get isWorldIPv4(): boolean {
+    return this.labelsProps.isWorld && this.worldLabel === ReservedLabel.WorldIPv4;
+  }
+
   public get isWorldIPv6(): boolean {
     return this.labelsProps.isWorld && this.worldLabel === ReservedLabel.WorldIPv6;
   }

@@ -127,6 +127,17 @@ export const sameNamespace = {
   },
 };
 
+export const worldIPv4: HubbleService = {
+  id: 'world-ipv4-service',
+  name: 'world-ipv4-service',
+  namespace: 'world-ipv4-service-ns',
+  labels: [Labels.toKV(ReservedLabel.WorldIPv4)],
+  dnsNames: [],
+  workloads: [],
+  identity: MockServiceIdentity.World,
+  ...restOfService,
+};
+
 export const worldIPv6: HubbleService = {
   id: 'world-ipv6-service',
   name: 'world-ipv6-service',
