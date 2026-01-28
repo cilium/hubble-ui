@@ -4,14 +4,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/cilium/hubble-ui/backend/internal/application"
 	"github.com/cilium/hubble-ui/backend/internal/config"
+	"github.com/cilium/hubble-ui/backend/pkg/logger"
 )
 
 func main() {
-	log := logrus.New()
+	log := logger.New("ui-backend")
 
 	cfg, err := config.New(log, config.PropGetters{
 		GopsEnabled:              config.BoolOr("GOPS_ENABLED", false),
@@ -31,7 +30,7 @@ func main() {
 	}).Build()
 
 	if err != nil {
-		log.WithError(err).Error("failed to initialize application config")
+		log.Error("failed to initialize application config", "error", err)
 		os.Exit(1)
 	}
 
@@ -41,12 +40,12 @@ func main() {
 	})
 
 	if err != nil {
-		log.WithError(err).Error("failed to initialize application")
+		log.Error("failed to initialize application", "error", err)
 		os.Exit(1)
 	}
 
 	if err := app.Run(); err != nil {
-		log.WithError(err).Error("app.Run() terminated with error")
+		log.Error("app.Run() terminated with error", "error", err)
 		os.Exit(1)
 	}
 }

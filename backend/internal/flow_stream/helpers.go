@@ -66,7 +66,7 @@ func ExtractFlowsRequest(
 		request.Number = 10000
 	} else {
 		if getFlowsLastNumber, err = strconv.ParseUint(getFlowsLast, 10, 64); err != nil {
-			log.Errorf(msg.GetFlowsLastParseError, err)
+			log.Error(msg.GetFlowsLastParseError, "error", err)
 			request.Number = 10000
 		} else {
 			request.Number = getFlowsLastNumber
@@ -76,7 +76,7 @@ func ExtractFlowsRequest(
 	getFlowsSince, isGetSinceSet := os.LookupEnv("GET_FLOWS_SINCE")
 	if isGetSinceSet {
 		if getFlowsSinceTime, err = hubbleTime.FromString(getFlowsSince); err != nil {
-			log.Errorf(msg.GetFlowsSinceParseError, err)
+			log.Error(msg.GetFlowsSinceParseError, "error", err)
 		} else {
 			request.Since = timestamppb.New(getFlowsSinceTime)
 		}

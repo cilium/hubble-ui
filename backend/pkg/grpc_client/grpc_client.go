@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"sync"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
 
@@ -44,7 +44,7 @@ type CallPropertiesProvider interface {
 }
 
 type GRPCClient struct {
-	log     logrus.FieldLogger
+	log     *slog.Logger
 	retries *retries.Retries
 
 	connProps      ConnectionPropertiesProvider
@@ -68,7 +68,7 @@ type ConnectionTag struct {
 }
 
 func New(
-	log logrus.FieldLogger,
+	log *slog.Logger,
 	addr string,
 	connProps ConnectionPropertiesProvider,
 	r *retries.Retries,
@@ -129,15 +129,11 @@ func (c *GRPCClient) Reconnect(ctx context.Context) (*grpc.ClientConn, error) {
 	conn := c.connections[connTag.Key]
 	if conn != nil {
 		if err := conn.Disconnect(); err != nil {
-			c.log.
-				WithError(err).
-				Warn("reconnect: old connection disconnect failed")
+			c.log.Warn("reconnect: old connection disconnect failed", "error", err)
 		}
 
 		delete(c.connections, connTag.Key)
-		c.log.
-			WithFields(conn.logFields()).
-			Debug("reconnect: current connection is dropped")
+		c.log.Debug("reconnect: current connection is dropped", conn.logAttrs()...)
 	}
 	c.mx.Unlock()
 
@@ -170,14 +166,12 @@ func (c *GRPCClient) ensureContext(ctx context.Context) (
 ) {
 	connTag, err := c.connProps.Tag(ctx)
 	if err != nil {
-		c.log.WithError(err).Error("connKeyFn failed")
+		c.log.Error("connKeyFn failed", "error", err)
 		return nil, false, err
 	}
 
 	connectionKey := connTag.Key
-	c.log.
-		WithField("connectionKey", connectionKey).
-		Debug("ensureContext entered: connection key is obtained")
+	c.log.Debug("ensureContext entered: connection key is obtained", "connectionKey", connectionKey)
 
 	c.mx.Lock()
 	conn := c.handleExistingConnection(&connTag)
@@ -192,12 +186,10 @@ func (c *GRPCClient) ensureContext(ctx context.Context) (
 		// NOTE: reconnect request is sent to GRPCClient. This check debounce
 		// NOTE: it.
 		if waitDelay, needWait := c.isReconnectingTooOften(); needWait {
-			c.log.
-				WithField("delay-ms", waitDelay.Milliseconds()).
-				Info("Reconnects occur too often, waiting...")
+			c.log.Info("Reconnects occur too often, waiting...", "delay-ms", waitDelay.Milliseconds())
 
-				// NOTE: Well, yes, we are going to sleep while holding the lock,
-				// is there any other normal action here?
+			// NOTE: Well, yes, we are going to sleep while holding the lock,
+			// is there any other normal action here?
 			time.Sleep(waitDelay)
 		}
 
@@ -210,32 +202,27 @@ func (c *GRPCClient) ensureContext(ctx context.Context) (
 		isNew = true
 		conn = newConn
 		c.connections[connectionKey] = conn
-		c.log.
-			WithFields(newConn.logFields()).
-			Debug("new connection is prepared and stored")
+		c.log.Debug("new connection is prepared and stored", newConn.logAttrs()...)
 	} else {
-		c.log.WithFields(conn.logFields()).Debug("reusing existing connection")
+		c.log.Debug("reusing existing connection", conn.logAttrs()...)
 	}
 
 	c.mx.Unlock()
 
 	for err := c.establishConnection(ctx, conn); err != nil; {
-		c.log.
-			WithError(err).
-			WithField("is_unavailable", grpc_errors.IsUnavailable(err)).
-			WithField("is_recoverable", grpc_errors.IsRecoverable(err)).
-			Debug("establishConnection failed")
+		c.log.Debug("establishConnection failed",
+			"error", err,
+			"is_unavailable", grpc_errors.IsUnavailable(err),
+			"is_recoverable", grpc_errors.IsRecoverable(err))
 
 		if !grpc_errors.IsConnClosing(err) {
 			return nil, isNew, err
 		}
 
-		c.log.
-			WithError(err).
-			Debug("connection gives ErrClientConnClosing, dropping connection")
+		c.log.Debug("connection gives ErrClientConnClosing, dropping connection", "error", err)
 
 		err = c.dropConnection(conn)
-		c.log.WithError(err).Warn("old connection drop result")
+		c.log.Warn("old connection drop result", "error", err)
 
 		conn, err = c.prepareNewConnection(ctx)
 		if err != nil {
@@ -243,7 +230,7 @@ func (c *GRPCClient) ensureContext(ctx context.Context) (
 		}
 	}
 
-	c.log.WithFields(conn.logFields()).Debug("ensureContext is finished")
+	c.log.Debug("ensureContext is finished", conn.logAttrs()...)
 
 	return conn, isNew, nil
 }
@@ -259,12 +246,11 @@ func (c *GRPCClient) handleExistingConnection(tag *ConnectionTag) *Connection {
 		return existing
 	}
 
-	log := c.log.WithFields(existing.logFields())
-	log.Debug("dropping existing connection because its no longer valid")
+	c.log.Debug("dropping existing connection because its no longer valid", existing.logAttrs()...)
 
 	err := existing.Disconnect()
 	if err != nil {
-		log.WithError(err).Warn("failed to close previous connection")
+		c.log.Warn("failed to close previous connection", append(existing.logAttrs(), "error", err)...)
 	}
 
 	delete(c.connections, tag.Key)
@@ -274,26 +260,17 @@ func (c *GRPCClient) handleExistingConnection(tag *ConnectionTag) *Connection {
 func (c *GRPCClient) prepareNewConnection(ctx context.Context) (*Connection, error) {
 	dialOpts, err := c.getDialOptions(ctx)
 	if err != nil {
-		c.log.
-			WithError(err).
-			Error("prepareNewConnection: failed to get dial options")
-
+		c.log.Error("prepareNewConnection: failed to get dial options", "error", err)
 		return nil, err
 	}
 
 	connectionTag, err := c.connProps.Tag(ctx)
 	if err != nil {
-		c.log.
-			WithError(err).
-			Error("prepareNewConnection: failed to get connection key")
-
+		c.log.Error("prepareNewConnection: failed to get connection key", "error", err)
 		return nil, err
 	}
 
-	c.log.
-		WithField("addr", c.connectionAddr).
-		WithField("nopts", len(dialOpts)).
-		Info("preparing new user connection")
+	c.log.Info("preparing new user connection", "addr", c.connectionAddr, "nopts", len(dialOpts))
 
 	userConnection := initConection(
 		connectionTag,
@@ -311,21 +288,21 @@ func (c *GRPCClient) establishConnection(
 	conn.lock()
 	defer conn.unlock()
 
-	log := c.log.WithFields(conn.logFields())
-	log.Debug("about to establish the connection")
+	logAttrs := conn.logAttrs()
+	c.log.Debug("about to establish the connection", logAttrs...)
 
 	firstConnection := conn.Connection == nil
 	if conn.isReady() || !firstConnection {
-		log.Debug("no establishing required: connection is ready or pending")
+		c.log.Debug("no establishing required: connection is ready or pending", logAttrs...)
 
 		c.emitConnected()
 		return nil
 	}
 
 	if err := conn.connect(ctx); err != nil {
-		log.WithError(err).Error("failed to grpc.Dial, going to reconnect")
+		c.log.Error("failed to grpc.Dial, going to reconnect", append(logAttrs, "error", err)...)
 	} else {
-		log.Debug("connection established")
+		c.log.Debug("connection established", logAttrs...)
 		c.emitConnected()
 		return nil
 	}
@@ -336,27 +313,24 @@ func (c *GRPCClient) establishConnection(
 	err := retryHandle.RetryIf(
 		ctx,
 		func(attempt int) error {
-			log := log.WithField("attempt", attempt)
+			logAttrsWithAttempt := append(logAttrs, "attempt", attempt)
 
 			if !firstConnection || attempt > 1 {
-				log.Infof("connection establishing attempt")
+				c.log.Info("connection establishing attempt", logAttrsWithAttempt...)
 			}
 
-			log.Debug("emit connecting attempt")
+			c.log.Debug("emit connecting attempt", logAttrsWithAttempt...)
 			c.emitConnectingAttempt(attempt)
 
-			log.Debug("right before conn.connect()")
+			c.log.Debug("right before conn.connect()", logAttrsWithAttempt...)
 			if err := conn.connect(ctx); err != nil {
-				log.
-					WithError(err).
-					Errorf("connection establishing attempt failed")
-
+				c.log.Error("connection establishing attempt failed", append(logAttrsWithAttempt, "error", err)...)
 				return err
 			}
-			log.Debug("right after conn.connect()")
+			c.log.Debug("right after conn.connect()", logAttrsWithAttempt...)
 
 			if !firstConnection || attempt > 1 {
-				log.Infof("connection established")
+				c.log.Info("connection established", logAttrsWithAttempt...)
 			}
 
 			c.emitConnected()
@@ -397,12 +371,11 @@ func (c *GRPCClient) isReconnectingTooOften() (time.Duration, bool) {
 		leftToWait = 0
 	}
 
-	c.log.
-		WithField("diff", diff).
-		WithField("currentDelay", currentDelay).
-		WithField("leftToWait", leftToWait).
-		WithField("retries.Max()", c.retries.Max()).
-		Debug("since last reconnect request")
+	c.log.Debug("since last reconnect request",
+		"diff", diff,
+		"currentDelay", currentDelay,
+		"leftToWait", leftToWait,
+		"retries.Max()", c.retries.Max())
 
 	switch {
 	case leftToWait > 0:

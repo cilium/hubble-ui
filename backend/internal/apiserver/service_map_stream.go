@@ -39,7 +39,7 @@ func (srv *APIServer) ServiceMapStream(
 		return err
 	}
 
-	log.WithField("req", req).Info("GetEventsRequest parsed")
+	log.Info("GetEventsRequest parsed", "req", req)
 
 	if len(req.GetEventTypes()) == 0 {
 		log.Info("Requested events are empty, terminating...")
@@ -76,7 +76,7 @@ func (srv *APIServer) ServiceMapStream(
 		})
 
 		if err != nil {
-			log.Errorf(msg.HubbleStatusCriticalError, err)
+			log.Error(msg.HubbleStatusCriticalError, "error", err)
 			return err
 		}
 
@@ -117,9 +117,9 @@ F:
 		case <-ch.Shutdown():
 			break F
 		case err := <-flowStream.Errors():
-			log.WithError(err).Warn("error from FlowStream")
+			log.Warn("error from FlowStream", "error", err)
 			if !grpc_errors.IsRecoverable(err) {
-				log.WithError(err).Error("error from FlowStream is unrecoverable")
+				log.Error("error from FlowStream is unrecoverable", "error", err)
 
 				return err
 			}
@@ -127,16 +127,12 @@ F:
 			return errors.New("FlowStream has been stopped")
 		case err := <-statusChecker.Errors():
 			if !grpc_errors.IsRecoverable(err) {
-				log.
-					WithError(err).
-					Error("hubble status checker: unrecoverable error")
+				log.Error("hubble status checker: unrecoverable error", "error", err)
 
 				return err
 			}
 
-			log.
-				WithError(err).
-				Error("hubble status checker: failed to connect to hubble-relay")
+			log.Error("hubble status checker: failed to connect to hubble-relay", "error", err)
 		case <-flows.Ticker():
 			if err := flushFlows(); err != nil {
 				return err
@@ -156,7 +152,7 @@ F:
 			statusEvent := api_helpers.EventResponseFromServerStatus(fullStatus)
 
 			if err := ch.SendProto(statusEvent); err != nil {
-				log.WithError(err).Error("failed to send hubble status update")
+				log.Error("failed to send hubble status update", "error", err)
 				return err
 			}
 		}

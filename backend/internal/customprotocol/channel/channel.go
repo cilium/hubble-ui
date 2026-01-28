@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	protobuf "google.golang.org/protobuf/proto"
 
 	"github.com/cilium/hubble-ui/backend/internal/customprotocol/message"
@@ -393,11 +392,11 @@ func (ch *Channel) Context() context.Context {
 	return ch.ctx
 }
 
-func (ch *Channel) LogFields() logrus.Fields {
+func (ch *Channel) LogFields() map[string]any {
 	ch.mx.Lock()
 	defer ch.mx.Unlock()
 
-	return logrus.Fields{
+	return map[string]any{
 		"channelId":         ch.Id,
 		"isClosed":          ch.IsClosed(),
 		"handlerTerminated": ch.handlerTerminated,

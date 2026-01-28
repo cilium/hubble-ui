@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 )
@@ -86,20 +85,20 @@ func (uc *Connection) unlock() {
 	uc.mx.Unlock()
 }
 
-func (uc *Connection) logFields() logrus.Fields {
-	fields := logrus.Fields{
-		"key":  uc.Tag.Key,
-		"addr": uc.addr,
+func (uc *Connection) logAttrs() []any {
+	attrs := []any{
+		"key", uc.Tag.Key,
+		"addr", uc.addr,
 	}
 
 	conn := uc.Connection
 	if conn != nil {
-		fields["grpc-state"] = conn.GetState()
+		attrs = append(attrs, "grpc-state", conn.GetState())
 	} else {
-		fields["handle-is-nil"] = true
+		attrs = append(attrs, "handle-is-nil", true)
 	}
 
-	return fields
+	return attrs
 }
 
 func initConection(

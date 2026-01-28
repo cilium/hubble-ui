@@ -3,10 +3,10 @@ package config
 import (
 	"crypto/tls"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 
 	"github.com/cilium/cilium/pkg/crypto/certloader"
 )
@@ -49,7 +49,7 @@ type Config struct {
 	relayClientConfig certloader.ClientConfigBuilder
 }
 
-func New(log *logrus.Logger, propGetters PropGetters) *ConfigBuilder {
+func New(log *slog.Logger, propGetters PropGetters) *ConfigBuilder {
 	return &ConfigBuilder{
 		logger: log,
 		props:  propGetters,

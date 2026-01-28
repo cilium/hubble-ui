@@ -2,10 +2,9 @@ package router
 
 import (
 	"context"
+	"log/slog"
 	"sync"
 	"time"
-
-	"github.com/sirupsen/logrus"
 
 	"github.com/cilium/hubble-ui/backend/internal/customprotocol/channel"
 	"github.com/cilium/hubble-ui/backend/internal/customprotocol/route"
@@ -13,7 +12,7 @@ import (
 )
 
 type Router struct {
-	log         logrus.FieldLogger
+	log         *slog.Logger
 	baseContext context.Context
 
 	tidBytesNumber int
@@ -37,14 +36,11 @@ func (r *Router) Route(name string) *route.Route {
 		WithBaseContext(r.baseContext).
 		WithDefaultHandler(r.notImplementedHandler).
 		WithTimings(r.timings).
-		WithLogger(r.log.WithField("route", name)).
+		WithLogger(r.log.With(slog.String("route", name))).
 		Build()
 
 	if err != nil {
-		r.log.
-			WithField("name", name).
-			WithError(err).
-			Error("cannot build route")
+		r.log.Error("cannot build route", "name", name, "error", err)
 
 		panic(err.Error())
 	}
@@ -77,7 +73,7 @@ func (r *Router) garbageCollector(ctx context.Context) {
 			return
 		case <-ticker.C:
 			ndropped := r.collectGarbage(ctx, r.timings.GarbageCollectionDelay)
-			r.log.WithField("ndropped", ndropped).Debug("garbage collector iteration finished")
+			r.log.Debug("garbage collector iteration finished", "ndropped", ndropped)
 		}
 	}
 }

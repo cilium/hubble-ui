@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/sirupsen/logrus"
 
 	"github.com/cilium/hubble-ui/backend/internal/api_clients"
 	"github.com/cilium/hubble-ui/backend/internal/apiserver/cors"
@@ -18,7 +18,7 @@ import (
 )
 
 type APIServer struct {
-	log logrus.FieldLogger
+	log *slog.Logger
 	cfg *config.Config
 
 	port              int
@@ -36,7 +36,7 @@ type HttpHandlerMiddleware = func(http.Handler) http.Handler
 func New(
 	//nolint:contextcheck
 	bctx context.Context,
-	log logrus.FieldLogger,
+	log *slog.Logger,
 	cfg *config.Config,
 	port int,
 	rootRoute string,
@@ -117,10 +117,7 @@ func (srv *APIServer) Listen() error {
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
-	srv.log.
-		WithField("port", port).
-		WithField("apipath", srv.rootRoute).
-		Info("running ListenAndServe")
+	srv.log.Info("running ListenAndServe", "port", port, "apipath", srv.rootRoute)
 
 	if err := srv.instance.ListenAndServe(); err != nil {
 		if errors.Is(err, http.ErrServerClosed) {

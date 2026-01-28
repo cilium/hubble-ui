@@ -2,9 +2,9 @@ package api_clients
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 
 	cilium "github.com/cilium/cilium/pkg/k8s/client/clientset/versioned"
@@ -17,7 +17,7 @@ import (
 
 type APIClients struct {
 	cfg *config.Config
-	log logrus.FieldLogger
+	log *slog.Logger
 
 	k8s    kubernetes.Interface
 	cilium *cilium.Clientset
@@ -30,7 +30,7 @@ type APIClients struct {
 func New(
 	ctx context.Context,
 	cfg *config.Config,
-	log logrus.FieldLogger,
+	log *slog.Logger,
 ) (*APIClients, error) {
 	clients := &APIClients{
 		cfg: cfg,
@@ -51,7 +51,7 @@ func New(
 
 	clients.cilium = ciliumClientset
 
-	relayGrpc, err := initRelayGRPCClient(cfg, log.WithField("grpc-client", "relay"))
+	relayGrpc, err := initRelayGRPCClient(cfg, log.With(slog.String("grpc-client", "relay")))
 	if err != nil {
 		return nil, errors.Wrap(err, "relay grpc client init failed")
 	}
@@ -68,13 +68,13 @@ func (c *APIClients) NSWatcher(ctx context.Context, opts ns_watcher.NSWatcherOpt
 
 func (c *APIClients) RelayClient() relay_client.RelayClientInterface {
 	cl, err := relay_client.New(
-		c.log.WithField("component", "RelayClient"),
+		c.log.With(slog.String("component", "RelayClient")),
 		c.cfg,
 		c.relayGrpc,
 	)
 
 	if err != nil {
-		c.log.WithError(err).Error("failed to create relay client")
+		c.log.Error("failed to create relay client", "error", err)
 		panic(err)
 	}
 

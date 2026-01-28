@@ -3,9 +3,9 @@ package ns_watcher
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"sync"
 
-	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/cilium/hubble-ui/backend/internal/ns_watcher/common"
@@ -19,7 +19,7 @@ const (
 type NSEvent = common.NSEvent
 
 type NSWatcherOptions struct {
-	Log logrus.FieldLogger
+	Log *slog.Logger
 }
 
 type NSWatcherInterface interface {
@@ -32,7 +32,7 @@ type NSWatcherInterface interface {
 
 type NSWatcher struct {
 	k8sWatcher *k8s.Watcher
-	log        logrus.FieldLogger
+	log        *slog.Logger
 
 	errors chan error
 	events chan *common.NSEvent
@@ -42,7 +42,7 @@ type NSWatcher struct {
 }
 
 func New(
-	log logrus.FieldLogger,
+	log *slog.Logger,
 	k8sHandle kubernetes.Interface,
 ) (*NSWatcher, error) {
 	if log == nil {
@@ -55,7 +55,7 @@ func New(
 
 	return &NSWatcher{
 		log:        log,
-		k8sWatcher: k8s.New(log.WithField("ns-kind", "k8s"), k8sHandle),
+		k8sWatcher: k8s.New(log.With(slog.String("ns-kind", "k8s")), k8sHandle),
 		stop:       make(chan struct{}),
 		stopOnce:   sync.Once{},
 	}, nil

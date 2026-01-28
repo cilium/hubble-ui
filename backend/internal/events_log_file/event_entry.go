@@ -2,9 +2,9 @@ package events_log_file
 
 import (
 	"encoding/json"
+	"log/slog"
 
 	observerpb "github.com/cilium/cilium/api/v1/observer"
-	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -29,14 +29,14 @@ func tryParseFlow(str string) (*EventEntry, error) {
 	}, nil
 }
 
-func (ee *EventEntry) LogEntries() logrus.Fields {
-	f := logrus.Fields{
-		"flow-parse-error": ee.FlowParseError,
-		"pe-parse-error":   ee.PEParseError,
+func (ee *EventEntry) LogAttrs() []any {
+	attrs := []any{
+		slog.Any("flow-parse-error", ee.FlowParseError),
+		slog.Any("pe-parse-error", ee.PEParseError),
 	}
 
 	if ee.Unparsed != nil {
-		f["unparsed"] = *ee.Unparsed
+		attrs = append(attrs, slog.String("unparsed", *ee.Unparsed))
 	}
 
 	if ee.Flow != nil {
@@ -45,8 +45,8 @@ func (ee *EventEntry) LogEntries() logrus.Fields {
 			str = []byte{}
 		}
 
-		f["flow"] = string(str)
+		attrs = append(attrs, slog.String("flow", string(str)))
 	}
 
-	return f
+	return attrs
 }

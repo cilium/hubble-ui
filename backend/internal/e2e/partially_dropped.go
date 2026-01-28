@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"log/slog"
 	"time"
 
 	"github.com/cilium/hubble-ui/backend/domain/events"
@@ -24,17 +25,14 @@ func (tc *TestsController) enablePartiallyDroppedCase() error {
 
 	flowsSource := sources.LogFile(
 		flowsLogFile,
-		tc.log.WithField("source", "FnD-flows"),
+		tc.log.With(slog.String("source", "FnD-flows")),
 		sources.LogFileSourceOpts{
 			DebugHandler: func(i int, e *events_log_file.EventEntry) {
 				if e == nil {
 					return
 				}
 
-				tc.log.
-					WithField("index", i).
-					WithFields(e.LogEntries()).
-					Debug("unparsed entry")
+				tc.log.Debug("unparsed entry", append([]any{slog.Int("index", i)}, e.LogAttrs()...)...)
 			},
 		},
 	)

@@ -1,7 +1,7 @@
 package clients
 
 import (
-	"github.com/sirupsen/logrus"
+	"log/slog"
 
 	"github.com/cilium/hubble-ui/backend/internal/mock/sources"
 
@@ -12,12 +12,12 @@ type RelayClient struct {
 	*GRPCClient
 	*HubbleClient
 
-	log logrus.FieldLogger
+	log *slog.Logger
 	src sources.MockedSource
 }
 
 func NewRelayClient(
-	log logrus.FieldLogger,
+	log *slog.Logger,
 	gcl *GRPCClient,
 	src sources.MockedSource,
 	flowsRateLimit rate_limiter.RateLimit,
@@ -25,7 +25,7 @@ func NewRelayClient(
 	return &RelayClient{
 		GRPCClient: gcl,
 		HubbleClient: NewHubbleClient(
-			log.WithField("subclient", "hubble"),
+			log.With(slog.String("subclient", "hubble")),
 			gcl,
 			src,
 			flowsRateLimit,

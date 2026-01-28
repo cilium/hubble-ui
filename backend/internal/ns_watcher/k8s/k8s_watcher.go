@@ -2,9 +2,9 @@ package k8s
 
 import (
 	"context"
+	"log/slog"
 	"sync"
 
-	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
@@ -15,7 +15,7 @@ import (
 )
 
 type Watcher struct {
-	log logrus.FieldLogger
+	log *slog.Logger
 	k8s kubernetes.Interface
 
 	nsEvents chan *common.NSEvent
@@ -24,7 +24,7 @@ type Watcher struct {
 	stopOnce sync.Once
 }
 
-func New(log logrus.FieldLogger, k8s kubernetes.Interface) *Watcher {
+func New(log *slog.Logger, k8s kubernetes.Interface) *Watcher {
 	w := new(Watcher)
 	w.log = log
 	w.stop = make(chan struct{})
@@ -109,7 +109,7 @@ func (w *Watcher) Stop() {
 		close(w.stop)
 	})
 
-	w.log.Infof("watcher is stopped\n")
+	w.log.Info("watcher is stopped")
 }
 
 func (w *Watcher) Errors() chan error {

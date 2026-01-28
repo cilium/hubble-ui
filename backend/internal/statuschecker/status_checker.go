@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"sync"
 	"time"
 
 	"github.com/cilium/cilium/api/v1/observer"
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
 	"github.com/cilium/hubble-ui/backend/pkg/grpc_client"
@@ -28,7 +28,7 @@ type ServerStatusCheckerInterface interface {
 }
 
 type Handle struct {
-	log            logrus.FieldLogger
+	log            *slog.Logger
 	delay          time.Duration
 	connectionPool grpc_client.ConnectionPool
 	callProps      grpc_client.CallPropertiesProvider
@@ -45,7 +45,7 @@ type Handle struct {
 }
 
 func New(
-	log logrus.FieldLogger,
+	log *slog.Logger,
 	delay time.Duration,
 	connPool grpc_client.ConnectionPool,
 	callProps grpc_client.CallPropertiesProvider,
@@ -96,9 +96,7 @@ func (h *Handle) Run(ctx context.Context) {
 	ticker := time.NewTicker(h.delay)
 	defer ticker.Stop()
 
-	h.log.
-		WithField("StatusChecker", fmt.Sprintf("%p", h)).
-		Infof("running data fetch loop")
+	h.log.Info("running data fetch loop", "StatusChecker", fmt.Sprintf("%p", h))
 
 	h.runLoop(ctx, ticker, func(cl observer.ObserverClient) error {
 		ss, err := cl.ServerStatus(ctx, &observer.ServerStatusRequest{}, h.callProps.CallOptions(ctx)...)
@@ -126,9 +124,7 @@ func (h *Handle) Stop() {
 		}
 	})
 
-	h.log.
-		WithField("StatusChecker", fmt.Sprintf("%p", h)).
-		Debug("Stop() is called")
+	h.log.Debug("Stop() is called", "StatusChecker", fmt.Sprintf("%p", h))
 }
 
 func (h *Handle) Errors() chan error {
@@ -205,7 +201,7 @@ func (h *Handle) runLoop(
 		}
 
 		if err := onTick(true); err != nil {
-			h.log.WithError(err).Error("first tick failed")
+			h.log.Error("first tick failed", "error", err)
 			return
 		}
 
@@ -216,7 +212,7 @@ func (h *Handle) runLoop(
 			return
 		case <-ticker.C:
 			if err := onTick(false); err != nil {
-				h.log.WithError(err).Error("onTick failed")
+				h.log.Error("onTick failed", "error", err)
 				return
 			}
 		}

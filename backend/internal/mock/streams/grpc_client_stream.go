@@ -2,17 +2,17 @@ package streams
 
 import (
 	"context"
+	"log/slog"
 
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/metadata"
 )
 
 type GRPCClientStream struct {
 	ctx context.Context
-	log logrus.FieldLogger
+	log *slog.Logger
 }
 
-func NewGRPCClientStream(ctx context.Context, log logrus.FieldLogger) *GRPCClientStream {
+func NewGRPCClientStream(ctx context.Context, log *slog.Logger) *GRPCClientStream {
 	return &GRPCClientStream{
 		ctx: ctx,
 		log: log,
@@ -36,11 +36,11 @@ func (s *GRPCClientStream) Context() context.Context {
 }
 
 func (s *GRPCClientStream) SendMsg(m any) error {
-	s.log.WithField("msg", m).Info("SendMsg")
+	s.log.Info("SendMsg", "msg", m)
 	return nil
 }
 
 func (s *GRPCClientStream) RecvMsg(m any) error {
-	s.log.WithField("msg", m).Info("RecvMsg")
+	s.log.Info("RecvMsg", "msg", m)
 	return nil
 }

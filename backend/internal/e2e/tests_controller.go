@@ -2,10 +2,9 @@ package e2e
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"path/filepath"
-
-	"github.com/sirupsen/logrus"
 
 	"github.com/cilium/hubble-ui/backend/internal/api_clients"
 	"github.com/cilium/hubble-ui/backend/internal/log_file"
@@ -14,7 +13,7 @@ import (
 )
 
 type TestsController struct {
-	log logrus.FieldLogger
+	log *slog.Logger
 
 	clients *mclients.Clients
 
@@ -26,7 +25,7 @@ type TestsController struct {
 
 func NewTestsController(
 	ctx context.Context,
-	log logrus.FieldLogger,
+	log *slog.Logger,
 	logFilesPath string,
 ) *TestsController {
 	if len(logFilesPath) == 0 {
@@ -35,7 +34,7 @@ func NewTestsController(
 
 	return &TestsController{
 		log:          log,
-		clients:      mclients.NewInner(ctx, log.WithField("component", "mock.Clients")),
+		clients:      mclients.NewInner(ctx, log.With(slog.String("component", "mock.Clients"))),
 		logFilesPath: logFilesPath,
 	}
 }
@@ -49,10 +48,8 @@ func (tc *TestsController) HandlerMiddleware(next http.Handler) http.Handler {
 	return tc
 }
 
-func (tc *TestsController) LogFields() logrus.Fields {
-	return logrus.Fields{
-		"log-files-path": tc.logFilesPath,
-	}
+func (tc *TestsController) LogAttrs() []any {
+	return []any{slog.String("log-files-path", tc.logFilesPath)}
 }
 
 func (tc *TestsController) applyTestSettings(ts *TestSettings) {
@@ -68,10 +65,9 @@ func (tc *TestsController) applyTestSettings(ts *TestSettings) {
 	}
 
 	if err != nil {
-		tc.log.
-			WithError(err).
-			WithField("preset", ts.Preset).
-			Error("failed to enable test case by preset")
+		tc.log.Error("failed to enable test case by preset",
+			"error", err,
+			"preset", ts.Preset)
 	}
 }
 
@@ -97,10 +93,9 @@ func (tc *TestsController) openLogFile(pathParts ...string) (*log_file.LogFile, 
 
 	logFile, err := log_file.OpenLogFile(fpath)
 	if err != nil {
-		tc.log.
-			WithError(err).
-			WithField("path", fpath).
-			Error("failed to open log file")
+		tc.log.Error("failed to open log file",
+			"error", err,
+			"path", fpath)
 
 		return nil, err
 	}

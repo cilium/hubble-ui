@@ -1,10 +1,10 @@
 package api_clients
 
 import (
+	"log/slog"
 	"os"
 	"path/filepath"
 
-	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -40,7 +40,7 @@ func initCiliumClientset(k8sConfig *rest.Config) (*cilium.Clientset, error) {
 	return cilium.NewForConfig(k8sConfig)
 }
 
-func initRelayGRPCClient(cfg *config.Config, log logrus.FieldLogger) (
+func initRelayGRPCClient(cfg *config.Config, log *slog.Logger) (
 	*grpc_client.GRPCClient, error,
 ) {
 	return grpc_client.New(

@@ -3,9 +3,9 @@ package hubble_client
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/cilium/cilium/api/v1/observer"
-	"github.com/sirupsen/logrus"
 
 	"github.com/cilium/hubble-ui/backend/pkg/grpc_client"
 
@@ -23,12 +23,12 @@ type GRPCHubbleClient struct {
 	*grpc_client.GRPCClient
 
 	callPropsProvider grpc_client.CallPropertiesProvider
-	log               logrus.FieldLogger
+	log               *slog.Logger
 }
 
 func New(
 	gcl *grpc_client.GRPCClient,
-	log logrus.FieldLogger,
+	log *slog.Logger,
 	callPropsProvider grpc_client.CallPropertiesProvider,
 ) (*GRPCHubbleClient, error) {
 	if gcl == nil {

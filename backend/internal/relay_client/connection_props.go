@@ -2,9 +2,9 @@ package relay_client
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/credentials"
@@ -17,7 +17,7 @@ import (
 
 type ConnectionProps struct {
 	Config *config.Config
-	Log    logrus.FieldLogger
+	Log    *slog.Logger
 }
 
 func (cp *ConnectionProps) Tag(ctx context.Context) (grpc_client.ConnectionTag, error) {

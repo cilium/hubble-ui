@@ -1,6 +1,7 @@
 package apiserver
 
 import (
+	"log/slog"
 	"time"
 
 	rcontext "github.com/cilium/hubble-ui/backend/internal/apiserver/req_context"
@@ -16,7 +17,7 @@ type WrappedRouteOptions struct {
 func (srv *APIServer) prepareRoutes() error {
 	routr, err := router.
 		Builder().
-		WithLogger(srv.log.WithField("component", "cp.Router")).
+		WithLogger(srv.log.With(slog.String("component", "cp.Router"))).
 		WithBaseContext(srv.baseContext).
 		WithTraceIdBytesNumber(8).
 		WithChannelIdBytesNumber(8).
