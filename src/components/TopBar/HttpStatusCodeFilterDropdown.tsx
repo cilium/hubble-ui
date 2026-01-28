@@ -49,7 +49,7 @@ export const HttpStatusCodeFilterDropdown = memo<Props>(
           )}
         </form>
         <small className={classnames(css.httpStatus, css.note)}>
-          <Icon icon="info-sign" iconSize={12} /> Show only flows which match
+          <Icon icon="info-sign" size={12} /> Show only flows which match
           <br />
           this HTTP status code prefix
           <br />

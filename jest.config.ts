@@ -1,6 +1,9 @@
 import type { Config } from 'jest';
 import { pathsToModuleNameMapper } from 'ts-jest';
-import tsconfig from './tsconfig.json';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const tsconfig = require('./tsconfig.json');
 
 const config: Config = {
   preset: 'ts-jest',
@@ -23,7 +26,7 @@ const config: Config = {
       {
         tsconfig: 'tsconfig.test.json',
         useESM: true,
-        isolatedModules: true,
+
         babelConfig: {
           presets: ['@babel/preset-env', '@babel/preset-react'],
         },

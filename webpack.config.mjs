@@ -6,7 +6,6 @@ import { sassNodeModulesLoadPaths, sassSvgInlinerFactory } from '@blueprintjs/no
 import Dotenv from 'dotenv-webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
-import CircularDependencyPlugin from 'circular-dependency-plugin';
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
@@ -77,6 +76,13 @@ const stylesLoaders = ({ enableSass, enableModules }) => {
               sassOptions: {
                 loadPaths: sassNodeModulesLoadPaths,
                 functions: sassfunctions,
+                silenceDeprecations: [
+                  'import',
+                  'legacy-js-api',
+                  'global-builtin',
+                  'color-functions',
+                ],
+                quietDeps: true,
               },
             },
           },
@@ -150,12 +156,6 @@ export default {
     ],
   },
   plugins: [
-    new CircularDependencyPlugin({
-      exclude: /node_modules/,
-      failOnError: true,
-      allowAsyncCycles: false,
-      cwd: process.cwd(),
-    }),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
       'process.env.BLUEPRINT_NAMESPACE': JSON.stringify('bp3'),
