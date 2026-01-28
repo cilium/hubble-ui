@@ -28,7 +28,7 @@ export const TagDirection = memo<TagDirectionProps>(function TagDirection(props)
       {fromIsShown && <span className={classnames(css.label, css.from)}>from</span>}
 
       <span className={css.icon}>
-        <Icon icon={iconName} iconSize={9} />
+        <Icon icon={iconName} size={9} />
       </span>
 
       {toIsShown && <span className={classnames(css.label, css.to)}>to</span>}
