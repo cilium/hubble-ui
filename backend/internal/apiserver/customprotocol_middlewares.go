@@ -1,6 +1,7 @@
 package apiserver
 
 import (
+	"log/slog"
 	"sync"
 
 	rcontext "github.com/cilium/hubble-ui/backend/internal/apiserver/req_context"
@@ -45,9 +46,9 @@ func (lm *LoggingMiddleware) RunBeforePolling(ch *cp.Channel, msg *cp.Message) e
 		return err
 	}
 
-	log := lm.srv.log.WithField("channelId", ch.Id)
+	log := lm.srv.log.With(slog.String("channelId", ch.Id))
 	if len(lm.handler) > 0 {
-		log = log.WithField("handler", lm.handler)
+		log = log.With(slog.String("handler", lm.handler))
 	}
 
 	rctx.SetLogger(log)

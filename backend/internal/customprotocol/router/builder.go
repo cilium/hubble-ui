@@ -3,17 +3,17 @@ package router
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"sync"
 	"time"
 
 	"github.com/cilium/hubble-ui/backend/internal/customprotocol/route"
 	"github.com/cilium/hubble-ui/backend/internal/customprotocol/timings"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 type CPBuilder struct {
-	log         logrus.FieldLogger
+	log         *slog.Logger
 	baseContext context.Context
 
 	// NOTE: Number of bytes used for generating TraceId / ChannelId hashes
@@ -27,7 +27,7 @@ func Builder() CPBuilder {
 	return CPBuilder{}
 }
 
-func (b CPBuilder) WithLogger(log logrus.FieldLogger) CPBuilder {
+func (b CPBuilder) WithLogger(log *slog.Logger) CPBuilder {
 	b.log = log
 	return b
 }
@@ -81,18 +81,14 @@ func (b CPBuilder) Build() (*Router, error) {
 
 	tidBytesDefault := 8
 	if b.tidBytesNumber == 0 {
-		b.log.
-			WithField("default", tidBytesDefault).
-			Warn("TraceId bytes number is not set, using default value")
+		b.log.Warn("TraceId bytes number is not set, using default value", "default", tidBytesDefault)
 
 		b.tidBytesNumber = tidBytesDefault
 	}
 
 	cidBytesDefault := 8
 	if b.cidBytesNumber == 0 {
-		b.log.
-			WithField("default", cidBytesDefault).
-			Warn("ChannelId bytes number is not set, using default value")
+		b.log.Warn("ChannelId bytes number is not set, using default value", "default", cidBytesDefault)
 
 		b.cidBytesNumber = cidBytesDefault
 	}

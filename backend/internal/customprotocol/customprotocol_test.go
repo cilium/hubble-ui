@@ -6,14 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/sirupsen/logrus"
 
 	"github.com/cilium/hubble-ui/backend/internal/customprotocol/channel"
 	"github.com/cilium/hubble-ui/backend/internal/customprotocol/message"
@@ -878,7 +877,7 @@ func createRouter(t *testing.T, td RouterInitTest) (
 
 	r, err := router.Builder().
 		WithBaseContext(ctx).
-		WithLogger(logrus.New().WithField("testing", true)).
+		WithLogger(slog.Default().With(slog.Bool("testing", true))).
 		WithChannelIdBytesNumber(8).
 		WithTraceIdBytesNumber(8).
 		WithRouteResumePollTimeout(td.RoutePollDelay).

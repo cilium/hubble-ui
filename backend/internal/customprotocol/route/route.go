@@ -3,10 +3,9 @@ package route
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 	"time"
-
-	"github.com/sirupsen/logrus"
 
 	"github.com/cilium/hubble-ui/backend/internal/customprotocol/channel"
 	"github.com/cilium/hubble-ui/backend/internal/customprotocol/message"
@@ -25,7 +24,7 @@ type RouteHandler func(*channel.Channel) error
 type RouteMiddleware func(*channel.Channel, *message.Message) (bool, error)
 
 type Route struct {
-	log         logrus.FieldLogger
+	log         *slog.Logger
 	kind        RouteKind
 	name        string
 	baseContext context.Context
@@ -118,7 +117,7 @@ func (r *Route) pollChannel(
 	)
 
 	if msg.IsTerminated() {
-		r.log.WithFields(msg.LogFields()).Debug("client sent terminating message")
+		r.log.Debug("client sent terminating message", msg.LogAttrs()...)
 
 		ch.Close()
 		r.dropChannel(ch)
@@ -151,13 +150,14 @@ func (r *Route) pollChannel(
 	// and that error in the second poll request
 	isEmpty := ch.HasNoOutgoingMessages() && handlerErr == nil
 
-	log := r.log.
-		WithField("isTerminated", terminatedFlag).
-		WithField("handlerWannaTerminate", handlerWannaTerminate).
-		WithField("handlerErr", handlerErr).
-		WithField("isEmpty", isEmpty).
-		WithField("outgoingExists", outgoingExists).
-		WithField("respptr.IsNotReady", respptr.IsPoll())
+	logAttrs := []any{
+		"isTerminated", terminatedFlag,
+		"handlerWannaTerminate", handlerWannaTerminate,
+		"handlerErr", handlerErr,
+		"isEmpty", isEmpty,
+		"outgoingExists", outgoingExists,
+		"respptr.IsNotReady", respptr.IsPoll(),
+	}
 
 	cookies := ch.PopPriorityData()
 
@@ -176,13 +176,13 @@ func (r *Route) pollChannel(
 		if !errors.Is(handlerErr, channel.ErrChannelClosed) {
 			// NOTE: Since the error is about to be sent, mark channel as empty
 			resp = resp.WithError(handlerErr).WithEmpty(true)
-			log = log.WithField("resp.isEmpty", true)
+			logAttrs = append(logAttrs, "resp.isEmpty", true)
 		}
 	}
 
 	switch {
 	case errors.Is(err, context.Canceled):
-		log.WithError(err).Debug("context cancelled")
+		r.log.Debug("context cancelled", append(logAttrs, "error", err)...)
 		return nil, context.Canceled
 	case errors.Is(err, context.DeadlineExceeded):
 		resp = resp.WithNotReady(true)
@@ -192,14 +192,15 @@ func (r *Route) pollChannel(
 		resp = resp.WithNotReady(true).WithTerminated(true).WithError(err)
 	}
 
-	log = log.WithField("resp.isNotReady", resp.IsPoll()).
-		WithField("resp.isTerminated", resp.IsTerminated()).
-		WithField("resp.Errors", resp.Errors()).
-		WithField("size-of-resp.ResponseCookies", len(cookies))
+	logAttrs = append(logAttrs,
+		"resp.isNotReady", resp.IsPoll(),
+		"resp.isTerminated", resp.IsTerminated(),
+		"resp.Errors", resp.Errors(),
+		"size-of-resp.ResponseCookies", len(cookies))
 
 	respMsg, err := resp.WithPollDelay(ch.GetClientPollDelay()).Build()
 	if respMsg != nil && respMsg.IsTerminated() && respMsg.IsEmpty() {
-		log.Debug("closing and dropping channel")
+		r.log.Debug("closing and dropping channel", logAttrs...)
 
 		ch.Close()
 		r.dropChannel(ch)

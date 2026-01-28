@@ -2,27 +2,27 @@ package streams
 
 import (
 	"context"
+	"log/slog"
 	"math"
 	"sync"
 	"time"
 
 	"github.com/cilium/cilium/api/v1/observer"
 	"github.com/cilium/cilium/api/v1/relay"
-	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/cilium/hubble-ui/backend/internal/statuschecker"
 )
 
 type StatusChecker struct {
-	log      logrus.FieldLogger
+	log      *slog.Logger
 	stopOnce sync.Once
 	stopCh   chan struct{}
 	errCh    chan error
 	statusCh chan *statuschecker.FullStatus
 }
 
-func NewStatusChecker(log logrus.FieldLogger) *StatusChecker {
+func NewStatusChecker(log *slog.Logger) *StatusChecker {
 	return &StatusChecker{
 		log:      log,
 		stopOnce: sync.Once{},

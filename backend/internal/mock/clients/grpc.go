@@ -2,8 +2,8 @@ package clients
 
 import (
 	"context"
+	"log/slog"
 
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
 	"github.com/cilium/hubble-ui/backend/pkg/dllist"
@@ -12,11 +12,11 @@ import (
 )
 
 type GRPCClient struct {
-	log  logrus.FieldLogger
+	log  *slog.Logger
 	subs *dllist.DLList[grpc_client.StatusSub]
 }
 
-func NewGRPCClient(log logrus.FieldLogger) *GRPCClient {
+func NewGRPCClient(log *slog.Logger) *GRPCClient {
 	return &GRPCClient{
 		log:  log,
 		subs: dllist.NewDLList[grpc_client.StatusSub](),

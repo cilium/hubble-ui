@@ -2,10 +2,10 @@ package hubble_client
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/cilium/cilium/api/v1/observer"
-	"github.com/sirupsen/logrus"
 
 	"github.com/cilium/hubble-ui/backend/internal/flow_stream"
 	"github.com/cilium/hubble-ui/backend/internal/statuschecker"
@@ -16,13 +16,13 @@ func (c *GRPCHubbleClient) FlowStream() flow_stream.FlowStreamInterface {
 	// NOTE: important to pass c.Channels() inside, as it used to request and
 	// NOTE: obtain connections (initially + after reconnections).
 	getFlowsHandle, err := flow_stream.New(
-		c.log.WithField("component", "FlowStream"),
+		c.log.With(slog.String("component", "FlowStream")),
 		c.ConnectionPool(),
 		c.callPropsProvider,
 	)
 
 	if err != nil {
-		c.log.WithError(err).Error("Failed to build FlowStream handle, panic")
+		c.log.Error("Failed to build FlowStream handle, panic", "error", err)
 		panic(err.Error())
 	}
 
@@ -55,14 +55,14 @@ func (c *GRPCHubbleClient) HubbleNodes(
 
 type StatusCheckerOptions struct {
 	Delay time.Duration
-	Log   logrus.FieldLogger
+	Log   *slog.Logger
 }
 
 func (c *GRPCHubbleClient) ServerStatusChecker(opts StatusCheckerOptions) (
 	statuschecker.ServerStatusCheckerInterface, error,
 ) {
 	statusChecker, err := statuschecker.New(
-		opts.Log.WithField("component", "StatusChecker"),
+		opts.Log.With(slog.String("component", "StatusChecker")),
 		opts.Delay,
 		c.ConnectionPool(),
 		c.callPropsProvider,

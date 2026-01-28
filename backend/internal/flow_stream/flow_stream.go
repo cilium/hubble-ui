@@ -6,11 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"sync"
 
 	pbFlow "github.com/cilium/cilium/api/v1/flow"
 	"github.com/cilium/cilium/api/v1/observer"
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
 	"github.com/cilium/hubble-ui/backend/domain/labels"
@@ -43,7 +43,7 @@ type FlowStreamInterface interface {
 }
 
 type FlowStream struct {
-	log logrus.FieldLogger
+	log *slog.Logger
 
 	connectionPool  grpc_client.ConnectionPool
 	callProps       grpc_client.CallPropertiesProvider
@@ -60,7 +60,7 @@ type FlowStream struct {
 }
 
 func New(
-	log logrus.FieldLogger,
+	log *slog.Logger,
 	connPool grpc_client.ConnectionPool,
 	callProps grpc_client.CallPropertiesProvider,
 ) (*FlowStream, error) {
@@ -116,9 +116,7 @@ func (h *FlowStream) CollectLimit(
 
 			flows = append(flows, f)
 		case <-h.Stopped():
-			h.log.
-				WithField("nflows", len(flows)).
-				Debug("CollectLimit is finished")
+			h.log.Debug("CollectLimit is finished", "nflows", len(flows))
 
 			return flows, ctx.Err()
 		}
@@ -138,7 +136,7 @@ F:
 	for !h.shouldStop(ctx) {
 		isRenewed, err := h.ensureConnection(ctx)
 		if err != nil {
-			h.log.WithError(err).Error("ensureConnection failed")
+			h.log.Error("ensureConnection failed", "error", err)
 			h.sendError(ctx, err)
 			return
 		}
@@ -157,15 +155,14 @@ F:
 			err := h.recreateFlowStream(ctx)
 
 			if err != nil {
-				h.log.
-					WithError(err).
-					WithField("connection-addr", fmt.Sprintf("%p", h.connection)).
-					Warn("recreateFlowStream failed")
+				h.log.Warn("recreateFlowStream failed",
+					"error", err,
+					"connection-addr", fmt.Sprintf("%p", h.connection))
 
 				if grpc_errors.IsRecoverable(err) {
 					h.log.Debug("error is recoverable, running reconnect()")
 					if err := h.reconnect(ctx); err != nil {
-						h.log.WithError(err).Debug("reconnect failed, exiting")
+						h.log.Debug("reconnect failed, exiting", "error", err)
 						h.sendError(ctx, err)
 						break F
 					}
@@ -202,33 +199,36 @@ F:
 				break F
 			}
 
-			log := h.log.WithError(err).
-				WithField("MaxNumOfEOF", MaxNumOfEOF).
-				WithField("nEOFS", numTransientErrors)
+			logAttrs := []any{
+				"error", err,
+				"MaxNumOfEOF", MaxNumOfEOF,
+				"nEOFS", numTransientErrors,
+			}
 
 			if errors.Is(err, io.EOF) {
 				if isDatumFetched {
-					log.Info("EOF occurred after datum is fetched. Stream ends.")
+					h.log.Info("EOF occurred after datum is fetched. Stream ends.", logAttrs...)
 					return
 				}
 
 				numTransientErrors += 1
 				tryEOFReconnect = tryEOFReconnect || numTransientErrors == NumEOFForReconnect
 				isEOFFatal = isEOFFatal || numTransientErrors >= MaxNumOfEOF
-				log = log.
-					WithField("EOFReconnect", tryEOFReconnect).
-					WithField("MaxEOFReached", isEOFFatal)
+				logAttrs = append(logAttrs,
+					"EOFReconnect", tryEOFReconnect,
+					"MaxEOFReached", isEOFFatal)
 
 				switch {
 				case isEOFFatal:
-					log.Warn(
+					h.log.Warn(
 						"EOF occurred after reconnect. Timescape has no data.",
+						logAttrs...,
 					)
 
 					return
 				case tryEOFReconnect:
 					tryEOFReconnect = false
-					log.Warn("EOF occurred several times, trying reconnect")
+					h.log.Warn("EOF occurred several times, trying reconnect", logAttrs...)
 
 					if err := h.reconnect(ctx); err != nil {
 						h.sendError(ctx, err)
@@ -240,7 +240,7 @@ F:
 					continue F
 				}
 			} else {
-				log.Warn("fetching Flow from underlying flow stream failed")
+				h.log.Warn("fetching Flow from underlying flow stream failed", logAttrs...)
 			}
 
 			if grpc_errors.IsRecoverable(err) {
@@ -259,9 +259,7 @@ F:
 
 func (h *FlowStream) Run(ctx context.Context, req *observer.GetFlowsRequest) {
 	h.req = req
-	h.log.
-		WithField("FlowStream", fmt.Sprintf("%p", h)).
-		Debug("running")
+	h.log.Debug("running", "FlowStream", fmt.Sprintf("%p", h))
 
 	h.runLoop(ctx, func(flowStream observer.Observer_GetFlowsClient) error {
 		getFlowResponse, err := flowStream.Recv()
@@ -288,9 +286,7 @@ func (h *FlowStream) Stop() {
 		}
 	})
 
-	h.log.
-		WithField("FlowStream", fmt.Sprintf("%p", h)).
-		Info("FlowStream has been stopped")
+	h.log.Info("FlowStream has been stopped", "FlowStream", fmt.Sprintf("%p", h))
 }
 
 func (h *FlowStream) Stopped() chan struct{} {
@@ -359,7 +355,7 @@ func (h *FlowStream) handleFlow(ctx context.Context, f *pbFlow.Flow) {
 	}
 	sourceId, destId := service.IdsFromFlowProto(f)
 	if sourceId == "0" || destId == "0" {
-		h.log.Warnf(msg.ZeroIdentityInSourceOrDest)
+		h.log.Warn(msg.ZeroIdentityInSourceOrDest)
 		h.printZeroIdentityFlow(f)
 		return
 	}
@@ -422,9 +418,9 @@ func (h *FlowStream) shouldStop(ctx context.Context) bool {
 func (h *FlowStream) printZeroIdentityFlow(f *pbFlow.Flow) {
 	serialized, err := json.Marshal(f)
 	if err != nil {
-		h.log.Errorf("failed to marshal flow to json: %v\n", err)
+		h.log.Error("failed to marshal flow to json", "error", err)
 		return
 	}
 
-	h.log.WithField("json", string(serialized)).Warn("zero identity flow")
+	h.log.Warn("zero identity flow", "json", string(serialized))
 }

@@ -2,11 +2,11 @@ package message
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	protobuf "google.golang.org/protobuf/proto"
 
 	cerrors "github.com/cilium/hubble-ui/backend/internal/customprotocol/errors"
@@ -118,20 +118,20 @@ func (m *Message) DeserializeProtoBody(dst protobuf.Message) error {
 	return protobuf.Unmarshal(m.BodyBytes(), dst)
 }
 
-func (m *Message) LogFields() logrus.Fields {
-	return logrus.Fields{
-		"traceId":                 m.TraceId(),
-		"routeName":               m.RouteName(),
-		"channelId":               m.ChannelId(),
-		"bodySize":                len(m.BodyBytes()),
-		"isTerminated":            m.IsTerminated(),
-		"isNotReady":              m.IsNotReady(),
-		"isError":                 m.IsError(),
-		"errors":                  m.Errors(),
-		"lastDatumId":             m.LastDatumId(),
-		"nextDatumId":             m.NextDatumId(),
-		"size-of-responseCookies": len(m.ResponseCookies),
-		"responseStatusHeader":    m.ResponseStatusHeader,
+func (m *Message) LogAttrs() []any {
+	return []any{
+		slog.String("traceId", m.TraceId()),
+		slog.String("routeName", m.RouteName()),
+		slog.String("channelId", m.ChannelId()),
+		slog.Int("bodySize", len(m.BodyBytes())),
+		slog.Bool("isTerminated", m.IsTerminated()),
+		slog.Bool("isNotReady", m.IsNotReady()),
+		slog.Bool("isError", m.IsError()),
+		slog.Any("errors", m.Errors()),
+		slog.String("lastDatumId", m.LastDatumId()),
+		slog.String("nextDatumId", m.NextDatumId()),
+		slog.Int("size-of-responseCookies", len(m.ResponseCookies)),
+		slog.Int("responseStatusHeader", m.ResponseStatusHeader),
 	}
 }
 

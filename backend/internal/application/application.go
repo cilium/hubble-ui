@@ -3,11 +3,11 @@ package application
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os/signal"
 	"time"
 
 	gops "github.com/google/gops/agent"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 
 	"github.com/cilium/hubble-ui/backend/internal/api_clients"
@@ -18,7 +18,7 @@ import (
 
 type Application struct {
 	cfg  *config.Config
-	log  logrus.FieldLogger
+	log  *slog.Logger
 	opts Options
 
 	e2e *e2e.TestsController
@@ -32,7 +32,7 @@ type Options struct {
 	HealthCheckRoute string
 }
 
-func New(log logrus.FieldLogger, cfg *config.Config, opts Options) (*Application, error) {
+func New(log *slog.Logger, cfg *config.Config, opts Options) (*Application, error) {
 	return &Application{
 		cfg:  cfg,
 		log:  log,
@@ -53,13 +53,13 @@ func (app *Application) Run() error {
 	if app.cfg.E2ETestMode {
 		app.e2e = e2e.NewTestsController(
 			ctx,
-			app.log.WithField("component", "e2e.TestsController"),
+			app.log.With(slog.String("component", "e2e.TestsController")),
 			app.cfg.E2ELogFilesBasePath,
 		)
 
 		app.clients = app.e2e.GetClients()
 
-		app.log.WithFields(app.e2e.LogFields()).Info("backend is running in e2e test mode")
+		app.log.Info("backend is running in e2e test mode", app.e2e.LogAttrs()...)
 
 	} else {
 		// FIXME: make the dial timeout configurable
@@ -69,7 +69,7 @@ func (app *Application) Run() error {
 		prodClients, err := api_clients.New(
 			dialCtx,
 			app.cfg,
-			app.log.WithField("component", "APIClients"),
+			app.log.With(slog.String("component", "APIClients")),
 		)
 
 		if err != nil {
@@ -86,7 +86,7 @@ func (app *Application) Run() error {
 
 	srv, err := apiserver.New(
 		ctx,
-		app.log.WithField("component", "APIServer"),
+		app.log.With(slog.String("component", "APIServer")),
 		app.cfg,
 		int(app.cfg.UIServerPort),
 		app.opts.ApiRoute,
@@ -101,7 +101,7 @@ func (app *Application) Run() error {
 	app.srv = srv
 
 	if err := srv.Listen(); err != nil {
-		app.log.WithError(err).Error("APIServer listen call failed")
+		app.log.Error("APIServer listen call failed", "error", err)
 		return err
 	}
 
@@ -115,21 +115,17 @@ func (app *Application) runGops() error {
 
 	// Open socket for using gops to get stacktraces of the agent.
 	addr := fmt.Sprintf("127.0.0.1:%d", app.cfg.GOPSPort)
-	addrField := logrus.Fields{"address": addr}
 
 	if err := gops.Listen(gops.Options{
 		Addr:                   addr,
 		ReuseSocketAddrAndPort: true,
 	}); err != nil {
-		app.log.
-			WithError(err).
-			WithFields(addrField).
-			Error("Cannot start gops server")
+		app.log.Error("Cannot start gops server", "address", addr, "error", err)
 
 		return err
 	}
 
-	app.log.WithFields(addrField).Info("started gops server")
+	app.log.Info("started gops server", "address", addr)
 	return nil
 }
 
@@ -158,7 +154,7 @@ func (app *Application) GracefulShutdown() {
 	app.log.Info("shutting down the Application gracefully")
 
 	if err := app.srv.Shutdown(); err != nil {
-		app.log.WithError(err).Warn("server shutdown error")
+		app.log.Warn("server shutdown error", "error", err)
 	}
 
 	app.stopGops()

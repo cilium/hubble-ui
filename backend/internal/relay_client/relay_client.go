@@ -3,8 +3,8 @@ package relay_client
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
 	"github.com/cilium/hubble-ui/backend/internal/config"
@@ -22,11 +22,11 @@ type RelayClient struct {
 	hubble_client.GRPCHubbleClient
 
 	cfg *config.Config
-	log logrus.FieldLogger
+	log *slog.Logger
 }
 
 func New(
-	log logrus.FieldLogger,
+	log *slog.Logger,
 	c *config.Config,
 	gcl *grpc_client.GRPCClient,
 ) (*RelayClient, error) {
@@ -48,7 +48,7 @@ func New(
 
 	hcl, err := hubble_client.New(
 		gcl,
-		log.WithField("hubble-client", "relay"),
+		log.With(slog.String("hubble-client", "relay")),
 		relayClient,
 	)
 

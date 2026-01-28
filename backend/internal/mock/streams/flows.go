@@ -3,9 +3,8 @@ package streams
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"sync"
-
-	"github.com/sirupsen/logrus"
 
 	pbflow "github.com/cilium/cilium/api/v1/flow"
 	"github.com/cilium/cilium/api/v1/observer"
@@ -17,7 +16,7 @@ import (
 )
 
 type FlowStream struct {
-	log logrus.FieldLogger
+	log *slog.Logger
 	src sources.MockedSource
 	rl  rate_limiter.RateLimit
 
@@ -29,7 +28,7 @@ type FlowStream struct {
 }
 
 func NewFlowStream(
-	log logrus.FieldLogger,
+	log *slog.Logger,
 	src sources.MockedSource,
 	rl rate_limiter.RateLimit,
 ) *FlowStream {
@@ -59,7 +58,7 @@ func (fs *FlowStream) Run(ctx context.Context, req *observer.GetFlowsRequest) {
 	)
 
 	if err != nil {
-		fs.log.WithError(err).Error("failed to build whitelist hubble filters")
+		fs.log.Error("failed to build whitelist hubble filters", "error", err)
 		fs.sendError(ctx, err)
 		return
 	}
@@ -71,7 +70,7 @@ func (fs *FlowStream) Run(ctx context.Context, req *observer.GetFlowsRequest) {
 	)
 
 	if err != nil {
-		fs.log.WithError(err).Error("failed to build blacklist hubble filters")
+		fs.log.Error("failed to build blacklist hubble filters", "error", err)
 		fs.sendError(ctx, err)
 		return
 	}

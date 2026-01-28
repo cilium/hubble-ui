@@ -22,7 +22,7 @@ import (
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	msg, isJSON, err := r.parseHTTPRequest(req)
 	if err != nil {
-		r.log.WithError(err).Error("failed to extract customprotocol.Request")
+		r.log.Error("failed to extract customprotocol.Request", "error", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -30,17 +30,17 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// NOTE: If this is not the first request/response in a row, existing
 	// traceId will be preserved
 	if err := r.fallbackChannelAndTraceIds(msg); err != nil {
-		r.log.WithError(err).Error("failed to fallback ChannelId/TraceId")
+		r.log.Error("failed to fallback ChannelId/TraceId", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	log := r.log.WithFields(msg.LogFields())
+	logAttrs := msg.LogAttrs()
 
 	// NOTE: Careful, all those shared methods should be thread safe
 	route := r.matchRoute(msg)
 	if route == nil {
-		log.Warn("requested route not found")
+		r.log.Warn("requested route not found", logAttrs...)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -51,14 +51,14 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer r.runGarbageCollector()
 
 	if err == nil || errors.Is(err, context.DeadlineExceeded) {
-		log := r.log.WithFields(responseMessage.LogFields()).WithField("isJSON", isJSON)
+		respLogAttrs := append(responseMessage.LogAttrs(), "isJSON", isJSON)
 		if responseMessage.IsError() {
-			log.Warn("responding with errors")
+			r.log.Warn("responding with errors", respLogAttrs...)
 		}
 
 		err = r.respondWithMessage(w, isJSON, responseMessage)
 		if err != nil {
-			log.WithError(err).Error("failed to serialize the response")
+			r.log.Error("failed to serialize the response", append(respLogAttrs, "error", err)...)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -67,12 +67,11 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if errors.Is(err, context.Canceled) {
-		log.
-			WithError(err).
-			Warn("poll request cancelled: connection timeout or server shutdown")
+		r.log.Warn("poll request cancelled: connection timeout or server shutdown",
+			append(logAttrs, "error", err)...)
 		return
 	} else {
-		log.WithError(err).Error("route.Resume failed")
+		r.log.Error("route.Resume failed", append(logAttrs, "error", err)...)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

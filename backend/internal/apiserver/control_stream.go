@@ -1,6 +1,7 @@
 package apiserver
 
 import (
+	"log/slog"
 	"time"
 
 	"github.com/cilium/hubble-ui/backend/internal/api_helpers"
@@ -22,7 +23,7 @@ func (srv *APIServer) ControlStream(
 	log, ctx := rctx.Log, ch.Context()
 
 	nsWatcher, err := srv.clients.NSWatcher(ctx, ns_watcher.NSWatcherOptions{
-		Log: log.WithField("component", "ControlStream.NSWatcher"),
+		Log: log.With(slog.String("component", "ControlStream.NSWatcher")),
 	})
 	if err != nil {
 		return err
@@ -73,30 +74,25 @@ F:
 		case <-nsDebounce.Triggered():
 			nss := dataStash.FlushNamespaces()
 			nsResponse := responseFromNSEvents(nss)
-			log.
-				WithField("response", nsResponse).
-				WithField("len(nss)", len(nss)).
-				Debug("namespaces debounce triggered")
+			log.Debug("namespaces debounce triggered", "response", nsResponse, "len(nss)", len(nss))
 
 			if err := ch.SendProto(nsResponse); err != nil {
-				log.
-					WithError(err).
-					Error("failed to send NSWatcher response")
+				log.Error("failed to send NSWatcher response", "error", err)
 
 				return err
 			}
 		case err := <-nsWatcher.Errors():
-			log.WithError(err).Error("ns watcher failed")
+			log.Error("ns watcher failed", "error", err)
 			return err
 		case fullStatus := <-statusChecker.Statuses():
 			evt := serverStatusResponse(fullStatus)
 
 			if err := ch.SendProto(evt); err != nil {
-				log.Errorf("failed to send server status notification: %v\n", err)
+				log.Error("failed to send server status notification", "error", err)
 				return err
 			}
 		case err := <-statusChecker.Errors():
-			log.Errorf("status checker error: %v\n", err)
+			log.Error("status checker error", "error", err)
 			return err
 		case st := <-relayConnChannel:
 			switch {
@@ -108,10 +104,9 @@ F:
 				}
 
 				if err := ch.SendProto(evt.AsControlResponse()); err != nil {
-					log.
-						WithField("state", "ConnectedToRelay").
-						WithError(err).
-						Error("failed to send relay state change notification")
+					log.Error("failed to send relay state change notification",
+						"state", "ConnectedToRelay",
+						"error", err)
 
 					return err
 				}
@@ -128,10 +123,9 @@ F:
 
 				// NOTE: We are here if someone is reconnecting to hubble-relay
 				if err := ch.SendProto(evt.AsControlResponse()); err != nil {
-					log.
-						WithField("state", "ReconnectingToRelay").
-						WithError(err).
-						Error("failed to send relay state change notification")
+					log.Error("failed to send relay state change notification",
+						"state", "ReconnectingToRelay",
+						"error", err)
 
 					return err
 				}
@@ -140,7 +134,7 @@ F:
 		}
 	}
 
-	log.Infof("control stream is stopped\n")
+	log.Info("control stream is stopped")
 	return nil
 }
 

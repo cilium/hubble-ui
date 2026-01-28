@@ -2,13 +2,12 @@ package req_context
 
 import (
 	"context"
+	"log/slog"
 	"sync"
-
-	"github.com/sirupsen/logrus"
 )
 
 type Context struct {
-	Log logrus.FieldLogger
+	Log *slog.Logger
 
 	mx  sync.Mutex
 	ctx context.Context
@@ -26,7 +25,7 @@ func (c *Context) Context() context.Context {
 	return c.ctx
 }
 
-func (c *Context) SetLogger(log logrus.FieldLogger) *Context {
+func (c *Context) SetLogger(log *slog.Logger) *Context {
 	c.Log = log
 	return c
 }

@@ -1,9 +1,8 @@
 package e2e
 
 import (
+	"log/slog"
 	"strings"
-
-	"github.com/sirupsen/logrus"
 )
 
 type TestPreset string
@@ -51,8 +50,6 @@ func (ts *TestSettings) parseInnerParam(p string) (string, string) {
 	return key, value
 }
 
-func (ts *TestSettings) LogFields() logrus.Fields {
-	return logrus.Fields{
-		"preset": ts.Preset,
-	}
+func (ts *TestSettings) LogAttrs() []any {
+	return []any{slog.String("preset", string(ts.Preset))}
 }

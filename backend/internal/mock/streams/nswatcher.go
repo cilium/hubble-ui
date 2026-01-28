@@ -2,16 +2,15 @@ package streams
 
 import (
 	"context"
+	"log/slog"
 	"sync"
-
-	"github.com/sirupsen/logrus"
 
 	"github.com/cilium/hubble-ui/backend/internal/mock/sources"
 	ns_common "github.com/cilium/hubble-ui/backend/internal/ns_watcher/common"
 )
 
 type NSWatcher struct {
-	log    logrus.FieldLogger
+	log    *slog.Logger
 	source sources.MockedSource
 
 	stopOnce sync.Once
@@ -21,7 +20,7 @@ type NSWatcher struct {
 	errCh    chan error
 }
 
-func NewNSWatcher(log logrus.FieldLogger, source sources.MockedSource) *NSWatcher {
+func NewNSWatcher(log *slog.Logger, source sources.MockedSource) *NSWatcher {
 	return &NSWatcher{
 		log:      log,
 		source:   source,

@@ -2,9 +2,8 @@ package clients
 
 import (
 	"context"
+	"log/slog"
 	"sync"
-
-	"github.com/sirupsen/logrus"
 
 	"github.com/cilium/hubble-ui/backend/internal/api_clients"
 	"github.com/cilium/hubble-ui/backend/internal/mock/sources"
@@ -18,7 +17,7 @@ import (
 // NOTE: Every ref to subclient/substream is stored, to have a way to mutate
 // their state in any moment in time
 type Clients struct {
-	log logrus.FieldLogger
+	log *slog.Logger
 	src sources.MockedSource
 
 	mx sync.Mutex
@@ -31,15 +30,15 @@ type Clients struct {
 	nsWatchers []*streams.NSWatcher
 }
 
-func New(ctx context.Context, log logrus.FieldLogger) api_clients.APIClientsInterface {
+func New(ctx context.Context, log *slog.Logger) api_clients.APIClientsInterface {
 	return NewInner(ctx, log)
 }
 
-func NewInner(ctx context.Context, log logrus.FieldLogger) *Clients {
+func NewInner(ctx context.Context, log *slog.Logger) *Clients {
 	return &Clients{
 		log:             log,
 		mx:              sync.Mutex{},
-		relayGrpcClient: NewGRPCClient(log.WithField("client", "relay-grpc")),
+		relayGrpcClient: NewGRPCClient(log.With(slog.String("client", "relay-grpc"))),
 	}
 }
 
@@ -91,7 +90,7 @@ func (cl *Clients) RelayClient() relay_client.RelayClientInterface {
 	cl.mx.Lock()
 	defer cl.mx.Unlock()
 
-	log := cl.log.WithField("client", "relay").WithField("client-idx", len(cl.relayClients))
+	log := cl.log.With(slog.String("client", "relay"), slog.Int("client-idx", len(cl.relayClients)))
 	rcl := NewRelayClient(
 		log,
 		cl.relayGrpcClient,
@@ -107,7 +106,7 @@ func (cl *Clients) NSWatcher(ctx context.Context, opts ns_watcher.NSWatcherOptio
 	cl.mx.Lock()
 	defer cl.mx.Unlock()
 
-	log := cl.log.WithField("stream", "ns-watcher").WithField("stream-idx", len(cl.nsWatchers))
+	log := cl.log.With(slog.String("stream", "ns-watcher"), slog.Int("stream-idx", len(cl.nsWatchers)))
 	nsw := streams.NewNSWatcher(log, cl.duplicateSource())
 
 	cl.nsWatchers = append(cl.nsWatchers, nsw)

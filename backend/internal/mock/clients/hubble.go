@@ -2,9 +2,9 @@ package clients
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/cilium/cilium/api/v1/observer"
-	"github.com/sirupsen/logrus"
 
 	"github.com/cilium/hubble-ui/backend/internal/flow_stream"
 	"github.com/cilium/hubble-ui/backend/internal/hubble_client"
@@ -17,7 +17,7 @@ import (
 type HubbleClient struct {
 	*GRPCClient
 
-	log logrus.FieldLogger
+	log *slog.Logger
 	src sources.MockedSource
 
 	flowStreams          []*streams.FlowStream
@@ -26,7 +26,7 @@ type HubbleClient struct {
 }
 
 func NewHubbleClient(
-	log logrus.FieldLogger,
+	log *slog.Logger,
 	gcl *GRPCClient,
 	src sources.MockedSource,
 	flowsRateLimit rate_limiter.RateLimit,
@@ -42,7 +42,7 @@ func NewHubbleClient(
 }
 
 func (hcl *HubbleClient) FlowStream() flow_stream.FlowStreamInterface {
-	log := hcl.log.WithField("stream", "flows").WithField("stream-idx", len(hcl.flowStreams))
+	log := hcl.log.With(slog.String("stream", "flows"), slog.Int("stream-idx", len(hcl.flowStreams)))
 
 	fs := streams.NewFlowStream(log, hcl.duplicateSource(), hcl.flowsRateLimit)
 	hcl.flowStreams = append(hcl.flowStreams, fs)
@@ -57,9 +57,9 @@ func (hcl *HubbleClient) ServerStatus(ctx context.Context) (*observer.ServerStat
 func (hcl *HubbleClient) ServerStatusChecker(
 	opts hubble_client.StatusCheckerOptions,
 ) (statuschecker.ServerStatusCheckerInterface, error) {
-	log := hcl.log.
-		WithField("stream", "status-checker").
-		WithField("stream-idx", len(hcl.statusCheckerStreams))
+	log := hcl.log.With(
+		slog.String("stream", "status-checker"),
+		slog.Int("stream-idx", len(hcl.statusCheckerStreams)))
 
 	sc := streams.NewStatusChecker(log)
 	hcl.statusCheckerStreams = append(hcl.statusCheckerStreams, sc)

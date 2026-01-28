@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"log/slog"
 	"time"
 
 	"github.com/cilium/hubble-ui/backend/internal/mock/factories"
@@ -24,12 +25,12 @@ func (tc *TestsController) enableTenantJobsCase(_ts *TestSettings) error {
 
 	flowsSource := sources.LogFile(
 		flowsLogFile,
-		tc.log.WithField("source", "tenant-jobs-flows"),
+		tc.log.With(slog.String("source", "tenant-jobs-flows")),
 		sources.LogFileSourceOpts{},
 	)
 	fgsSource := sources.LogFile(
 		fgsLogFile,
-		tc.log.WithField("source", "tenant-jobs-fgs"),
+		tc.log.With(slog.String("source", "tenant-jobs-fgs")),
 		sources.LogFileSourceOpts{},
 	)
 

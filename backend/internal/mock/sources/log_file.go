@@ -2,9 +2,9 @@ package sources
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/cilium/cilium/api/v1/observer"
-	"github.com/sirupsen/logrus"
 
 	"github.com/cilium/hubble-ui/backend/internal/events_log_file"
 	"github.com/cilium/hubble-ui/backend/internal/log_file"
@@ -15,7 +15,7 @@ type LogFileSource struct {
 	emptySource
 
 	lf   *log_file.LogFile
-	log  logrus.FieldLogger
+	log  *slog.Logger
 	opts LogFileSourceOpts
 
 	flowsCh FlowsChannel
@@ -28,7 +28,7 @@ type LogFileSourceOpts struct {
 
 func LogFile(
 	lf *log_file.LogFile,
-	log logrus.FieldLogger,
+	log *slog.Logger,
 	opts LogFileSourceOpts,
 ) *LogFileSource {
 	return &LogFileSource{
@@ -62,10 +62,9 @@ func (lfs *LogFileSource) Run(ctx context.Context) {
 	it := events_log_file.NewEventsIterator(_it)
 	flowsRateLimiter := rate_limiter.New(lfs.opts.FlowsRateLimit)
 
-	lfs.log.
-		WithField("limit", lfs.opts.FlowsRateLimit.Limit).
-		WithField("period", lfs.opts.FlowsRateLimit.Period).
-		Info("flows rate limited")
+	lfs.log.Info("flows rate limited",
+		"limit", lfs.opts.FlowsRateLimit.Limit,
+		"period", lfs.opts.FlowsRateLimit.Period)
 
 	for it.HasNext() {
 		entry := it.Next()
@@ -75,12 +74,12 @@ func (lfs *LogFileSource) Run(ctx context.Context) {
 			nFlows += 1
 
 			if err := flowsRateLimiter.Wait(ctx); err != nil {
-				lfs.log.WithError(err).Error("flowsRateLimiter.Wait() error")
+				lfs.log.Error("flowsRateLimiter.Wait() error", "error", err)
 				return
 			}
 
 			if err := lfs.sendFlow(ctx, entry.Flow); err != nil {
-				lfs.log.WithError(err).Error("sendFlow error")
+				lfs.log.Error("sendFlow error", "error", err)
 				return
 			}
 		}
@@ -90,12 +89,11 @@ func (lfs *LogFileSource) Run(ctx context.Context) {
 		}
 	}
 
-	lfs.log.
-		WithField("nentries", nEntries).
-		WithField("nflows", nFlows).
-		WithField("nprocevents", nProcEvents).
-		WithField("nunparsed", nUnparsed).
-		Info("log file source is exhausted")
+	lfs.log.Info("log file source is exhausted",
+		"nentries", nEntries,
+		"nflows", nFlows,
+		"nprocevents", nProcEvents,
+		"nunparsed", nUnparsed)
 }
 
 func (lfs *LogFileSource) sendFlow(ctx context.Context, flow *observer.GetFlowsResponse) error {

@@ -36,15 +36,13 @@ func (tc *TestsController) checkRequestForStateChange(req *http.Request) {
 		return
 	}
 
-	tc.log.
-		WithField("e2e-query-param", e2eParam).
-		Info("trying to mutate mock state from http request")
+	tc.log.Info("trying to mutate mock state from http request", "e2e-query-param", e2eParam)
 
 	testSettings := new(TestSettings)
 	testSettings.FillFromParamString(e2eParam)
 
 	tc.clients.Reset()
 
-	tc.log.WithFields(testSettings.LogFields()).Info("TestSettings created")
+	tc.log.Info("TestSettings created", testSettings.LogAttrs()...)
 	tc.applyTestSettings(testSettings)
 }

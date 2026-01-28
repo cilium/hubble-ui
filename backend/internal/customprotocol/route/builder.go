@@ -3,17 +3,17 @@ package route
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/cilium/hubble-ui/backend/internal/customprotocol/channel"
 	"github.com/cilium/hubble-ui/backend/internal/customprotocol/timings"
-	"github.com/sirupsen/logrus"
 )
 
 type RouteBuilder struct {
 	kind                       RouteKind
 	name                       string
-	log                        logrus.FieldLogger
+	log                        *slog.Logger
 	baseContext                context.Context
 	defaultHandler             RouteHandler
 	outgoingMessagePollTimeout time.Duration
@@ -54,7 +54,7 @@ func (b RouteBuilder) WithTimings(t *timings.RouterTimings) RouteBuilder {
 	return b
 }
 
-func (b RouteBuilder) WithLogger(log logrus.FieldLogger) RouteBuilder {
+func (b RouteBuilder) WithLogger(log *slog.Logger) RouteBuilder {
 	b.log = log
 	return b
 }
