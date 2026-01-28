@@ -197,7 +197,7 @@ func Hint(err error) error {
 	if strings.Contains(err.Error(), defaults.SockPath) {
 		return fmt.Errorf("%s\nIs the agent running?", e)
 	}
-	return fmt.Errorf("%s", e)
+	return err
 }
 
 func timeSince(since time.Time) string {
@@ -535,8 +535,6 @@ func FormatStatusResponse(w io.Writer, sr *models.StatusResponse, sd StatusDetai
 					status = "BPF"
 				}
 				if sr.KubeProxyReplacement != nil {
-					// When BPF Masquerading is enabled we don't do any masquerading for IPv6
-					// traffic so no SNAT Exclusion IPv6 CIDR is listed in status output.
 					devStr := ""
 					for i, dev := range sr.KubeProxyReplacement.DeviceList {
 						devStr += dev.Name
@@ -544,9 +542,12 @@ func FormatStatusResponse(w io.Writer, sr *models.StatusResponse, sd StatusDetai
 							devStr += ", "
 						}
 					}
-					status += fmt.Sprintf("\t[%s]\t%s",
+					status += fmt.Sprintf(
+						"\t[%s]\t%s %s",
 						devStr,
-						sr.Masquerading.SnatExclusionCidrV4)
+						sr.Masquerading.SnatExclusionCidrV4,
+						sr.Masquerading.SnatExclusionCidrV6,
+					)
 				}
 
 			} else if sr.Masquerading.Mode == models.MasqueradingModeIptables {
@@ -658,8 +659,12 @@ func FormatStatusResponse(w io.Writer, sr *models.StatusResponse, sd StatusDetai
 			fields = append(fields, strings.Join(observer, ", "))
 		}
 
-		if sr.Hubble.Metrics != nil {
-			fields = append(fields, fmt.Sprintf("Metrics: %s", sr.Hubble.Metrics.State))
+		if sr.HubbleMetrics != nil {
+			metrics := sr.HubbleMetrics.State
+			if sr.HubbleMetrics.Msg != "" {
+				metrics = fmt.Sprintf("%s (%s)", metrics, sr.HubbleMetrics.Msg)
+			}
+			fields = append(fields, fmt.Sprintf("Metrics: %s", metrics))
 		}
 
 		fmt.Fprintf(w, "Hubble:\t%s\n", strings.Join(fields, "\t"))
@@ -716,11 +721,6 @@ func FormatStatusResponse(w io.Writer, sr *models.StatusResponse, sd StatusDetai
 			socketLBCoverage = "Hostns-only"
 		}
 
-		gracefulTerm := "Disabled"
-		if sr.KubeProxyReplacement.Features.GracefulTermination.Enabled {
-			gracefulTerm = "Enabled"
-		}
-
 		nat46X64 := "Disabled"
 		nat46X64GW := "Disabled"
 		nat46X64SVC := "Disabled"
@@ -755,7 +755,6 @@ func FormatStatusResponse(w io.Writer, sr *models.StatusResponse, sd StatusDetai
 			fmt.Fprintf(tab, "  Backend Selection:\t%s\n", selection)
 		}
 		fmt.Fprintf(tab, "  Session Affinity:\t%s\n", affinity)
-		fmt.Fprintf(tab, "  Graceful Termination:\t%s\n", gracefulTerm)
 		if nat46X64 == "Disabled" {
 			fmt.Fprintf(tab, "  NAT46/64 Support:\t%s\n", nat46X64)
 		} else {

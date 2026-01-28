@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/netip"
 
-	"github.com/cilium/cilium/pkg/cidr"
 	"github.com/cilium/cilium/pkg/lock"
 )
 
@@ -26,6 +25,9 @@ type Limits struct {
 	// HypervisorType tracks the instance's hypervisor type if available. Used to determine if features like prefix
 	// delegation are supported on an instance. Bare metal instances would have empty string.
 	HypervisorType string
+
+	// IsBareMetal tracks whether an instance is a bare metal instance or not
+	IsBareMetal bool
 }
 
 // AllocationIP is an IP which is available for allocation, or already
@@ -302,6 +304,8 @@ func (t Tags) Match(required Tags) bool {
 }
 
 // Subnet is a representation of a subnet
+// +k8s:deepcopy-gen=false
+// +deepequal-gen=false
 type Subnet struct {
 	// ID is the subnet ID
 	ID string
@@ -310,10 +314,10 @@ type Subnet struct {
 	Name string
 
 	// CIDR is the IPv4 CIDR associated with the subnet
-	CIDR *cidr.CIDR
+	CIDR netip.Prefix
 
 	// IPv6CIDR is the IPv6 CIDR associated with the subnet
-	IPv6CIDR *cidr.CIDR
+	IPv6CIDR netip.Prefix
 
 	// AvailabilityZone is the availability zone of the subnet
 	AvailabilityZone string
@@ -331,6 +335,71 @@ type Subnet struct {
 
 	// Tags is the tags of the subnet
 	Tags Tags
+}
+
+// DeepEqual is a deepequal function, deeply comparing the
+// receiver with other. in must be non-nil.
+func (in *Subnet) DeepEqual(other *Subnet) bool {
+	if other == nil {
+		return false
+	}
+
+	if in.ID != other.ID {
+		return false
+	}
+	if in.Name != other.Name {
+		return false
+	}
+	if in.CIDR != other.CIDR {
+		return false
+	}
+
+	if in.IPv6CIDR != other.IPv6CIDR {
+		return false
+	}
+
+	if in.AvailabilityZone != other.AvailabilityZone {
+		return false
+	}
+	if in.VirtualNetworkID != other.VirtualNetworkID {
+		return false
+	}
+	if in.AvailableAddresses != other.AvailableAddresses {
+		return false
+	}
+	if in.AvailableIPv6Addresses != other.AvailableIPv6Addresses {
+		return false
+	}
+	if ((in.Tags != nil) && (other.Tags != nil)) || ((in.Tags == nil) != (other.Tags == nil)) {
+		in, other := &in.Tags, &other.Tags
+		if !in.DeepEqual(other) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// DeepCopyInto is a deepcopy function, copying the receiver, writing into out. in must be non-nil.
+func (in *Subnet) DeepCopyInto(out *Subnet) {
+	*out = *in
+	if in.Tags != nil {
+		in, out := &in.Tags, &out.Tags
+		*out = make(Tags, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
+}
+
+// DeepCopy is a deepcopy function, copying the receiver, creating a new Subnet.
+func (in *Subnet) DeepCopy() *Subnet {
+	if in == nil {
+		return nil
+	}
+	out := new(Subnet)
+	in.DeepCopyInto(out)
+	return out
 }
 
 // SubnetMap indexes subnets by subnet ID
@@ -374,6 +443,24 @@ type VirtualNetwork struct {
 
 // VirtualNetworkMap indexes virtual networks by their ID
 type VirtualNetworkMap map[string]*VirtualNetwork
+
+// RouteTable is a representation of a route table but only for the purpose of
+// to check the subnets are in the same route table. It is not a full
+// representation of a route table.
+type RouteTable struct {
+	// ID is the ID of the route table
+	ID string
+
+	// VirtualNetworkID is the virtual network the route table is in
+	VirtualNetworkID string
+
+	// Subnets maps subnet IDs to their presence in this route table
+	// +deepequal-gen=false
+	Subnets map[string]struct{}
+}
+
+// RouteTableMap indexes route tables by their ID
+type RouteTableMap map[string]*RouteTable
 
 // PoolNotExists indicate that no such pool ID exists
 const PoolNotExists = PoolID("")
@@ -431,6 +518,17 @@ type InterfaceRevision struct {
 	Fingerprint string
 }
 
+// DeepCopy returns a deep copy
+func (i *InterfaceRevision) DeepCopy() *InterfaceRevision {
+	if i == nil {
+		return nil
+	}
+	return &InterfaceRevision{
+		Resource:    i.Resource.DeepCopyInterface(),
+		Fingerprint: i.Fingerprint,
+	}
+}
+
 // Instance is the representation of an instance, typically a VM, subject to
 // per-node IPAM logic
 //
@@ -440,6 +538,20 @@ type Instance struct {
 	// interfaces is a map of all interfaces attached to the instance
 	// indexed by the interface ID
 	Interfaces map[string]InterfaceRevision
+}
+
+// DeepCopy returns a deep copy
+func (i *Instance) DeepCopy() *Instance {
+	if i == nil {
+		return nil
+	}
+	c := &Instance{
+		Interfaces: map[string]InterfaceRevision{},
+	}
+	for k, v := range i.Interfaces {
+		c.Interfaces[k] = *v.DeepCopy()
+	}
+	return c
 }
 
 // InstanceMap is the list of all instances indexed by instance ID
@@ -490,7 +602,7 @@ func (m *InstanceMap) updateLocked(instanceID string, iface InterfaceRevision) {
 	i.Interfaces[iface.Resource.InterfaceID()] = iface
 }
 
-type Address interface{}
+type Address any
 
 // AddressIterator is the function called by the ForeachAddress iterator
 type AddressIterator func(instanceID, interfaceID, ip, poolID string, address Address) error

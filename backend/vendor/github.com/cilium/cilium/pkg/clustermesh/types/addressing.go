@@ -5,6 +5,7 @@ package types
 
 import (
 	"bytes"
+	"cmp"
 	"errors"
 	"fmt"
 	"net"
@@ -187,20 +188,22 @@ func (ac AddrCluster) ClusterID() uint32 {
 
 // Equal returns true when given AddrCluster has a same IP address and ClusterID
 func (ac0 AddrCluster) Equal(ac1 AddrCluster) bool {
-	return ac0.addr == ac1.addr && ac0.clusterID == ac1.clusterID
+	return ac0 == ac1
+}
+
+// Compare returns an integer comparing two [AddrCluster] objects.
+// The result will be 0 if ac0 == ac1, -1 if ac0 < ac1, and +1 if ac0 > ac1.
+func (ac0 AddrCluster) Compare(ac1 AddrCluster) int {
+	if ret := ac0.addr.Compare(ac1.addr); ret != 0 {
+		return ret
+	}
+
+	return cmp.Compare(ac0.clusterID, ac1.clusterID)
 }
 
 // Less compares ac0 and ac1 and returns true if ac0 is lesser than ac1
 func (ac0 AddrCluster) Less(ac1 AddrCluster) bool {
-	// First, compare the IP address part
-	if ret := ac0.addr.Compare(ac1.addr); ret == -1 {
-		return true
-	} else if ret == 1 {
-		return false
-	} else {
-		// If IP address is the same, compare ClusterID
-		return ac0.clusterID < ac1.clusterID
-	}
+	return ac0.Compare(ac1) == -1
 }
 
 // This is an alias of Equal which only exists for satisfying deepequal-gen
@@ -273,7 +276,7 @@ func (ac AddrCluster) AsNetIP() net.IP {
 }
 
 func (ac AddrCluster) AsPrefixCluster() PrefixCluster {
-	return PrefixClusterFrom(ac.addr, ac.addr.BitLen(), WithClusterID(ac.clusterID))
+	return PrefixClusterFrom(netip.PrefixFrom(ac.addr, ac.addr.BitLen()), WithClusterID(ac.clusterID))
 }
 
 // PrefixCluster is a type that holds a pair of prefix and ClusterID.
@@ -284,6 +287,18 @@ func (ac AddrCluster) AsPrefixCluster() PrefixCluster {
 type PrefixCluster struct {
 	prefix    netip.Prefix
 	clusterID uint32
+}
+
+// NewPrefixCluster builds an instance of a PrefixCluster with the input
+// prefix and clusterID.
+func NewPrefixCluster(prefix netip.Prefix, clusterID uint32) PrefixCluster {
+	return PrefixCluster{prefix, clusterID}
+}
+
+// NewLocalPrefixCluster builds an instance of a PrefixCluster with the input
+// prefix and clusterID set to 0.
+func NewLocalPrefixCluster(prefix netip.Prefix) PrefixCluster {
+	return NewPrefixCluster(prefix, 0)
 }
 
 // ParsePrefixCluster parses s as an Prefix + ClusterID and returns PrefixCluster.
@@ -350,8 +365,8 @@ func WithClusterID(id uint32) PrefixClusterOpts {
 	return func(pc *PrefixCluster) { pc.clusterID = id }
 }
 
-func PrefixClusterFrom(addr netip.Addr, bits int, opts ...PrefixClusterOpts) PrefixCluster {
-	pc := PrefixCluster{prefix: netip.PrefixFrom(addr, bits)}
+func PrefixClusterFrom(prefix netip.Prefix, opts ...PrefixClusterOpts) PrefixCluster {
+	pc := PrefixCluster{prefix: prefix}
 	for _, opt := range opts {
 		opt(&pc)
 	}
@@ -369,7 +384,7 @@ func PrefixClusterFromCIDR(c *cidr.CIDR, opts ...PrefixClusterOpts) PrefixCluste
 	}
 	ones, _ := c.Mask.Size()
 
-	return PrefixClusterFrom(addr, ones, opts...)
+	return PrefixClusterFrom(netip.PrefixFrom(addr, ones), opts...)
 }
 
 func (pc0 PrefixCluster) Equal(pc1 PrefixCluster) bool {

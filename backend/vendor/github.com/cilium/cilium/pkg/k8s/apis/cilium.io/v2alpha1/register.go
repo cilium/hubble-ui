@@ -87,11 +87,6 @@ const (
 	// CNCName is the full name of Cilium Node Config
 	CNCName = CNCPluralName + "." + CustomResourceDefinitionGroup
 
-	// CiliumCIDRGroup (CCG)
-	CCGPluralName     = "ciliumcidrgroups"
-	CCGKindDefinition = "CiliumCIDRGroup"
-	CCGName           = CCGPluralName + "." + CustomResourceDefinitionGroup
-
 	// Cilium L2 Announcement policy
 
 	// L2AnnouncementSingularName is the singular name ofCilium L2 announcement policy
@@ -110,6 +105,12 @@ const (
 	CPIPPluralName     = "ciliumpodippools"
 	CPIPKindDefinition = "CiliumPodIPPool"
 	CPIPName           = CPIPPluralName + "." + CustomResourceDefinitionGroup
+
+	// CiliumGatewayClassConfig (CGCC)
+	CGCCPluralName     = "ciliumgatewayclassconfigs"
+	CGCCListName       = "ciliumgatewayclassconfiglists"
+	CGCCKindDefinition = "CiliumGatewayClassConfig"
+	CGCCName           = CGCCPluralName + "." + CustomResourceDefinitionGroup
 )
 
 // SchemeGroupVersion is group version used to register these objects
@@ -159,8 +160,6 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&CiliumBGPPeeringPolicyList{},
 		&CiliumLoadBalancerIPPool{},
 		&CiliumLoadBalancerIPPoolList{},
-		&CiliumCIDRGroup{},
-		&CiliumCIDRGroupList{},
 		&CiliumL2AnnouncementPolicy{},
 		&CiliumL2AnnouncementPolicyList{},
 		&CiliumPodIPPool{},
@@ -179,6 +178,10 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&CiliumBGPNodeConfigList{},
 		&CiliumBGPNodeConfigOverride{},
 		&CiliumBGPNodeConfigOverrideList{},
+
+		// new Gateway API types
+		&CiliumGatewayClassConfig{},
+		&CiliumGatewayClassConfigList{},
 	)
 
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)

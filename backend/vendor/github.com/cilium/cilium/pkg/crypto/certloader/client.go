@@ -4,9 +4,11 @@
 package certloader
 
 import (
+	"context"
 	"crypto/tls"
+	"log/slog"
 
-	"github.com/sirupsen/logrus"
+	"github.com/cilium/cilium/pkg/logging/logfields"
 )
 
 // ClientConfigBuilder creates tls.Config to be used as TLS client.
@@ -19,14 +21,14 @@ type ClientConfigBuilder interface {
 // watched for changes.
 type WatchedClientConfig struct {
 	*Watcher
-	log logrus.FieldLogger
+	log *slog.Logger
 }
 
 // NewWatchedClientConfig returns a WatchedClientConfig configured with the
 // provided files. When caFiles is nil or empty, the system CA CertPool is
 // used. To configure a mTLS capable ClientConfigBuilder, both certFile and
 // privkeyFile must be provided.
-func NewWatchedClientConfig(log logrus.FieldLogger, caFiles []string, certFile, privkeyFile string) (*WatchedClientConfig, error) {
+func NewWatchedClientConfig(log *slog.Logger, caFiles []string, certFile, privkeyFile string) (*WatchedClientConfig, error) {
 	w, err := NewWatcher(log, caFiles, certFile, privkeyFile)
 	if err != nil {
 		return nil, err
@@ -36,6 +38,32 @@ func NewWatchedClientConfig(log logrus.FieldLogger, caFiles []string, certFile, 
 		log:     log,
 	}
 	return c, nil
+}
+
+// FutureWatchedClientConfig returns a channel where exactly one
+// WatchedClientConfig will be sent once the given files are ready and loaded.
+// This can be useful when the file paths are well-known, but the files
+// themselves don't exist yet. When caFiles is nil or empty, the system CA
+// CertPool is used. To configure a mTLS capable ClientConfigBuilder, both
+// certFile and privkeyFile must be provided.
+func FutureWatchedClientConfig(ctx context.Context, log *slog.Logger, caFiles []string, certFile, privkeyFile string) (<-chan *WatchedClientConfig, error) {
+	ew, err := FutureWatcher(ctx, log, caFiles, certFile, privkeyFile)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(chan *WatchedClientConfig)
+	go func(res chan<- *WatchedClientConfig) {
+		defer close(res)
+		if watcher, ok := <-ew; ok {
+			res <- &WatchedClientConfig{
+				Watcher: watcher,
+				log:     log,
+			}
+		}
+	}(res)
+
+	return res, nil
 }
 
 // IsMutualTLS implement ClientConfigBuilder.
@@ -53,7 +81,9 @@ func (c *WatchedClientConfig) ClientConfig(base *tls.Config) *tls.Config {
 	tlsConfig.RootCAs = caCertPool
 	if c.IsMutualTLS() {
 		tlsConfig.GetClientCertificate = func(_ *tls.CertificateRequestInfo) (*tls.Certificate, error) {
-			c.log.WithField("keypair-sn", keypairId(keypair)).Debugf("Client mtls handshake")
+			if c.log.Enabled(context.Background(), slog.LevelDebug) {
+				c.log.Debug("Client mtls handshake", logfields.KeyPairSN, keypairId(keypair))
+			}
 			return keypair, nil
 		}
 	}
