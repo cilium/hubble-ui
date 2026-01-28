@@ -6,19 +6,16 @@ package fswatcher
 import (
 	"hash/fnv"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"testing"
 
-	"github.com/cilium/cilium/pkg/logging"
-
 	"github.com/cilium/cilium/pkg/logging/logfields"
 	"github.com/cilium/cilium/pkg/time"
 )
-
-var log = logging.DefaultLogger.WithField(logfields.LogSubsys, "fswatcher")
 
 const (
 	// how often tracked targets are checked for changes by default
@@ -76,6 +73,8 @@ func (e Event) Has(op Op) bool { return e.Op.Has(op) }
 // together. Only the content of the final destination is considered when
 // issuing Write events.
 type Watcher struct {
+	logger *slog.Logger
+
 	// Events is used to signal changes to any of the tracked files. It is
 	// guaranteed that Event.Name will always match one of the file paths
 	// passed in trackedFiles to the constructor. This channel is unbuffered
@@ -115,13 +114,14 @@ func WithInterval(d time.Duration) Option {
 
 // New creates a new Watcher which watches all trackedFile paths (they do not
 // need to exist yet).
-func New(trackedFiles []string, options ...Option) (*Watcher, error) {
+func New(defaultLogger *slog.Logger, trackedFiles []string, options ...Option) (*Watcher, error) {
 	interval := defaultInterval
 	if testing.Testing() {
 		interval = testInterval
 	}
 
 	w := &Watcher{
+		logger:   defaultLogger.With(logfields.LogSubsys, "fswatcher"),
 		Events:   make(chan Event),
 		Errors:   make(chan error),
 		stop:     make(chan struct{}),
@@ -301,7 +301,7 @@ func (w *Watcher) sendEvent(e Event) {
 
 	select {
 	case w.Events <- e:
-		log.WithField(logfields.Event, e).Debug("sent fswatcher event")
+		w.logger.Debug("sent fswatcher event", logfields.Event, e)
 	case <-w.stop:
 	}
 }

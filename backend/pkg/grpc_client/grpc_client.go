@@ -313,7 +313,7 @@ func (c *GRPCClient) establishConnection(
 	err := retryHandle.RetryIf(
 		ctx,
 		func(attempt int) error {
-			logAttrsWithAttempt := append(logAttrs, "attempt", attempt)
+			logAttrsWithAttempt := append(append([]any(nil), logAttrs...), "attempt", attempt)
 
 			if !firstConnection || attempt > 1 {
 				c.log.Info("connection establishing attempt", logAttrsWithAttempt...)
