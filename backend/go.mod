@@ -5,7 +5,7 @@ go 1.24.10
 
 require (
 	github.com/cilium/cilium v1.17.6
-	github.com/google/gops v0.3.28
+	github.com/google/gops v0.3.29
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/pkg/errors v0.9.1
