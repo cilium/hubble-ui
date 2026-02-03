@@ -73,6 +73,10 @@ export interface Flow {
      */
     l4?: Layer4;
     /**
+     * @generated from protobuf field: flow.Tunnel tunnel = 39
+     */
+    tunnel?: Tunnel;
+    /**
      * @generated from protobuf field: flow.Endpoint source = 8
      */
     source?: Endpoint;
@@ -274,6 +278,15 @@ export interface Flow {
      * @generated from protobuf field: repeated flow.Policy ingress_denied_by = 21005
      */
     ingressDeniedBy: Policy[];
+    /**
+     * The set of Log values for policies that matched this flow.
+     * If no matched policies have an explicit log value configured,
+     * this list is empty. Duplicate values are elided; each
+     * entry is unique.
+     *
+     * @generated from protobuf field: repeated string policy_log = 21006
+     */
+    policyLog: string[];
 }
 /**
  * @generated from protobuf message flow.FileInfo
@@ -367,7 +380,8 @@ export interface Layer7 {
     } | {
         oneofKind: "kafka";
         /**
-         * @generated from protobuf field: flow.Kafka kafka = 102
+         * @deprecated
+         * @generated from protobuf field: flow.Kafka kafka = 102 [deprecated = true]
          */
         kafka: Kafka;
     } | {
@@ -605,6 +619,40 @@ export interface ICMPv6 {
      * @generated from protobuf field: uint32 code = 2
      */
     code: number;
+}
+/**
+ * @generated from protobuf message flow.Tunnel
+ */
+export interface Tunnel {
+    /**
+     * @generated from protobuf field: flow.Tunnel.Protocol protocol = 1
+     */
+    protocol: Tunnel_Protocol;
+    /**
+     * @generated from protobuf field: flow.IP IP = 2
+     */
+    iP?: IP;
+    /**
+     * @generated from protobuf field: flow.Layer4 l4 = 3
+     */
+    l4?: Layer4;
+}
+/**
+ * @generated from protobuf enum flow.Tunnel.Protocol
+ */
+export enum Tunnel_Protocol {
+    /**
+     * @generated from protobuf enum value: UNKNOWN = 0;
+     */
+    UNKNOWN = 0,
+    /**
+     * @generated from protobuf enum value: VXLAN = 1;
+     */
+    VXLAN = 1,
+    /**
+     * @generated from protobuf enum value: GENEVE = 2;
+     */
+    GENEVE = 2
 }
 /**
  * @generated from protobuf message flow.Policy
@@ -1066,6 +1114,7 @@ export interface HTTP {
 /**
  * L7 information for Kafka flows. It corresponds to Cilium's [accesslog.LogRecordKafka](https://github.com/cilium/cilium/blob/728c79e427438ab6f8d9375b62fccd6fed4ace3a/pkg/proxy/accesslog/record.go#L229) type.
  *
+ * @deprecated
  * @generated from protobuf message flow.Kafka
  */
 export interface Kafka {
@@ -1188,13 +1237,15 @@ export interface AgentEvent {
     } | {
         oneofKind: "serviceUpsert";
         /**
-         * @generated from protobuf field: flow.ServiceUpsertNotification service_upsert = 106
+         * @deprecated
+         * @generated from protobuf field: flow.ServiceUpsertNotification service_upsert = 106 [deprecated = true]
          */
         serviceUpsert: ServiceUpsertNotification;
     } | {
         oneofKind: "serviceDelete";
         /**
-         * @generated from protobuf field: flow.ServiceDeleteNotification service_delete = 107
+         * @deprecated
+         * @generated from protobuf field: flow.ServiceDeleteNotification service_delete = 107 [deprecated = true]
          */
         serviceDelete: ServiceDeleteNotification;
     } | {
@@ -1320,6 +1371,7 @@ export interface IPCacheNotification {
     podName: string;
 }
 /**
+ * @deprecated
  * @generated from protobuf message flow.ServiceUpsertNotificationAddr
  */
 export interface ServiceUpsertNotificationAddr {
@@ -1333,6 +1385,7 @@ export interface ServiceUpsertNotificationAddr {
     port: number;
 }
 /**
+ * @deprecated
  * @generated from protobuf message flow.ServiceUpsertNotification
  */
 export interface ServiceUpsertNotification {
@@ -1375,6 +1428,7 @@ export interface ServiceUpsertNotification {
     intTrafficPolicy: string;
 }
 /**
+ * @deprecated
  * @generated from protobuf message flow.ServiceDeleteNotification
  */
 export interface ServiceDeleteNotification {
@@ -2052,7 +2106,13 @@ export enum DropReason {
      *
      * @generated from protobuf enum value: DROP_NO_EGRESS_IP = 204;
      */
-    DROP_NO_EGRESS_IP = 204
+    DROP_NO_EGRESS_IP = 204,
+    /**
+     * Punt packet to a user space proxy.
+     *
+     * @generated from protobuf enum value: DROP_PUNT_PROXY = 205;
+     */
+    DROP_PUNT_PROXY = 205
 }
 /**
  * @generated from protobuf enum flow.TrafficDirection
@@ -2217,11 +2277,13 @@ export enum AgentEventType {
      */
     IPCACHE_DELETED = 10,
     /**
-     * @generated from protobuf enum value: SERVICE_UPSERTED = 11;
+     * @deprecated
+     * @generated from protobuf enum value: SERVICE_UPSERTED = 11 [deprecated = true];
      */
     SERVICE_UPSERTED = 11,
     /**
-     * @generated from protobuf enum value: SERVICE_DELETED = 12;
+     * @deprecated
+     * @generated from protobuf enum value: SERVICE_DELETED = 12 [deprecated = true];
      */
     SERVICE_DELETED = 12
 }
@@ -2547,6 +2609,7 @@ class Flow$Type extends MessageType<Flow> {
             { no: 4, name: "ethernet", kind: "message", T: () => Ethernet },
             { no: 5, name: "IP", kind: "message", jsonName: "IP", T: () => IP },
             { no: 6, name: "l4", kind: "message", T: () => Layer4 },
+            { no: 39, name: "tunnel", kind: "message", T: () => Tunnel },
             { no: 8, name: "source", kind: "message", T: () => Endpoint },
             { no: 9, name: "destination", kind: "message", T: () => Endpoint },
             { no: 10, name: "Type", kind: "enum", jsonName: "Type", T: () => ["flow.FlowType", FlowType] },
@@ -2578,7 +2641,8 @@ class Flow$Type extends MessageType<Flow> {
             { no: 21001, name: "egress_allowed_by", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => Policy },
             { no: 21002, name: "ingress_allowed_by", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => Policy },
             { no: 21004, name: "egress_denied_by", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => Policy },
-            { no: 21005, name: "ingress_denied_by", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => Policy }
+            { no: 21005, name: "ingress_denied_by", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => Policy },
+            { no: 21006, name: "policy_log", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Flow>): Flow {
@@ -2608,6 +2672,7 @@ class Flow$Type extends MessageType<Flow> {
         message.ingressAllowedBy = [];
         message.egressDeniedBy = [];
         message.ingressDeniedBy = [];
+        message.policyLog = [];
         if (value !== undefined)
             reflectionMergePartial<Flow>(this, message, value);
         return message;
@@ -2640,6 +2705,9 @@ class Flow$Type extends MessageType<Flow> {
                     break;
                 case /* flow.Layer4 l4 */ 6:
                     message.l4 = Layer4.internalBinaryRead(reader, reader.uint32(), options, message.l4);
+                    break;
+                case /* flow.Tunnel tunnel */ 39:
+                    message.tunnel = Tunnel.internalBinaryRead(reader, reader.uint32(), options, message.tunnel);
                     break;
                 case /* flow.Endpoint source */ 8:
                     message.source = Endpoint.internalBinaryRead(reader, reader.uint32(), options, message.source);
@@ -2736,6 +2804,9 @@ class Flow$Type extends MessageType<Flow> {
                     break;
                 case /* repeated flow.Policy ingress_denied_by */ 21005:
                     message.ingressDeniedBy.push(Policy.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated string policy_log */ 21006:
+                    message.policyLog.push(reader.string());
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2851,6 +2922,9 @@ class Flow$Type extends MessageType<Flow> {
         /* flow.FileInfo file = 38; */
         if (message.file)
             FileInfo.internalBinaryWrite(message.file, writer.tag(38, WireType.LengthDelimited).fork(), options).join();
+        /* flow.Tunnel tunnel = 39; */
+        if (message.tunnel)
+            Tunnel.internalBinaryWrite(message.tunnel, writer.tag(39, WireType.LengthDelimited).fork(), options).join();
         /* repeated flow.Policy egress_allowed_by = 21001; */
         for (let i = 0; i < message.egressAllowedBy.length; i++)
             Policy.internalBinaryWrite(message.egressAllowedBy[i], writer.tag(21001, WireType.LengthDelimited).fork(), options).join();
@@ -2863,6 +2937,9 @@ class Flow$Type extends MessageType<Flow> {
         /* repeated flow.Policy ingress_denied_by = 21005; */
         for (let i = 0; i < message.ingressDeniedBy.length; i++)
             Policy.internalBinaryWrite(message.ingressDeniedBy[i], writer.tag(21005, WireType.LengthDelimited).fork(), options).join();
+        /* repeated string policy_log = 21006; */
+        for (let i = 0; i < message.policyLog.length; i++)
+            writer.tag(21006, WireType.LengthDelimited).string(message.policyLog[i]);
         /* string Summary = 100000 [deprecated = true]; */
         if (message.summary !== "")
             writer.tag(100000, WireType.LengthDelimited).string(message.summary);
@@ -3067,7 +3144,7 @@ class Layer7$Type extends MessageType<Layer7> {
                         http: HTTP.internalBinaryRead(reader, reader.uint32(), options, (message.record as any).http)
                     };
                     break;
-                case /* flow.Kafka kafka */ 102:
+                case /* flow.Kafka kafka = 102 [deprecated = true] */ 102:
                     message.record = {
                         oneofKind: "kafka",
                         kafka: Kafka.internalBinaryRead(reader, reader.uint32(), options, (message.record as any).kafka)
@@ -3097,7 +3174,7 @@ class Layer7$Type extends MessageType<Layer7> {
         /* flow.HTTP http = 101; */
         if (message.record.oneofKind === "http")
             HTTP.internalBinaryWrite(message.record.http, writer.tag(101, WireType.LengthDelimited).fork(), options).join();
-        /* flow.Kafka kafka = 102; */
+        /* flow.Kafka kafka = 102 [deprecated = true]; */
         if (message.record.oneofKind === "kafka")
             Kafka.internalBinaryWrite(message.record.kafka, writer.tag(102, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
@@ -3880,6 +3957,67 @@ class ICMPv6$Type extends MessageType<ICMPv6> {
  * @generated MessageType for protobuf message flow.ICMPv6
  */
 export const ICMPv6 = new ICMPv6$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Tunnel$Type extends MessageType<Tunnel> {
+    constructor() {
+        super("flow.Tunnel", [
+            { no: 1, name: "protocol", kind: "enum", T: () => ["flow.Tunnel.Protocol", Tunnel_Protocol] },
+            { no: 2, name: "IP", kind: "message", jsonName: "IP", T: () => IP },
+            { no: 3, name: "l4", kind: "message", T: () => Layer4 }
+        ]);
+    }
+    create(value?: PartialMessage<Tunnel>): Tunnel {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.protocol = 0;
+        if (value !== undefined)
+            reflectionMergePartial<Tunnel>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Tunnel): Tunnel {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* flow.Tunnel.Protocol protocol */ 1:
+                    message.protocol = reader.int32();
+                    break;
+                case /* flow.IP IP */ 2:
+                    message.iP = IP.internalBinaryRead(reader, reader.uint32(), options, message.iP);
+                    break;
+                case /* flow.Layer4 l4 */ 3:
+                    message.l4 = Layer4.internalBinaryRead(reader, reader.uint32(), options, message.l4);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Tunnel, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* flow.Tunnel.Protocol protocol = 1; */
+        if (message.protocol !== 0)
+            writer.tag(1, WireType.Varint).int32(message.protocol);
+        /* flow.IP IP = 2; */
+        if (message.iP)
+            IP.internalBinaryWrite(message.iP, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* flow.Layer4 l4 = 3; */
+        if (message.l4)
+            Layer4.internalBinaryWrite(message.l4, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message flow.Tunnel
+ */
+export const Tunnel = new Tunnel$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Policy$Type extends MessageType<Policy> {
     constructor() {
@@ -4843,6 +4981,7 @@ class Kafka$Type extends MessageType<Kafka> {
     }
 }
 /**
+ * @deprecated
  * @generated MessageType for protobuf message flow.Kafka
  */
 export const Kafka = new Kafka$Type();
@@ -5030,13 +5169,13 @@ class AgentEvent$Type extends MessageType<AgentEvent> {
                         ipcacheUpdate: IPCacheNotification.internalBinaryRead(reader, reader.uint32(), options, (message.notification as any).ipcacheUpdate)
                     };
                     break;
-                case /* flow.ServiceUpsertNotification service_upsert */ 106:
+                case /* flow.ServiceUpsertNotification service_upsert = 106 [deprecated = true] */ 106:
                     message.notification = {
                         oneofKind: "serviceUpsert",
                         serviceUpsert: ServiceUpsertNotification.internalBinaryRead(reader, reader.uint32(), options, (message.notification as any).serviceUpsert)
                     };
                     break;
-                case /* flow.ServiceDeleteNotification service_delete */ 107:
+                case /* flow.ServiceDeleteNotification service_delete = 107 [deprecated = true] */ 107:
                     message.notification = {
                         oneofKind: "serviceDelete",
                         serviceDelete: ServiceDeleteNotification.internalBinaryRead(reader, reader.uint32(), options, (message.notification as any).serviceDelete)
@@ -5075,10 +5214,10 @@ class AgentEvent$Type extends MessageType<AgentEvent> {
         /* flow.IPCacheNotification ipcache_update = 105; */
         if (message.notification.oneofKind === "ipcacheUpdate")
             IPCacheNotification.internalBinaryWrite(message.notification.ipcacheUpdate, writer.tag(105, WireType.LengthDelimited).fork(), options).join();
-        /* flow.ServiceUpsertNotification service_upsert = 106; */
+        /* flow.ServiceUpsertNotification service_upsert = 106 [deprecated = true]; */
         if (message.notification.oneofKind === "serviceUpsert")
             ServiceUpsertNotification.internalBinaryWrite(message.notification.serviceUpsert, writer.tag(106, WireType.LengthDelimited).fork(), options).join();
-        /* flow.ServiceDeleteNotification service_delete = 107; */
+        /* flow.ServiceDeleteNotification service_delete = 107 [deprecated = true]; */
         if (message.notification.oneofKind === "serviceDelete")
             ServiceDeleteNotification.internalBinaryWrite(message.notification.serviceDelete, writer.tag(107, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
@@ -5551,6 +5690,7 @@ class ServiceUpsertNotificationAddr$Type extends MessageType<ServiceUpsertNotifi
     }
 }
 /**
+ * @deprecated
  * @generated MessageType for protobuf message flow.ServiceUpsertNotificationAddr
  */
 export const ServiceUpsertNotificationAddr = new ServiceUpsertNotificationAddr$Type();
@@ -5661,6 +5801,7 @@ class ServiceUpsertNotification$Type extends MessageType<ServiceUpsertNotificati
     }
 }
 /**
+ * @deprecated
  * @generated MessageType for protobuf message flow.ServiceUpsertNotification
  */
 export const ServiceUpsertNotification = new ServiceUpsertNotification$Type();
@@ -5708,6 +5849,7 @@ class ServiceDeleteNotification$Type extends MessageType<ServiceDeleteNotificati
     }
 }
 /**
+ * @deprecated
  * @generated MessageType for protobuf message flow.ServiceDeleteNotification
  */
 export const ServiceDeleteNotification = new ServiceDeleteNotification$Type();
