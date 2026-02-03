@@ -1,6 +1,6 @@
 import type { Config } from 'jest';
+import { createRequire } from 'node:module';
 import { pathsToModuleNameMapper } from 'ts-jest';
-import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
 const tsconfig = require('./tsconfig.json');
