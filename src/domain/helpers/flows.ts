@@ -127,7 +127,7 @@ export const hubbleFlowFromPb = (flow: flowpb.Flow): HubbleFlow => {
     const timeObj = flow.time;
 
     time = {
-      seconds: timeObj.seconds,
+      seconds: typeof timeObj.seconds === 'bigint' ? Number(timeObj.seconds) : timeObj.seconds,
       nanos: timeObj.nanos,
     };
   }
