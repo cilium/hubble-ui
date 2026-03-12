@@ -22,6 +22,7 @@ export enum ReservedLabel {
   Host = 'reserved:host',
   KubeApiserver = 'reserved:kube-apiserver',
   World = 'reserved:world',
+  WorldIPv4 = 'reserved:world-ipv4',
   WorldIPv6 = 'reserved:world-ipv6',
   Health = 'reserved:health',
   Init = 'reserved:init',
@@ -139,7 +140,7 @@ export class Labels {
   public static findWorldInLabels(labels: KV[], normalizeLabels = true): string | null {
     for (const lbl of labels) {
       const kv = normalizeLabels ? Labels.normalizeLabel(lbl) : lbl;
-      if (kv.key === ReservedLabel.World || kv.key === ReservedLabel.WorldIPv6) {
+      if (kv.key === ReservedLabel.World || kv.key === ReservedLabel.WorldIPv4 || kv.key === ReservedLabel.WorldIPv6) {
         return kv.key;
       }
     }
@@ -371,6 +372,7 @@ export class Labels {
       props.isWorld =
         !!props.isWorld ||
         Labels.isReserved(kv, ReservedLabel.World, false) ||
+        Labels.isReserved(kv, ReservedLabel.WorldIPv4, false) ||
         Labels.isReserved(kv, ReservedLabel.WorldIPv6, false);
       props.isKubeApiserver =
         !!props.isKubeApiserver || Labels.isReserved(kv, ReservedLabel.KubeApiserver, false);
