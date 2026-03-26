@@ -4,7 +4,7 @@ module github.com/cilium/hubble-ui/backend
 go 1.25.6
 
 require (
-	github.com/cilium/cilium v1.18.6
+	github.com/cilium/cilium v1.18.8
 	github.com/google/gops v0.3.29
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/julienschmidt/httprouter v1.3.0
@@ -23,7 +23,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/cilium/ebpf v0.20.0 // indirect
+	github.com/cilium/ebpf v0.20.1-0.20260218191617-ee67e7f43dd9 // indirect
 	github.com/cilium/hive v0.0.0-20250611195437-5a5dacdfb354 // indirect
 	github.com/cilium/proxy v0.0.0-20260120133325-32e6b51b774e // indirect
 	github.com/cilium/statedb v0.4.6 // indirect
@@ -89,7 +89,7 @@ require (
 	github.com/spf13/viper v1.21.0 // indirect
 	github.com/stoewer/go-strcase v1.3.1 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
-	github.com/vishvananda/netlink v1.3.1 // indirect
+	github.com/vishvananda/netlink v1.3.2-0.20250926155043-cd3cb2e12c97 // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.mongodb.org/mongo-driver v1.17.7 // indirect
@@ -116,7 +116,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20260127142750-a19766b6e2d4 // indirect
-	k8s.io/utils v0.0.0-20260108192941-914a6e750570 // indirect
+	k8s.io/utils v0.0.0-20260210185600-b8788abfbbc2 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v6 v6.3.1 // indirect
