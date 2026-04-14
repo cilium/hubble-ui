@@ -13,6 +13,7 @@ WORKDIR /app
 
 COPY package.json package.json
 COPY package-lock.json package-lock.json
+COPY .npmrc .npmrc
 COPY scripts/ scripts/
 COPY patches/ patches/
 
@@ -20,7 +21,7 @@ COPY patches/ patches/
 ARG TARGETOS
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
 ARG TARGETARCH
-RUN npm --target_arch=${TARGETARCH} install
+RUN npm --target_arch=${TARGETARCH} install && npm run postinstall
 
 COPY . .
 
