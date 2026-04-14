@@ -140,7 +140,11 @@ export class Labels {
   public static findWorldInLabels(labels: KV[], normalizeLabels = true): string | null {
     for (const lbl of labels) {
       const kv = normalizeLabels ? Labels.normalizeLabel(lbl) : lbl;
-      if (kv.key === ReservedLabel.World || kv.key === ReservedLabel.WorldIPv4 || kv.key === ReservedLabel.WorldIPv6) {
+      if (
+        kv.key === ReservedLabel.World ||
+        kv.key === ReservedLabel.WorldIPv4 ||
+        kv.key === ReservedLabel.WorldIPv6
+      ) {
         return kv.key;
       }
     }

@@ -916,6 +916,7 @@ func feedTestRequest(
 
 	resp := respRecorder.Result()
 	contentType := resp.Header.Get("content-type")
+	contentTypeOptions := resp.Header.Get("X-Content-Type-Options")
 
 	wrongJsonResponse := inJSON && contentType != "application/json"
 	wrongProtoResponse := !inJSON && contentType != "application/octet-stream"
@@ -925,6 +926,13 @@ func feedTestRequest(
 			"invalid content-type received (inJSON: %v): '%v'\n",
 			inJSON,
 			contentType,
+		)
+	}
+
+	if contentTypeOptions != "nosniff" {
+		t.Fatalf(
+			"invalid X-Content-Type-Options received: '%v'\n",
+			contentTypeOptions,
 		)
 	}
 
