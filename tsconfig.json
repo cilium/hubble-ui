@@ -16,6 +16,7 @@
     },
     "types": ["node", "jest"],
     "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
     "isolatedModules": false,
     "sourceMap": true,
     "emitDecoratorMetadata": true,
