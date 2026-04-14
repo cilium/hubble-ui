@@ -249,11 +249,14 @@ type tableInternal interface {
 	secondary() map[string]anyIndexer      // Secondary indexers (if any)
 	sortableMutex() internal.SortableMutex // The sortable mutex for locking the table for writing
 	anyChanges(txn WriteTxn) (anyChangeIterator, error)
-	proto() any                             // Returns the zero value of 'Obj', e.g. the prototype
+	typeName() string                       // Returns the 'Obj' type as string
 	unmarshalYAML(data []byte) (any, error) // Unmarshal the data into 'Obj'
 	numDeletedObjects(txn ReadTxn) int      // Number of objects in graveyard
-	acquired(*writeTxn)
+	acquired(*writeTxnState)
+	released()
 	getAcquiredInfo() string
+	tableHeader() []string
+	tableRowAny(any) []string
 }
 
 type ReadTxn interface {
@@ -267,7 +270,7 @@ type ReadTxn interface {
 }
 
 type WriteTxn interface {
-	getTxn() *writeTxn
+	getTxn() *writeTxnState
 
 	// WriteTxn is always also a ReadTxn
 	ReadTxn
@@ -308,7 +311,8 @@ type Index[Obj any, Key any] struct {
 	Name string
 
 	// FromObject extracts key(s) from the object. The key set
-	// can contain 0, 1 or more keys.
+	// can contain 0, 1 or more keys. Must contain exactly one
+	// key for primary indices.
 	FromObject func(obj Obj) index.KeySet
 
 	// FromKey converts the index key into a raw key.
@@ -380,6 +384,16 @@ func (i Index[Obj, Key]) QueryFromObject(obj Obj) Query[Obj] {
 	}
 }
 
+// QueryFromKey constructs a query against the index using the given
+// user-supplied key. Be careful when using this and prefer [Index.Query]
+// over this if possible.
+func (i Index[Obj, Key]) QueryFromKey(key index.Key) Query[Obj] {
+	return Query[Obj]{
+		index: i.Name,
+		key:   key,
+	}
+}
+
 func (i Index[Obj, Key]) ObjectToKey(obj Obj) index.Key {
 	return i.encodeKey(i.FromObject(obj).First())
 }
@@ -397,7 +411,7 @@ type Indexer[Obj any] interface {
 }
 
 // TableWritable is a constraint for objects that implement tabular
-// pretty-printing. Used in "cilium-dbg statedb" sub-commands.
+// pretty-printing. Used by the "db" script commands to render a table.
 type TableWritable interface {
 	// TableHeader returns the header columns that are independent of the
 	// object.
@@ -412,16 +426,15 @@ type TableWritable interface {
 //
 
 const (
-	PrimaryIndexPos = 0
-
 	reservedIndexPrefix       = "__"
 	RevisionIndex             = "__revision__"
-	RevisionIndexPos          = 1
+	RevisionIndexPos          = 0
 	GraveyardIndex            = "__graveyard__"
-	GraveyardIndexPos         = 2
+	GraveyardIndexPos         = 1
 	GraveyardRevisionIndex    = "__graveyard_revision__"
-	GraveyardRevisionIndexPos = 3
+	GraveyardRevisionIndexPos = 2
 
+	PrimaryIndexPos        = 3
 	SecondaryIndexStartPos = 4
 )
 
@@ -474,8 +487,7 @@ type indexEntry struct {
 func (ie *indexEntry) getClone() part.Ops[object] {
 	if ie.clone == nil {
 		if ie.txn == nil {
-			treeCopy := *ie.tree
-			ie.clone = &treeCopy
+			ie.clone = ie.tree
 		} else {
 			ie.clone = ie.txn.Clone()
 		}
@@ -494,7 +506,7 @@ type tableEntry struct {
 }
 
 func (t *tableEntry) numObjects() int {
-	indexEntry := t.indexes[t.meta.indexPos(RevisionIndex)]
+	indexEntry := t.indexes[RevisionIndexPos]
 	if indexEntry.txn != nil {
 		return indexEntry.txn.Len()
 	}
@@ -502,7 +514,7 @@ func (t *tableEntry) numObjects() int {
 }
 
 func (t *tableEntry) numDeletedObjects() int {
-	indexEntry := t.indexes[t.meta.indexPos(GraveyardIndex)]
+	indexEntry := t.indexes[GraveyardIndexPos]
 	if indexEntry.txn != nil {
 		return indexEntry.txn.Len()
 	}

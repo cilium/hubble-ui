@@ -15,6 +15,8 @@ import (
 	"github.com/cilium/hive/cell"
 
 	"github.com/cilium/cilium/pkg/kpr"
+	"github.com/cilium/cilium/pkg/lbipamconfig"
+	"github.com/cilium/cilium/pkg/nodeipamconfig"
 	"github.com/cilium/cilium/pkg/option"
 	"github.com/cilium/cilium/pkg/time"
 )
@@ -69,7 +71,7 @@ const (
 	NodePortModeName = "node-port-mode"
 
 	// LoadBalancerDSRDispatchName is the config option for setting the method for
-	// pushing packets to backends under DSR ("opt" or "ipip")
+	// pushing packets to backends under DSR ("opt", "ipip", "geneve")
 	LoadBalancerDSRDispatchName = "bpf-lb-dsr-dispatch"
 
 	// ExternalClusterIPName is the name of the option to enable
@@ -79,6 +81,9 @@ const (
 	// AlgorithmAnnotationName tells whether controller should check service
 	// level annotation for configuring bpf loadbalancing algorithm.
 	AlgorithmAnnotationName = "bpf-lb-algorithm-annotation"
+
+	// EnableHealthCheckLoadBalancerIP is the name of the EnableHealthCheckLoadBalancerIP option
+	EnableHealthCheckLoadBalancerIP = "enable-health-check-loadbalancer-ip"
 
 	// EnableHealthCheckNodePort is the name of the EnableHealthCheckNodePort option
 	EnableHealthCheckNodePortName = "enable-health-check-nodeport"
@@ -176,7 +181,7 @@ type UserConfig struct {
 	LBAlgorithm string `mapstructure:"bpf-lb-algorithm"`
 
 	// DSRDispatch indicates the method for pushing packets to
-	// backends under DSR ("opt" or "ipip")
+	// backends under DSR ("opt", "ipip", "geneve")
 	DSRDispatch string `mapstructure:"bpf-lb-dsr-dispatch"`
 
 	// ExternalClusterIP enables routing to ClusterIP services from outside
@@ -187,6 +192,10 @@ type UserConfig struct {
 	// level annotation for configuring bpf load balancing algorithm.
 	AlgorithmAnnotation bool `mapstructure:"bpf-lb-algorithm-annotation"`
 
+	// EnableHealthCheckLoadBalancerIP enables health checking of LoadBalancerIP
+	// by cilium
+	EnableHealthCheckLoadBalancerIP bool `mapstructure:"enable-health-check-loadbalancer-ip"`
+
 	// EnableHealthCheckNodePort enables health checking of NodePort by
 	// cilium
 	EnableHealthCheckNodePort bool `mapstructure:"enable-health-check-nodeport"`
@@ -195,6 +204,10 @@ type UserConfig struct {
 	// pressure metrics. A batch lookup is performed for all maps periodically to count
 	// the number of elements that are then reported in the `bpf-map-pressure` metric.
 	LBPressureMetricsInterval time.Duration `mapstructure:"lb-pressure-metrics-interval"`
+
+	// LBSockTerminateAllProtos enables termination of both UDP and TCP sockets as
+	// opposed to just UDP sockets.
+	LBSockTerminateAllProtos bool `mapstructure:"lb-sock-terminate-all-protos"`
 
 	// Enable processing of service topology aware hints
 	EnableServiceTopology bool
@@ -311,10 +324,14 @@ func (def UserConfig) Flags(flags *pflag.FlagSet) {
 
 	flags.Bool(AlgorithmAnnotationName, def.AlgorithmAnnotation, "Enable service-level annotation for configuring BPF load balancing algorithm")
 
+	flags.Bool(EnableHealthCheckLoadBalancerIP, def.EnableHealthCheckLoadBalancerIP, "Enable access of the healthcheck nodePort on the LoadBalancerIP. Needs --enable-health-check-nodeport to be enabled")
 	flags.Bool(EnableHealthCheckNodePortName, def.EnableHealthCheckNodePort, "Enables a healthcheck nodePort server for NodePort services with 'healthCheckNodePort' being set")
 
 	flags.Duration("lb-pressure-metrics-interval", def.LBPressureMetricsInterval, "Interval for reporting pressure metrics for load-balancing BPF maps. 0 disables reporting.")
 	flags.MarkHidden("lb-pressure-metrics-interval")
+
+	flags.Bool("lb-sock-terminate-all-protos", false, "Enable terminating connections to deleted service backends for both TCP and UDP")
+	flags.MarkHidden("lb-sock-terminate-all-protos")
 
 	flags.Bool(EnableServiceTopologyName, def.EnableServiceTopology, "Enable support for service topology aware hints")
 
@@ -353,6 +370,8 @@ func NewConfig(log *slog.Logger, userConfig UserConfig, deprecatedConfig Depreca
 		cfg.LBSockRevNatEntries = getEntries(option.SockRevNATMapEntriesDefault, option.LimitTableAutoSockRevNatMin, option.LimitTableMax)
 		log.Info(fmt.Sprintf("option %s set by dynamic sizing to %v", LBSockRevNatEntriesName, cfg.LBSockRevNatEntries)) // FIXME
 	}
+
+	cfg.LBSockRevNatEntries = dcfg.AlignMapSizeForLRU(log, LBSockRevNatEntriesName, cfg.LBSockRevNatEntries)
 
 	if cfg.LBSockRevNatEntries < option.LimitTableMin {
 		return Config{}, fmt.Errorf("specified Socket Reverse NAT table size %d must be greater or equal to %d",
@@ -471,7 +490,8 @@ var DefaultUserConfig = UserConfig{
 
 	LBSockRevNatEntries: 0, // Probes for suitable size if zero
 
-	LBSourceRangeAllTypes: false,
+	LBSourceRangeAllTypes:    false,
+	LBSockTerminateAllProtos: false,
 
 	NodePortRange: []string{},
 	LBAlgorithm:   LBAlgorithmRandom,
@@ -486,7 +506,8 @@ var DefaultUserConfig = UserConfig{
 
 	AlgorithmAnnotation: false,
 
-	EnableHealthCheckNodePort: true,
+	EnableHealthCheckLoadBalancerIP: false,
+	EnableHealthCheckNodePort:       true,
 
 	EnableServiceTopology: false,
 
@@ -521,30 +542,33 @@ type ExternalConfig struct {
 	BPFSocketLBHostnsOnly                  bool
 	EnableSocketLB                         bool
 	EnableSocketLBPodConnectionTermination bool
-	EnableHealthCheckLoadBalancerIP        bool
+	DefaultLBServiceIPAM                   string
+	EnableLBIPAM                           bool
+	EnableNodeIPAM                         bool
+}
 
-	// The following options will be removed in v1.19
-	EnableHostPort              bool
-	EnableSessionAffinity       bool
-	EnableSVCSourceRangeCheck   bool
-	EnableInternalTrafficPolicy bool
+type externalConfigParams struct {
+	cell.In
+
+	DaemonConfig   *option.DaemonConfig
+	KprConfig      kpr.KPRConfig
+	NodeIPAMConfig nodeipamconfig.NodeIPAMConfig
+	LBIPAMConfig   lbipamconfig.Config
 }
 
 // NewExternalConfig maps the daemon config to [ExternalConfig].
-func NewExternalConfig(cfg *option.DaemonConfig, kprCfg kpr.KPRConfig) ExternalConfig {
+func NewExternalConfig(p externalConfigParams) ExternalConfig {
 	return ExternalConfig{
-		ZoneMapper:                             cfg,
-		EnableIPv4:                             cfg.EnableIPv4,
-		EnableIPv6:                             cfg.EnableIPv6,
-		KubeProxyReplacement:                   kprCfg.KubeProxyReplacement == option.KubeProxyReplacementTrue || kprCfg.EnableNodePort,
-		BPFSocketLBHostnsOnly:                  cfg.BPFSocketLBHostnsOnly,
-		EnableSocketLB:                         kprCfg.EnableSocketLB,
-		EnableSocketLBPodConnectionTermination: cfg.EnableSocketLBPodConnectionTermination,
-		EnableHealthCheckLoadBalancerIP:        cfg.EnableHealthCheckLoadBalancerIP,
-		EnableHostPort:                         kprCfg.EnableHostPort,
-		EnableSessionAffinity:                  kprCfg.EnableSessionAffinity,
-		EnableSVCSourceRangeCheck:              kprCfg.EnableSVCSourceRangeCheck,
-		EnableInternalTrafficPolicy:            cfg.EnableInternalTrafficPolicy,
+		ZoneMapper:                             p.DaemonConfig,
+		EnableIPv4:                             p.DaemonConfig.EnableIPv4,
+		EnableIPv6:                             p.DaemonConfig.EnableIPv6,
+		KubeProxyReplacement:                   p.KprConfig.KubeProxyReplacement,
+		BPFSocketLBHostnsOnly:                  p.DaemonConfig.BPFSocketLBHostnsOnly,
+		EnableSocketLB:                         p.KprConfig.EnableSocketLB,
+		EnableSocketLBPodConnectionTermination: p.DaemonConfig.EnableSocketLBPodConnectionTermination,
+		DefaultLBServiceIPAM:                   p.LBIPAMConfig.GetDefaultLBServiceIPAM(),
+		EnableLBIPAM:                           p.LBIPAMConfig.IsEnabled(),
+		EnableNodeIPAM:                         p.NodeIPAMConfig.IsEnabled(),
 	}
 }
 

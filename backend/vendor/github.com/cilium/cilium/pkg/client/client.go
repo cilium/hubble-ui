@@ -38,7 +38,11 @@ func DefaultSockPath() string {
 		// If unset, fall back to default value
 		e = defaults.SockPath
 	}
-	return "unix://" + e
+	return e
+}
+
+func DefaultSockPathProtocol() string {
+	return "unix://" + DefaultSockPath()
 }
 
 func configureTransport(tr *http.Transport, proto, addr string) *http.Transport {
@@ -129,7 +133,7 @@ func WithBasePath(basePath string) func(options *runtimeOptions) {
 
 func NewTransport(host string) (*http.Transport, error) {
 	if host == "" {
-		host = DefaultSockPath()
+		host = DefaultSockPathProtocol()
 	}
 	schema, host, found := strings.Cut(host, "://")
 	if !found {
@@ -159,7 +163,7 @@ func NewRuntime(opts ...func(options *runtimeOptions)) (*runtime_client.Runtime,
 
 	host := r.host
 	if host == "" {
-		host = DefaultSockPath()
+		host = DefaultSockPathProtocol()
 	}
 
 	_, hostHeader, found := strings.Cut(host, "://")
@@ -436,8 +440,8 @@ func FormatStatusResponse(w io.Writer, sr *models.StatusResponse, sd StatusDetai
 	}
 
 	if sr.ClusterMesh != nil {
-		fmt.Fprintf(w, "ClusterMesh:\t%d/%d remote clusters ready, %d global-services\n",
-			NumReadyClusters(sr.ClusterMesh.Clusters), len(sr.ClusterMesh.Clusters), sr.ClusterMesh.NumGlobalServices)
+		fmt.Fprintf(w, "ClusterMesh:\t%d/%d remote clusters ready\n",
+			NumReadyClusters(sr.ClusterMesh.Clusters), len(sr.ClusterMesh.Clusters))
 
 		verbosity := RemoteClustersStatusNotReadyOnly
 		if sd.AllClusters {
@@ -535,16 +539,16 @@ func FormatStatusResponse(w io.Writer, sr *models.StatusResponse, sd StatusDetai
 					status = "BPF"
 				}
 				if sr.KubeProxyReplacement != nil {
-					devStr := ""
+					var devStr strings.Builder
 					for i, dev := range sr.KubeProxyReplacement.DeviceList {
-						devStr += dev.Name
+						devStr.WriteString(dev.Name)
 						if i+1 != len(sr.KubeProxyReplacement.DeviceList) {
-							devStr += ", "
+							devStr.WriteString(", ")
 						}
 					}
 					status += fmt.Sprintf(
 						"\t[%s]\t%s %s",
-						devStr,
+						devStr.String(),
 						sr.Masquerading.SnatExclusionCidrV4,
 						sr.Masquerading.SnatExclusionCidrV6,
 					)
