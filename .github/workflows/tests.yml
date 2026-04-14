@@ -20,7 +20,7 @@ jobs:
           # renovate: datasource=node-version packagename=node
           node-version: '22.22.2'
       - name: Install dependencies
-        run: npm ci
+        run: npm ci && npm run postinstall
       - name: Run tests
         run: npm test
   backend:
@@ -54,7 +54,7 @@ jobs:
           # renovate: datasource=node-version packagename=node
           node-version: '22.22.2'
       - name: Install NPM dependencies
-        run: npm ci
+        run: npm ci && npm run postinstall
       - name: npm run prettier
         run: |
           npm run prettier
