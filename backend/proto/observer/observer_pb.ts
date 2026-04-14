@@ -190,17 +190,6 @@ export interface GetFlowsRequest {
  * @generated from protobuf message observer.GetFlowsRequest.Experimental
  */
 export interface GetFlowsRequest_Experimental {
-    /**
-     * FieldMask allows clients to limit flow's fields that will be returned.
-     * For example, {paths: ["source.id", "destination.id"]} will return flows
-     * with only these two fields set.
-     * Deprecated in favor of top-level field_mask. This field will be
-     * removed in v1.17.
-     *
-     * @deprecated
-     * @generated from protobuf field: google.protobuf.FieldMask field_mask = 1 [deprecated = true]
-     */
-    fieldMask?: FieldMask;
 }
 /**
  * GetFlowsResponse contains either a flow or a protocol message.
@@ -842,9 +831,7 @@ export const GetFlowsRequest = new GetFlowsRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetFlowsRequest_Experimental$Type extends MessageType<GetFlowsRequest_Experimental> {
     constructor() {
-        super("observer.GetFlowsRequest.Experimental", [
-            { no: 1, name: "field_mask", kind: "message", T: () => FieldMask }
-        ]);
+        super("observer.GetFlowsRequest.Experimental", []);
     }
     create(value?: PartialMessage<GetFlowsRequest_Experimental>): GetFlowsRequest_Experimental {
         const message = globalThis.Object.create((this.messagePrototype!));
@@ -857,9 +844,6 @@ class GetFlowsRequest_Experimental$Type extends MessageType<GetFlowsRequest_Expe
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* google.protobuf.FieldMask field_mask = 1 [deprecated = true] */ 1:
-                    message.fieldMask = FieldMask.internalBinaryRead(reader, reader.uint32(), options, message.fieldMask);
-                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -872,9 +856,6 @@ class GetFlowsRequest_Experimental$Type extends MessageType<GetFlowsRequest_Expe
         return message;
     }
     internalBinaryWrite(message: GetFlowsRequest_Experimental, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* google.protobuf.FieldMask field_mask = 1 [deprecated = true]; */
-        if (message.fieldMask)
-            FieldMask.internalBinaryWrite(message.fieldMask, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

@@ -17,10 +17,6 @@ var (
 	// allowedMatchNameChars tests that MatchName contains only valid DNS characters
 	allowedMatchNameChars = regexp.MustCompile("^[-a-zA-Z0-9_.]+$")
 
-	// allowedPatternChars tests that the MatchPattern field contains only the
-	// characters we want in our wildcard scheme.
-	allowedPatternChars = regexp.MustCompile("^[-a-zA-Z0-9_.*]+$") // the * inside the [] is a literal *
-
 	// FQDNMatchNameRegexString is a regex string which matches what's expected
 	// in the MatchName field in the FQDNSelector. This should be kept in-sync
 	// with the marker comment for validation. There's no way to use a Golang
@@ -49,22 +45,28 @@ type FQDNSelector struct {
 	// the pattern. As a special case a "*" as the leftmost character, without a
 	// following "." matches all subdomains as well as the name to the right.
 	// A trailing "." is automatically added when missing.
+	// - "**." is a special prefix which matches all multilevel subdomains in the prefix.
 	//
 	// Examples:
-	// `*.cilium.io` matches subdomains of cilium at that level
+	// 1. `*.cilium.io` matches subdomains of cilium at that level
 	//   www.cilium.io and blog.cilium.io match, cilium.io and google.com do not
-	// `*cilium.io` matches cilium.io and all subdomains ends with "cilium.io"
+	// 2. `*cilium.io` matches cilium.io and all subdomains ends with "cilium.io"
 	//   except those containing "." separator, subcilium.io and sub-cilium.io match,
 	//   www.cilium.io and blog.cilium.io does not
-	// sub*.cilium.io matches subdomains of cilium where the subdomain component
-	// begins with "sub"
-	//   sub.cilium.io and subdomain.cilium.io match, www.cilium.io,
+	// 3. `sub*.cilium.io` matches subdomains of cilium where the subdomain component
+	//   begins with "sub". sub.cilium.io and subdomain.cilium.io match while www.cilium.io,
 	//   blog.cilium.io, cilium.io and google.com do not
+	// 4. `**.cilium.io` matches all multilevel subdomains of cilium.io.
+	//   "app.cilium.io" and "test.app.cilium.io" match but not "cilium.io"
 	//
 	// +kubebuilder:validation:MaxLength=255
 	// +kubebuilder:validation:Pattern=`^([-a-zA-Z0-9_*]+[.]?)+$`
 	// +kubebuilder:validation:OneOf
 	MatchPattern string `json:"matchPattern,omitempty"`
+}
+
+func (s FQDNSelector) SelectorKey() string {
+	return s.String()
 }
 
 func (s *FQDNSelector) String() string {
@@ -100,12 +102,9 @@ func (s *FQDNSelector) sanitize() error {
 		return fmt.Errorf("only one of MatchName or MatchPattern is allowed in an FQDNSelector")
 	}
 	if len(s.MatchName) > 0 && !allowedMatchNameChars.MatchString(s.MatchName) {
-		return fmt.Errorf("Invalid characters in MatchName: \"%s\". Only 0-9, a-z, A-Z and . and - characters are allowed", s.MatchName)
+		return fmt.Errorf("Invalid characters in MatchName: \"%s\". Only 0-9, a-z, A-Z and ., -, _ characters are allowed", s.MatchName)
 	}
 
-	if len(s.MatchPattern) > 0 && !allowedPatternChars.MatchString(s.MatchPattern) {
-		return fmt.Errorf("Invalid characters in MatchPattern: \"%s\". Only 0-9, a-z, A-Z and ., - and * characters are allowed", s.MatchPattern)
-	}
 	_, err := matchpattern.Validate(s.MatchPattern)
 	return err
 }
@@ -128,6 +127,12 @@ func (s *FQDNSelector) ToRegex() (*regexp.Regexp, error) {
 // PortRuleDNS is a list of allowed DNS lookups.
 type PortRuleDNS FQDNSelector
 
+// PortRulesDNS is a slice of PortRuleDNS.
+// This type allows for an order-agnostic deep equality comparison.
+//
+// +deepequal-gen:unordered-array=true
+type PortRulesDNS []PortRuleDNS
+
 // Sanitize checks that the matchName in the portRule can be compiled as a
 // regex. It does not check that a DNS name is a valid DNS name.
 func (r *PortRuleDNS) Sanitize() error {
@@ -135,31 +140,10 @@ func (r *PortRuleDNS) Sanitize() error {
 		return fmt.Errorf("Invalid characters in MatchName: \"%s\". Only 0-9, a-z, A-Z and . and - characters are allowed", r.MatchName)
 	}
 
-	if len(r.MatchPattern) > 0 && !allowedPatternChars.MatchString(r.MatchPattern) {
-		return fmt.Errorf("Invalid characters in MatchPattern: \"%s\". Only 0-9, a-z, A-Z and ., - and * characters are allowed", r.MatchPattern)
-	}
 	_, err := matchpattern.Validate(r.MatchPattern)
 	return err
-}
-
-// GetAsEndpointSelectors returns a FQDNSelector as a single EntityNone
-// EndpointSelector slice.
-// Note that toFQDNs behaves differently than most other rules. The presence of
-// any toFQDNs rules means the endpoint must enforce policy, but the IPs are later
-// added as toCIDRSet entries and processed as such.
-func (s *FQDNSelector) GetAsEndpointSelectors() EndpointSelectorSlice {
-	return []EndpointSelector{EndpointSelectorNone}
 }
 
 // FQDNSelectorSlice is a wrapper type for []FQDNSelector to make is simpler to
 // bind methods.
 type FQDNSelectorSlice []FQDNSelector
-
-// GetAsEndpointSelectors will return a single EntityNone if any
-// toFQDNs rules exist, and a nil slice otherwise.
-func (s FQDNSelectorSlice) GetAsEndpointSelectors() EndpointSelectorSlice {
-	for _, rule := range s {
-		return rule.GetAsEndpointSelectors()
-	}
-	return nil
-}

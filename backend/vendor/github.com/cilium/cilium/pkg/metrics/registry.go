@@ -4,6 +4,8 @@
 package metrics
 
 import (
+	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -13,15 +15,18 @@ import (
 
 	"github.com/cilium/hive"
 	"github.com/cilium/hive/cell"
+	"github.com/cilium/hive/job"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	dto "github.com/prometheus/client_model/go"
 	"github.com/spf13/pflag"
 
 	"github.com/cilium/cilium/pkg/lock"
 	"github.com/cilium/cilium/pkg/logging/logfields"
 	metricpkg "github.com/cilium/cilium/pkg/metrics/metric"
 	"github.com/cilium/cilium/pkg/option"
+	"github.com/cilium/cilium/pkg/promise"
 )
 
 var defaultRegistryConfig = RegistryConfig{
@@ -47,6 +52,7 @@ type RegistryParams struct {
 	Logger     *slog.Logger
 	Shutdowner hive.Shutdowner
 	Lifecycle  cell.Lifecycle
+	JobGroup   job.Group
 
 	AutoMetrics []metricpkg.WithMetadata `group:"hive-metrics"`
 	Config      RegistryConfig
@@ -70,40 +76,79 @@ type Registry struct {
 	params RegistryParams
 }
 
-func NewRegistry(params RegistryParams) *Registry {
-	reg := &Registry{
-		inner:  prometheus.NewPedanticRegistry(),
-		params: params,
-	}
+type TLSConfigPromise promise.Promise[*tls.Config]
 
-	reg.registerMetrics()
+// Gather exposes metrics gather functionality, used by operator metrics command.
+func (reg *Registry) Gather() ([]*dto.MetricFamily, error) {
+	return reg.inner.Gather()
+}
 
-	if params.Config.PrometheusServeAddr != "" {
+func (reg *Registry) AddServerRuntimeHooks(serverId string, tlsConfigPromise TLSConfigPromise) {
+	if reg.params.Config.PrometheusServeAddr != "" {
 		// The Handler function provides a default handler to expose metrics
 		// via an HTTP server. "/metrics" is the usual endpoint for that.
 		mux := http.NewServeMux()
-		mux.Handle("/metrics", promhttp.HandlerFor(reg.inner, promhttp.HandlerOpts{}))
+		mux.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
 		srv := http.Server{
-			Addr:    params.Config.PrometheusServeAddr,
+			Addr:    reg.params.Config.PrometheusServeAddr,
 			Handler: mux,
 		}
 
-		params.Lifecycle.Append(cell.Hook{
-			OnStart: func(hc cell.HookContext) error {
-				go func() {
-					params.Logger.Info("Serving prometheus metrics", logfields.Address, params.Config.PrometheusServeAddr)
-					err := srv.ListenAndServe()
-					if err != nil && !errors.Is(err, http.ErrServerClosed) {
-						params.Shutdowner.Shutdown(hive.ShutdownWithError(err))
-					}
-				}()
-				return nil
-			},
+		reg.params.JobGroup.Add(job.OneShot(serverId, func(ctx context.Context, _ cell.Health) error {
+			tlsEnabled := tlsConfigPromise != nil
+			reg.params.Logger.Info("Serving prometheus metrics",
+				logfields.Server, serverId,
+				logfields.Address, reg.params.Config.PrometheusServeAddr,
+				logfields.TLS, tlsEnabled,
+			)
+
+			listenAndServeFn := srv.ListenAndServe
+			if tlsEnabled {
+				reg.params.Logger.Info("Waiting for TLS certificates to become available")
+				tlsConfig, err := tlsConfigPromise.Await(ctx)
+				if err != nil {
+					return err
+				}
+				srv.TLSConfig = tlsConfig
+				listenAndServeFn = func() error {
+					return srv.ListenAndServeTLS("", "")
+				}
+			}
+
+			if err := listenAndServeFn(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				reg.params.Shutdowner.Shutdown(hive.ShutdownWithError(err))
+			}
+			return nil
+		}))
+		reg.params.Lifecycle.Append(cell.Hook{
 			OnStop: func(hc cell.HookContext) error {
 				return srv.Shutdown(hc)
 			},
 		})
 	}
+}
+
+// NewRegistry constructs a new registry that is not initialized with
+// hive/legacy metrics and has registered its runtime hooks yet.
+func NewRegistry(params RegistryParams) *Registry {
+	reg := &Registry{
+		params: params,
+		inner:  prometheus.NewPedanticRegistry(),
+	}
+	return reg
+}
+
+func NewAgentRegistry(params RegistryParams) *Registry {
+	reg := &Registry{
+		params: params,
+	}
+
+	reg.registerMetrics()
+
+	// Resolve the global registry variable for as long as we still have global functions
+	registryResolver.Resolve(reg)
+
+	reg.AddServerRuntimeHooks("agent-prometheus-server", nil)
 
 	return reg
 }
@@ -125,6 +170,7 @@ var goCustomCollectorsRX = regexp.MustCompile(`^/sched/latencies:seconds`)
 
 // Reinitialize creates a new internal registry and re-registers metrics to it.
 func (r *Registry) registerMetrics() {
+	r.inner = prometheus.NewPedanticRegistry()
 	// Default metrics which can't be disabled.
 	r.MustRegister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{Namespace: Namespace}))
 	r.MustRegister(collectors.NewGoCollector(

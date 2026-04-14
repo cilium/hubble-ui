@@ -91,7 +91,7 @@ func ValidateLabelSelectorRequirement(sr slim_metav1.LabelSelectorRequirement, o
 func ValidateLabelName(labelName string, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 	for _, msg := range validation.IsQualifiedName(labelName) {
-		allErrs = append(allErrs, field.Invalid(fldPath, labelName, msg).WithOrigin("labelKey"))
+		allErrs = append(allErrs, field.Invalid(fldPath, labelName, msg).WithOrigin("format=k8s-label-key"))
 	}
 	return allErrs
 }
@@ -102,7 +102,7 @@ func ValidateLabels(labels map[string]string, fldPath *field.Path) field.ErrorLi
 	for k, v := range labels {
 		allErrs = append(allErrs, ValidateLabelName(k, fldPath)...)
 		for _, msg := range validation.IsValidLabelValue(v) {
-			allErrs = append(allErrs, field.Invalid(fldPath, v, msg))
+			allErrs = append(allErrs, field.Invalid(fldPath, v, msg).WithOrigin("format=k8s-label-value"))
 		}
 	}
 	return allErrs
@@ -185,11 +185,11 @@ func ValidateCondition(condition slim_metav1.Condition, fldPath *field.Path) fie
 	}
 
 	if condition.LastTransitionTime.IsZero() {
-		allErrs = append(allErrs, field.Required(fldPath.Child("lastTransitionTime"), "must be set"))
+		allErrs = append(allErrs, field.Required(fldPath.Child("lastTransitionTime"), ""))
 	}
 
 	if len(condition.Reason) == 0 {
-		allErrs = append(allErrs, field.Required(fldPath.Child("reason"), "must be set"))
+		allErrs = append(allErrs, field.Required(fldPath.Child("reason"), ""))
 	} else {
 		for _, currErr := range isValidConditionReason(condition.Reason) {
 			allErrs = append(allErrs, field.Invalid(fldPath.Child("reason"), condition.Reason, currErr))

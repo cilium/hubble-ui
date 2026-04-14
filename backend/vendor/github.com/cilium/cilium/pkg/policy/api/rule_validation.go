@@ -168,8 +168,6 @@ func (i *IngressRule) sanitize(hostPolicy bool) error {
 		}
 	}
 
-	i.SetAggregatedSelectors()
-
 	return nil
 }
 
@@ -197,8 +195,6 @@ func (i *IngressDenyRule) sanitize() error {
 			return err
 		}
 	}
-
-	i.SetAggregatedSelectors()
 
 	return nil
 }
@@ -229,12 +225,6 @@ func (i *IngressCommonRule) sanitize() error {
 
 	for n := range i.FromEndpoints {
 		if err := i.FromEndpoints[n].Sanitize(); err != nil {
-			return errors.Join(err, retErr)
-		}
-	}
-
-	for n := range i.FromRequires {
-		if err := i.FromRequires[n].Sanitize(); err != nil {
 			return errors.Join(err, retErr)
 		}
 	}
@@ -361,8 +351,6 @@ func (e *EgressRule) sanitize(hostPolicy bool) error {
 		}
 	}
 
-	e.SetAggregatedSelectors()
-
 	return nil
 }
 
@@ -412,8 +400,6 @@ func (e *EgressDenyRule) sanitize() error {
 		}
 	}
 
-	e.SetAggregatedSelectors()
-
 	return nil
 }
 
@@ -442,12 +428,6 @@ func (e *EgressCommonRule) sanitize(l3Members map[string]int) error {
 
 	for i := range e.ToEndpoints {
 		if err := e.ToEndpoints[i].Sanitize(); err != nil {
-			return errors.Join(err, retErr)
-		}
-	}
-
-	for i := range e.ToRequires {
-		if err := e.ToRequires[i].Sanitize(); err != nil {
 			return errors.Join(err, retErr)
 		}
 	}
@@ -641,7 +621,9 @@ func (pr *PortDenyRule) sanitize() error {
 
 func (pp *PortProtocol) sanitize(hasDNSRules bool) (isZero bool, err error) {
 	if pp.Port == "" {
-		return isZero, errors.New("Port must be specified")
+		if !option.Config.EnableExtendedIPProtocols {
+			return isZero, errors.New("port must be specified")
+		}
 	}
 
 	// Port names are formatted as IANA Service Names.  This means that
@@ -649,7 +631,10 @@ func (pp *PortProtocol) sanitize(hasDNSRules bool) (isZero bool, err error) {
 	// 0x10 is now considered a name rather than number 16.
 	if iana.IsSvcName(pp.Port) {
 		pp.Port = strings.ToLower(pp.Port) // Normalize for case insensitive comparison
-	} else {
+	} else if pp.Port != "" {
+		if pp.Port != "0" && (pp.Protocol == ProtoVRRP || pp.Protocol == ProtoIGMP) {
+			return isZero, errors.New("port must be empty or 0")
+		}
 		p, err := strconv.ParseUint(pp.Port, 0, 16)
 		if err != nil {
 			return isZero, fmt.Errorf("unable to parse port: %w", err)
@@ -713,10 +698,9 @@ func (c *CIDRRule) sanitize() error {
 	if len(c.Cidr) > 0 {
 		cnt++
 	}
-	if c.CIDRGroupSelector != nil {
+	if c.CIDRGroupSelector.LabelSelector != nil {
 		cnt++
-		es := NewESFromK8sLabelSelector(labels.LabelSourceCIDRGroupKeyPrefix, c.CIDRGroupSelector)
-		if err := es.Sanitize(); err != nil {
+		if err := c.CIDRGroupSelector.SanitizeWithKeyExtender(labels.GetSourcePrefixKeyExtender(labels.LabelSourceCIDRGroupKeyPrefix)); err != nil {
 			return fmt.Errorf("failed to parse cidrGroupSelector %v: %w", c.CIDRGroupSelector.String(), err)
 		}
 	}
@@ -727,7 +711,7 @@ func (c *CIDRRule) sanitize() error {
 		return fmt.Errorf("more than one of cidr, cidrGroupRef, or cidrGroupSelector may not be set")
 	}
 
-	if len(c.CIDRGroupRef) > 0 || c.CIDRGroupSelector != nil {
+	if len(c.CIDRGroupRef) > 0 || c.CIDRGroupSelector.LabelSelector != nil {
 		return nil // these are selectors;
 	}
 

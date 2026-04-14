@@ -197,6 +197,8 @@ const (
 	// If both PodResizePending and PodResizeInProgress are set, it means that a new resize was
 	// requested in the middle of a previous pod resize that is still in progress.
 	PodResizeInProgress PodConditionType = "PodResizeInProgress"
+	// AllContainersRestarting indicates that all containers of the pod is being restarted.
+	AllContainersRestarting PodConditionType = "AllContainersRestarting"
 )
 
 // These are reasons for a pod's transition to a condition.
@@ -276,7 +278,6 @@ type Taint struct {
 	// Valid effects are NoSchedule, PreferNoSchedule and NoExecute.
 	Effect TaintEffect `json:"effect" protobuf:"bytes,3,opt,name=effect,casttype=TaintEffect"`
 	// TimeAdded represents the time at which the taint was added.
-	// It is only written for NoExecute taints.
 	// +optional
 	TimeAdded *slim_metav1.Time `json:"timeAdded,omitempty" protobuf:"bytes,4,opt,name=timeAdded"`
 }
@@ -354,7 +355,9 @@ type PodSpec struct {
 	// +optional
 	NodeName string `json:"nodeName,omitempty" protobuf:"bytes,10,opt,name=nodeName"`
 	// Host networking requested for this pod. Use the host's network namespace.
-	// If this option is set, the ports that will be used must be specified.
+	// When using HostNetwork you should specify ports so the scheduler is aware.
+	// When `hostNetwork` is true, specified `hostPort` fields in port definitions must match `containerPort`,
+	// and unspecified `hostPort` fields in port definitions are defaulted to match `containerPort`.
 	// Default to false.
 	// +k8s:conversion-gen=false
 	// +optional
@@ -572,8 +575,11 @@ const (
 	ServiceInternalTrafficPolicyLocal ServiceInternalTrafficPolicy = "Local"
 )
 
-// for backwards compat
+// ServiceInternalTrafficPolicy describes how nodes distribute service traffic they
+// receive on the ClusterIP.
 // +enum
+//
+// Deprecated: use ServiceInternalTrafficPolicy instead.
 type ServiceInternalTrafficPolicyType = ServiceInternalTrafficPolicy
 
 // ServiceExternalTrafficPolicy describes how nodes distribute service traffic they
@@ -592,8 +598,12 @@ const (
 	ServiceExternalTrafficPolicyLocal ServiceExternalTrafficPolicy = "Local"
 )
 
-// for backwards compat
+// ServiceExternalTrafficPolicy describes how nodes distribute service traffic they
+// receive on one of the Service's "externally-facing" addresses (NodePorts, ExternalIPs,
+// and LoadBalancer IPs.
 // +enum
+//
+// Deprecated: use ServiceExternalTrafficPolicy instead.
 type ServiceExternalTrafficPolicyType = ServiceExternalTrafficPolicy
 
 // These are the valid conditions of a service.
@@ -697,8 +707,10 @@ const (
 	IPFamilyPolicyRequireDualStack IPFamilyPolicy = "RequireDualStack"
 )
 
-// for backwards compat
+// IPFamilyPolicy represents the dual-stack-ness requested or required by a Service
 // +enum
+//
+// Deprecated: use IPFamilyPolicy instead.
 type IPFamilyPolicyType = IPFamilyPolicy
 
 // ServiceSpec describes the attributes that a user creates on a service.
@@ -919,7 +931,6 @@ type ServiceSpec struct {
 	// field is not set, the implementation will apply its default routing
 	// strategy. If set to "PreferClose", implementations should prioritize
 	// endpoints that are in the same zone.
-	// +featureGate=ServiceTrafficDistribution
 	// +optional
 	TrafficDistribution *string `json:"trafficDistribution,omitempty" protobuf:"bytes,23,opt,name=trafficDistribution"`
 }
@@ -1426,6 +1437,7 @@ type Bytes []byte
 
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:prerelease-lifecycle-gen:introduced=1.0
 
 // Secret holds secret data of a certain type. The total bytes of the values in
 // the Data field must be less than MaxSecretSize bytes.
