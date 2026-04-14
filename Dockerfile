@@ -7,7 +7,7 @@
 # Represents the plataform where the build is happening, do not mix with
 # TARGETARCH
 # skopeo inspect --override-os linux --override-arch amd64 docker://docker.io/library/node:24.13.0-alpine3.23 | jq -r '.Digest'
-FROM --platform=${BUILDPLATFORM} docker.io/library/node:24.13.0-alpine3.23@sha256:cd6fb7efa6490f039f3471a189214d5f548c11df1ff9e5b181aa49e22c14383e as stage1
+FROM --platform=${BUILDPLATFORM} docker.io/library/node:24.14.1-alpine3.23@sha256:01743339035a5c3c11a373cd7c83aeab6ed1457b55da6a69e014a95ac4e4700b as stage1
 RUN apk add make git bash
 WORKDIR /app
 
@@ -28,7 +28,7 @@ ARG NODE_ENV=production
 RUN npm run build
 
 # skopeo inspect --override-os linux --override-arch amd64 docker://docker.io/nginxinc/nginx-unprivileged:1.29.0-alpine3.22-slim | jq -r '.Digest'
-FROM docker.io/nginxinc/nginx-unprivileged:1.29.1-alpine3.22-slim@sha256:76f79f1f3c906a43076086e4517b019b3ab5cc18b3ed1b13417b583e0ab9b298
+FROM docker.io/nginxinc/nginx-unprivileged:1.29.1-alpine3.22-slim@sha256:76f79f1f3c906a43076086e4517b019b3ab5cc18b3ed1b13417b583e0ab9b298 AS release
 USER root
 RUN apk upgrade --no-cache
 USER 101

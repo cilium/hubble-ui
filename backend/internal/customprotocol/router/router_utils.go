@@ -84,6 +84,7 @@ func (r *Router) respondWithMessage(
 	} else {
 		w.Header().Set("content-type", "application/octet-stream")
 	}
+	w.Header().Set("X-Content-Type-Options", "nosniff")
 
 	utils.CopyHeaders(w.Header(), msg.ResponseHeaders)
 
@@ -101,6 +102,7 @@ func (r *Router) respondWithMessage(
 	// NOTE: WriteHeader must be called after all the mutations to headers buf
 	w.WriteHeader(statusHeader)
 
+	// #nosec G705 -- responses are explicitly emitted as JSON or octet-stream with nosniff, not rendered as HTML.
 	_, err = w.Write(bytes)
 	if err != nil {
 		return err
