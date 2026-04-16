@@ -33,7 +33,7 @@ export class HTTPResult<T = Blob> {
   }
 
   public get errorMessage(): string {
-    return this.isConnectionError ? 'Network error occured' : this.response.statusText;
+    return this.isConnectionError ? 'Network error occurred' : this.response.statusText;
   }
 
   public get headers(): Response['headers'] {
