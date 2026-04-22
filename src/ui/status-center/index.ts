@@ -118,7 +118,7 @@ export class StatusEntry {
     return this.intent === Intent.Debug;
   }
 
-  // NOTE: Call this method when the same event occured multiple times
+  // NOTE: Call this method when the same event occurred multiple times
   public occuredAgain(entry: StatusEntry) {
     this.title = entry.title;
     this.intent = entry.intent;

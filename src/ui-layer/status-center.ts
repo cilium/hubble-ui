@@ -194,7 +194,7 @@ export class StatusCenter extends EventEmitter<Handlers> {
   public pushControlStreamError(err: CustomError) {
     const entry = StatusEntryBuilder.new()
       .setIntent(Intent.Critical)
-      .setTitle('Server error occured')
+      .setTitle('Server error occurred')
       .setComponent(Component.HubbleUI)
       .setDetails(err.toString())
       .build();
@@ -435,7 +435,7 @@ export class StatusCenter extends EventEmitter<Handlers> {
 
     return builder
       .setIntent(intent)
-      .setTitle(builder.statusEntry.title || err.metadata['title']?.[0] || 'GRPC error occured')
+      .setTitle(builder.statusEntry.title || err.metadata['title']?.[0] || 'GRPC error occurred')
       .setDetails(builder.statusEntry.details || this.formatErrorDetails(err))
       .setComponent(err.metadata['component']?.[0] || Component.HubbleUI)
       .setUnderlyingError(err);
