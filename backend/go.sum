@@ -19,8 +19,8 @@ github.com/blang/semver/v4 v4.0.0/go.mod h1:IbckMUScFkM3pff0VJDNKRiT6TG/YpiHIM2y
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
 github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
-github.com/cilium/cilium v1.19.2 h1:891hXerzal4vBVjjlCsyV47DQDI77+f9mzf1ulWF54E=
-github.com/cilium/cilium v1.19.2/go.mod h1:BRn4WvJVo/V9clDdwE12uNCq4tdWSGm9hYjCL44LC5g=
+github.com/cilium/cilium v1.19.3 h1:foJrHPk45HwshOd8Qf/kptf9JxPfNySkIDKsetZa9+Y=
+github.com/cilium/cilium v1.19.3/go.mod h1:cd4P5LHAg4hyyZexrM4D055t5JwyudeAcZ/Jub9VxJY=
 github.com/cilium/ebpf v0.21.0 h1:4dpx1J/B/1apeTmWBH5BkVLayHTkFrMovVPnHEk+l3k=
 github.com/cilium/ebpf v0.21.0/go.mod h1:1kHKv6Kvh5a6TePP5vvvoMa1bclRyzUXELSs272fmIQ=
 github.com/cilium/hive v0.0.0-20260108104938-97756f6ff54c h1:mP/Z+oVplgbg3oV1lwsAC86NPLWioN/TqlmZ6+BI2I0=
