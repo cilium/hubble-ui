@@ -205,6 +205,12 @@ func (b *ConfigBuilder) initWebServer(cfg *Config) error {
 	corsEnabled.LogIfFallback(b.logger)
 	cfg.CORSEnabled = corsEnabled.Value
 
+	serverEnableHTTP2Unencrypted := b.props.ServerEnableHTTP2Unencrypted()
+	if err := serverEnableHTTP2Unencrypted.Err(); err != nil {
+		return err
+	}
+	cfg.ServerEnableHTTP2Unencrypted = serverEnableHTTP2Unencrypted.Value
+
 	return nil
 }
 
