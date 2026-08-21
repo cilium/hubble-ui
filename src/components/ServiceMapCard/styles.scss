@@ -15,8 +15,8 @@
   &.active {
     cursor: grabbing;
     box-shadow: var(--hubble-ui-card-boxshadow-active);
-    opacity: 0.9;
-    transition-duration: 0;
+    background-color: var(--hubble-ui-svcmap-card-bg-primary-active);
+    transition-duration: 0s;
   }
 }
 
