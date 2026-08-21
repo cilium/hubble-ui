@@ -132,10 +132,6 @@ export class ServiceCard extends AbstractCard {
       result.push(FilterEntry.newWorkload(this.workload));
     }
 
-    if (this.isDNS) {
-      result.push(FilterEntry.newDNS(this.caption));
-    }
-
     if (this.isIngress) {
       result.push(FilterEntry.newLabel(ReservedLabel.Ingress));
     }
@@ -208,10 +204,6 @@ export class ServiceCard extends AbstractCard {
 
   @computed
   public get caption(): string {
-    if (this.isWorld && this.domain) {
-      return this.domain;
-    }
-
     if (this.isIngress) return 'Ingress';
 
     return this.appName;
