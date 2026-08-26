@@ -93,6 +93,8 @@ export class DataLayer extends EventEmitter<Handlers> {
     return {
       isHostShown: storage.getShowHost(),
       isKubeDNSShown: storage.getShowKubeDns(),
+      isRemoteNodeShown: storage.getShowRemoteNode(),
+      isPrometheusAppShown: storage.getShowPrometheusApp(),
       isAggregationOff: storage.getIsAggregationOff(),
       dataMode: storage.getDataMode(),
     };
