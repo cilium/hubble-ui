@@ -21,6 +21,7 @@ import { KV, Labels } from '~/domain/labels';
 import { FilterEntry, FilterDirection } from '~/domain/filtering';
 
 import { useApplication } from '~/application';
+import { ServiceMapExporter } from '~/utils/export';
 
 import { sizes } from '~/ui/vars';
 import { useFlowsTableColumns } from './hooks/useColumns';
@@ -119,6 +120,12 @@ export const ServiceMapApp = observer(function ServiceMapApp() {
     ui.controls.setFlowFilters([FilterEntry.newDNS(dns).setDirection(FilterDirection.Either)]);
   }, []);
 
+  const onExport = useCallback(() => {
+    const services = store.currentFrame.services.cardsMap;
+    const links = store.currentFrame.interactions.links;
+    ServiceMapExporter.export(services, links);
+  }, [store.currentFrame]);
+
   const cardRenderer = mobx.action((props: CardProps<ServiceCard>) => {
     const l7endpoints = store.currentFrame.interactions.l7endpoints;
 
@@ -166,6 +173,7 @@ export const ServiceMapApp = observer(function ServiceMapApp() {
       onShowRemoteNodeToggle={() => ui.controls.toggleShowRemoteNode()}
       showPrometheusApp={store.controls.showPrometheusApp}
       onShowPrometheusAppToggle={() => ui.controls.toggleShowPrometheusApp()}
+      onExport={onExport}
     />
   );
 
