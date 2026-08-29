@@ -7,6 +7,8 @@ import { usePopover } from '~/ui/hooks/usePopover';
 
 import css from './styles.scss';
 
+const ALL_NAMESPACES: NamespaceDescriptor = { namespace: '', relay: false };
+
 const renderItem: ItemRenderer<NamespaceDescriptor> = (ns, itemProps) => {
   const { handleClick, modifiers } = itemProps;
 
@@ -14,10 +16,21 @@ const renderItem: ItemRenderer<NamespaceDescriptor> = (ns, itemProps) => {
     return null;
   }
 
+  if (ns.namespace === '') {
+    return (
+      <React.Fragment key="__all__">
+        <MenuItem onClick={handleClick} text="All namespaces" />
+        <li className="bp4-menu-divider" role="separator" />
+      </React.Fragment>
+    );
+  }
+
   return <MenuItem key={ns.namespace} onClick={handleClick} text={ns.namespace} />;
 };
 
 const filterItem: ItemPredicate<NamespaceDescriptor> = (query, ns, idx, exactMatch) => {
+  if (ns.namespace === '') return true;
+
   const value = ns.namespace;
   const normalizedTitle = value.toLowerCase();
   const normalizedQuery = query.toLowerCase();
@@ -50,7 +63,14 @@ export const NamespaceSelectorDropdown = memo<Props>(function NamespaceSelectorD
     <img src="icons/misc/namespace-icon.svg" className={css.namespacesDropdownButtonIcon} />
   );
 
-  const dropdownText = currentNamespace?.namespace ?? 'Choose namespace';
+  const dropdownText =
+    currentNamespace == null
+      ? 'Choose namespace'
+      : currentNamespace.namespace === ''
+        ? 'All namespaces'
+        : currentNamespace.namespace;
+
+  const items = [ALL_NAMESPACES, ...(namespaces || [])];
 
   return (
     <Select<NamespaceDescriptor>
@@ -59,7 +79,7 @@ export const NamespaceSelectorDropdown = memo<Props>(function NamespaceSelectorD
       resetOnSelect
       itemPredicate={filterItem}
       itemRenderer={renderItem}
-      items={namespaces || []}
+      items={items}
       noResults={<MenuItem disabled={true} text="No matches" />}
       onItemSelect={onChange}
       popoverProps={popover.props}
