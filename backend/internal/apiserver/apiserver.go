@@ -108,6 +108,11 @@ func (srv *APIServer) Listen() error {
 		handler = srv.handlerMiddleware(handler)
 	}
 
+	protocols := http.Protocols{}
+	protocols.SetHTTP1(true)
+	if srv.cfg.ServerEnableHTTP2Unencrypted {
+		protocols.SetUnencryptedHTTP2(true)
+	}
 	srv.instance = &http.Server{
 		Addr:    addr,
 		Handler: handler,
@@ -115,6 +120,7 @@ func (srv *APIServer) Listen() error {
 			return srv.baseContext
 		},
 		ReadHeaderTimeout: 5 * time.Second,
+		Protocols: &protocols,
 	}
 
 	srv.log.Info("running ListenAndServe", "port", port, "apipath", srv.rootRoute)
