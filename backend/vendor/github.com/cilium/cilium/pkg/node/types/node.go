@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"net"
 	"net/netip"
-	"path"
 	"slices"
+	"strings"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -21,7 +21,6 @@ import (
 	"github.com/cilium/cilium/pkg/defaults"
 	ipamTypes "github.com/cilium/cilium/pkg/ipam/types"
 	ciliumv2 "github.com/cilium/cilium/pkg/k8s/apis/cilium.io/v2"
-	"github.com/cilium/cilium/pkg/kvstore/store"
 	"github.com/cilium/cilium/pkg/node/addressing"
 	"github.com/cilium/cilium/pkg/option"
 	"github.com/cilium/cilium/pkg/source"
@@ -35,7 +34,7 @@ type Identity struct {
 
 // String returns the string representation on NodeIdentity.
 func (nn Identity) String() string {
-	return path.Join(nn.Cluster, nn.Name)
+	return GetKeyNodeName(nn.Cluster, nn.Name)
 }
 
 // appendAllocCDIR sets or appends the given podCIDR to the node.
@@ -248,7 +247,7 @@ type Node struct {
 // cluster name value other than the default value has been specified
 func (n *Node) Fullname() string {
 	if n.Cluster != defaults.ClusterName {
-		return path.Join(n.Cluster, n.Name)
+		return n.GetKeyName()
 	}
 
 	return n.Name
@@ -468,12 +467,12 @@ func (n *Node) getPrimaryAddress() *models.NodeAddressing {
 	}
 
 	return &models.NodeAddressing{
-		IPV4: &models.NodeAddressingElement{
+		IPv4: &models.NodeAddressingElement{
 			Enabled:    option.Config.EnableIPv4,
 			IP:         v4Str,
 			AllocRange: ipv4AllocStr,
 		},
-		IPV6: &models.NodeAddressingElement{
+		IPv6: &models.NodeAddressingElement{
 			Enabled:    option.Config.EnableIPv6,
 			IP:         v6Str,
 			AllocRange: ipv6AllocStr,
@@ -517,11 +516,11 @@ func (n *Node) getHealthAddresses() *models.NodeAddressing {
 	}
 
 	return &models.NodeAddressing{
-		IPV4: &models.NodeAddressingElement{
+		IPv4: &models.NodeAddressingElement{
 			Enabled: option.Config.EnableIPv4,
 			IP:      v4Str,
 		},
-		IPV6: &models.NodeAddressingElement{
+		IPv6: &models.NodeAddressingElement{
 			Enabled: option.Config.EnableIPv6,
 			IP:      v6Str,
 		},
@@ -542,11 +541,11 @@ func (n *Node) getIngressAddresses() *models.NodeAddressing {
 	}
 
 	return &models.NodeAddressing{
-		IPV4: &models.NodeAddressingElement{
+		IPv4: &models.NodeAddressingElement{
 			Enabled: option.Config.EnableIPv4,
 			IP:      v4Str,
 		},
-		IPV6: &models.NodeAddressingElement{
+		IPv6: &models.NodeAddressingElement{
 			Enabled: option.Config.EnableIPv6,
 			IP:      v6Str,
 		},
@@ -608,18 +607,14 @@ func (n *Node) GetIPv6AllocCIDRs() []*cidr.CIDR {
 // GetKeyNodeName constructs the API name for the given cluster and node name.
 func GetKeyNodeName(cluster, node string) string {
 	// WARNING - STABLE API: Changing the structure of the key may break
-	// backwards compatibility
-	return path.Join(cluster, node)
+	// backwards compatibility. Open-coded, instead of using [kvstore.JoinKey]
+	// to avoid introducing an unnecessary dependency on the kvstore package.
+	return strings.Trim(cluster+"/"+node, "/")
 }
 
 // GetKeyName returns the kvstore key to be used for the node
 func (n *Node) GetKeyName() string {
 	return GetKeyNodeName(n.Cluster, n.Name)
-}
-
-// DeepKeyCopy creates a deep copy of the LocalKey
-func (n *Node) DeepKeyCopy() store.LocalKey {
-	return n.DeepCopy()
 }
 
 // Marshal returns the node object as JSON byte slice

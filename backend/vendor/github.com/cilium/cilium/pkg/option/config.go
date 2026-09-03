@@ -751,6 +751,9 @@ const (
 	// EndpointRegenInterval is the interval of the periodic endpoint regeneration loop.
 	EndpointRegenInterval = "endpoint-regen-interval"
 
+	// EndpointPolicyUpdateTimeout is the timeout duration for Endpoint policy updates.
+	EndpointPolicyUpdateTimeout = "endpoint-policy-update-timeout"
+
 	// LocalRouterIPv4 is the link-local IPv4 address to use for Cilium router device
 	LocalRouterIPv4 = "local-router-ipv4"
 
@@ -3510,13 +3513,6 @@ func InitConfig(logger *slog.Logger, cmd *cobra.Command, programName, configName
 			vp.AddConfigPath("$HOME")    // adding home directory as first search path
 		}
 
-		// We need to check for the debug environment variable or CLI flag before
-		// loading the configuration file since on configuration file read failure
-		// we will emit a debug log entry.
-		if vp.GetBool(DebugArg) {
-			logging.SetLogLevelToDebug()
-		}
-
 		// If a config file is found, read it in.
 		if err := vp.ReadInConfig(); err == nil {
 			logger.Info("Using config from file", logfields.Path, vp.ConfigFileUsed())
@@ -3526,12 +3522,9 @@ func InitConfig(logger *slog.Logger, cmd *cobra.Command, programName, configName
 				logfields.Path, vp.ConfigFileUsed(),
 				logfields.Error, err,
 			)
-		} else {
-			logger.Debug("Skipped reading configuration file", logfields.Error, err)
 		}
 
-		// Check for the debug flag again now that the configuration file may has
-		// been loaded, as it might have changed.
+		// Check for the debug flag now that all configurations have been loaded.
 		if vp.GetBool(DebugArg) {
 			logging.SetLogLevelToDebug()
 		}
