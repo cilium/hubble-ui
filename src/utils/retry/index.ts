@@ -114,6 +114,6 @@ export class Retries extends EventEmitter<Handlers> {
   }
 }
 
-export { Delayer, StopFn, RetryFn, DelayInfo } from './common';
+export type { Delayer, StopFn, RetryFn, DelayInfo } from './common';
 export { ExponentialDelayer };
 export { RetriesFailed };

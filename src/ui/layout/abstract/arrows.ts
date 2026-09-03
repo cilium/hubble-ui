@@ -1,10 +1,10 @@
-import { computed, action, observable, makeObservable } from 'mobx';
+import { action, computed, actionBound, observable } from 'mobx';
 
 import { XY } from '~/domain/geometry';
 
 export abstract class Arrow {
   @observable
-  public _points: XY[] = [];
+  public accessor _points: XY[] = [];
 
   @action
   public addPoint(p: XY): this {
@@ -12,9 +12,7 @@ export abstract class Arrow {
     return this;
   }
 
-  constructor() {
-    makeObservable(this);
-  }
+  constructor() {}
 
   public get id(): string {
     throw new Error('not implemented');
@@ -45,18 +43,16 @@ export type ArrowsMap = Map<string, Arrow>;
 // NOTE: conrete ArrowRenderer and it's parts.
 export abstract class ArrowStrategy {
   @observable
-  protected _arrows: ArrowsMap = new Map();
+  protected accessor _arrows: ArrowsMap = new Map();
 
-  constructor() {
-    makeObservable(this);
-  }
+  constructor() {}
 
   @computed
   public get arrows(): ArrowsMap {
     return new Map(this._arrows);
   }
 
-  @action.bound
+  @actionBound
   public reset() {
     this._arrows.clear();
   }

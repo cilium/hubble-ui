@@ -3,10 +3,8 @@ import _ from 'lodash';
 import urlParse from 'url-parse';
 
 import {
-  HubbleFlow,
   Verdict,
   TrafficDirection,
-  TCPFlags,
   PodSelector,
   HTTP,
   IPProtocol,
@@ -16,11 +14,13 @@ import {
   Workload,
   AuthType,
 } from '~/domain/hubble';
+import type { HubbleFlow, TCPFlags } from '~/domain/hubble';
 
 import { CiliumEventSubTypesCodes, CiliumDropReasonCodes } from '~/domain/cilium';
 
 import { WrappedLayer7 } from '~/domain/layer7';
-import { KV, Labels, LabelsProps } from '~/domain/labels';
+import { Labels } from '~/domain/labels';
+import type { KV, LabelsProps } from '~/domain/labels';
 
 import * as tcpFlagsHelpers from '~/domain/helpers/tcp-flags';
 import * as verdictHelpers from '~/domain/helpers/verdict';
@@ -30,7 +30,8 @@ import * as l7helpers from '~/domain/helpers/l7';
 import * as workloadHelpers from '~/domain/helpers/workload';
 import * as authtypeHelpers from '~/domain/helpers/auth-type';
 
-export { HubbleFlow, Verdict, TCPFlags };
+export { Verdict };
+export type { HubbleFlow, TCPFlags };
 
 export class Flow {
   private _id?: string;

@@ -1,4 +1,3 @@
-import { makeObservable } from 'mobx';
 import { GrpcWrappedError } from '~/api/grpc/error';
 
 import { Notification } from '~/domain/notifications';
@@ -48,8 +47,6 @@ export class StatusCenter extends EventEmitter<Handlers> {
 
   constructor(private opts: StatusCenterOptions) {
     super(true);
-
-    makeObservable(this);
   }
 
   public onNewEntry(fn: Handlers[Event.NewEntry]): this {

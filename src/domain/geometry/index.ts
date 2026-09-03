@@ -1,4 +1,4 @@
-import { XY, WH } from './general';
+import type { XY, WH } from './general';
 import { Vec2 } from './vec2';
 import { Line2 } from './line2';
 import { XYWH } from './xywh';
@@ -7,7 +7,8 @@ import * as utils from './utils';
 import * as rounding from './rounding';
 import { segmentsIntersection } from './intersections';
 
-export { XY, WH, XYWH };
+export { XYWH };
+export type { XY, WH };
 export { Vec2, Line2 };
 export { utils };
 export { rounding };

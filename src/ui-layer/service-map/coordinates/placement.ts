@@ -1,4 +1,4 @@
-import { action, computed, observable, reaction, makeObservable, runInAction } from 'mobx';
+import { actionBound, computed, observable, reaction, runInAction } from 'mobx';
 
 import { Method as HttpMethod } from '~/domain/http';
 import { XYWH, XY, dummy as geom } from '~/domain/geometry';
@@ -49,24 +49,23 @@ export type CardsColumns = Map<string, PlacementMeta[][]>;
 // TODO: move it away from domain
 export class ServiceMapPlacementStrategy extends PlacementStrategy {
   @observable
-  private controls: ControlStore;
+  private accessor controls: ControlStore;
 
   @observable
-  private interactions: InteractionStore;
+  private accessor interactions: InteractionStore;
 
   @observable
-  private services: ServiceStore;
+  private accessor services: ServiceStore;
 
   @observable
-  private namespaces: NamespaceStore;
+  private accessor namespaces: NamespaceStore;
 
   // NOTE: { receiverId -> { urlPath -> { HttpMethod -> XY }}}
   @observable
-  protected _httpEndpointCoords: Map<string, Map<string, Map<HttpMethod, XY>>>;
+  protected accessor _httpEndpointCoords: Map<string, Map<string, Map<HttpMethod, XY>>>;
 
   constructor(frame: StoreFrame) {
     super();
-    makeObservable(this);
     this.controls = frame.controls;
     this.interactions = frame.interactions;
     this.services = frame.services;
@@ -86,7 +85,7 @@ export class ServiceMapPlacementStrategy extends PlacementStrategy {
     });
   }
 
-  @action.bound
+  @actionBound
   public setHttpEndpointCoords(svcId: string, urlPath: string, method: HttpMethod, coords: XY) {
     if (!this._httpEndpointCoords.has(svcId)) {
       this._httpEndpointCoords.set(svcId, new Map());
@@ -100,7 +99,7 @@ export class ServiceMapPlacementStrategy extends PlacementStrategy {
     svcUrlPaths.get(urlPath)?.set(method, coords);
   }
 
-  @action.bound
+  @actionBound
   public setHttpEndpointsCoords(
     coords: {
       cardId: string;
@@ -150,7 +149,7 @@ export class ServiceMapPlacementStrategy extends PlacementStrategy {
     });
   }
 
-  @action.bound
+  @actionBound
   public rebuild() {
     this.cardsPlacement.forEach((plcEntry: PlacementEntry, cardId: string) => {
       this.cardsXYs.set(cardId, plcEntry.geometry);

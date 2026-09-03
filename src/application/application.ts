@@ -77,6 +77,6 @@ export class Application<RenderResult = any> extends EventEmitter<Handlers> {
     const themeClass = 'light';
 
     html.classList.add(`${themeClass}`);
-    body.classList.add(`bp4-${themeClass}`);
+    body.classList.add(`bp6-${themeClass}`);
   }
 }

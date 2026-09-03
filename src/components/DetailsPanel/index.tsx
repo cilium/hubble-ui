@@ -2,27 +2,24 @@ import { observer } from 'mobx-react';
 import React, { useCallback, useEffect } from 'react';
 
 import { DragPanel } from '~/components/DragPanel';
-import {
-  FlowsTable,
-  Props as FlowsTableProps,
-  OnFlowsDiffCount,
-  TickerEvents,
-  DEFAULT_TS_UPDATE_DELAY,
-  Column,
-} from '~/components/FlowsTable';
+import { FlowsTable, TickerEvents, DEFAULT_TS_UPDATE_DELAY, Column } from '~/components/FlowsTable';
+import type { Props as FlowsTableProps, OnFlowsDiffCount } from '~/components/FlowsTable';
 
-import { FlowsTableSidebar, Props as SidebarProps } from '~/components/FlowsTable/Sidebar';
+import { FlowsTableSidebar } from '~/components/FlowsTable/Sidebar';
+import type { Props as SidebarProps } from '~/components/FlowsTable/Sidebar';
 import {
   LoadingOverlay,
   getProps as getLoadingOverlayProps,
 } from '~/components/Misc/LoadingOverlay';
 
 import { DataMode, TransferState } from '~/domain/interactions';
-import { usePanelResize, ResizeProps } from './hooks/usePanelResize';
+import { usePanelResize } from './hooks/usePanelResize';
+import type { ResizeProps } from './hooks/usePanelResize';
 
 import css from './styles.scss';
 
-export { DEFAULT_TS_UPDATE_DELAY, TickerEvents, OnFlowsDiffCount };
+export { DEFAULT_TS_UPDATE_DELAY, TickerEvents };
+export type { OnFlowsDiffCount };
 
 interface PanelProps {
   namespace: string | null;

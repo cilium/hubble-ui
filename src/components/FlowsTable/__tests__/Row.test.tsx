@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, data } from '~/testing';
-import { act, fireEvent } from '@testing-library/react';
+import { fireEvent } from '@testing-library/dom';
+import { act } from '@testing-library/react';
 
 import { Row } from '~/components/FlowsTable/Row';
 import { Column } from '~/components/FlowsTable';

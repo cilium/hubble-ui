@@ -1,4 +1,4 @@
-import { Button, Checkbox, Menu, MenuItem, Popover } from '@blueprintjs/core';
+import { Button, Checkbox, Menu, MenuItem, PopoverNext } from '@blueprintjs/core';
 import React, { memo, useCallback } from 'react';
 
 import { usePopover } from '~/ui/hooks/usePopover';
@@ -23,9 +23,9 @@ export const FlowsTableColumnsSelector = memo<Props>(function FlowsTableColumnsS
   ));
 
   return (
-    <Popover {...popover.props} content={<Menu>{menuItems}</Menu>}>
+    <PopoverNext {...popover.props} content={<Menu>{menuItems}</Menu>}>
       <Button small minimal rightIcon="chevron-down" text="Columns" onClick={popover.toggle} />
-    </Popover>
+    </PopoverNext>
   );
 });
 

@@ -1,7 +1,8 @@
 import { HTTPClient } from '~/api/http-client';
-import { Options as StreamOptions } from './stream';
+import type { Options as StreamOptions } from './stream';
 
-export { Stream, Options as StreamOptions, Event as StreamEvent } from './stream';
+export { Stream, Event as StreamEvent } from './stream';
+export type { Options as StreamOptions } from './stream';
 
 export { Oneshot } from './oneshot';
 export type { OneshotOptions } from './oneshot';

@@ -1,7 +1,7 @@
 import https from 'https';
 import fs from 'fs-extra';
 import path from 'path';
-import decompress from 'decompress';
+import { unzipSync } from 'fflate';
 
 const VERSION = '3.11.4';
 
@@ -34,7 +34,14 @@ export default async targetDir => {
     await download(DOWNLOAD_URL, `/tmp/${FILE_NAME}`);
     await fs.remove(target);
     await fs.mkdir(target);
-    await decompress(`/tmp/${FILE_NAME}`, target);
+    const archive = await fs.readFile(`/tmp/${FILE_NAME}`);
+    for (const [fileName, contents] of Object.entries(unzipSync(archive))) {
+      const extractedPath = path.resolve(target, fileName);
+      if (extractedPath !== target && !extractedPath.startsWith(`${target}${path.sep}`)) {
+        throw new Error(`Refusing to extract path outside target directory: ${fileName}`);
+      }
+      await fs.outputFile(extractedPath, contents);
+    }
     await fs.chmod(path.resolve(targetDir, './protoc/bin/protoc'), '0755');
   } catch (error) {
     console.error(error);

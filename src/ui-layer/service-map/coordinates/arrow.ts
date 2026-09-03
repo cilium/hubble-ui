@@ -1,4 +1,4 @@
-import { action, computed, makeObservable, observable } from 'mobx';
+import { action, actionBound, computed, observable } from 'mobx';
 
 import { AuthType, LinkThroughput, Verdict } from '~/domain/hubble';
 import { Vec2, XY, XYWH, rounding, utils as gutils } from '~/domain/geometry';
@@ -22,7 +22,6 @@ export class AccessPointArrow extends Arrow {
 
   constructor() {
     super();
-    makeObservable(this);
   }
 
   @action
@@ -81,21 +80,21 @@ export class AccessPointArrow extends Arrow {
 
 export class ServiceMapArrow extends Arrow {
   @observable
-  public senderId: string | null = null;
+  public accessor senderId: string | null = null;
   public senderBBox: XYWH | null = null;
 
   @observable
-  public receiverId: string | null = null;
+  public accessor receiverId: string | null = null;
   public receiverBBox: XYWH | null = null;
 
   @observable
-  private _flowsInfoIndicatorCoords: XY | null = null;
+  private accessor _flowsInfoIndicatorCoords: XY | null = null;
 
   @observable
-  private _linkThroughputs: LinkThroughput[] = [];
+  private accessor _linkThroughputs: LinkThroughput[] = [];
 
   @observable
-  public accessPointArrows: Map<string, AccessPointArrow> = new Map();
+  public accessor accessPointArrows: Map<string, AccessPointArrow> = new Map();
 
   // NOTE: An offset in pixels from shifted connector coords
   public static readonly flowsIndicatorOffset = 20;
@@ -106,7 +105,6 @@ export class ServiceMapArrow extends Arrow {
 
   constructor() {
     super();
-    makeObservable(this);
   }
 
   @action
@@ -218,7 +216,7 @@ export class ServiceMapArrow extends Arrow {
     return this;
   }
 
-  @action.bound
+  @actionBound
   public computeFlowsInfoIndicatorPosition() {
     const shiftedEnd = this._points.at(-2);
     const beforeShiftedEnd = this._points.at(-3);

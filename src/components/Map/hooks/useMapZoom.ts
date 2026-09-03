@@ -5,7 +5,7 @@ import { sizes } from '~/ui/vars';
 import { XYWH } from '~/domain/geometry';
 
 export interface MapZoom {
-  ref: RefObject<SVGSVGElement>;
+  ref: RefObject<SVGSVGElement | null>;
   transform: string;
 }
 

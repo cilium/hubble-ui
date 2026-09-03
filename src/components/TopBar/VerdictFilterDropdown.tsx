@@ -1,4 +1,4 @@
-import { Menu, MenuItem, Popover } from '@blueprintjs/core';
+import { Menu, MenuItem, PopoverNext } from '@blueprintjs/core';
 import { find } from 'lodash';
 import React, { memo, useCallback } from 'react';
 import classnames from 'classnames';
@@ -62,7 +62,7 @@ export const VerdictFilterDropdown = memo<Props>(function VerdictFilterDropdown(
   );
 
   return (
-    <Popover {...popover.props} content={content}>
+    <PopoverNext {...popover.props} content={content}>
       <FilterIcon
         icon={<VerdictFiltersIcon />}
         text={getLabel()}
@@ -73,6 +73,6 @@ export const VerdictFilterDropdown = memo<Props>(function VerdictFilterDropdown(
           [css.verdictFilterAudit]: props.verdict === Verdict.Audit,
         })}
       />
-    </Popover>
+    </PopoverNext>
   );
 });

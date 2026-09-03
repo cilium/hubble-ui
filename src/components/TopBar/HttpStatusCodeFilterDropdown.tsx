@@ -1,4 +1,4 @@
-import { Button, ButtonGroup, Icon, InputGroup, Intent, Popover } from '@blueprintjs/core';
+import { Button, ButtonGroup, Icon, InputGroup, Intent, PopoverNext } from '@blueprintjs/core';
 import classnames from 'classnames';
 import React, { memo, useCallback, useEffect, useState } from 'react';
 
@@ -59,7 +59,7 @@ export const HttpStatusCodeFilterDropdown = memo<Props>(
     );
 
     return (
-      <Popover {...popover.props} content={content}>
+      <PopoverNext {...popover.props} content={content}>
         <ButtonGroup>
           <Button
             minimal
@@ -78,7 +78,7 @@ export const HttpStatusCodeFilterDropdown = memo<Props>(
             />
           )}
         </ButtonGroup>
-      </Popover>
+      </PopoverNext>
     );
   },
 );

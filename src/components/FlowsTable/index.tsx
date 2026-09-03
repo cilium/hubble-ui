@@ -1,21 +1,25 @@
 import useResizeObserver from '@react-hook/resize-observer';
 import React, { useMemo, useRef } from 'react';
-import { FixedSizeList } from 'react-window';
+import { List } from 'react-window';
 
-import { Flow } from '~/domain/flows';
+import type { Flow } from '~/domain/flows';
 import { sizes } from '~/ui';
 
-import { CommonProps, TickerEvents } from './general';
-import { useScroll, OnFlowsDiffCount } from './hooks/useScroll';
+import { TickerEvents } from './general';
+import type { CommonProps } from './general';
+import { useScroll } from './hooks/useScroll';
+import type { OnFlowsDiffCount } from './hooks/useScroll';
 import { Header } from './Header';
-import { RowRenderer, RowRendererData } from './Row';
+import { RowRenderer } from './Row';
+import type { RowRendererData } from './Row';
 
 import css from './styles.scss';
 import { observer } from 'mobx-react';
 
 export { Column, defaultVisibleColumns } from './general';
 export const DEFAULT_TS_UPDATE_DELAY = 2500;
-export { TickerEvents, OnFlowsDiffCount };
+export { TickerEvents };
+export type { OnFlowsDiffCount };
 
 export interface Props extends CommonProps {
   flows: Flow[];
@@ -45,19 +49,17 @@ export const FlowsTable = observer(function FlowsTable(props: Props) {
   return (
     <div className={css.wrapper} ref={wrapperRef}>
       <Header visibleColumns={itemData.visibleColumns} />
-      <FixedSizeList
+      <List
         {...scroll}
         className={css.table}
-        width={width}
-        height={height - sizes.flowsTableHeadHeight}
-        itemSize={sizes.flowsTableRowHeight}
-        itemCount={props.flows.length}
-        itemKey={itemKey}
-        itemData={itemData}
+        style={{ width, height: height - sizes.flowsTableHeadHeight }}
+        rowHeight={sizes.flowsTableRowHeight}
+        rowCount={props.flows.length}
+        rowKey={itemKey}
+        rowProps={itemData}
         overscanCount={Math.ceil(height / sizes.flowsTableRowHeight / 2)}
-      >
-        {RowRenderer}
-      </FixedSizeList>
+        rowComponent={RowRenderer}
+      />
     </div>
   );
 });
@@ -66,7 +68,7 @@ function itemKey(index: number, data: RowRendererData) {
   return data.flows[index].id;
 }
 
-const useSize = (target: React.RefObject<HTMLElement>) => {
+const useSize = (target: React.RefObject<HTMLElement | null>) => {
   const [size, setSize] = React.useState<DOMRect | null>(null);
 
   React.useLayoutEffect(() => {

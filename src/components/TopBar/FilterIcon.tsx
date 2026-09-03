@@ -4,7 +4,7 @@ import classnames from 'classnames';
 import css from './styles.scss';
 
 export interface Props {
-  icon?: JSX.Element | string;
+  icon?: React.JSX.Element | string;
   text?: string;
   className?: string;
   onClick?: () => void;

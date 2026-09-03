@@ -29,8 +29,6 @@ export class Controls {
     this.statusCenter = opts.statusCenter;
 
     this.setupEventHandlers();
-
-    mobx.makeObservable(this);
   }
 
   @mobx.computed

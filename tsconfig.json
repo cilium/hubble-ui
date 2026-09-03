@@ -7,20 +7,16 @@
     "target": "esnext",
     "lib": ["dom", "esnext"],
     "rootDir": "./",
-    "baseUrl": "./src",
     "outDir": "./build",
     "jsx": "react",
     "paths": {
-      "~/*": ["./*"],
-      "~backend/*": ["./../backend/*"]
+      "~/*": ["./src/*"],
+      "~backend/*": ["./backend/*"]
     },
     "types": ["node", "jest"],
-    "moduleResolution": "node",
-    "ignoreDeprecations": "6.0",
+    "moduleResolution": "bundler",
     "isolatedModules": false,
     "sourceMap": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,

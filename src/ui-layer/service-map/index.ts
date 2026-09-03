@@ -34,16 +34,16 @@ export class ServiceMap extends EventEmitter<Handlers> {
   public readonly arrows: ServiceMapArrowStrategy;
 
   @mobx.observable
-  public isTimescapeFlowsPageLoading = false;
+  public accessor isTimescapeFlowsPageLoading = false;
 
   @mobx.observable
-  public isTimescapeFlowStatsLoading = false;
+  public accessor isTimescapeFlowStatsLoading = false;
 
   @mobx.observable
-  public isFullFlowLoading = false;
+  public accessor isFullFlowLoading = false;
 
   @mobx.observable
-  public isServiceMapLogsUploading = false;
+  public accessor isServiceMapLogsUploading = false;
 
   constructor(opts: Options) {
     super();
@@ -56,8 +56,6 @@ export class ServiceMap extends EventEmitter<Handlers> {
     this.collector = new RefsCollector(this.store.currentFrame);
     this.placement = new ServiceMapPlacementStrategy(this.store.currentFrame);
     this.arrows = new ServiceMapArrowStrategy(this.store.currentFrame, this.placement);
-
-    mobx.makeObservable(this);
 
     this.setupEventHandlers();
   }
