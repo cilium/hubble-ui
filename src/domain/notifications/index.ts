@@ -1,5 +1,5 @@
 import { Status } from '~/domain/status';
-import { NoPermission } from './no-permission';
+import type { NoPermission } from './no-permission';
 
 export type AuthState = {
   invalid: boolean;

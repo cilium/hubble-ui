@@ -129,7 +129,7 @@ export default {
       {
         test: /\.ts(x?)$/,
         exclude: /node_modules/,
-        use: ['babel-loader', 'ts-loader'],
+        use: ['babel-loader'],
       },
       {
         test: /\.(bmp|gif|jpg|jpeg|png|woff|woff2|eot|ttf)$/,
@@ -158,7 +158,7 @@ export default {
   plugins: [
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-      'process.env.BLUEPRINT_NAMESPACE': JSON.stringify('bp3'),
+      'process.env.BLUEPRINT_NAMESPACE': JSON.stringify('bp6'),
     }),
     new MiniCssExtractPlugin({
       filename: 'bundle.[name].[contenthash].css',

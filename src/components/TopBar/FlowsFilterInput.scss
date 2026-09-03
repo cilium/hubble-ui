@@ -5,26 +5,26 @@
   min-width: 0;
   max-width: 720px;
 
-  :global(.bp3-popover-target) {
+  :global(.bp6-popover-target) {
     width: 100%;
   }
 
-  :global(.bp3-input-ghost) {
+  :global(.bp6-input-ghost) {
     font-size: 14px;
   }
 
-  :global(.bp3-tag-input-values) {
+  :global(.bp6-tag-input-values) {
     display: flex;
     flex-wrap: nowrap;
     overflow: hidden;
     padding-right: 5px;
   }
 
-  :global(.bp3-text-overflow-ellipsis.bp3-fill) {
+  :global(.bp6-text-overflow-ellipsis.bp6-fill) {
     overflow: visible;
   }
 
-  :global(.bp3-tag) {
+  :global(.bp6-tag) {
     padding: 0 !important;
     padding-top: 0 !important;
     padding-bottom: 0 !important;

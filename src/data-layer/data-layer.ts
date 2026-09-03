@@ -69,8 +69,6 @@ export class DataLayer extends EventEmitter<Handlers> {
 
     this.setupEventHandlers();
     this.setupDebugProps();
-
-    mobx.makeObservable(this);
   }
 
   private get commonOpts(): Options {

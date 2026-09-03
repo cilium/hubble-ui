@@ -6,8 +6,6 @@
 // rcl means `Right Center Left` (horizontal position)
 //
 // +Position.Any needs only for jest, as it doesnt recognize toPrimitive coerce
-/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-
 export class Position {
   public static readonly Top = Position.new(0b100000);
   public static readonly Middle = Position.new(0b010000);

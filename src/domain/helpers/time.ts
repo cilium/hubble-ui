@@ -5,10 +5,10 @@ import gdurpb from 'google-protobuf/google/protobuf/duration_pb';
 import * as durpb from '~backend/proto/google/protobuf/duration_pb';
 
 import * as misc from '~/domain/misc';
-import { Time } from '~/domain/hubble';
+import type { Time } from '~/domain/hubble';
 import { toCustomUnitsString } from '~/utils/numbers';
 
-export { Time };
+export type { Time };
 
 export const compareTimes = (lhs: Time | null, rhs: Time | null): number => {
   if (rhs == null || lhs == null) return 0;

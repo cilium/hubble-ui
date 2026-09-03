@@ -1,19 +1,18 @@
-import { action, computed, observable, makeObservable } from 'mobx';
+import { actionBound, computed, observable } from 'mobx';
 
 import { XYWH, WH, XY } from '~/domain/geometry';
 
 export abstract class PlacementStrategy {
   @observable
-  protected cardsWHs: Map<string, WH>;
+  protected accessor cardsWHs: Map<string, WH>;
 
   @observable
-  protected cardsXYs: Map<string, XY>;
+  protected accessor cardsXYs: Map<string, XY>;
 
   @observable
-  protected _accessPointCoords: Map<string, XY>;
+  protected accessor _accessPointCoords: Map<string, XY>;
 
   constructor() {
-    makeObservable(this);
     this.cardsWHs = new Map();
     this.cardsXYs = new Map();
 
@@ -22,24 +21,24 @@ export abstract class PlacementStrategy {
 
   public abstract get bbox(): XYWH;
 
-  @action.bound
+  @actionBound
   public reset() {
     this.cardsWHs.clear();
     this.cardsXYs.clear();
     this._accessPointCoords.clear();
   }
 
-  @action.bound
+  @actionBound
   public getCardCoords(cardId: string): XY | null {
     return this.cardsXYs.get(cardId) || null;
   }
 
-  @action.bound
+  @actionBound
   public getCardDimensions(cardId: string): WH | null {
     return this.cardsWHs.get(cardId) || null;
   }
 
-  @action.bound
+  @actionBound
   public getCardXYWH(cardId: string): XYWH | null {
     const xy = this.getCardCoords(cardId);
     if (xy == null) return null;
@@ -50,7 +49,7 @@ export abstract class PlacementStrategy {
     return XYWH.fromParts(xy, wh);
   }
 
-  @action.bound
+  @actionBound
   public getCardXYWHOrDefault(cardId: string): XYWH {
     const real = this.getCardXYWH(cardId);
     if (real != null) return real;
@@ -58,7 +57,7 @@ export abstract class PlacementStrategy {
     return this.defaultCardXYWH();
   }
 
-  @action.bound
+  @actionBound
   public setCardWH(cardId: string, wh: WH) {
     this.cardsWHs.set(cardId, {
       w: wh.w,
@@ -66,12 +65,12 @@ export abstract class PlacementStrategy {
     });
   }
 
-  @action.bound
+  @actionBound
   public defaultCardXYWH(): XYWH {
     return new XYWH(-100500, -100500, this.defaultCardW, this.defaultCardH);
   }
 
-  @action.bound
+  @actionBound
   public setCardWidth(cardId: string, width: number) {
     const cardWH = this.cardsWHs.get(cardId);
 
@@ -81,7 +80,7 @@ export abstract class PlacementStrategy {
     });
   }
 
-  @action.bound
+  @actionBound
   public setCardHeight(cardId: string, height: number, eps?: number): boolean {
     const cardWH = this.cardsWHs.get(cardId);
 
@@ -104,7 +103,7 @@ export abstract class PlacementStrategy {
     }
   }
 
-  @action.bound
+  @actionBound
   public setCardHeights(coords: { id: string; bbox: XYWH }[], eps?: number): number {
     let nupdated = 0;
 
@@ -116,7 +115,7 @@ export abstract class PlacementStrategy {
     return nupdated;
   }
 
-  @action.bound
+  @actionBound
   public setAccessPointCoords(apId: string, xy: XY, eps?: number): boolean {
     if (eps != null) {
       const current = this._accessPointCoords.get(apId);
@@ -133,7 +132,7 @@ export abstract class PlacementStrategy {
     return true;
   }
 
-  @action.bound
+  @actionBound
   public setAccessPointsCoords(coords: { id: string; bbox: XYWH }[], eps?: number): number {
     let nupdated = 0;
 

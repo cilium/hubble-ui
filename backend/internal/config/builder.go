@@ -58,7 +58,7 @@ func (b *ConfigBuilder) initLogger() error {
 	}
 
 	if debugLogsEnabled.Value {
-		logging.SetLogLevelToDebug()
+		logging.SetLogLevel(slog.LevelDebug)
 		b.logger.Debug("debug logs enabled")
 	}
 

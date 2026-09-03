@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { action, observable, computed, makeObservable } from 'mobx';
+import { actionBound, observable, computed } from 'mobx';
 
 import { AbstractCard } from '~/domain/cards';
 import { HubbleService, Workload } from '~/domain/hubble';
@@ -23,11 +23,11 @@ export class ServiceCard extends AbstractCard {
   }
 
   @observable
-  private _accessPoints: Map<string, ServiceEndpoint>;
+  private accessor _accessPoints: Map<string, ServiceEndpoint>;
   private _labelsProps: LabelsProps | null;
 
   @observable
-  private _identity: number;
+  private accessor _identity: number;
 
   public service: HubbleService;
 
@@ -38,11 +38,9 @@ export class ServiceCard extends AbstractCard {
     this._labelsProps = null;
     this._accessPoints = new Map();
     this._identity = service.identity;
-
-    makeObservable(this);
   }
 
-  @action.bound
+  @actionBound
   public setIdentity(identity: number): boolean {
     const isChanged = this._identity !== identity;
     this._identity = identity;
@@ -50,7 +48,7 @@ export class ServiceCard extends AbstractCard {
     return isChanged;
   }
 
-  @action.bound
+  @actionBound
   public upsertAccessPoint(ap: ServiceEndpoint) {
     const existing = this._accessPoints.get(ap.id);
     if (existing == null) {
@@ -61,13 +59,13 @@ export class ServiceCard extends AbstractCard {
     existing.update(ap);
   }
 
-  @action.bound
+  @actionBound
   public upsertAccessPointFromLink(link: Link) {
     const ap = ServiceEndpoint.fromLink(link.hubbleLink);
     return this.upsertAccessPoint(ap);
   }
 
-  @action.bound
+  @actionBound
   public updateAccessPointsL7(l7endpoints: Connections<L7Endpoint>) {
     l7endpoints.forEach((kinds, port) => {
       const apId = ServiceEndpoint.generateId(this.service.id, port);
@@ -81,7 +79,7 @@ export class ServiceCard extends AbstractCard {
     });
   }
 
-  @action.bound
+  @actionBound
   public dropAccessPoints(): this {
     this._accessPoints = new Map();
     return this;

@@ -1,4 +1,4 @@
-import { observable, action, makeObservable } from 'mobx';
+import { observable, actionBound } from 'mobx';
 
 import { InteractionStore } from '~/store/stores/interaction';
 import { ServiceStore } from '~/store/stores/service';
@@ -38,16 +38,16 @@ export type FlushOptions = {
 
 export class StoreFrame extends EventEmitter<Handlers> {
   @observable
-  public interactions: InteractionStore;
+  public accessor interactions: InteractionStore;
 
   @observable
-  public services: ServiceStore;
+  public accessor services: ServiceStore;
 
   @observable
-  public namespaces: NamespaceStore;
+  public accessor namespaces: NamespaceStore;
 
   @observable
-  public controls: ControlStore;
+  public accessor controls: ControlStore;
 
   public static empty(): StoreFrame {
     return new StoreFrame(
@@ -70,8 +70,6 @@ export class StoreFrame extends EventEmitter<Handlers> {
   ) {
     super();
 
-    makeObservable(this);
-
     this.controls = controls;
     this.interactions = interactions;
     this.services = services;
@@ -87,7 +85,7 @@ export class StoreFrame extends EventEmitter<Handlers> {
     return this;
   }
 
-  @action.bound
+  @actionBound
   public flush(opts?: FlushOptions) {
     opts = opts || { namespaces: false };
 
@@ -102,19 +100,19 @@ export class StoreFrame extends EventEmitter<Handlers> {
     this.emit(EventKind.Flushed, opts);
   }
 
-  @action.bound
+  @actionBound
   public applyServiceChange(ch: ServiceChange) {
     this.emit(EventKind.ServiceChange, [ch]);
     this.services.applyServiceChange(ch.service, ch.change);
   }
 
-  @action.bound
+  @actionBound
   public applyServiceChanges(ch: ServiceChange[]) {
     this.services.applyServiceChanges(ch);
     this.emit(EventKind.ServiceChange, ch);
   }
 
-  @action.bound
+  @actionBound
   public applyServiceLinkChanges(links: ServiceLinkChange[]) {
     links.forEach(link => {
       this.interactions.applyLinkChange(link.serviceLink, link.change);
@@ -124,7 +122,7 @@ export class StoreFrame extends EventEmitter<Handlers> {
     this.emit(EventKind.LinksChanged, links);
   }
 
-  @action.bound
+  @actionBound
   public addFlows(flows: Flow[], ...args: any[]) {
     const addedStats = this.addFlowsInner(flows, ...args);
 
@@ -132,7 +130,7 @@ export class StoreFrame extends EventEmitter<Handlers> {
     return addedStats;
   }
 
-  @action.bound
+  @actionBound
   private addFlowsInner(flows: Flow[], ...args: any[]) {
     const addedStats = this.interactions.addFlows(flows, ...args);
 
@@ -143,7 +141,7 @@ export class StoreFrame extends EventEmitter<Handlers> {
     return addedStats;
   }
 
-  @action.bound
+  @actionBound
   private updateServiceEndpoints() {
     this.interactions.l7endpoints.forEach((ports, serviceId) => {
       const card = this.services.cardsMap.get(serviceId);
@@ -153,29 +151,29 @@ export class StoreFrame extends EventEmitter<Handlers> {
     });
   }
 
-  @action.bound
+  @actionBound
   upsertNamespaces(nsd: NamespaceDescriptor[]) {
     return this.namespaces.add(nsd);
   }
 
-  @action.bound
+  @actionBound
   setServices(services: HubbleService[]) {
     this.services.set(services);
 
     this.emit(EventKind.ServicesSet, services);
   }
 
-  @action.bound
+  @actionBound
   moveServices(to: StoreFrame): number {
     return this.services.moveTo(to.services);
   }
 
-  @action.bound
+  @actionBound
   moveServiceLinks(to: StoreFrame) {
     return this.interactions.moveTo(to.interactions);
   }
 
-  @action.bound
+  @actionBound
   applyFrame(rhs: StoreFrame, fltrs?: Filters): this {
     const filters = fltrs ?? Filters.default();
 
@@ -210,20 +208,20 @@ export class StoreFrame extends EventEmitter<Handlers> {
     return this;
   }
 
-  @action.bound
+  @actionBound
   setFilters(f: Filters) {
     this.controls.setFilters(f);
     this.namespaces.setCurrent(f.namespace);
   }
 
-  @action.bound
+  @actionBound
   public replaceServiceMap(sm: ServiceMap, opts?: FlushOptions) {
     this.flush(opts);
     this.interactions.addLinks(sm.linksList);
     this.services.replaceWithServiceMap(sm);
   }
 
-  @action.bound
+  @actionBound
   public extendServiceMap(sm: ServiceMap) {
     console.log(`Frame extendServiceMap`);
     sm.log();

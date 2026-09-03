@@ -1,4 +1,4 @@
-import { Checkbox, Menu, MenuItem, Popover } from '@blueprintjs/core';
+import { Checkbox, Menu, MenuItem, PopoverNext } from '@blueprintjs/core';
 import React from 'react';
 import classnames from 'classnames';
 
@@ -76,7 +76,7 @@ export const VisualFiltersDropdown = observer(function VisualFiltersDropdown(pro
   );
 
   return (
-    <Popover {...popover.props} content={content}>
+    <PopoverNext {...popover.props} content={content}>
       <FilterIcon
         icon={<VisualFiltersIcon />}
         text="Visual"
@@ -85,6 +85,6 @@ export const VisualFiltersDropdown = observer(function VisualFiltersDropdown(pro
           [css.visualFilterEnabled]: enabled,
         })}
       />
-    </Popover>
+    </PopoverNext>
   );
 });

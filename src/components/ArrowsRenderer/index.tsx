@@ -16,9 +16,9 @@ export interface ArrowRendererProps {
 }
 
 export type AbstractArrowsRendererProps = Omit<Props, 'renderer'>;
-export type AbstractArrowsRenderer = (_: AbstractArrowsRendererProps) => JSX.Element | null;
+export type AbstractArrowsRenderer = (_: AbstractArrowsRendererProps) => React.JSX.Element | null;
 
-export type ArrowRenderer = (_: ArrowRendererProps) => JSX.Element | null;
+export type ArrowRenderer = (_: ArrowRendererProps) => React.JSX.Element | null;
 
 export type Props = {
   strategy: ArrowStrategy;

@@ -1,6 +1,6 @@
 import _ from 'lodash';
-import { KV } from '~/domain/misc';
-export { KV };
+import type { KV } from '~/domain/misc';
+export type { KV };
 
 export const NamespaceLabelKey = 'io.kubernetes.pod.namespace';
 

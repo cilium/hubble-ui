@@ -646,6 +646,10 @@ export interface SCTP {
      * @generated from protobuf field: uint32 destination_port = 2
      */
     destinationPort: number;
+    /**
+     * @generated from protobuf field: flow.SCTPChunkType chunk_type = 3
+     */
+    chunkType: SCTPChunkType;
 }
 /**
  * @generated from protobuf message flow.ICMPv4
@@ -1856,6 +1860,39 @@ export enum L7FlowType {
     SAMPLE = 3
 }
 /**
+ * @generated from protobuf enum flow.SCTPChunkType
+ */
+export enum SCTPChunkType {
+    /**
+     * @generated from protobuf enum value: UNSUPPORTED = 0;
+     */
+    UNSUPPORTED = 0,
+    /**
+     * @generated from protobuf enum value: INIT = 1;
+     */
+    INIT = 1,
+    /**
+     * @generated from protobuf enum value: INIT_ACK = 2;
+     */
+    INIT_ACK = 2,
+    /**
+     * @generated from protobuf enum value: SHUTDOWN = 3;
+     */
+    SHUTDOWN = 3,
+    /**
+     * @generated from protobuf enum value: SHUTDOWN_ACK = 4;
+     */
+    SHUTDOWN_ACK = 4,
+    /**
+     * @generated from protobuf enum value: SHUTDOWN_COMPLETE = 5;
+     */
+    SHUTDOWN_COMPLETE = 5,
+    /**
+     * @generated from protobuf enum value: ABORT = 6;
+     */
+    ABORT = 6
+}
+/**
  * @generated from protobuf enum flow.IPVersion
  */
 export enum IPVersion {
@@ -2264,7 +2301,16 @@ export enum DropReason {
      *
      * @generated from protobuf enum value: DROP_PUNT_PROXY = 205;
      */
-    DROP_PUNT_PROXY = 205
+    DROP_PUNT_PROXY = 205,
+    /**
+     * A non-first IP fragment from the world was dropped because its first
+     * fragment (carrying the L4 ports) was never seen, so host policy cannot
+     * be evaluated. Split from DROP_FRAG_NOT_FOUND to distinguish ambient
+     * external fragments from in-cluster fragment-tracking bugs.
+     *
+     * @generated from protobuf enum value: DROP_FRAG_NOT_FOUND_WORLD = 207;
+     */
+    DROP_FRAG_NOT_FOUND_WORLD = 207
 }
 /**
  * @generated from protobuf enum flow.TrafficDirection
@@ -4053,13 +4099,15 @@ class SCTP$Type extends MessageType<SCTP> {
     constructor() {
         super("flow.SCTP", [
             { no: 1, name: "source_port", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
-            { no: 2, name: "destination_port", kind: "scalar", T: 13 /*ScalarType.UINT32*/ }
+            { no: 2, name: "destination_port", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
+            { no: 3, name: "chunk_type", kind: "enum", T: () => ["flow.SCTPChunkType", SCTPChunkType] }
         ]);
     }
     create(value?: PartialMessage<SCTP>): SCTP {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.sourcePort = 0;
         message.destinationPort = 0;
+        message.chunkType = 0;
         if (value !== undefined)
             reflectionMergePartial<SCTP>(this, message, value);
         return message;
@@ -4074,6 +4122,9 @@ class SCTP$Type extends MessageType<SCTP> {
                     break;
                 case /* uint32 destination_port */ 2:
                     message.destinationPort = reader.uint32();
+                    break;
+                case /* flow.SCTPChunkType chunk_type */ 3:
+                    message.chunkType = reader.int32();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -4093,6 +4144,9 @@ class SCTP$Type extends MessageType<SCTP> {
         /* uint32 destination_port = 2; */
         if (message.destinationPort !== 0)
             writer.tag(2, WireType.Varint).uint32(message.destinationPort);
+        /* flow.SCTPChunkType chunk_type = 3; */
+        if (message.chunkType !== 0)
+            writer.tag(3, WireType.Varint).int32(message.chunkType);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

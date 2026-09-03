@@ -1,4 +1,4 @@
-import { action, computed, observable, makeObservable } from 'mobx';
+import { actionBound, computed, observable } from 'mobx';
 
 import { MapUtils } from '~/utils/iter-tools/map';
 import { Vec2 } from '~/domain/geometry';
@@ -21,43 +21,41 @@ export type CombinedAccessPointArrows = Map<string, Map<string, AccessPointArrow
 // NOTE: ServiceMap
 export class ServiceMapArrowStrategy extends ArrowStrategy {
   @observable
-  private placement: ServiceMapPlacementStrategy;
+  private accessor placement: ServiceMapPlacementStrategy;
 
   @observable
-  private interactions: InteractionStore;
+  private accessor interactions: InteractionStore;
 
   @observable
-  private services: ServiceStore;
+  private accessor services: ServiceStore;
 
   @observable
-  private controls: ControlStore;
+  private accessor controls: ControlStore;
 
   // NOTE: { connectorId -> { apArrowId -> AccessPointArrow }}
   @observable
-  private _combinedAccessPointArrows: CombinedAccessPointArrows = new Map();
+  private accessor _combinedAccessPointArrows: CombinedAccessPointArrows = new Map();
 
   constructor(frame: StoreFrame, placement: ServiceMapPlacementStrategy) {
     super();
-    makeObservable(this);
-
     this.interactions = frame.interactions;
     this.services = frame.services;
     this.controls = frame.controls;
     this.placement = placement;
   }
 
-  @action.bound
+  @actionBound
   public rebuild() {
     this.rebuildArrows();
   }
 
-  @action.bound
+  @actionBound
   public clear() {
     this._arrows.clear();
     this._combinedAccessPointArrows.clear();
   }
 
-  @action.bound
+  @actionBound
   private rebuildArrows() {
     this.clear();
 

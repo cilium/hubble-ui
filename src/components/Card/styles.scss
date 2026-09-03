@@ -13,7 +13,7 @@
     transform ($pt-transition-duration * 2) $pt-transition-ease,
     box-shadow ($pt-transition-duration * 2) $pt-transition-ease;
 
-  :global(button.bp4-button) {
+  :global(button.bp6-button) {
     margin: 7px 20px 14px;
   }
 }

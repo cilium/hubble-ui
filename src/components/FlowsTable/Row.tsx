@@ -1,10 +1,11 @@
 import React, { memo, useCallback } from 'react';
-import { ListChildComponentProps, areEqual } from 'react-window';
+import { RowComponentProps } from 'react-window';
 import classnames from 'classnames';
 
-import { Flow } from '~/domain/flows';
+import type { Flow } from '~/domain/flows';
 
-import { CommonProps, Column } from './general';
+import { Column } from './general';
+import type { CommonProps } from './general';
 import { Cell } from './Cell';
 
 import css from './styles.scss';
@@ -23,16 +24,22 @@ export interface RowRendererData {
   onSelectFlow?: RowProps['onSelect'];
 }
 
-export function RowRenderer({ index, style, data }: ListChildComponentProps) {
-  const props = data as RowRendererData;
-  const flow = props.flows[index];
+export function RowRenderer({
+  index,
+  style,
+  flows,
+  visibleColumns,
+  selectedFlow,
+  onSelectFlow,
+}: RowComponentProps<RowRendererData>) {
+  const flow = flows[index];
   return (
     <Row
       style={style}
       flow={flow}
-      visibleColumns={props.visibleColumns}
-      isSelected={props.selectedFlow?.id === flow.id}
-      onSelect={props.onSelectFlow}
+      visibleColumns={visibleColumns}
+      isSelected={selectedFlow?.id === flow.id}
+      onSelect={onSelectFlow}
     />
   );
 }
@@ -74,4 +81,4 @@ export const Row = memo<RowProps>(function FlowsTableRow(props) {
       )}
     </div>
   );
-}, areEqual);
+});

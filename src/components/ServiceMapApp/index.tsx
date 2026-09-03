@@ -29,7 +29,7 @@ import css from './styles.scss';
 export const ServiceMapApp = observer(function ServiceMapApp() {
   const { store, ui, dataLayer } = useApplication();
 
-  const onFlowsDiffCount = useRef<(diff: number) => void>();
+  const onFlowsDiffCount = useRef<((diff: number) => void) | null>(null);
   const [mapVisibleHeight, setMapVisibleHeight] = useState<number | null>(null);
   const [mapWasDragged, setMapWasDragged] = useState(false);
   const flowsTableColumns = useFlowsTableColumns();

@@ -1,4 +1,4 @@
-import { PopoverProps } from '@blueprintjs/core';
+import { PopoverNextProps, PopoverProps } from '@blueprintjs/core';
 import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 
 export function usePopover({
@@ -8,7 +8,9 @@ export function usePopover({
 }: {
   preventDefault?: boolean;
   stopPropagation?: boolean;
-  popoverProps?: PopoverProps;
+  // Select still exposes the legacy Popover prop shape while rendering
+  // PopoverNext internally, so keep this extension point compatible with it.
+  popoverProps?: Partial<PopoverProps>;
 } = {}) {
   const [portalContainer, setPortalContainer] = useState<HTMLElement>();
   const [popoverDiv, setPopoverDiv] = useState<HTMLElement | null>(null);
@@ -67,9 +69,11 @@ export function usePopover({
       isOpen,
       onClose,
       portalContainer,
-      boundary: 'window',
+      // PopoverNext uses Floating UI, where the viewport is a root boundary
+      // rather than a Popper boundary named "window".
+      rootBoundary: 'viewport',
       popoverRef: setPopoverDiv,
       ...popoverProps,
-    } as PopoverProps,
+    } as Omit<PopoverNextProps, 'boundary'>,
   };
 }

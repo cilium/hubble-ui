@@ -1,4 +1,4 @@
-export { TimerId } from './common';
+export type { TimerId } from './common';
 
 export { Option } from './option';
 export { Result } from './result';

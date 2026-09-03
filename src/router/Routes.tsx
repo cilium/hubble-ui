@@ -8,7 +8,7 @@ import { extractPathname } from './utils';
 
 export type Props = {
   router: Router;
-  RootComponent: JSX.Element;
+  RootComponent: React.JSX.Element;
 };
 
 export const Routes = function Routes(props: Props) {
