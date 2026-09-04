@@ -208,10 +208,6 @@ export class ServiceCard extends AbstractCard {
 
   @computed
   public get caption(): string {
-    if (this.isWorld && this.domain) {
-      return this.domain;
-    }
-
     if (this.isIngress) return 'Ingress';
 
     return this.appName;
