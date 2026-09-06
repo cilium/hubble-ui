@@ -142,7 +142,7 @@ export class ControlStore {
   }
 
   public areSomeFilterEntriesEnabled(filterEntries: FilterEntry[]): boolean {
-    const currentKeys = new Set(this.filteredFlowFilters.map(fe => fe.toString()));
+    const currentKeys = new Set(this.flowFilters.map(fe => fe.toString()));
 
     for (const fe of filterEntries) {
       const key = fe.toString();
@@ -151,10 +151,6 @@ export class ControlStore {
     }
 
     return false;
-  }
-
-  public get filteredFlowFilters() {
-    return this.flowFilters.filter(f => !f.isTCPFlag);
   }
 
   public get activeVerdict(): Verdict | null {

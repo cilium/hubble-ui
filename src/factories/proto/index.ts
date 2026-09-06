@@ -6,6 +6,7 @@ import { EventParams, EventParamsSet } from '~/api/general/event-stream';
 import { ReservedLabel, SpecialLabel } from '~/domain/labels';
 import { Filters, FilterEntry, FilterKind } from '~/domain/filtering';
 import { CiliumEventTypes } from '~/domain/cilium';
+import { TCPFlagName } from '~/domain/hubble';
 import * as helpers from '~/domain/helpers';
 
 export class ProtoFactory {
@@ -293,6 +294,14 @@ export class ProtoFactory {
           fromInside.sourceWorkload.push(workload);
           break;
         }
+        case FilterKind.TCPFlag: {
+          const tcpFlags = ProtoFactory.tcpFlagsFromFilterEntry(filter);
+          if (tcpFlags == null) break;
+
+          toInside.tcpFlags.push(tcpFlags);
+          fromInside.tcpFlags.push(tcpFlags);
+          break;
+        }
       }
 
       wlFilters.push(toInside, fromInside);
@@ -347,12 +356,47 @@ export class ProtoFactory {
           fromInside.destinationWorkload.push(workload);
           break;
         }
+        case FilterKind.TCPFlag: {
+          const tcpFlags = ProtoFactory.tcpFlagsFromFilterEntry(filter);
+          if (tcpFlags == null) break;
+
+          toInside.tcpFlags.push(tcpFlags);
+          fromInside.tcpFlags.push(tcpFlags);
+          break;
+        }
       }
 
       wlFilters.push(fromInside, toInside);
     }
 
     return wlFilters;
+  }
+
+  // NOTE: protobuf-ts mangles the uppercase proto field names (FIN, SYN, ...)
+  // NOTE: into this form, so the mapping cannot be derived from the flag name.
+  private static readonly tcpFlagProtoFields: Record<TCPFlagName, keyof flowpb.TCPFlags> = {
+    fin: 'fIN',
+    syn: 'sYN',
+    rst: 'rST',
+    psh: 'pSH',
+    ack: 'aCK',
+    urg: 'uRG',
+    ece: 'eCE',
+    cwr: 'cWR',
+    ns: 'nS',
+  };
+
+  public static tcpFlagsFromFilterEntry(fe: FilterEntry): flowpb.TCPFlags | null {
+    if (!fe.isTCPFlag || !fe.query) return null;
+
+    const flag = fe.query.toLowerCase() as TCPFlagName;
+    const field = ProtoFactory.tcpFlagProtoFields[flag];
+    if (field == null) return null;
+
+    const tcpFlags = flowpb.TCPFlags.create();
+    tcpFlags[field] = true;
+
+    return tcpFlags;
   }
 
   public static workloadFromFilterEntry(fe: FilterEntry): flowpb.Workload | null {
