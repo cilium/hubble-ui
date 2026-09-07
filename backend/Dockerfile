@@ -1,10 +1,10 @@
-# syntax=docker/dockerfile:1.2
+# syntax=docker/dockerfile:1.27
 
 # Copyright 2021 Authors of Cilium
 # SPDX-License-Identifier: Apache-2.0
 
 # skopeo inspect --override-os linux --override-arch amd64 docker://docker.io/library/golang:1.27.1-trixie | jq -r '.Digest'
-ARG GOLANG_IMAGE=docker.io/library/golang:1.27.1-trixie@sha256:137ca8442e368f5f5bb4d4f84d8cc1f6c2d898edf8a380459eb407f89d149b0d
+ARG GOLANG_IMAGE=docker.io/library/golang:1.27.1-trixie@sha256:9baa6b4187bbb98d240372a8a235ac0bb6b5ddd52bba1431dc2f7c0705862728
 
 # $ skopeo inspect --override-os linux docker://gcr.io/distroless/static-debian13:nonroot | jq -r '.Digest'
 # distroless images are signed by cosign. You should verify the image with the
