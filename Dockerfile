@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.2
+# syntax=docker/dockerfile:1.27
 
 # Copyright 2021 Authors of Cilium
 # SPDX-License-Identifier: Apache-2.0
@@ -29,7 +29,7 @@ ARG NODE_ENV=production
 RUN npm run build
 
 # skopeo inspect --override-os linux --override-arch amd64 docker://docker.io/nginxinc/nginx-unprivileged:1.31.3-alpine3.24-slim | jq -r '.Digest'
-FROM docker.io/nginxinc/nginx-unprivileged:1.31.3-alpine3.24-slim@sha256:d61d7ef52430df468e74ed6ee6e914429b80e20ba988e3176278a73165f876cf AS release
+FROM docker.io/nginxinc/nginx-unprivileged:1.31.5-alpine3.24-slim@sha256:c94666682d7ecbfa0a1767fbe882cd1d82509333d15716c765f42bbef0d3809f AS release
 USER root
 RUN apk upgrade --no-cache
 USER 101
