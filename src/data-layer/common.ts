@@ -12,6 +12,8 @@ export type Options = {
 export type StorageParameters = {
   isHostShown: boolean;
   isKubeDNSShown: boolean;
+  isRemoteNodeShown: boolean;
+  isPrometheusAppShown: boolean;
   isAggregationOff: boolean | null;
   dataMode: DataMode | null;
 };
