@@ -9,20 +9,21 @@ import (
 )
 
 type PropGetters struct {
-	GopsEnabled              EnvVarGetter[bool]
-	GopsPort                 EnvVarGetter[uint16]
-	CorsEnabled              EnvVarGetter[bool]
-	DebugLogs                EnvVarGetter[bool]
-	RelayAddr                EnvVarGetter[string]
-	UIServerPort             EnvVarGetter[uint16]
-	TLSToRelayEnabled        EnvVarGetter[bool]
-	TLSToRelayServerName     EnvVarGetter[string]
-	TLSToRelayCACertFiles    EnvVarGetter[string]
-	TLSToRelayClientCertFile EnvVarGetter[string]
-	TLSToRelayClientKeyFile  EnvVarGetter[string]
-	ClientPollDelays         []time.Duration
-	E2ETestModeEnabled       EnvVarGetter[bool]
-	E2ELogfilesBasepath      EnvVarGetter[string]
+	GopsEnabled                  EnvVarGetter[bool]
+	GopsPort                     EnvVarGetter[uint16]
+	CorsEnabled                  EnvVarGetter[bool]
+	DebugLogs                    EnvVarGetter[bool]
+	RelayAddr                    EnvVarGetter[string]
+	UIServerPort                 EnvVarGetter[uint16]
+	TLSToRelayEnabled            EnvVarGetter[bool]
+	TLSToRelayServerName         EnvVarGetter[string]
+	TLSToRelayCACertFiles        EnvVarGetter[string]
+	TLSToRelayClientCertFile     EnvVarGetter[string]
+	TLSToRelayClientKeyFile      EnvVarGetter[string]
+	ClientPollDelays             []time.Duration
+	E2ETestModeEnabled           EnvVarGetter[bool]
+	E2ELogfilesBasepath          EnvVarGetter[string]
+	ServerEnableHTTP2Unencrypted EnvVarGetter[bool]
 }
 
 type EnvVarGetter[T any] func() EnvVarResult[T]

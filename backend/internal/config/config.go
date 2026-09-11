@@ -47,6 +47,8 @@ type Config struct {
 	TLSRelayClientKeyFile  string
 
 	relayClientConfig certloader.ClientConfigBuilder
+
+	ServerEnableHTTP2Unencrypted bool
 }
 
 func New(log *slog.Logger, propGetters PropGetters) *ConfigBuilder {
