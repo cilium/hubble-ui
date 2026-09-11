@@ -156,7 +156,7 @@ export const ServiceMapApp = observer(function ServiceMapApp() {
       onVerdictChange={v => ui.controls.toggleVerdict(v)}
       selectedHttpStatus={store.controls.httpStatus}
       onHttpStatusChange={store.controls.setHttpStatus}
-      flowFilters={store.controls.filteredFlowFilters}
+      flowFilters={store.controls.flowFilters}
       onChangeFlowFilters={ff => ui.controls.setFlowFilters(ff)}
       showHost={ui.controls.isHostShown}
       onShowHostToggle={() => ui.controls.toggleShowHost()}
