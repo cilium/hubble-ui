@@ -11,7 +11,7 @@ ARG GOLANG_IMAGE=docker.io/library/golang:1.27.1-trixie@sha256:9baa6b4187bbb98d2
 # following commands:
 # $ docker pull gcr.io/distroless/static-debian13:nonroot
 # $ cosign verify gcr.io/distroless/static-debian13:nonroot --certificate-oidc-issuer https://accounts.google.com --certificate-identity keyless@distroless.iam.gserviceaccount.com
-ARG BASE_IMAGE=gcr.io/distroless/static-debian13:nonroot@sha256:1c2c046bc09ed40fad370b599a0b1ae7987f55b01e247cf27a7c27cd97e5bbc7
+ARG BASE_IMAGE=gcr.io/distroless/static-debian13:nonroot@sha256:e2e927ec666bae08560abb3c55d0659eceabb657f56b6782ab500a9fc7f555e3
 
 FROM --platform=${BUILDPLATFORM} ${GOLANG_IMAGE} as app-build
 WORKDIR /app
