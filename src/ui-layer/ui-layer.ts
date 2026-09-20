@@ -179,6 +179,8 @@ export class UILayer {
     // of the app.
     this.store.controls.setShowHost(storageParams.isHostShown);
     this.store.controls.setShowKubeDns(storageParams.isKubeDNSShown);
+    this.store.controls.setShowRemoteNode(storageParams.isRemoteNodeShown);
+    this.store.controls.setShowPrometheusApp(storageParams.isPrometheusAppShown);
     this.store.controls.setHttpStatus(routeParams.httpStatus);
     this.store.controls.setFlowFilters(routeParams.flowFilters);
     this.store.controls.setVerdicts(routeParams.verdicts);
