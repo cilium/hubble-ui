@@ -17,7 +17,11 @@ export interface HubbleFlow {
   readonly type: FlowType;
   readonly nodeName: string;
   readonly sourceNamesList: Array<string>;
+  // Names whose DNS entries have expired but are still used by an open
+  // connection, so they may be stale.
+  readonly sourceNamesZombieList: Array<string>;
   readonly destinationNamesList: Array<string>;
+  readonly destinationNamesZombieList: Array<string>;
   readonly l7?: Layer7;
   readonly reply?: boolean;
   readonly eventType?: CiliumEventType;
