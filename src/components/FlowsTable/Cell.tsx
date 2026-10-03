@@ -10,6 +10,7 @@ import { httpStatus } from '~/domain/http';
 import * as helpers from '~/domain/helpers';
 
 import { Column } from './general';
+import { ExpiredDnsMarker } from './ExpiredDnsMarker';
 
 import css from './styles.scss';
 
@@ -52,6 +53,19 @@ export const Cell = observer(function FlowsTableCell(props: CellProps) {
       return <div className={css.cell}>{props.flow.destinationIp}</div>;
     }
     case Column.DstService: {
+      const expiredDns = props.flow.destinationDns
+        ? null
+        : props.flow.destinationNamesZombieList[0];
+
+      if (expiredDns) {
+        return (
+          <div className={css.cell}>
+            {expiredDns}
+            <ExpiredDnsMarker />
+          </div>
+        );
+      }
+
       const appName = props.flow.destinationDns
         ? props.flow.destinationDns
         : (props.flow.destinationIdentityName ?? '—');
