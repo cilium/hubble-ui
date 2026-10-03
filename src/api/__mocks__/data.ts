@@ -470,10 +470,12 @@ export const flows: HubbleFlow[] = range(1000).map((): HubbleFlow => {
       podName: `loader-${Math.random() * 10}`,
     },
     destinationNamesList: [],
+    destinationNamesExpiredList: [],
     dropReason: 0,
     nodeName: '',
     reply: false,
     sourceNamesList: [],
+    sourceNamesExpiredList: [],
     summary: '',
     type: FlowType.L34,
     l4: {
