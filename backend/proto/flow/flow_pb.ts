@@ -113,11 +113,29 @@ export interface Flow {
      */
     sourceNames: string[];
     /**
+     * Expired names the source IP can have. These are names whose DNS entries
+     * have expired, but whose IP is still in use by a connection that outlived
+     * the DNS TTL, so the name may be stale. Names listed in source_names are
+     * not repeated here.
+     *
+     * @generated from protobuf field: repeated string source_names_expired = 44
+     */
+    sourceNamesExpired: string[];
+    /**
      * all names the destination IP can have.
      *
      * @generated from protobuf field: repeated string destination_names = 14
      */
     destinationNames: string[];
+    /**
+     * Expired names the destination IP can have. These are names whose DNS
+     * entries have expired, but whose IP is still in use by a connection that
+     * outlived the DNS TTL, so the name may be stale. Names listed in
+     * destination_names are not repeated here.
+     *
+     * @generated from protobuf field: repeated string destination_names_expired = 45
+     */
+    destinationNamesExpired: string[];
     /**
      * L7 information. This field is set if and only if FlowType is L7.
      *
@@ -2823,7 +2841,9 @@ class Flow$Type extends MessageType<Flow> {
             { no: 11, name: "node_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 37, name: "node_labels", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 13, name: "source_names", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 44, name: "source_names_expired", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 14, name: "destination_names", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 45, name: "destination_names_expired", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 15, name: "l7", kind: "message", T: () => Layer7 },
             { no: 16, name: "reply", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 19, name: "event_type", kind: "message", T: () => CiliumEventType },
@@ -2864,7 +2884,9 @@ class Flow$Type extends MessageType<Flow> {
         message.nodeName = "";
         message.nodeLabels = [];
         message.sourceNames = [];
+        message.sourceNamesExpired = [];
         message.destinationNames = [];
+        message.destinationNamesExpired = [];
         message.reply = false;
         message.trafficDirection = 0;
         message.policyMatchType = 0;
@@ -2939,8 +2961,14 @@ class Flow$Type extends MessageType<Flow> {
                 case /* repeated string source_names */ 13:
                     message.sourceNames.push(reader.string());
                     break;
+                case /* repeated string source_names_expired */ 44:
+                    message.sourceNamesExpired.push(reader.string());
+                    break;
                 case /* repeated string destination_names */ 14:
                     message.destinationNames.push(reader.string());
+                    break;
+                case /* repeated string destination_names_expired */ 45:
+                    message.destinationNamesExpired.push(reader.string());
                     break;
                 case /* flow.Layer7 l7 */ 15:
                     message.l7 = Layer7.internalBinaryRead(reader, reader.uint32(), options, message.l7);
@@ -3149,6 +3177,12 @@ class Flow$Type extends MessageType<Flow> {
         /* flow.Emitter emitter = 41; */
         if (message.emitter)
             Emitter.internalBinaryWrite(message.emitter, writer.tag(41, WireType.LengthDelimited).fork(), options).join();
+        /* repeated string source_names_expired = 44; */
+        for (let i = 0; i < message.sourceNamesExpired.length; i++)
+            writer.tag(44, WireType.LengthDelimited).string(message.sourceNamesExpired[i]);
+        /* repeated string destination_names_expired = 45; */
+        for (let i = 0; i < message.destinationNamesExpired.length; i++)
+            writer.tag(45, WireType.LengthDelimited).string(message.destinationNamesExpired[i]);
         /* repeated flow.Policy egress_allowed_by = 21001; */
         for (let i = 0; i < message.egressAllowedBy.length; i++)
             Policy.internalBinaryWrite(message.egressAllowedBy[i], writer.tag(21001, WireType.LengthDelimited).fork(), options).join();
