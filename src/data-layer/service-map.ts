@@ -244,7 +244,7 @@ export class ServiceMap extends EventEmitter<Handlers> {
     const [include, exclude] = !isActive ? [card.filterEntries, []] : [[], card.filterEntries];
 
     const [flowFilters, isChanged] = FilterEntry.combine(
-      this.store.controls.filteredFlowFilters,
+      this.store.controls.flowFilters,
       include,
       exclude,
     );

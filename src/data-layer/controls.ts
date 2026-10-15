@@ -261,9 +261,6 @@ export class Controls extends EventEmitter<Handlers> {
     const services = this.store.currentFrame.services;
 
     for (let filter of ff) {
-      // NOTE: Filtering by TCP flags is not supported?
-      if (filter.isTCPFlag) continue;
-
       const card = services.byFilterEntry(filter);
       if (card != null) {
         filter = filter.clone().setMeta(filter.meta || card.getFilterEntryMeta(filter) || '');
