@@ -27,6 +27,7 @@ func main() {
 		TLSToRelayClientKeyFile:  config.StrOr("TLS_RELAY_CLIENT_KEY_FILE", ""),
 		E2ETestModeEnabled:       config.BoolOr("E2E_TEST_MODE", false),
 		E2ELogfilesBasepath:      config.StrOr("E2E_LOGFILES_BASEPATH", ""),
+		ServerEnableHTTP2Unencrypted: config.BoolOr("SERVER_ENABLE_HTTP2_UNENCRYPTED", false),
 	}).Build()
 
 	if err != nil {
