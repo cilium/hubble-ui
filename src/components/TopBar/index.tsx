@@ -12,6 +12,7 @@ import { VerdictFilterDropdown } from './VerdictFilterDropdown';
 import { VisualFiltersDropdown } from './VisualFiltersDropdown';
 import { NamespaceSelectorDropdown } from './NamespaceSelectorDropdown';
 import { ConnectionIndicator } from './ConnectionIndicator';
+import { ExportButton } from './ExportButton';
 
 import css from './styles.scss';
 
@@ -35,6 +36,7 @@ export interface Props {
   onShowRemoteNodeToggle?: () => void;
   showPrometheusApp: boolean;
   onShowPrometheusAppToggle: () => void;
+  onExport?: () => void;
 }
 
 export const TopBar = observer(function TopBar(props: Props) {
@@ -72,6 +74,7 @@ export const TopBar = observer(function TopBar(props: Props) {
         {props.currentNamespace && RenderedFilters}
       </div>
       <div className={css.right}>
+        <ExportButton onExport={props.onExport} />
         <div className={css.spacer} />
         <div className={css.spacer} />
 
