@@ -1,15 +1,17 @@
 export const numberWithCommas = (x: string | number): string => {
   const str = x.toString();
-  const len = str.length;
+  const isNegative = str.startsWith('-');
+  const digits = isNegative ? str.slice(1) : str;
+  const len = digits.length;
   const commaIndex = len % 3;
   let formatted = '';
   for (let i = 0; i < len; i++) {
     if (i > 0 && i % 3 === commaIndex) {
       formatted += ',';
     }
-    formatted += str[i];
+    formatted += digits[i];
   }
-  return formatted;
+  return (isNegative ? '-' : '') + formatted;
 };
 
 export enum Units {
