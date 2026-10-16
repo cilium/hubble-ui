@@ -17,9 +17,7 @@ func New(delay time.Duration) *Debounce {
 }
 
 func (d *Debounce) Touch() {
-	if d.ensureTicker() {
-		return
-	}
+	d.ensureTicker()
 
 	if !d.ticker.Stop() {
 		select {
@@ -47,6 +45,13 @@ func (d *Debounce) Stop() {
 func (d *Debounce) ensureTicker() bool {
 	if d.ticker == nil {
 		d.ticker = time.NewTimer(d.delay)
+		if !d.ticker.Stop() {
+			select {
+			case <-d.ticker.C:
+			default:
+			}
+		}
+
 		return true
 	}
 
