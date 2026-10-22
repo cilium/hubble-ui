@@ -133,7 +133,7 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
         tcpFlagSelection.add(filter.query as TCPFlagName);
       }
 
-      if (filter.isDNS && filter.query === flow.destinationDns) {
+      if (filter.isDNS && filter.query.toLowerCase() === flow.destinationDns?.toLowerCase()) {
         setDnsSelected(true);
       }
 

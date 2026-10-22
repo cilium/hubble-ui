@@ -21,7 +21,8 @@ export const filterServiceByEntry = (service: Service, e: FilterEntry): boolean 
   }
 
   if (e.isDNS) {
-    pass = service.dnsNames.includes(e.query) || service.id === e.query;
+    const query = e.query.toLowerCase();
+    pass = service.dnsNames.some(name => name.toLowerCase() === query) || service.id === e.query;
   }
 
   if (e.isWorkload) {
