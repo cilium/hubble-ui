@@ -6,7 +6,7 @@ import { FlowsTableSidebar } from '~/components/FlowsTable/Sidebar';
 
 import { Flow } from '~/domain/flows';
 import { HubbleFlow } from '~/domain/hubble';
-import { Filters } from '~/domain/filtering';
+import { Filters, FilterEntry } from '~/domain/filtering';
 
 import { data, render } from '~/testing';
 
@@ -139,4 +139,39 @@ runTest(9, data.flows.hubbleOne, {
 // `Destination IP` info doesn't render when unavailable
 runTest(10, data.flows.hubbleOne, {
   title: 'Destination IP',
+});
+
+describe('Sidebar DNS filter selection', () => {
+  test.each<[string, boolean]>([
+    ['api.example.com', true],
+    ['API.EXAMPLE.COM', true],
+    ['other.example.com', false],
+  ])('DNS query %s has selected state %s', (query, selected) => {
+    const flow = new Flow({ ...data.flows.hubbleOne, destinationNamesList: ['Api.Example.COM'] });
+    const filters = Filters.fromObject({
+      ...Filters.defaultObject(),
+      filters: [FilterEntry.newDNS(query)],
+    });
+    const onDnsClick = jest.fn();
+    const container = renderSidebar(
+      <FlowsTableSidebar
+        flow={flow}
+        onClose={() => {}}
+        filters={filters}
+        onDnsClick={onDnsClick}
+      />,
+    );
+    const dns = Array.from(container.querySelectorAll('span')).find(
+      element => element.textContent === 'Api.Example.COM',
+    );
+
+    expect(dns).toBeDefined();
+    expect(dns!.classList.contains('selected')).toBe(selected);
+    fireEvent.click(dns!);
+    if (selected) {
+      expect(onDnsClick).toHaveBeenCalledWith();
+    } else {
+      expect(onDnsClick).toHaveBeenCalledWith('Api.Example.COM');
+    }
+  });
 });
