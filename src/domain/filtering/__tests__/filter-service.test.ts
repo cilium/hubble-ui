@@ -580,3 +580,32 @@ describe('filterService', () => {
     },
   );
 });
+
+describe('DNS service filters', () => {
+  const service = {
+    ...services.world,
+    id: 'World-ID',
+    dnsNames: ['Api.Example.COM'],
+  };
+
+  test.each(['api.example.com', 'API.EXAMPLE.COM', 'Api.Example.COM'])(
+    'matches DNS query %s without changing the stored name',
+    query => {
+      const filter = FilterEntry.newDNS(query);
+      expect(filterServiceByEntry(service, filter)).toBe(true);
+      expect(service.dnsNames).toEqual(['Api.Example.COM']);
+      expect(filter.query).toBe(query);
+    },
+  );
+
+  test('preserves negative DNS filtering', () => {
+    const filter = FilterEntry.parse('!either:dns=API.example.com')!;
+    expect(filterServiceByEntry(service, filter)).toBe(false);
+    expect(filterServiceByEntry(service, FilterEntry.newDNS('other.example.com'))).toBe(false);
+  });
+
+  test('continues to compare service IDs exactly', () => {
+    expect(filterServiceByEntry(service, FilterEntry.newDNS('World-ID'))).toBe(true);
+    expect(filterServiceByEntry(service, FilterEntry.newDNS('world-id'))).toBe(false);
+  });
+});
