@@ -283,7 +283,7 @@ export class StatusCenter extends EventEmitter<Handlers> {
 
     const entry = StatusEntryBuilder.new()
       .setIntent(Intent.Info)
-      .setTitle(`Namespace "${ns.namespace} is appeared"`)
+      .setTitle(`Namespace "${ns.namespace}" has appeared`)
       .setDetails(`Hubble UI is capturing the namespace activity`)
       .setKeysToComplete([notObservedKey])
       .build();
