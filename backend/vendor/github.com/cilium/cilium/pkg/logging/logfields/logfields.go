@@ -1641,7 +1641,7 @@ const (
 
 	Output = "output"
 
-	RssBytes = "rssBytes"
+	RssKiB = "rssKiB"
 
 	BPFFSPath = "bpffsPath"
 
@@ -1696,6 +1696,10 @@ const (
 	PolicyRevisionNext = "policyRevisionNext"
 
 	PolicyRevisionRepo = "policyRevisionRepo"
+
+	// PolicyRevisionCurrentAt is the highest repository revision a computed
+	// policy is known to be correct for.
+	PolicyRevisionCurrentAt = "policyRevisionCurrentAt"
 
 	PolicyChanged = "policyChanged"
 
@@ -1933,4 +1937,6 @@ const (
 	CiliumDatapathPluginAttachmentPolicy = "datapathPluginAttachmentPolicy"
 
 	CiliumDatapathPluginVersion = "datapathPluginVersion"
+
+	PendingInitializers = "pendingInitializers"
 )

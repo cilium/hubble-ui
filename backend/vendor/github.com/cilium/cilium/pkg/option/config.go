@@ -2781,6 +2781,7 @@ func (c *DaemonConfig) Populate(logger *slog.Logger, vp *viper.Viper) {
 	c.PolicyCIDRMatchMode = vp.GetStringSlice(PolicyCIDRMatchMode)
 	c.EnableNodeSelectorLabels = vp.GetBool(EnableNodeSelectorLabels)
 	c.NodeLabels = vp.GetStringSlice(NodeLabels)
+	c.EnableNonDefaultDenyPolicies = vp.GetBool(EnableNonDefaultDenyPolicies)
 
 	c.EnableCiliumNetworkPolicy = vp.GetBool(EnableCiliumNetworkPolicy)
 	c.EnableCiliumClusterwideNetworkPolicy = vp.GetBool(EnableCiliumClusterwideNetworkPolicy)
@@ -3277,6 +3278,9 @@ func (c *DaemonConfig) validateVTEP(vp *viper.Viper) error {
 	mask, err := netip.ParseAddr(vtepCidrMask)
 	if err != nil {
 		return fmt.Errorf("invalid VTEP CIDR Mask: %w", err)
+	}
+	if !mask.Is4() {
+		return fmt.Errorf("VTEP CIDR Mask %q must be an IPv4 address", mask)
 	}
 	c.VtepCidrMask = mask
 
