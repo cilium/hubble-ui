@@ -387,7 +387,8 @@ export class Labels {
       props.isIngress = !!props.isIngress || Labels.isReserved(kv, ReservedLabel.Ingress, false);
       props.isRemoteNode =
         !!props.isRemoteNode || Labels.isReserved(kv, ReservedLabel.RemoteNode, false);
-      props.isPrometheusApp = !!props.isPrometheusApp || kv.key === SpecialLabel.PrometheusApp;
+      props.isPrometheusApp =
+        !!props.isPrometheusApp || Labels.isSpecial(kv, SpecialLabel.PrometheusApp);
 
       if (!props.appName) {
         props.appName = Labels.getAppNameFromLabel(kv) || void 0;

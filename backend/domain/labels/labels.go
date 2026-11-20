@@ -52,7 +52,7 @@ func Props(labels []string) *LabelProps {
 			ReservedLabelRemoteNode,
 		)
 		props.IsKubeDNS = props.IsKubeDNS || lbl == string(SpecialLabelKubeDNS)
-		props.IsPrometheus = props.IsPrometheus || k == string(
+		props.IsPrometheus = props.IsPrometheus || lbl == string(
 			SpecialLabelPrometheus,
 		)
 		props.IsKubeAPIServer = props.IsKubeAPIServer || k == string(
