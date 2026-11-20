@@ -207,8 +207,16 @@ export class Flow {
     return this.ref.sourceNamesList;
   }
 
+  public get sourceNamesExpiredList() {
+    return this.ref.sourceNamesExpiredList;
+  }
+
   public get destinationNamesList() {
     return this.ref.destinationNamesList;
+  }
+
+  public get destinationNamesExpiredList() {
+    return this.ref.destinationNamesExpiredList;
   }
 
   public get sourceIdentity() {

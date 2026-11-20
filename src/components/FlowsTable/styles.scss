@@ -51,7 +51,8 @@
         color: #fff;
       }
 
-      .subtitle {
+      .subtitle,
+      .expiredDns {
         color: #ccc;
       }
     }
@@ -124,6 +125,14 @@
     font-style: italic;
     font-weight: 500;
   }
+}
+
+// Marks a DNS name whose record has expired. Shared by the flows table and the
+// flow details sidebar, so it must not be nested under either.
+.expiredDns {
+  margin-left: 4px;
+  color: #999;
+  cursor: default;
 }
 
 .sidebar {

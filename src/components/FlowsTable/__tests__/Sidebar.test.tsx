@@ -140,3 +140,52 @@ runTest(9, data.flows.hubbleOne, {
 runTest(10, data.flows.hubbleOne, {
   title: 'Destination IP',
 });
+
+const withDestinationNames = (names: string[], expired: string[]): HubbleFlow => ({
+  ...data.flows.hubbleOne,
+  destinationNamesList: names,
+  destinationNamesExpiredList: expired,
+});
+
+// `Destination DNS` lists the current name followed by every expired name
+runTest(
+  11,
+  withDestinationNames(['current.example.com'], ['old-a.example.com', 'old-b.example.com']),
+  {
+    title: 'Destination DNS',
+    body: 'current.example.comold-a.example.comold-b.example.com',
+  },
+);
+
+// `Destination DNS` renders when only expired names are available
+runTest(12, withDestinationNames([], ['old.example.com']), {
+  title: 'Destination DNS',
+  body: 'old.example.com',
+});
+
+describe('Sidebar: expired names are marked', () => {
+  const render_ = (hf: HubbleFlow) =>
+    renderSidebar(
+      <FlowsTableSidebar
+        flow={new Flow(hf)}
+        onClose={jest.fn()}
+        filters={Filters.fromObject(Filters.default())}
+      ></FlowsTableSidebar>,
+    );
+
+  test('one marker per expired name, none for the current name', () => {
+    const container = render_(
+      withDestinationNames(['current.example.com'], ['old-a.example.com', 'old-b.example.com']),
+    );
+
+    expect(
+      container.querySelectorAll('[role="img"][aria-label^="DNS record expired"]').length,
+    ).toBe(2);
+  });
+
+  test('no marker without expired names', () => {
+    const container = render_(withDestinationNames(['current.example.com'], []));
+
+    expect(container.querySelectorAll('[aria-label^="DNS record expired"]').length).toBe(0);
+  });
+});
