@@ -76,11 +76,13 @@ export class Flow {
   }
 
   public senderHasDomain(domain: string): boolean {
-    return this.sourceNamesList.includes(domain);
+    const query = domain.toLowerCase();
+    return this.sourceNamesList.some(name => name.toLowerCase() === query);
   }
 
   public receiverHasDomain(domain: string): boolean {
-    return this.destinationNamesList.includes(domain);
+    const query = domain.toLowerCase();
+    return this.destinationNamesList.some(name => name.toLowerCase() === query);
   }
 
   public hasTCPFlag(flag: keyof TCPFlags): boolean {

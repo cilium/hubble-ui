@@ -66,7 +66,7 @@ export class ServiceStore {
     const map = new Map<string, ServiceCard>();
 
     this.cardsList.forEach(card => {
-      const domain = card.domain;
+      const domain = card.domain?.toLowerCase();
       if (!domain) return;
 
       if (map.has(domain)) {
@@ -127,7 +127,7 @@ export class ServiceStore {
     } else if (filter.isDNS) {
       // NOTE: Here `filter.query` contains domain, and `getServiceId` on backend uses that domain
       // to generate an id for this UI card
-      return this.cardsDomainMap.get(filter.query);
+      return this.cardsDomainMap.get(filter.query.toLowerCase());
     } else if (filter.isWorkload) {
       // NOTE: In this case, query is workload name and meta is workload kind
       return this.byWorkload(filter.asWorkload());
