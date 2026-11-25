@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.27
+# syntax=docker/dockerfile:1.29
 
 # Copyright 2021 Authors of Cilium
 # SPDX-License-Identifier: Apache-2.0
@@ -6,8 +6,8 @@
 # BUILDPLATFORM is an automatic platform ARG enabled by Docker BuildKit.
 # Represents the plataform where the build is happening, do not mix with
 # TARGETARCH
-# skopeo inspect --override-os linux --override-arch amd64 docker://docker.io/library/node:24.20.0-alpine3.23 | jq -r '.Digest'
-FROM --platform=${BUILDPLATFORM} docker.io/library/node:24.20.0-alpine3.23@sha256:0388af2af070cd4736a1567cfed02469ba117848845b4165d87a333edb53d2ca as stage1
+# skopeo inspect --override-os linux --override-arch amd64 docker://docker.io/library/node:24.22.3-alpine3.23 | jq -r '.Digest'
+FROM --platform=${BUILDPLATFORM} docker.io/library/node:24.22.3-alpine3.23@sha256:3946fb783fdce8a2812136ea694bc95c698c4f4096f3fd18568dc27a8ac389dc as stage1
 RUN apk add make git bash
 WORKDIR /app
 
