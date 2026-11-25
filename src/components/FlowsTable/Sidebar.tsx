@@ -16,6 +16,8 @@ import {
   PodEntry,
 } from './SidebarComponents';
 
+import { ExpiredDnsMarker } from './ExpiredDnsMarker';
+
 import css from './styles.scss';
 
 export interface Props {
@@ -423,18 +425,27 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
           </div>
         </section>
       )}
-      {flow.hasDestination && flow.destinationDns && (
-        <section className={css.block}>
-          <span className={css.title}>Destination DNS</span>
-          <div className={css.body}>
-            <DnsBodyItem
-              dns={flow.destinationDns}
-              isSelected={isDnsSelected}
-              onClick={onDnsClick}
-            />
-          </div>
-        </section>
-      )}
+      {flow.hasDestination &&
+        (flow.destinationDns || flow.destinationNamesExpiredList.length > 0) && (
+          <section className={css.block}>
+            <span className={css.title}>Destination DNS</span>
+            <div className={css.body}>
+              {flow.destinationDns && (
+                <DnsBodyItem
+                  dns={flow.destinationDns}
+                  isSelected={isDnsSelected}
+                  onClick={onDnsClick}
+                />
+              )}
+              {flow.destinationNamesExpiredList.map(name => (
+                <div key={name}>
+                  {name}
+                  <ExpiredDnsMarker />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       {flow.hasDestination && flow.protocol && (
         <section className={css.block}>
           <span className={css.title}>Destination {!isICMPProtocol && 'port • '}protocol</span>
