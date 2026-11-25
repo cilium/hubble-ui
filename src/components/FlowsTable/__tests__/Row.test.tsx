@@ -65,7 +65,7 @@ const runAppearanceTests = (row: HTMLElement, exps: Expectations, selected: bool
 
 const runTemporalTests = (row: HTMLElement) => {
   jest.clearAllTimers();
-  const tsLabel = row.querySelector('.cell:nth-child(12)')!;
+  const tsLabel = row.querySelector('.cell:nth-child(13)')!;
 
   // Just checks that tsLabel contains smth
   jest.advanceTimersByTime(0);

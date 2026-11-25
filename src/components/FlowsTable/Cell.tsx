@@ -127,6 +127,13 @@ export const Cell = observer(function FlowsTableCell(props: CellProps) {
     case Column.Auth: {
       return <div className={classnames(css.cell, css.auth)}>{props.flow.authTypeLabel}</div>;
     }
+    case Column.Encrypted: {
+      return (
+        <div className={classnames(css.cell, css.encrypted)}>
+          {props.flow.isEncrypted ? 'Yes' : 'No'}
+        </div>
+      );
+    }
     case Column.TcpFlags: {
       return <div className={classnames(css.cell, css.tcpFlags)}>{props.flow.joinedTcpFlags}</div>;
     }
