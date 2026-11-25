@@ -303,6 +303,10 @@ export const FlowsTableSidebar = memo<Props>(function FlowsTableSidebar(props) {
         </section>
       )}
       <section className={css.block}>
+        <span className={css.title}>Encrypted</span>
+        <div className={css.body}>{flow.isEncrypted ? 'Yes' : 'No'}</div>
+      </section>
+      <section className={css.block}>
         <span className={css.title}>Traffic direction</span>
         <div className={css.body}>{flow.trafficDirectionLabel}</div>
       </section>
