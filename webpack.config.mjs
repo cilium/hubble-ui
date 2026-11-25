@@ -106,6 +106,13 @@ export default {
   stats: {
     colors: true,
   },
+  optimization: {
+    minimizeOptions: {
+      // The cilium chart nginx looks for the exact `<base href="/"/>` string to apply
+      // hubble.ui.baseUrl, and webpack's html minimizer turns it into `<base href=/>`.
+      html: false,
+    },
+  },
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.jsx', '.json', '.mjs'],
     alias: {
